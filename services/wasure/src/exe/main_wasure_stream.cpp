@@ -1,0 +1,1714 @@
+#include "wasure_typedefs.hpp"
+#include "write_geojson_wasure.hpp"
+
+#include "io/stream_api.hpp"
+#include "io/write_stream.hpp"
+#include "io/write_vrt.hpp"
+#include "io/write_geojson.hpp"
+#include "io/read_stream.hpp"
+#include "io/logging_stream.hpp"
+
+//#include "main_stream.hpp"
+
+//#include "write_surface.hpp"
+#include "wasure_data.hpp"
+#include "wasure_algo.hpp"
+#include "tbmrf_reco.hpp"
+#include "tbmrf_conflict.hpp"
+#include "io_ddt_stream.hpp"
+#include "graph_cut.hpp"
+
+
+
+typedef std::map<Id,wasure_data<Traits> > D_MAP;
+typedef std::map<Id,std::list<wasure_data<Traits>> > D_LMAP;
+
+//typedef typename Traits::Full_cell_const_iterator                 Cell_const_iterator;
+
+
+template<typename DDT>
+void init_global_id(const DDT& ddt, D_MAP & w_datas_tri, int tid)
+{
+    typedef typename DDT::Traits Traits;
+    typedef typename Traits::Flag_C                    Flag_C;
+    typedef typename Traits::Data_C                    Data_C;
+    int nextid = 0;
+    int D = Traits::D;
+    int acc = 0;
+    std::vector<int>  & format_gids = w_datas_tri[tid].format_gids;
+    int nbs = w_datas_tri[tid].nb_simplex_input();
+    format_gids.resize(nbs);
+    for(int i = 0; i < nbs; i++)
+        format_gids[i] = -1;
+    for(auto iit = ddt.cells_begin(); iit != ddt.cells_end(); ++iit)
+    {
+        int local = 0;
+        const Data_C & cd = iit->cell_data();
+        Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
+        if(cd_quickndirty.flag > 0)
+            format_gids[cd_quickndirty.id] = w_datas_tri[tid].tile_ids[2] + (acc++);
+        //cd_quickndirty.id = acc++;
+    }
+    w_datas_tri[tid].fill_gids(w_datas_tri[tid].format_gids);
+}
+
+
+int simplify(Id tid,wasure_params & params,int nb_dat)
+{
+    std::cout.setstate(std::ios_base::failbit);
+
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        if(hpi.get_lab() == "p")
+        {
+            ddt_data<Traits> w_datas;
+            w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+            hpi.finalize();
+
+            std::cout.clear();
+            Id id = hpi.get_id(0);
+            ddt::stream_data_header oqh("p","s",id);
+            std::string filename(params.output_dir + "/" + params.slabel +"_id_"+ std::to_string(tid) + "_" + std::to_string(id));
+            if(!params.do_stream)
+                oqh.init_file_name(filename,".ply");
+            oqh.write_header(std::cout);
+            w_datas.write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
+            oqh.finalize();
+            std::cout << std::endl;
+        }
+    }
+    return 0;
+}
+
+
+int preprocess(Id tid,wasure_params & params, int nb_dat)
+{
+    std::cout.setstate(std::ios_base::failbit);
+    Traits  traits;
+    wasure_algo w_algo;
+    int D = Traits::D;
+    int max_ppt = 200000;
+    std::map<Id,ddt_data<Traits> > tile_map;
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        wasure_data<Traits> w_datas;
+        hpi.parse_header(std::cin);
+        if(hpi.get_lab() == "p")
+        {
+            w_datas.read_ply_stream(hpi.get_input_stream());
+        }
+        if(hpi.get_lab() == "g")
+        {
+            w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+        }
+
+        hpi.finalize();
+        std::cerr << "hpi finalized" << std::endl;
+        int count = w_datas.nb_pts_input();
+        std::vector<bool> do_keep(count,false);
+        std::vector<float> v_xyz;
+        w_datas.dmap[w_datas.xyz_name].extract_full_input(v_xyz,false);
+        for(int jj = 0; jj < count; jj++)
+        {
+            double coords[Traits::D];
+            for(int d = 0; d < D; d++)
+                coords[d] = (double)v_xyz[jj*D+d];
+            w_datas.format_points.push_back(traits.make_point(coords));
+        }
+
+
+
+
+        w_algo.simplify(w_datas.format_points,do_keep,0.02);
+        std::cerr << "start tiling" << std::endl;
+        int curr_tid = 0;
+        int nb_keep = 0;
+        for(int ii = 0; ii < count ; ii++)
+        {
+            if(do_keep[ii])
+            {
+                Id id = Id(nb_keep/max_ppt);
+                auto it = tile_map.find(id);
+                if(it==tile_map.end())
+                {
+                    tile_map[id] = ddt_data<Traits>(w_datas.dmap);
+                }
+                tile_map[id].copy_attribute(w_datas,ii,std::string("x"));
+                tile_map[id].copy_attribute(w_datas,ii,std::string("x_origin"));
+                nb_keep++;
+            }
+
+        }
+    }
+    std::cout.clear();
+    std::cerr << "count finalized" << std::endl;
+
+
+    for ( const auto &myPair : tile_map )
+    {
+        Id id = myPair.first;
+        int nb_out = tile_map[id].nb_pts_output();
+
+        ddt::stream_data_header oqh("p","s",id),och("c","s",id);
+        std::string filename(params.output_dir + "/" + params.slabel + "_id_" + std::to_string(tid) + "_" + std::to_string(id));
+        //    if(!params.do_stream)
+        oqh.init_file_name(filename,".ply");
+        oqh.write_header(std::cout);
+        tile_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR,false);
+        //    tile_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
+        oqh.finalize();
+        std::cout << std::endl;
+        och.write_header(std::cout);
+        och.get_output_stream() << nb_out;
+        och.finalize();
+        std::cout << std::endl;
+    }
+    return 0;
+}
+
+
+
+int dim_fun(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+    std::cout.setstate(std::ios_base::failbit);
+    std::cerr << "into fun" << std::endl;
+    wasure_algo w_algo;
+    int D = Traits::D;
+    Traits  traits;
+
+    for(int i = 0; i < nb_dat; i++)
+    {
+
+        ddt::stream_data_header hpi;
+        wasure_data<Traits> w_datas;
+
+        hpi.parse_header(std::cin);
+
+        log.step("read");
+        if(hpi.get_lab() == "p")
+        {
+            std::cerr << "start read ply" << std::endl;
+            w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+            std::cerr << "end read ply" << std::endl;
+        }
+        hpi.finalize();
+        std::cerr << "finalize" << std::endl;
+
+        log.step("compute");
+        w_datas.extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
+        w_datas.extract_ptsvect(w_datas.center_name,w_datas.format_centers,false);
+
+        std::vector<Point> p_simp;
+        if(params.pscale >= 0)
+        {
+            w_algo.compute_dim_with_simp(w_datas.format_points,
+                                         w_datas.format_egv,
+                                         w_datas.format_sigs,
+                                         p_simp,
+                                         params.pscale);
+        }
+        else
+        {
+            w_algo.compute_dim(w_datas.format_points,
+                               w_datas.format_egv,
+                               w_datas.format_sigs);
+        }
+
+
+        if(w_datas.format_centers.size() == 0)
+        {
+            double coords[Traits::D];
+            for(auto pp : w_datas.format_points)
+            {
+                for(int d = 0; d < D; d++)
+                {
+                    if(d < D-1)
+                        coords[d] = pp[d];
+                    else
+                        coords[d] = pp[d] + 30;
+                }
+                w_datas.format_centers.push_back(traits.make_point(coords));
+            }
+        }
+        w_algo.flip_dim_ori(w_datas.format_points,
+                            w_datas.format_egv,
+                            w_datas.format_centers);
+
+
+
+
+        std::cerr << "~~ ==" << w_datas.format_points.size() << " " << w_datas.format_points.size() << std::endl;
+        std::cerr << "~~ ==" << w_datas.format_egv.size() << " " << w_datas.format_sigs.size() << std::endl;
+        std::cerr << "~~ ==" << w_datas.format_centers.size() << " " << w_datas.format_centers.size() << std::endl;
+
+        if(tid == 0)
+        {
+            for(int ii = 0; ii < 30; ii++)
+            {
+                std::cerr << "==O>" << w_datas.format_points[ii][0] << " " << w_datas.format_egv[ii][0][0] << std::endl;
+            }
+        }
+
+        w_datas.fill_egv(w_datas.format_egv);
+        w_datas.fill_sigs(w_datas.format_sigs);
+
+
+        std::cerr << "dim done tile : "<< tid << std::endl;
+        std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_dim");
+        std::cout.clear();
+
+
+        log.step("write");
+        ddt::stream_data_header oth("p","s",tid);
+        if(!params.do_stream)
+            oth.init_file_name(ply_name,".ply");
+        oth.write_header(std::cout);
+        w_datas.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
+        oth.finalize();
+        std::cout << std::endl;
+        if(p_simp.size() > 0)
+        {
+            ddt::stream_data_header oxh("x","s",tid);
+            ddt_data<Traits> datas_out;
+            datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+            datas_out.dmap[datas_out.xyz_name].fill_full_output(p_simp);
+
+            if(!params.do_stream)
+                oxh.init_file_name(ply_name,".ply");
+            oxh.write_header(std::cout);
+            datas_out.write_ply_stream(oxh.get_output_stream(),PLY_CHAR);
+            oxh.finalize();
+            std::cout << std::endl;
+        }
+
+
+    }
+    return 0;
+}
+
+
+
+int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+    std::cout.setstate(std::ios_base::failbit);
+
+    DTW tri;
+    Scheduler sch(1);
+    int D = Traits::D;
+    std::cerr << "dst_step1" << std::endl;
+    wasure_algo w_algo;
+
+    D_LMAP w_datas_pts;
+    D_MAP w_datas_tri;
+    std::map<Id,ddt_data<Traits> > d_datas_tri;
+
+
+    auto w_data_full = wasure_data<Traits>();
+
+    std::cerr << "dst_step2" << std::endl;
+
+    log.step("read");
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+        if(hpi.get_lab() == "t")
+        {
+
+            w_datas_tri[hid] = wasure_data<Traits>();
+            bool do_clean_data = false;
+            bool do_serialize = false;
+            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+
+        }
+        if(hpi.get_lab() == "s")
+        {
+            std::vector<int> vv(3);
+            for(int d = 0; d < 3; d++)
+            {
+                hpi.get_input_stream() >> vv[d];
+            }
+            w_datas_tri[hid].tile_ids = vv;
+        }
+        if(hpi.get_lab() == "p")
+        {
+
+            w_datas_pts[hid].push_back(wasure_data<Traits>());
+            w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+
+        }
+        hpi.finalize();
+    }
+    log.step("preprocess");
+
+
+    for ( auto it = w_datas_pts.begin(); it != w_datas_pts.end(); it++ )
+    {
+
+        //   w_datas_pts[it->first].extract_ptsvect(w_datas_pts[it->first].xyz_name,w_datas_pts[tid].format_points,false);
+
+        //   w_datas_pts[it->first].extract_egv(w_datas_pts[it->first].format_egv,false);
+        //   w_datas_pts[it->first].extract_sigs(w_datas_pts[it->first].format_sigs,false);
+
+        for(auto & wpt : w_datas_pts[it->first])
+        {
+            wpt.extract_ptsvect(w_data_full.xyz_name,w_data_full.format_points,false);
+            wpt.extract_egv(w_data_full.format_egv,false);
+            wpt.extract_sigs(w_data_full.format_sigs,false);
+            wpt.extract_ptsvect(w_data_full.center_name,w_data_full.format_centers,false);
+        }
+    }
+
+    std::cerr << "dst_step3" << std::endl;
+    std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
+    if(format_dst.size() == 0)
+    {
+        int nbs = w_datas_tri[tid].nb_simplex_input();
+        for(int ss = 0; ss < nbs ; ss++)
+        {
+            format_dst.push_back(std::vector<double>({0.0,0.0,1.0}));
+        }
+    }
+
+    log.step("compute");
+    DT & tri_tile  = tri.get_tile(tid)->triangulation();
+    // if(params.rat_ray_sample == 0 ){
+    //   w_algo.compute_dst_tri(tri_tile,w_datas_tri[tid],w_datas_pts[tid],params);
+    // }else{w
+
+
+    if(false)  // On all pts
+    {
+        for ( auto it = w_datas_pts.begin(); it != w_datas_pts.end(); it++ )
+        {
+            //            for(auto & wpt : w_datas_pts[it->first]){
+            for(auto wpt = w_datas_pts[it->first].begin() ; wpt != w_datas_pts[it->first].end() ; wpt++)
+            {
+                w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],*wpt,params);
+            }
+        }
+    }
+    else   // Only On local pts
+    {
+        w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],w_data_full,params);
+        // for(auto wpt = w_datas_pts[tid].begin() ; wpt != w_datas_pts[tid].end() ; wpt++){
+        // 	w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],*wpt,params);
+        // }
+        //w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],*w_datas_pts[tid].begin(),params);
+    }
+    //}0
+
+
+    init_global_id(tri,w_datas_tri,tid);
+
+
+    // if(Traits::D == 2){
+    //   std::string outt = get_img_2d_name(params.output_dir, tid);
+    //   //dump_dst_in_img(datas, params, outt );
+    // }
+
+    log.step("finalize");
+    w_datas_tri[tid].fill_dst(w_datas_tri[tid].format_dst);
+    log.step("write");
+    std::cerr << "dst_step6" << std::endl;
+    std::cout.clear();
+    //  log.step("Write header");
+    ddt::stream_data_header oth("t","s",tid);
+    std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
+    if(!params.do_stream)
+        oth.init_file_name(filename,".ply");
+    oth.write_header(std::cout);
+    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    oth.finalize();
+    std::cout << std::endl;
+
+
+    return 0;
+}
+
+
+int dst_conflict(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+    std::cerr << "dst_mode:conflict" << std::endl;
+    std::cout.setstate(std::ios_base::failbit);
+    std::cerr << "dst_step0" << std::endl;
+
+    DTW tri;
+    Scheduler sch(1);
+    int D = Traits::D;
+    std::cerr << "dst_step1" << std::endl;
+    wasure_algo w_algo;
+
+    D_LMAP w_datas_pts;
+    D_MAP w_datas_tri;
+    std::map<Id,ddt_data<Traits> > d_datas_tri;
+
+
+    auto w_data_full = wasure_data<Traits>();
+
+    std::cerr << "dst_step2" << std::endl;
+
+    log.step("read");
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+        if(hpi.get_lab() == "t")
+        {
+            w_datas_tri[hid] = wasure_data<Traits>();
+            bool do_clean_data = false;
+            bool do_serialize = false;
+            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+        }
+        if(hpi.get_lab() == "s")
+        {
+            std::vector<int> vv(3);
+            for(int d = 0; d < 3; d++)
+            {
+                hpi.get_input_stream() >> vv[d];
+            }
+            w_datas_tri[hid].tile_ids = vv;
+        }
+        if(hpi.get_lab() == "p")
+        {
+            //      auto wdt = wasure_data<Traits>();
+            // if(w_datas_pts.find(hid) == w_datas_pts.end())
+            // 	w_datas_pts[hid] = new std::list<wasure_data<Traits>>();
+            w_datas_pts[hid].push_back(wasure_data<Traits>());
+            w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+
+        }
+        hpi.finalize();
+    }
+    log.step("preprocess");
+
+
+    for ( auto it = w_datas_pts.begin(); it != w_datas_pts.end(); it++ )
+    {
+        for(auto & wpt : w_datas_pts[it->first])
+        {
+            wpt.extract_ptsvect(wpt.xyz_name,wpt.format_points,false);
+            wpt.extract_egv(wpt.format_egv,false);
+            wpt.extract_sigs(wpt.format_sigs,false);
+            wpt.extract_ptsvect(wpt.center_name,wpt.format_centers,false);
+        }
+    }
+
+    std::cerr << "dst_step3" << std::endl;
+    std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
+    int nbs = w_datas_tri[tid].nb_simplex_input();
+    if(format_dst.size() == 0)
+    {
+        for(int ss = 0; ss < nbs ; ss++)
+        {
+            format_dst.push_back(std::vector<double>({0.0,0.0,1.0}));
+        }
+    }
+
+    log.step("compute");
+    DT & tri_tile  = tri.get_tile(tid)->triangulation();
+    // if(params.rat_ray_sample == 0 ){
+    //   w_algo.compute_dst_tri(tri_tile,w_datas_tri[tid],w_datas_pts[tid],params);
+    // }else{
+
+
+
+    std::list<wasure_data<Traits>> l_tri;
+    if(true)  // On all pts
+    {
+        for ( auto it = w_datas_pts.begin(); it != w_datas_pts.end(); it++ )
+        {
+            //            for(auto & wpt : w_datas_pts[it->first]){
+
+
+            for(auto & wpt : w_datas_pts[it->first])
+            {
+                l_tri.push_back(wasure_data<Traits>());
+                auto & wd_tri = l_tri.back();
+                std::vector<std::vector<double>>  & format_dst_pts = wd_tri.format_dst; ;
+                if(format_dst_pts.size() == 0)
+                {
+                    for(int ss = 0; ss < nbs ; ss++)
+                    {
+                        format_dst_pts.push_back(std::vector<double>({0.0,0.0,1.0}));
+                    }
+                }
+                w_algo.compute_dst_with_center(tri_tile,wd_tri,wpt,params);
+                for(int ss = 0; ss < nbs ; ss++)
+                {
+                    double & vpe = format_dst_pts[ss][0];
+                    double & vpo = format_dst_pts[ss][1];
+                    double & vpu = format_dst_pts[ss][2];
+                    if(vpe > vpo)
+                    {
+                        vpe = vpe-vpo;
+                        vpo = 0;
+                        if(vpe > 0.95)
+                            vpe = 0.95;
+                        vpu =1-vpe;
+                    }
+                    else
+                    {
+                        vpo = vpo-vpe;
+                        vpe = 0;
+                        if(vpo > 0.95)
+                            vpo = 0.95;
+                        vpu = 1-vpo;
+                    }
+                }
+            }
+        }
+    }
+    int acc = 0;
+    for(auto & wd_tri : l_tri)
+    {
+        std::cout << "dst_acc:" << acc << std::endl;
+        // if(acc++ == 1)
+        //   continue;
+        std::vector<std::vector<double>>  & format_dst_pts = wd_tri.format_dst;
+        for(int ss = 0; ss < nbs ; ss++)
+        {
+            double  vpe = format_dst[ss][0];
+            double  vpo = format_dst[ss][1];
+            double  vpu = format_dst[ss][2];
+            w_algo.ds_score(vpe,vpo,vpu,
+                            format_dst_pts[ss][0],format_dst_pts[ss][1],format_dst_pts[ss][2],
+                            format_dst[ss][0],format_dst[ss][1],format_dst[ss][2]);
+            // std::cerr << "==== acc:" << acc << "========" << std::endl;
+            // std::cerr << "  " << vpe << "  " << vpo << "  " << vpu << std::endl;
+            // std::cerr << "  " << format_dst_pts[ss][0] << "  " << format_dst_pts[ss][1] << "  " << format_dst_pts[ss][2] << std::endl;
+            // std::cerr <<  "  " << format_dst[ss][0] << "  " << format_dst[ss][1] << "  " << format_dst[ss][2] << std::endl;
+            regularize(format_dst[ss][0],format_dst[ss][1],format_dst[ss][2]);
+            acc++;
+        }
+    }
+    init_global_id(tri,w_datas_tri,tid);
+
+
+    // if(Traits::D == 2){
+    //   std::string outt = get_img_2d_name(params.output_dir, tid);
+    //   //dump_dst_in_img(datas, params, outt );
+    // }
+
+    log.step("finalize");
+    w_datas_tri[tid].fill_dst(w_datas_tri[tid].format_dst);
+    log.step("write");
+    std::cerr << "dst_step6" << std::endl;
+    std::cout.clear();
+    //  log.step("Write header");
+    ddt::stream_data_header oth("t","s",tid);
+    std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
+    if(!params.do_stream)
+        oth.init_file_name(filename,".ply");
+    oth.write_header(std::cout);
+    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    oth.finalize();
+    std::cout << std::endl;
+    return 0;
+}
+
+
+
+int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+
+    std::cout.setstate(std::ios_base::failbit);
+    std::cerr << "dst_step0" << std::endl;
+
+    DTW tri;
+    Scheduler sch(1);
+    int D = Traits::D;
+    std::cerr << "dst_step1" << std::endl;
+    wasure_algo w_algo;
+
+    D_LMAP w_datas_pts;
+    D_MAP w_datas_tri;
+    std::map<Id,ddt_data<Traits> > d_datas_tri;
+
+
+
+
+    std::cerr << "dst_step2" << std::endl;
+
+    log.step("read");
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+        if(hpi.get_lab() == "t")
+        {
+
+            w_datas_tri[hid] = wasure_data<Traits>();
+            bool do_clean_data = false;
+            bool do_serialize = false;
+            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+
+        }
+        if(hpi.get_lab() == "s")
+        {
+            std::vector<int> vv(3);
+            for(int d = 0; d < 3; d++)
+            {
+                hpi.get_input_stream() >> vv[d];
+            }
+            w_datas_tri[hid].tile_ids = vv;
+        }
+        if(hpi.get_lab() == "p")
+        {
+            //      auto wdt = wasure_data<Traits>();
+            // if(w_datas_pts.find(hid) == w_datas_pts.end())
+            // 	w_datas_pts[hid] = new std::list<wasure_data<Traits>>();
+            w_datas_pts[hid].push_back(wasure_data<Traits>());
+            w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+
+        }
+        hpi.finalize();
+    }
+    log.step("preprocess");
+
+
+    for ( auto it = w_datas_pts.begin(); it != w_datas_pts.end(); it++ )
+    {
+
+        //   w_datas_pts[it->first].extract_ptsvect(w_datas_pts[it->first].xyz_name,w_datas_pts[tid].format_points,false);
+
+        //   w_datas_pts[it->first].extract_egv(w_datas_pts[it->first].format_egv,false);
+        //   w_datas_pts[it->first].extract_sigs(w_datas_pts[it->first].format_sigs,false);
+
+        for(auto & wpt : w_datas_pts[it->first])
+        {
+            wpt.extract_ptsvect(wpt.xyz_name,wpt.format_points,false);
+            wpt.extract_egv(wpt.format_egv,false);
+            wpt.extract_sigs(wpt.format_sigs,false);
+            wpt.extract_ptsvect(wpt.center_name,wpt.format_centers,false);
+        }
+
+    }
+
+    std::cerr << "dst_step3" << std::endl;
+    std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
+    if(format_dst.size() == 0)
+    {
+        int nbs = w_datas_tri[tid].nb_simplex_input();
+        for(int ss = 0; ss < nbs ; ss++)
+        {
+            format_dst.push_back(std::vector<double>({0.0,0.0,1.0}));
+        }
+    }
+
+    log.step("compute");
+    DT & tri_tile  = tri.get_tile(tid)->triangulation();
+    // if(params.rat_ray_sample == 0 ){
+    //   w_algo.compute_dst_tri(tri_tile,w_datas_tri[tid],w_datas_pts[tid],params);
+    // }else{
+
+
+    if(false)  // On all pts
+    {
+        for ( auto it = w_datas_pts.begin(); it != w_datas_pts.end(); it++ )
+        {
+            //            for(auto & wpt : w_datas_pts[it->first]){
+            for(auto wpt = w_datas_pts[it->first].begin() ; wpt != w_datas_pts[it->first].end() ; wpt++)
+            {
+                w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],*wpt,params);
+            }
+        }
+    }
+    else   // Only On local pts
+    {
+        for(auto wpt = w_datas_pts[tid].begin() ; wpt != w_datas_pts[tid].end() ; wpt++)
+        {
+            w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],*wpt,params);
+        }
+        //w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],*w_datas_pts[tid].begin(),params);
+    }
+    //}0
+
+
+    init_global_id(tri,w_datas_tri,tid);
+
+
+    // if(Traits::D == 2){
+    //   std::string outt = get_img_2d_name(params.output_dir, tid);
+    //   //dump_dst_in_img(datas, params, outt );
+    // }
+
+    log.step("finalize");
+    w_datas_tri[tid].fill_dst(w_datas_tri[tid].format_dst);
+    log.step("write");
+    std::cerr << "dst_step6" << std::endl;
+    std::cout.clear();
+    //  log.step("Write header");
+    ddt::stream_data_header oth("t","s",tid);
+    std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
+    if(!params.do_stream)
+        oth.init_file_name(filename,".ply");
+    oth.write_header(std::cout);
+    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    oth.finalize();
+    std::cout << std::endl;
+
+
+    return 0;
+}
+
+
+
+// bool is_local(Cell_const_iterator cci){
+//     int local = 0;
+//     for(int i=0; i<=D+1; ++i)
+//       {
+// 	auto v = cci->vertex(i % (D+1));
+// 	if(i>0)
+// 	  {
+// 	    local += v->is_local();
+// 	  }
+//       }
+//     return local > 0;
+// }
+
+
+
+
+int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+
+    std::vector<Facet_const_iterator> lft;
+    std::cout.setstate(std::ios_base::failbit);
+    DTW tri;
+    Scheduler sch(1);
+    wasure_algo w_algo;
+    int D = Traits::D;
+
+    D_MAP w_datas_tri;
+
+    log.step("read");
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+        if(hpi.get_lab() == "t")
+        {
+            w_datas_tri[hid] = wasure_data<Traits>();
+            bool do_clean_data = false;
+            bool do_serialize = false;
+            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+            w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
+        }
+        tri.finalize(sch);
+        hpi.finalize();
+    }
+
+    //    w_datas_tri[tid].extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
+    // Cell_const_iterator fch;
+
+    log.step("compute");
+    int mode = -1;
+    if(true)
+        mode = 1;
+    // if(params.mode.find(std::string("out")) != std::string::npos)
+    //   mode = 0;
+
+
+    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+    {
+        try
+        {
+            if(fit->main_id() != tid || fit->is_infinite())
+                continue;
+
+
+            Cell_const_iterator tmp_fch = fit.full_cell();
+            int tmp_idx = fit.index_of_covertex();
+            Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+
+
+
+            if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
+                    !tri.tile_is_loaded(tmp_fchn->main_id()))
+                continue;
+
+
+            Cell_const_iterator fch = tmp_fch->main();
+            int id_cov = fit.index_of_covertex();
+            Cell_const_iterator fchn = tmp_fchn->main();
+            Vertex_h_iterator vht;
+
+            int cccid = fch->cell_data().id;
+            int cccidn = fchn->cell_data().id;
+
+            int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
+            int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];
+            if(
+                (ch1lab != chnlab) ||
+                (((fch->is_infinite() && !fchn->is_infinite()) ||
+                  (!fch->is_infinite() && fchn->is_infinite())) && ch1lab == mode )
+            )
+                lft.push_back(*fit);
+
+        }
+        catch (ddt::DDT_exeption& e)
+        {
+            std::cerr << "!! WARNING !!!" << std::endl;
+            std::cerr << "Exception catched : " << e.what() << std::endl;
+            continue;
+        }
+    }
+
+
+
+    log.step("write");
+
+    std::cerr << "dim done tile : "<< tid << std::endl;
+    std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_surface");
+    std::cout.clear();
+
+    ddt::stream_data_header oth("p","f",tid);
+
+    if(D == 2)
+        oth.init_file_name(ply_name,".geojson");
+    else
+        oth.init_file_name(ply_name,".ply");
+
+    oth.write_header(std::cout);
+
+
+    switch (D)
+    {
+    case 2 :
+    {
+        wasure::dump_2d_surface_geojson<DTW>(lft,oth.get_output_stream());
+        break;
+    }
+    case 3 :
+    {
+
+        std::vector<Point>  format_points;
+        std::vector<int> v_simplex;
+        std::map<Vertex_const_iterator, uint> vertex_map;
+        ddt_data<Traits> datas_out;
+
+        int acc = 0;
+        for(auto fit = lft.begin(); fit != lft.end(); ++fit)
+        {
+            Cell_const_iterator fch = fit->full_cell();
+            int id_cov = fit->index_of_covertex();
+            for(int i = 0; i < D+1; ++i)
+            {
+                if(i != id_cov)
+                {
+                    Vertex_const_iterator v = fch->vertex(i);
+                    if(vertex_map.find(v) == vertex_map.end())
+                    {
+                        vertex_map[v] = acc++;
+                        format_points.push_back(v->point());
+                    }
+                }
+            }
+        }
+
+        for(auto fit = lft.begin(); fit != lft.end(); ++fit)
+        {
+            Cell_const_iterator fch = fit->full_cell();
+            int id_cov = fit->index_of_covertex();
+            for(int i = 0; i < D+1; ++i)
+            {
+                if(i != id_cov)
+                {
+                    Vertex_const_iterator v = fch->vertex(i);
+                    v_simplex.push_back(vertex_map[v]);
+                }
+            }
+        }
+
+        std::cerr << format_points.size() << std::endl;
+
+        datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+        datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
+        datas_out.dmap[datas_out.xyz_name].fill_full_output(format_points);
+        datas_out.dmap[datas_out.simplex_name].fill_full_output(v_simplex);
+        datas_out.write_ply_stream(oth.get_output_stream(),'\n',true);
+        break;
+    }
+    default :             // Note the colon, not a semicolon
+    {
+        return 1;
+        break;
+    }
+    }
+
+
+    oth.finalize();
+    std::cout << std::endl;
+
+    return 0;
+}
+
+
+
+
+
+int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+
+    std::vector<Facet_const_iterator> lft;
+
+    std::cout.setstate(std::ios_base::failbit);
+    DTW tri;
+    Scheduler sch(1);
+    wasure_algo w_algo;
+    int D = Traits::D;
+
+    D_MAP w_datas_tri;
+
+    log.step("read");
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+        if(hpi.get_lab() == "t")
+        {
+            w_datas_tri[hid] = wasure_data<Traits>();
+            bool do_clean_data = false;
+            bool do_serialize = false;
+            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+            w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
+        }
+        hpi.finalize();
+    }
+    tri.finalize(sch);
+    //    w_datas_tri[tid].extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
+    // Cell_const_iterator fch;
+
+    log.step("compute");
+
+    int id2 = tid;
+    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+    {
+        if(fit->is_infinite())
+            continue;
+
+
+        Cell_const_iterator tmp_fch = fit.full_cell();
+        int tmp_idx = fit.index_of_covertex();
+        Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+
+        if(
+            (params.area_processed == 1 && ((tmp_fch->main_id() != tmp_fchn->main_id()) )) ||
+            (params.area_processed == 2 && !((tmp_fch->main_id() != tmp_fchn->main_id()) )))
+            continue;
+
+        // if(
+        //    (params.area_processed == 1 && !fit->is_local() ) ||
+        //    (params.area_processed == 2 && fit->is_local()))
+        //   continue;
+
+
+        if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
+                !tri.tile_is_loaded(tmp_fchn->main_id()))
+            continue;
+
+        if(tmp_fch->main_id() != tid)
+            id2 = tmp_fch->main_id();
+        if(tmp_fchn->main_id() != tid)
+            id2 = tmp_fchn->main_id();
+
+        Cell_const_iterator fch = tmp_fch->main();
+        int id_cov = fit.index_of_covertex();
+        Cell_const_iterator fchn = tmp_fchn->main();
+        Vertex_h_iterator vht;
+
+        int cccid = fch->cell_data().id;
+        int cccidn = fchn->cell_data().id;
+
+        int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
+        int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];
+        if(ch1lab != chnlab)
+            lft.push_back(*fit);
+    }
+    if(lft.size() == 0)
+        return 0;
+
+
+    log.step("write");
+
+    std::cerr << "dim done tile : "<< tid << std::endl;
+    std::string ply_name(params.output_dir +  "/" + params.slabel + "_id1_" + std::to_string(tid) + "_id1_" + std::to_string(id2) + "_surface");
+    std::cout.clear();
+
+    ddt::stream_data_header oth("p","f",tid);
+
+    if(D == 2)
+        oth.init_file_name(ply_name,".geojson");
+    else
+        oth.init_file_name(ply_name,".ply");
+
+    oth.write_header(std::cout);
+
+
+    switch (D)
+    {
+    case 2 :
+    {
+        wasure::dump_2d_surface_geojson<DTW>(lft,oth.get_output_stream());
+        break;
+    }
+    case 3 :
+    {
+
+        std::vector<Point>  format_points;
+        std::vector<int> v_simplex;
+        std::map<Vertex_const_iterator, uint> vertex_map;
+        ddt_data<Traits> datas_out;
+
+        int acc = 0;
+        for(auto fit = lft.begin(); fit != lft.end(); ++fit)
+        {
+            Cell_const_iterator fch = fit->full_cell();
+            int id_cov = fit->index_of_covertex();
+            for(int i = 0; i < D+1; ++i)
+            {
+                if(i != id_cov)
+                {
+                    Vertex_const_iterator v = fch->vertex(i);
+                    if(vertex_map.find(v) == vertex_map.end())
+                    {
+                        vertex_map[v] = acc++;
+                        format_points.push_back(v->point());
+                    }
+                }
+            }
+        }
+
+        for(auto fit = lft.begin(); fit != lft.end(); ++fit)
+        {
+            Cell_const_iterator fch = fit->full_cell();
+            int id_cov = fit->index_of_covertex();
+            for(int i = 0; i < D+1; ++i)
+            {
+                if(i != id_cov)
+                {
+                    Vertex_const_iterator v = fch->vertex(i);
+                    v_simplex.push_back(vertex_map[v]);
+                }
+            }
+        }
+
+        std::cerr << format_points.size() << std::endl;
+
+        datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+        datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
+        datas_out.dmap[datas_out.xyz_name].fill_full_output(format_points);
+        datas_out.dmap[datas_out.simplex_name].fill_full_output(v_simplex);
+
+        datas_out.write_ply_stream(oth.get_output_stream(),'\n',true);
+        break;
+    }
+    default :
+    {
+        return 1;
+        break;
+    }
+    }
+
+
+    oth.finalize();
+    std::cout << std::endl;
+
+    return 0;
+}
+
+
+
+
+
+int gc_on_stream(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+    std::cout.clear();
+    gc_on_stream(std::cin,std::cout);
+    //  hpi.finalize();
+    //  oth.finalize();
+    std::cerr << "gc done!" << std::endl;
+    return 1;
+}
+
+int extract_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+
+    std::cout.setstate(std::ios_base::failbit);
+    std::cerr << "seg_step0" << std::endl;
+
+    DTW tri;
+    Scheduler sch(1);
+
+    std::cerr << "seg_step1" << std::endl;
+    wasure_algo w_algo;
+    D_MAP w_datas_tri;
+
+
+    log.step("read");
+    int D = Traits::D;
+    std::map<int,std::vector<int>> tile_ids;;
+
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+
+        if(hpi.get_lab() == "t")
+        {
+            w_datas_tri[hid] = wasure_data<Traits>();
+            bool do_clean_data = false;
+            bool do_serialize = false;
+            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+            w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
+            w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
+            std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
+            if(format_labs.size() == 0)
+            {
+                int nbs = w_datas_tri[hid].nb_simplex_input();
+                for(int ss = 0; ss < nbs ; ss++)
+                {
+                    format_labs.push_back(0);
+                }
+            }
+        }
+        if(hpi.get_lab() == "s")
+        {
+            std::vector<int> vv(3);
+            for(int d = 0; d < 3; d++)
+            {
+                hpi.get_input_stream() >> vv[d];
+            }
+            tile_ids[hid] = vv;
+        }
+        tri.finalize(sch);
+        hpi.finalize();
+    }
+
+    log.step("compute");
+    std::cerr << "seg_step5" << std::endl;
+    tbmrf<DTW,D_MAP> * mrf;
+
+
+    if(params.mode == std::string("surface"))
+    {
+        mrf = new tbmrf_reco<DTW,D_MAP>(params.nb_labs,&tri,&w_datas_tri);
+    }
+    else if(params.mode == std::string("conflict"))
+    {
+        mrf = new  tbmrf_conflict<DTW,D_MAP>(params.nb_labs,&tri,&w_datas_tri);
+    }
+    mrf->lambda = params.lambda;
+
+    log.step("write");
+    std::cout.clear();
+    ddt::stream_data_header oth("t","s",tid),osh("s","s",tid);;
+    //oth.write_header(std::cout);
+    std::cerr << "seg_step6" << std::endl;
+    //  int nbc = mrf->extract_factor_graph(1,tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid);
+    std::cerr << "area_processed:" << params.area_processed << std::endl;
+    int nbc = 0;
+    if(params.area_processed == 0)
+    {
+        nbc = mrf->extract_stream_graph_v1(1,tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid,params.graph_type,params.coef_mult);
+    }
+    else
+    {
+        nbc = mrf->extract_stream_graph_v2(1,tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid,params.graph_type,params.area_processed,params.coef_mult);
+    }
+    std::cerr << "seg_step7" << std::endl;
+    delete mrf;
+    oth.finalize();
+    std::cout << std::endl;
+
+    if(params.graph_type == 0)
+    {
+        osh.write_header(std::cout);
+        osh.get_output_stream() << 0 << " " ;
+        osh.get_output_stream() << 0 << " " ;
+        osh.get_output_stream() << nbc << " " ;
+        osh.finalize();
+        std::cout << std::endl;
+    }
+    return 0;
+}
+
+
+
+
+
+
+int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+
+    std::cout.setstate(std::ios_base::failbit);
+    std::cerr << "fill_step0" << std::endl;
+
+    DTW tri;
+    Scheduler sch(1);
+
+    std::cerr << "fill_step1" << std::endl;
+    wasure_algo w_algo;
+
+
+    D_MAP w_datas_tri;
+    int D = Traits::D;
+    std::map<int,std::vector<int>> tile_ids;
+    std::map<int,int> labs_map;
+    bool tri_parsed = false;
+    log.step("read");
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+        if(hpi.get_lab() == "t")
+        {
+            std::cerr << "read tri " << tid <<  std::endl;
+            w_datas_tri[hid] = wasure_data<Traits>();
+            bool do_clean_data = false;
+            bool do_serialize = false;
+            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+            w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
+            w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
+            //w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
+            // std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
+            // if(format_labs.size() == 0){
+            // 	int nbs = w_datas_tri[hid].nb_simplex_input();
+            // 	for(int ss = 0; ss < nbs ; ss++){
+            // 	  format_labs.push_back(0);
+            // 	}
+            // }
+            tri_parsed = true;
+
+        }
+        if(hpi.get_lab() == "s")
+        {
+            std::vector<int> vv(3);
+
+            for(int d = 0; d < 3; d++)
+            {
+                hpi.get_input_stream() >> vv[d];
+                std::cerr << "[STATS: " << d << " " << vv[d] << "]"<< std::endl;
+            }
+            tile_ids[hid] = vv;
+        }
+        if(hpi.get_lab() == "l")
+        {
+
+            int id,lab_val,nb_elems;
+            hpi.get_input_stream() >> nb_elems;
+
+            //      std::sort(id_vect.begin(), id_vect.end());
+            std::cerr << "start fill nb_elems" << nb_elems<< std::endl;
+            for(int ss = 0; ss < nb_elems ; ss++)
+            {
+                hpi.get_input_stream() >> id;
+                hpi.get_input_stream() >> lab_val;
+                //format_labs[g2lmap[id]] = lab_val;
+                labs_map[id] = lab_val;
+            }
+            std::cerr << "filed map" << std::endl;
+        }
+        hpi.finalize();
+    }
+    tri.finalize(sch);
+
+    std::cerr << "start processing" << std::endl;
+    //      std::vector<int> id_vect;
+    std::map<int,int> g2lmap;
+    for( auto cit = tri.cells_begin();
+            cit != tri.cells_end(); ++cit )
+    {
+        //	id_vect.push_back(cit->cell_data().id);
+        int lid = cit->cell_data().id;
+        int gid = w_datas_tri[tid].format_gids[lid] ;
+        g2lmap[gid] = lid;
+    }
+
+    std::cerr << "start processing2" << std::endl;
+    int nbs = w_datas_tri[tid].nb_simplex_input();
+    std::cerr << "start processing2b" << std::endl;
+    std::vector<int>  & format_labs = w_datas_tri[tid].format_labs ;
+    format_labs.resize(nbs);
+    std::cerr << "resize => " <<  nbs << std::endl;
+    for ( auto it = labs_map.begin(); it != labs_map.end(); it++ )
+    {
+
+        // if(g2lmap.find(it->first) == g2lmap.end()){
+        // 	std::cerr << "ERROR NOT INT MAP:" << it->first << " " << it->second << std::endl;
+        // }else{
+        // 	if(g2lmap[it->first] > format_labs.size())
+        // 	  std::cerr << "err !val:" << g2lmap[it->first] << std::endl;
+        // 	//else
+        format_labs[g2lmap[it->first]] = it->second;
+        //}
+    }
+
+
+    log.step("compute");
+    std::cerr << "fill_step5" << tid << std::endl;
+    w_datas_tri[tid].fill_labs(w_datas_tri[tid].format_labs);
+    std::cerr << "fill_step5b" << tid << std::endl;
+    log.step("write");
+    std::cout.clear();
+    //  log.step("Write header");
+    ddt::stream_data_header oth("t","s",tid);
+    std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
+    if(!params.do_stream)
+        oth.init_file_name(filename,".ply");
+    oth.write_header(std::cout);
+    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    oth.finalize();
+    std::cerr << "done" << tid << std::endl;
+    std::cout << std::endl;
+
+    return 0;
+}
+
+
+int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+
+    std::cout.setstate(std::ios_base::failbit);
+    std::cerr << "seg_step0" << std::endl;
+
+    DTW tri;
+    Scheduler sch(1);
+
+    std::cerr << "seg_step1" << std::endl;
+    wasure_algo w_algo;
+
+
+    D_MAP w_datas_tri;
+
+
+    log.step("read");
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+        if(hpi.get_lab() == "t")
+        {
+            //std::cerr << "read filename: " << hpi.get_file_name() << " [" << hpi.get_lab() << "]" << std::endl;
+            w_datas_tri[hid] = wasure_data<Traits>();
+            bool do_clean_data = false;
+            bool do_serialize = false;
+            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+            w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
+
+            std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
+            if(format_labs.size() == 0)
+            {
+                int nbs = w_datas_tri[hid].nb_simplex_input();
+                for(int ss = 0; ss < nbs ; ss++)
+                {
+                    format_labs.push_back(0);
+                }
+            }
+            //      std::cerr << "done filename: " << hpi.get_file_name() << " [" << hpi.get_lab() << "]" << std::endl;
+        }
+
+        tri.finalize(sch);
+        hpi.finalize();
+    }
+
+
+    log.step("compute");
+    std::cerr << "seg_step5" << std::endl;
+    tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri,&w_datas_tri);
+    mrf.lambda = params.lambda;
+    mrf.alpha_exp(tri,w_datas_tri);
+
+    log.step("finalize");
+    w_datas_tri[tid].fill_labs(w_datas_tri[tid].format_labs);
+
+    log.step("write");
+    std::cout.clear();
+    //  log.step("Write header");
+    ddt::stream_data_header oth("t","s",tid);
+    std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
+    if(!params.do_stream)
+        oth.init_file_name(filename,".ply");
+    oth.write_header(std::cout);
+
+
+    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    oth.finalize();
+    std::cout << std::endl;
+
+
+    return 0;
+}
+
+
+int tri2geojson(Id tid,wasure_params & params, int nb_dat,ddt::logging_stream & log)
+{
+
+    std::cerr << " ===== reading ====== " << std::endl;
+    std::cout.setstate(std::ios_base::failbit);
+
+    DTW tri;
+    Scheduler sch(1);
+    wasure_algo w_algo;
+    int D = Traits::D;
+
+    D_MAP w_datas_tri;
+
+
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+        if(hpi.get_lab() == "t")
+        {
+            w_datas_tri[hid] = wasure_data<Traits>();
+            bool do_clean_data = false;
+            bool do_serialize = false;
+            ddt::read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+            w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
+        }
+        tri.finalize(sch);
+        hpi.finalize();
+    }
+
+
+
+
+    std::string json_name(params.output_dir +  "/" + params.slabel + "_" + std::to_string(tid) + "_tri");
+
+    std::cout.clear();
+    ddt::stream_data_header oth("j","h",tid);
+    oth.init_file_name(json_name,".geojson");
+    oth.write_header(std::cout);
+    wasure::write_geojson_tri_wasure(tri,w_datas_tri,oth.get_output_stream());
+    oth.finalize();
+    std::cout << std::endl;
+    return 0;
+}
+
+
+
+
+
+int ply2geojson(Id tile_id,wasure_params & params,int nb_dat)
+{
+    std::cout.setstate(std::ios_base::failbit);
+    std::cerr << "into fun" << std::endl;
+
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        wasure_data<Traits> w_datas;
+        hpi.parse_header(std::cin);
+
+        if(hpi.get_lab() == "p")
+        {
+            std::cerr << "start read ply" << std::endl;
+            w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+            std::cerr << "end read ply" << std::endl;
+        }
+        hpi.finalize();
+        std::cerr << "finalize" << std::endl;
+
+        std::string json_name(params.output_dir +  "/" + params.slabel + "_" + std::to_string(tile_id) + "_geo");
+
+        std::cout.clear();
+        Id id = hpi.get_id(0);
+        ddt::stream_data_header oqh_1("p","s",id),oqh_2("p","s",id),oqh_3("p","s",id);
+        std::string filename(params.output_dir + "/" + params.slabel +"_id_"+ std::to_string(tile_id) + "_" + std::to_string(id));
+        oqh_1.init_file_name(filename,"_pts.geojson");
+        oqh_1.write_header(std::cout);
+        oqh_2.init_file_name(filename,"_spx.geojson");
+        oqh_2.write_header(std::cout);
+        oqh_3.init_file_name(filename,"_nrm.geojson");
+        oqh_3.write_header(std::cout);
+        w_datas.write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
+        w_datas.write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
+        w_datas.write_geojson_norms(oqh_3.get_output_stream());
+
+        oqh_1.finalize();
+        oqh_2.finalize();
+        oqh_3.finalize();
+
+        ddt::add_qgis_style(oqh_2.get_file_name(), std::string("cell_style_flag.qml"));
+
+        std::cout << std::endl;
+    }
+
+    return 0;
+}
+
+
+int hello(Id tile_id,wasure_params & params,int nb_dat)
+{
+    std::cout.setstate(std::ios_base::failbit);
+    std::cerr << "into hello" << std::endl;
+
+
+
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        wasure_data<Traits> w_datas;
+        hpi.parse_header(std::cin);
+        hpi.finalize();
+        std::cerr << "finalize" << std::endl;
+        std::cout.clear();
+        ddt::stream_data_header oth("j","f",tile_id);
+        oth.init_file_name("hello",".json");
+        oth.write_header(std::cout);
+        oth.finalize();
+        std::cout << std::endl;
+    }
+
+    return 0;
+}
+
+
+
+
+int main(int argc, char **argv)
+{
+
+    //  std::cerr.setstate(std::ios_base::failbit);
+    std::cout.setstate(std::ios_base::failbit);
+    wasure_params params;
+    params.parse(argc,argv);
+    int rv = 0;
+    int acc = 0;
+    bool do_dump_log = true;
+    while(true)
+    {
+        ddt::stream_app_header sah;
+        Id tile_id = -1;
+        int nb_dat = -1;
+        if(!params.skip_app_header)
+        {
+            sah.parse_header(std::cin);
+            if(sah.is_void())
+                return 0;
+            tile_id = ((Id)sah.tile_id);
+            nb_dat = sah.get_nb_dat();
+
+        }
+        srand(params.seed*tile_id);
+        ddt::logging_stream log(std::to_string(tile_id) + "_" + params.algo_step, params.log_level);
+
+        std::cerr << " ======================================================= " << std::endl;
+        std::cerr << "     [MAIN_DDT_STREAM_LOG] stream  : " << params.slabel << std::endl;
+        std::cerr << "     [MAIN_DDT_STREAM_LOG] tile_id : " << tile_id <<  std::endl;
+        std::cerr << "     [MAIN_DDT_STREAM_LOG] step    : " << params.algo_step << std::endl;
+        std::cerr << "     [MAIN_DDT_STREAM_LOG] acc     : " << acc++ << std::endl;
+        std::cerr << " ======================================================= " << std::endl;
+        try
+        {
+            if(params.algo_step == std::string("hello"))
+            {
+                rv = hello(tile_id,params,nb_dat);
+            }
+            else if(params.algo_step == std::string("dim"))
+            {
+                rv = dim_fun(tile_id,params,nb_dat,log);
+            }
+            else if(params.algo_step == std::string("simplify"))
+            {
+                rv = simplify(tile_id,params,nb_dat);
+            }
+            else if(params.algo_step == std::string("preprocess"))
+            {
+                rv = preprocess(tile_id,params,nb_dat);
+            }
+            else if(params.algo_step == std::string("dst"))
+            {
+                if(params.mode == std::string("surface"))
+                    rv = dst_new(tile_id,params,nb_dat,log);
+                else if(params.mode == std::string("conflict"))
+                    rv = dst_conflict(tile_id,params,nb_dat,log);
+            }
+            else if(params.algo_step == std::string("seg"))
+            {
+                rv = seg(tile_id,params,nb_dat,log);
+            }
+            else if(params.algo_step == std::string("extract_surface"))
+            {
+                if(params.area_processed == 0)
+                    rv = extract_surface(tile_id,params,nb_dat,log);
+                else
+                    rv = extract_surface_area(tile_id,params,nb_dat,log);
+            }
+            else if(params.algo_step == std::string("extract_graph"))
+            {
+                rv = extract_graph(tile_id,params,nb_dat,log);
+                do_dump_log = false;
+            }
+            else if(params.algo_step == std::string("fill_graph"))
+            {
+                rv = fill_graph(tile_id,params,nb_dat,log);
+            }
+            else if(params.algo_step == std::string("gc_on_stream"))
+            {
+                rv = gc_on_stream(tile_id,params,nb_dat,log);
+                std::cerr << "finish" << std::endl;
+                return 0;
+                do_dump_log = false;
+            }
+            else if(params.algo_step == std::string("tri2geojson"))
+            {
+                rv = tri2geojson(tile_id,params,nb_dat,log);
+            }
+            else if(params.algo_step == std::string("ply2geojson"))
+            {
+                if(Traits::D == 2)
+                {
+                    rv = ply2geojson(tile_id,params,nb_dat);
+                }
+                else
+                {
+                    rv = 0;
+                }
+            }
+            else
+            {
+                std::cerr << "==== exe : no params ===" << std::endl;
+                return 1;
+            }
+            if(rv != 0) return rv;
+            if(do_dump_log)
+            {
+                ddt::stream_data_header olh("l","s",tile_id);
+                olh.write_header(std::cout);
+                log.dump_log(olh.get_output_stream());
+                olh.finalize();
+                std::cout << std::endl;
+            }
+        }
+        catch (std::exception& e)
+        {
+            std::cerr << "Exception catched : " << e.what() << std::endl;
+            std::cerr << "tile_id               : " << tile_id << std::endl;
+        }
+
+
+    }
+
+    std::cerr << "[MAIN_DDT_STREAM_LOG] end exe " << std::endl;
+    return rv;
+}
+
+
+
+
+

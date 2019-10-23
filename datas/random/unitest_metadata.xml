@@ -1,0 +1,84 @@
+<env>
+  <datasets>
+    <test_small_2d>
+      <dim>2</dim>
+      <nbp_and_depth>50000:4</nbp_and_depth>
+      <bbox>0x100000:0x100000</bbox>
+      <max_ppp>3000</max_ppp>
+      <plot_lvl>3</plot_lvl>
+      <nb_kernel>5,6,7,8,9,10,12,14,16,18,20</nb_kernel>
+      <datatype>random_normal</datatype>
+      <algo_version>1</algo_version>
+      <StorageLevel>MEMORY_AND_DISK</StorageLevel>
+      <do_process>true</do_process>
+      <do_expand>true</do_expand>
+    </test_small_2d>
+
+
+    
+    <test_stream_2d>
+      <dim>2</dim>
+      <nbp_and_depth>20000:4</nbp_and_depth>
+      <bbox>0x100000:0x100000</bbox>
+      <max_ppp>2000</max_ppp>
+      <plot_lvl>3</plot_lvl>
+      <datatype>random_normal</datatype>
+      <algo_version>1</algo_version>
+      <StorageLevel>MEMORY_AND_DISK</StorageLevel>
+      <do_stream>true,false</do_stream>
+      <do_process>false</do_process>
+      <do_expand>true</do_expand>
+    </test_stream_2d>
+
+
+    <test_small_3d>
+      <dim>3</dim>
+      <nbp_and_depth>20000:3</nbp_and_depth>
+      <bbox>0x100000:0x100000:0x100000</bbox>
+      <max_ppp>1000</max_ppp>
+      <plot_lvl>3</plot_lvl>
+      <datatype>random_normal</datatype>
+      <algo_version>1</algo_version>
+      <StorageLevel>MEMORY_AND_DISK</StorageLevel>
+      <do_process>false</do_process>
+      <do_expand>false</do_expand>
+    </test_small_3d>
+
+
+    <test_medium_2d>
+      <dim>2</dim>
+      <nbp_and_depth>1000000:6,2000000:6,5000000:6</nbp_and_depth>
+      <bbox>0x100000:0x100000</bbox>
+      <max_ppp>50000</max_ppp>
+      <plot_lvl>1</plot_lvl>
+      <datatype>random_normal</datatype>
+      <algo_version>1</algo_version>
+      <StorageLevel>MEMORY_AND_DISK</StorageLevel>
+      <algo_seed_cpp>10000</algo_seed_cpp>
+      <ddt_kernel>build-spark-Release-2</ddt_kernel>
+      <do_process>false</do_process>
+      <do_expand>true</do_expand>
+      <sort_criterion>nbp:lt</sort_criterion>
+    </test_medium_2d>
+
+
+    <test_big_2d>
+      <dim>2</dim>
+      <nbp_and_depth>10000000:8</nbp_and_depth>
+      <bbox>0x100000:0x100000</bbox>
+      <max_ppp>200000</max_ppp>
+      <plot_lvl>0</plot_lvl>
+      <datatype>random_normal</datatype>
+      <spark_core_max>4</spark_core_max>
+      <algo_version>1</algo_version>
+      <StorageLevel>MEMORY_AND_DISK</StorageLevel>
+      <ddt_kernel>build-spark-Release-2</ddt_kernel>
+      <do_process>false</do_process>
+      <do_expand>false</do_expand>
+    </test_big_2d>
+
+  </datasets>
+
+</env>
+
+

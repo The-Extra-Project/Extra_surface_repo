@@ -1,0 +1,24 @@
+<env>
+  <datasets>
+    <austin>
+      <plot_lvl>3</plot_lvl>
+      <do_process>true</do_process>
+      <datatype>files</datatype>
+      <filepath>/home/laurent/code/ddt-wasure/services/wasure/datas/2d_austin/</filepath>
+      <dim>2</dim>
+      <ndtree_depth>5</ndtree_depth>
+      <bbox>0000x5000:0000x5000</bbox>
+      <max_ppp>4000</max_ppp>  
+      <lambda>1</lambda>
+
+      <StorageLevel>MEMORY_AND_DISK</StorageLevel>
+      <!-- Meta parameters -->
+      <do_process>true</do_process>
+      <do_expand>false</do_expand>
+      
+    </austin>
+  </datasets>
+</env>
+
+
+
