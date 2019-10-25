@@ -636,7 +636,8 @@ struct Cgal_traits_d
             {
                 coords_v[d] = v_double[ii*D +d];
             }
-            Point p(coords_v[0],coords_v[1],coords_v[2]);
+	    Point p(D,coords_v.begin(),coords_v.end());
+            //Point p(coords_v[0],coords_v[1],coords_v[2]);
             vertex_map[ii] = tri.new_vertex(p);
         }
 
@@ -661,6 +662,8 @@ struct Cgal_traits_d
 
         uint ik;
         deserialize_b64_vect(v_int,ifile);
+	std::cerr << "deserialize cell done" << std::endl;
+	std::cerr << "num_c : " << v_int.size()/(D+1) << " " << num_c << std::endl;
         num_c = v_int.size()/(D+1);
         std::vector<Cell_handle> cell_map(num_c);
         for(uint i = 0; i < num_c; ++i)
@@ -725,6 +728,12 @@ struct Cgal_traits_d
             }
         }
 
+	std::cerr << "valid test" << std::endl;
+	std::cerr << "IS VALID??!" << std::endl;
+	if(tri.is_valid())
+	  std::cerr << "ok it's valid" << std::endl;
+	else
+	  std::cerr << "WRONG NOT VALID" << std::endl;
         assert(tri.is_valid());
 
         return ifile;
@@ -845,7 +854,7 @@ struct Cgal_traits_d
 
 
     template<typename DDT_DATA>
-    void export_tri_to_data(Delaunay_triangulation& tri,DDT_DATA & data)
+    void export_tri_to_data(Delaunay_triangulation& tri,DDT_DATA & data,bool do_fill_output = true)
     {
         typedef typename DDT_DATA::Data_ply Data_ply;
         int D = data.D;
@@ -959,6 +968,7 @@ struct Cgal_traits_d
             }
         }
 
+	if(do_fill_output){
         data.dmap[data.xyz_name].fill_full_output(v_xyz);
         data.dmap[data.simplex_name].fill_full_output(v_simplex);
         data.dmap[data.nb_name].fill_full_output(v_nb);
@@ -967,6 +977,19 @@ struct Cgal_traits_d
         //      data.dmap[data.cid_name].fill_full_output(v_cid);
         data.dmap[data.flag_vertex_name].fill_full_output(v_flagv);
         data.dmap[data.flag_simplex_name].fill_full_output(v_flags);
+	}else{
+        data.dmap[data.xyz_name].fill_full_input(v_xyz);
+        data.dmap[data.simplex_name].fill_full_input(v_simplex);
+        data.dmap[data.nb_name].fill_full_input(v_nb);
+
+        data.dmap[data.vid_name].fill_full_input(v_vid);
+        //      data.dmap[data.cid_name].fill_full_input(v_cid);
+        data.dmap[data.flag_vertex_name].fill_full_input(v_flagv);
+        data.dmap[data.flag_simplex_name].fill_full_input(v_flags);
+
+
+
+	}
 
     }
 

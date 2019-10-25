@@ -457,9 +457,13 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
     if(vpis.size() > 0) // If point with label recieved, insertion by taking into account the id
     {
         log.step("[process]insert");
+	std::cerr << "&&" << vp.size() << std::endl;
         bool do_insert_local = params.finalize_tri;
+	std::cerr << "bb" << vp.size() << std::endl;
 	Tile_iterator tci = tri1.get_tile(tid);
+	std::cerr << "cc" << vp.size() << std::endl;
         nbi1 += tci->insert_points_id_id(vpis,tid,do_insert_local);
+	std::cerr << "dd" << vp.size() << std::endl;
         vpis.clear();
         std::cerr << "insert_id_id done" << std::endl;
     }
@@ -534,12 +538,13 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
         ddt::stream_data_header oth("t","s",tid);
         if(params.extract_tri_crown)
             oth.set_lab("v");
+	oth.serialize(true);
         std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
         oth.set_logger(&log);
         oth.write_header(std::cout);
         log.step("[write]write_tri");
         Tile_iterator tci = tri1.get_tile(tid);
-        ddt::write_ddt_stream(tri1, oth.get_output_stream(),tid,false,log);
+        ddt::write_ddt_stream(tri1, oth.get_output_stream(),tid,oth.is_serialized(),log);
         oth.finalize();
         std::cout << std::endl;
     }
@@ -733,6 +738,57 @@ int ply2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & lo
     }
     return 0;
 }
+
+int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
+{
+  
+  for(int i = 0; i < nb_dat; i++){
+    std::cerr << "convert data " << i << std::endl;
+
+    ddt::stream_data_header hpi;
+    hpi.parse_header(std::cin);
+
+    ddt_data<Traits> w_datas;
+    DDT tri1;
+    Traits traits;
+    if(hpi.get_lab() == "t" || hpi.get_lab() == "u" || hpi.get_lab() == "v"){
+      std::cerr << "READ:" << hpi.get_lab() << std::endl;
+      bool do_clean_data = true;
+      read_ddt_stream(tri1,w_datas, hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+      auto  tile  = tri1.get_tile(tid);
+					       tile->update_local_flag();
+      typename DDT::Traits::Delaunay_triangulation & ttri = tile->tri();
+					       traits.export_tri_to_data(ttri,w_datas,false);
+    }
+    std::cerr << "ser1" << std::endl;
+    hpi.finalize();
+      
+    std::cout.clear();
+    Id id = hpi.get_id(0);
+    std::cerr << "ser2" << std::endl;
+    ddt::stream_data_header oqh_1("p","s",id),oqh_2("p","s",id);
+    std::string filename(params.output_dir + "/" + params.slabel +
+			 "_id_" + std::to_string(id) + "_" + std::to_string(tid) + "_" + std::to_string(i)) ;
+    oqh_1.init_file_name(filename,"_pts.geojson");
+    oqh_1.write_header(std::cout);
+    oqh_2.init_file_name(filename,"_spx.geojson");
+    oqh_2.write_header(std::cout);
+        
+    std::cerr << "ser3" << std::endl;
+    w_datas.write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
+
+  
+    oqh_1.finalize();
+    oqh_2.finalize();
+    std::cerr << "ser4" << std::endl;
+    ddt::add_qgis_style(oqh_2.get_file_name(),params.style);
+    std::cerr << "DONE!" << std::endl;
+    std::cout << std::endl;
+  }
+  return 0;
+}
+
+
 
 // OK
 int extract_struct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
@@ -1136,6 +1192,12 @@ int main(int argc, char **argv)
                 do_dump_log = false;
                 rv = ply2geojson(tile_id,params,nb_dat,log);
             }
+	    else if(params.algo_step == std::string("tri2geojson"))
+            {
+                do_dump_log = false;
+		//		exit(0);
+	        rv = serialized2geojson(tile_id,params,nb_dat,log);
+            }
             else if(params.algo_step == std::string("ply2dataset"))
             {
                 do_dump_log = false;
@@ -1171,8 +1233,6 @@ int main(int argc, char **argv)
             }
             if(rv != 0)
             {
-                std::cerr << "ERROR RV : main_ddt_stream.cpp main function, RV != 0" << std::endl;
-                std::cerr << "ERROR RV : main_ddt_stream.cpp main function, RV != 0" << std::endl;
                 std::cerr << "ERROR RV : main_ddt_stream.cpp main function, RV != 0" << std::endl;
                 return rv;
             }

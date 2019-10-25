@@ -45,7 +45,7 @@ public :
     int parse(int argc, char **argv)
     {
         int cc;
-        int errflg = 2;
+        int errflg = 1;
         static struct option long_options[] =
         {
             // /* These options set a flag. */

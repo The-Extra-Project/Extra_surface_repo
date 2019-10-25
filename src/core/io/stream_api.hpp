@@ -100,6 +100,7 @@ public :
 
     bool is_stream();
     bool is_serialized();
+  void serialize(bool);
 
     bool is_file() ;
 
@@ -411,6 +412,12 @@ bool stream_data_header::is_serialized()
     return (type.compare("z") == 0);
 }
 
+void stream_data_header::serialize(bool bb)
+{
+  if(bb)
+    type = "z";
+}
+
 bool stream_data_header::is_file()
 {
     return (type.compare("f") == 0);
@@ -493,12 +500,17 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
         delete []buffer_in;
     }
     else if (is_stream())
-    {
+      {
         if(log != NULL) log->step("[read]cin2sstream");
         std::string input;
         std::getline(std::cin, input);
         // initialize string stream
         ifile = new std::stringstream(input);
+      }else{
+      std::cout << " ";
+      if(ifile != NULL){
+	delete ifile;
+      }
     }
 
     return ist;

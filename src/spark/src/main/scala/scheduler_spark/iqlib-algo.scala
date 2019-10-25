@@ -166,7 +166,7 @@ object ddt_algo {
 
     // C++ command init
     val insert_in_triangulation_fun = set_params(params_cpp,List(("step","insert_in_triangulation"))).to_command_line
-    val ply2geojson_fun =  set_params(params_cpp, List(("step","ply2geojson"))).to_command_line
+    val tri2geojson_fun =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
 
     // Loop variables
     val defaultV = (List(""));
@@ -221,7 +221,7 @@ object ddt_algo {
       if(plot_lvl >=3 ||  (plot_lvl >=2 && !is_not_last)){
         if(dim_algo.toInt == 2){
           val rdd_json_tri = iq.run_pipe_fun_KValue(
-            ply2geojson_fun ++ List("--label", "tri_loop_" + acc.toString,"--style","tri_main.qml"),
+            tri2geojson_fun ++ List("--label", "tri_loop_" + acc.toString,"--style","tri_main.qml"),
             kvrdd_cur_tri, "tri_loop", do_dump = false)
           rdd_json_tri.collect()
         }
@@ -245,6 +245,7 @@ object ddt_algo {
     // C++ function
     val insert_in_triangulation_fun = set_params(params_cpp,List(("step","insert_in_triangulation"))).to_command_line
     val ply2geojson_fun =  set_params(params_cpp, List(("step","ply2geojson"))).to_command_line
+    val tri2geojson_fun =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
 
 
     // Algo variables
@@ -318,7 +319,7 @@ object ddt_algo {
     // Ploting section
     if(plot_lvl >=2 && dim_algo.toInt == 2){
       val rdd_json_merged_tri = iq.run_pipe_fun_KValue(
-        ply2geojson_fun ++ List("--label", "res_merged_tri","--style","tri_main.qml"),
+        tri2geojson_fun ++ List("--label", "res_merged_tri","--style","tri_main.qml"),
         kvrdd_finalized_tri, "res_merged_tri", do_dump = false)
       rdd_json_merged_tri.collect()
       update_time(params_scala,"plotingdone");

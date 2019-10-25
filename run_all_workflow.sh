@@ -9,7 +9,7 @@ GLOBAL_OUTPUT_DIR="${HOME}/shared_spark/tests_outputs/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
-#DEBUG_FLAG="-d"
+DEBUG_FLAG="-d"
 DO_RUN=true
 
 
@@ -50,6 +50,16 @@ function run_2d_wasure
     run_algo_docker
 }
 
+### 2D img ddt
+function run_2d_img_ddt
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/ddt/workflow/workflow_ddt.scala"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/2d_austin/imgs/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/ddt_metadata.xml"
+    run_algo_docker
+}
+
 ### 3D Surface reconstruction 
 function run_3d_wasure
 {
@@ -86,7 +96,8 @@ function run_img2ply
 
 # ==== 2D surface reconstruction workflow ====
 #run_img2ply
-run_2d_wasure
+run_2d_img_ddt
+#run_2d_wasure
 
 # ==== 3D surface reconstruction workflow ====
 #run_3d_wasure

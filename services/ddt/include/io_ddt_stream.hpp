@@ -45,9 +45,25 @@ int read_ddt_stream(DDT & ddt, ddt_data<typename DDT::Traits> & w_datas_in, std:
     auto  tile  = ddt.get_tile(tid);
     typename DDT::Traits::Delaunay_triangulation & ttri = tile->tri();
 
+    
     if(do_serialize)
     {
-        ttraits.deserialize_b64_cgal(ttri,ifile);
+
+      //	if(!do_clean_data){
+      //	  w_datas_in.read_b64_generic_stream(ifile);
+	  //	  ttraits.build_tri_from_data(ttri,w_datas_in,false,tid);
+      //	}else{
+      ttraits.deserialize_b64_cgal(ttri,ifile);
+	  //	}
+	
+      std::string input;
+      std::getline(ifile, input);
+      std::stringstream ifile2(input);
+      ddt::read_map_stream(tile->points_sent_,ifile2,tile->traits());
+      ddt::read_json_stream<typename DDT::Tile_iterator, typename DDT::Id>(tile,ifile2);
+
+
+	
     }
     else
     {
@@ -56,9 +72,11 @@ int read_ddt_stream(DDT & ddt, ddt_data<typename DDT::Traits> & w_datas_in, std:
         log.step("[read]build_tri_from_data");
         ttraits.build_tri_from_data(ttri,w_datas_in,do_clean_data,tid);
         log.step("[read]build_json");
+	ddt::read_map_stream(tile->points_sent_,ifile,tile->traits());
+	ddt::read_json_stream<typename DDT::Tile_iterator, typename DDT::Id>(tile,ifile);
     }
-    ddt::read_map_stream(tile->points_sent_,ifile,tile->traits());
-    ddt::read_json_stream<typename DDT::Tile_iterator, typename DDT::Id>(tile,ifile);
+
+
     tile->set_id(tid);
     tile->finalize();
     return 0; // FIXME ?
