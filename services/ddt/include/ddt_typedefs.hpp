@@ -15,7 +15,6 @@ typedef int FlagC;
 #include <io/stream_api.hpp>
 #include "io/write_stream.hpp"
 #include "io/write_vrt.hpp"
-#include "io/write_geojson.hpp"
 #include "io/read_stream.hpp"
 
 #include "tile.hpp"

@@ -121,14 +121,11 @@ set(libddt_SOURCES
   ${CPP_CORE_LOCAL_DIR}/io/read_stream.hpp
   ${CPP_CORE_LOCAL_DIR}/io/stream_api.hpp
   ${CPP_CORE_LOCAL_DIR}/io/write.hpp
-  ${CPP_CORE_LOCAL_DIR}/io/write_cgal.hpp
+  ${CPP_CORE_LOCAL_DIR}/io/write_vrt.hpp
+  ${CPP_CORE_LOCAL_DIR}/io/write_vrt.cpp
   ${CPP_CORE_LOCAL_DIR}/io/write_ply.cpp
   ${CPP_CORE_LOCAL_DIR}/io/write_ply.hpp
   ${CPP_CORE_LOCAL_DIR}/io/write_stream.hpp
-  ${CPP_CORE_LOCAL_DIR}/io/write_tri.cpp
-  ${CPP_CORE_LOCAL_DIR}/io/write_tri.hpp
-  ${CPP_CORE_LOCAL_DIR}/io/write_vrt.cpp
-  ${CPP_CORE_LOCAL_DIR}/io/write_vrt.hpp
   ${CPP_CORE_LOCAL_DIR}/io/number_parser.hpp
   ${CPP_CORE_LOCAL_DIR}/io/number_parser.cpp
   ${CPP_CORE_LOCAL_DIR}/io/base64.hpp
