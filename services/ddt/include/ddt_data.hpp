@@ -10,8 +10,8 @@
 #include "io/logging_stream.hpp"
 #include "io/base64_new.hpp"
 
-
-#define DATA_FLOAT_TYPE tinyply::Type::FLOAT64
+#define PLY_CHAR (';')
+#define DATA_FLOAT_TYPE (tinyply::Type::FLOAT64)
 #define NB_DIGIT_OUT (5)
 
 
