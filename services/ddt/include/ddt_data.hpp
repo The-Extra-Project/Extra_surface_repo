@@ -2,16 +2,15 @@
 #define DATA_H
 
 #include <map>
-#include "tinyply.h"
 #include <algorithm>
+
+#include "tinyply.h"
+
 #include "io/number_parser.hpp"
 #include "io/logging_stream.hpp"
 #include "io/base64_new.hpp"
-//#define PLY_CHAR '\n'
-#define PLY_CHAR ';'
 
-#define IS_PLY_FORMAT false
-#define IS_BINARY false
+
 #define DATA_FLOAT_TYPE tinyply::Type::FLOAT64
 #define NB_DIGIT_OUT (5)
 
@@ -27,7 +26,6 @@ public :
   typedef typename Traits::Vertex_handle                                    Vertex_handle;
 
 
-
   class Data_ply {
   public:
 
@@ -37,7 +35,6 @@ public :
     std::vector<std::string> get_name(){
       return vname;
     }
-
 
     std::string get_name(int ii, bool do_suffix = false){
       if(vname.size() == 1 )
@@ -49,10 +46,6 @@ public :
     bool is_init() const {
       return(output_vect.size() > 0);
     }
-
-    // void init(int nbe){
-    //   output_vect.resize(vsize*nbe);
-    // }
 
     
     int get_nbe_output(){
@@ -119,15 +112,12 @@ public :
 	return input_vect_uint.size();
     }
 
-
-    
     void input2output(bool do_clean = true){
       output_vect.resize(size_bytes());
       std::memcpy(output_vect.data(), input_vect->buffer.get(),size_bytes());
       if(do_clean)
 	input_vect.reset();
     }
-
 
     Point extract_pts(int id){
       return traits.make_point( reinterpret_cast< double * >(input_vect->buffer.get())+id*D);
@@ -140,7 +130,6 @@ public :
       std::memcpy(formated_data.data(), (input_vect->buffer.get())+id*D ,vnbb);
     }
 
-
     template<typename DT>
     void  extract_value( int id, DT & vv, int i=0) const {
       int vnbb =  get_vnbb();
@@ -151,8 +140,6 @@ public :
 	std::memcpy(&vv,&input_vect_uint[id*vnbb+i],tinyply::PropertyTable[type].stride);
       }
     }
-
-
 
     
     template<typename DT>
@@ -290,272 +277,6 @@ public :
 
 
 
-
-
-  // void write_geojson_point_stream(std::ostream & ofs, bool is_first = true){
-  //   bool do_ray = false;
-  //   int D = Traits::D;
-  //   std::vector<std::string> lab_color = {"\"red\"","\"green\"","\"blue\""};
-  //   ofs << "{" << std::endl;
-  //   ofs << "\"type\": \"FeatureCollection\"," << std::endl;
-  //   ofs << "\"features\": [" << std::endl;
-
-  //   std::vector<uint8_t> & raw_points = dmap[xyz_name].output_vect;
-  //   for(int id = 0; id < nb_pts_input(); id++){
-  //     int id_pts = id*D;
-  //     if(!is_first)
-  // 	ofs << "," << std::endl;
-  //     is_first=false;
-
-  //     // Points 
-  //     ofs << "{" << std::endl;
-  //     ofs << "\"type\": \"Feature\"," << std::endl;
-  //     ofs << "\"geometry\": {" << std::endl;
-  //     ofs << "\"type\": \"Point\"," << std::endl;
-  //     ofs << "\"coordinates\": [";
-  //     for(int d=0; d<D-1; ++d)
-  // 	ofs << raw_points[id_pts +d] << ",";
-  //     ofs << raw_points[id_pts + D-1] << "]" << std::endl;
-  //     ofs << "}," << std::endl;
-  //     ofs << "\"properties\": {" << std::endl;
-  //     // if(labs.size() > 0){
-  //     // 	ofs << "\"lab\":" << labs[id] <<  "," << std::endl;
-  //     // 	ofs << "\"marker-color\":" << lab_color[labs[id]] <<  "," << std::endl;
-  //     // }
-  //     ofs << "\"datatype\":\"point\"," << std::endl;
-  //     ofs << "\"prop1\": { \"this\": \"that\" }" << std::endl;
-  //     ofs << "}" << std::endl;
-  //     ofs << "}" << std::endl;
-
-  //   }
-  //   ofs << "]" << std::endl;
-  //   ofs << "}" << std::endl;
-    
-  // }
-
-
-  void write_geojson_stream(std::ostream & ofs, bool is_first = true){
-
-    ofs << std::fixed << std::setprecision(NB_DIGIT_OUT);      
-    int D = Traits::D;
-    std::vector<std::string> lab_color = {"\"red\"","\"green\"","\"blue\""};
-    ofs << "{" << std::endl;
-    ofs << "\"type\": \"FeatureCollection\"," << std::endl;
-    ofs << "\"features\": [" << std::endl;
-      
-
-    std::vector<double> v_xyz;
-    std::vector<int> v_simplex;
-    std::cerr << "data extracted" << std::endl;
-    dmap[xyz_name].extract_full_input(v_xyz,false);
-    std::cerr << "data extracted" << std::endl;
-    dmap[simplex_name].extract_full_input(v_simplex,false);
-    std::cerr << "data extracted" << std::endl;
-    //    ofs << std::fixed << std::setprecision(12);
-    int nb_pts = v_xyz.size()/D;
-
-    for(int id = 0; id < nb_pts; id++){
-
-      int id_pts = id*D;
-      if(!is_first)
-	ofs << "," << std::endl;
-      is_first=false;
-
-      // Points 
-      ofs << "{" << std::endl;
-      ofs << "\"type\": \"Feature\"," << std::endl;
-      ofs << "\"geometry\": {" << std::endl;
-      ofs << "\"type\": \"Point\"," << std::endl;
-      ofs << "\"coordinates\": [";
-      for(int d=0; d<D-1; ++d)
-	ofs << v_xyz[id_pts +d] << ",";
-      ofs << v_xyz[id_pts + D-1] << "]" << std::endl;
-      ofs << "}," << std::endl;
-      ofs << "\"properties\": {" << std::endl;
-
-      // for ( const auto &ee : dmap ) {
-      // 	if(dmap[ee.first].part == "vertex" && ee.second.do_exist){
-      // 	  for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-      // 	    if(dmap[ee.first].type == tinyply::Type::INT32){
-      // 	      int vv;
-      // 	      dmap[ee.first].extract_value(id,vv,nn);
-      // 	      ofs << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv << "," << std::endl;
-      // 	    }else  if(dmap[ee.first].type == tinyply::Type::UINT32){
-      // 	      uint vv;
-      // 	      dmap[ee.first].extract_value(id,vv,nn);
-      // 	      ofs << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv << "," << std::endl;
-      // 	    }else  if(dmap[ee.first].type == DATA_FLOAT_TYPE){
-      // 	      double vv;
-      // 	      dmap[ee.first].extract_value(id,vv,nn);
-      // 	      ofs << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv << "," << std::endl;
-      // 	    }
-      // 	  }
-      // 	}
-      // }
-
-      for ( const auto &ee : dmap ) {
-      	if(dmap[ee.first].part == "vertex" && ee.second.do_exist){
-	  if(dmap[ee.first].type == tinyply::Type::INT32){
-	    std::vector<int> vv;
-	    dmap[ee.first].extract_full_input(vv,false);
-	    for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-	      ofs << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv[nn] << "," << std::endl;
-	    }
-	  }else  if(dmap[ee.first].type == tinyply::Type::UINT32){
-	    std::vector<uint> vv;
-	    dmap[ee.first].extract_full_input(vv,false);
-	    for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-	      ofs << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv[nn] << "," << std::endl;
-	    }
-	  }else  if(dmap[ee.first].type == DATA_FLOAT_TYPE){
-	    std::vector<double> vv;
-	    dmap[ee.first].extract_full_input(vv,false);
-	    for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-	      ofs << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv[nn] << "," << std::endl;
-	    }
-	  }
-	}
-      }      
-      // if(labs.size() > 0){
-      // 	ofs << "\"lab\":" << labs[id] <<  "," << std::endl;
-      // 	ofs << "\"marker-color\":" << lab_color[labs[id]] <<  "," << std::endl;
-      // }
-      ofs << "\"datatype\":\"point\"," << std::endl;
-      ofs << "\"prop1\": { \"this\": \"that\" }" << std::endl;
-      ofs << "}" << std::endl;
-      ofs << "}" << std::endl;
-    }
-
-    uint num_c = dmap[simplex_name].get_nbe_input();///(D+1);
-    for(int id = 0; id < num_c; id++){
-      int local = 0;
-      // if(id > 3)
-      // 	break;
-      bool is_infinite = false;
-      for(int i=0; i<=D+1; ++i){
-	if(v_simplex[id*(D+1)+(i%(D+1))] == 0)
-	  is_infinite = true;
-      }
-      if(is_infinite)
-	continue;
-      ofs << "," << std::endl;
-      ofs << "{" << std::endl;
-      ofs << "\"type\": \"Feature\"," << std::endl;
-      ofs << "\"geometry\": {" << std::endl;
-      ofs << "\"type\": \"Polygon\"," << std::endl;
-      ofs << "\"coordinates\": [" << std::endl;
-      ofs << "[[";
-      for(int i=0; i<=D+1; ++i) // repeat first to close the polygon
-	{
-	  if(i>0)
-	    {
-	      ofs << "],[";
-	    }
-
-	  
-	  int id_pp = v_simplex[id*(D+1)+(i%(D+1))];
-	  // if(id < 3){
-	  //   std::cerr << "==>" << id_pp << std::endl;
-	  //   for(int d=0; d<D-1; ++d) std::cerr << v_xyz[id_pp*D + d] << ",";
-	  //   std::cerr << v_xyz[id_pp*D + D-1] << std::endl;;
-	  // }
-	    
-	  for(int d=0; d<D-1; ++d) ofs << v_xyz[id_pp*D + d] << ",";
-	  ofs << v_xyz[id_pp*D + D-1];
-	}
-      ofs << "]]";
-      ofs << "]";
-      ofs << "}," << std::endl;
-      ofs << "\"properties\": {" << std::endl;
-      switch(local)
-	{
-	case 0 :
-	  ofs << "\"fill\":\"red\"," << std::endl;
-	  break;
-	case 1 :
-	  ofs << "\"fill\":\"green\"," << std::endl;
-	  break;
-	case 2 :
-	  ofs << "\"fill\":\"blue\"," << std::endl;
-	  break;
-	}
-
-      for ( const auto &ee : dmap ) {
-      	if(dmap[ee.first].part == "face" && ee.second.do_exist){
-	  if(dmap[ee.first].type == tinyply::Type::INT32){
-	    std::vector<int> vv;
-	    dmap[ee.first].extract_full_input(vv,false);
-	    for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-	      ofs << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv[nn] << "," << std::endl;
-	    }
-	  }else  if(dmap[ee.first].type == tinyply::Type::UINT32){
-	    std::vector<uint> vv;
-	    dmap[ee.first].extract_full_input(vv,false);
-	    for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-	      ofs << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv[nn] << "," << std::endl;
-	    }
-	  }else  if(dmap[ee.first].type == DATA_FLOAT_TYPE){
-	    std::vector<double> vv;
-	    dmap[ee.first].extract_full_input(vv,false);
-	    for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-	      ofs << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv[nn] << "," << std::endl;
-	    }
-	  }
-	  // for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-	  //   if(dmap[ee.first].type == tinyply::Type::INT32){
-	  //     int vv;
-	  //     dmap[ee.first].extract_value(id,vv,nn);
-	  //     ofs << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv << "," << std::endl;
-	  //   }else  if(dmap[ee.first].type == tinyply::Type::UINT32){
-	  //     uint vv;
-	  //     dmap[ee.first].extract_value(id,vv,nn);
-	  //     ofs << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv << "," << std::endl;
-	  //   }else  if(dmap[ee.first].type == DATA_FLOAT_TYPE){
-	  //     double vv;
-	  //     dmap[ee.first].extract_value(id,vv,nn);
-	  //     ofs << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv << "," << std::endl;
-	  //   }
-	  // }
-      	}
-      }
-      // for ( const auto &ee : dmap ) {
-      // 	if(dmap[ee.first].part == "face" && ee.second.do_exist){
-      // 	  ofs << "\"" << ee.first[0] << "\":\"" ;
-      // 	  for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-      // 	    if(dmap[ee.first].type == tinyply::Type::INT32){
-      // 	      int vv;
-      // 	      dmap[ee.first].extract_value(id,vv,nn);
-      // 	      ofs << vv << " ";
-      // 	    }else  if(dmap[ee.first].type == tinyply::Type::UINT32){
-      // 	      uint vv;
-      // 	      dmap[ee.first].extract_value(id,vv,nn);
-      // 	      ofs << vv << " ";
-      // 	    }else  if(dmap[ee.first].type == DATA_FLOAT_TYPE){
-      // 	      double vv;
-      // 	      dmap[ee.first].extract_value(id,vv,nn);
-      // 	      ofs << vv << " ";
-      // 	    }
-      // 	  }
-      // 	  ofs << "\"," << std::endl;
-      // 	}
-      // }
-      
-      ofs << "\"stroke-width\":\"2\"," <<  std::endl;	
-      //	iit->data().dump_geojson(ofs);
-      ofs << "\"prop1\": { \"this\": \"that\" }" << std::endl;
-      ofs << "}" << std::endl;
-      ofs << "}" << std::endl;
-      
-    }
-
-      
-    ofs << "]" << std::endl;
-    ofs << "}" << std::endl;
-      
-  }
-
-
-
   void write_geojson_header(std::ostream & ss){
     ss << "{" << std::endl;
     ss << "\"type\": \"FeatureCollection\"," << std::endl;
@@ -568,7 +289,6 @@ public :
   }
 
 
-  
   
   void write_geojson_tri(std::ostream & ofs_pts,std::ostream & ofs_spx, bool is_full = true){
     //    ofs_spx << std::fixed << std::setprecision(12);
@@ -609,29 +329,6 @@ public :
       ofs_pts << "}," << std::endl;
       ofs_pts << "\"properties\": {" << std::endl;
 
-      // for ( const auto &ee : dmap ) {
-      // 	if(dmap[ee.first].part == "vertex" && ee.second.do_exist){
-      // 	  if(dmap[ee.first].type == tinyply::Type::INT32){
-      // 	    std::vector<int> vv;
-      // 	    dmap[ee.first].extract_full_input(vv,false);
-      // 	    for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-      // 	      ofs_pts << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv[nn] << "," << std::endl;
-      // 	    }
-      // 	  }else  if(dmap[ee.first].type == tinyply::Type::UINT32){
-      // 	    std::vector<uint> vv;
-      // 	    dmap[ee.first].extract_full_input(vv,false);
-      // 	    for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-      // 	      ofs_pts << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv[nn] << "," << std::endl;
-      // 	    }
-      // 	  }else  if(dmap[ee.first].type == DATA_FLOAT_TYPE){
-      // 	    std::vector<double> vv;
-      // 	    dmap[ee.first].extract_full_input(vv,false);
-      // 	    for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-      // 	      ofs_pts << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv[nn] << "," << std::endl;
-      // 	    }
-      // 	  }
-      // 	}
-      // }      
       for ( const auto &ee : dmap ) {
       	if(dmap[ee.first].part == "vertex" && ee.second.do_exist){
       	  for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
@@ -652,10 +349,6 @@ public :
       	}
       }
       
-      // if(labs.size() > 0){
-      // 	ofs_pts << "\"lab\":" << labs[id] <<  "," << std::endl;
-      // 	ofs_pts << "\"marker-color\":" << lab_color[labs[id]] <<  "," << std::endl;
-      // }
       ofs_pts << "\"datatype\":\"point\"," << std::endl;
       ofs_pts << "\"prop1\": { \"this\": \"that\" }" << std::endl;
       ofs_pts << "}" << std::endl;
@@ -666,8 +359,6 @@ public :
     uint num_c = dmap[simplex_name].get_nbe_input();///(D+1);
     for(int id = 0; id < num_c; id++){
       int local = 0;
-      // if(id > 3)
-      // 	break;
       bool is_infinite = false;
       for(int i=0; i<=D+1; ++i){
 	if(v_simplex[id*(D+1)+(i%(D+1))] == 0)
@@ -691,14 +382,7 @@ public :
 	    {
 	      ofs_spx << "],[";
 	    }
-
-	  
 	  int id_pp = v_simplex[id*(D+1)+(i%(D+1))];
-	  // if(id < 3){
-	  //   std::cerr << "==>" << id_pp << std::endl;
-	  //   for(int d=0; d<D-1; ++d) std::cerr << v_xyz[id_pp*D + d] << ",";
-	  //   std::cerr << v_xyz[id_pp*D + D-1] << std::endl;;
-	  // }
 	    
 	  for(int d=0; d<D-1; ++d) ofs_spx << v_xyz[id_pp*D + d] << ",";
 	  ofs_spx << v_xyz[id_pp*D + D-1];
@@ -722,25 +406,7 @@ public :
 
       for ( const auto &ee : dmap ) {
       	if(dmap[ee.first].part == "face" && ee.second.do_exist){
-	  // if(dmap[ee.first].type == tinyply::Type::INT32){
-	  //   std::vector<int> vv;
-	  //   dmap[ee.first].extract_full_input(vv,false);
-	  //   for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-	  //     ofs_spx << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv[nn] << "," << std::endl;
-	  //   }
-	  // }else  if(dmap[ee.first].type == tinyply::Type::UINT32){
-	  //   std::vector<uint> vv;
-	  //   dmap[ee.first].extract_full_input(vv,false);
-	  //   for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-	  //     ofs_spx << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv[nn] << "," << std::endl;
-	  //   }
-	  // }else  if(dmap[ee.first].type == DATA_FLOAT_TYPE){
-	  //   std::vector<double> vv;
-	  //   dmap[ee.first].extract_full_input(vv,false);
-	  //   for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-	  //     ofs_spx << "\"" << dmap[ee.first].get_name(nn,true) << "\":" << vv[nn] << "," << std::endl;
-	  //   }
-	  // }
+
 	  for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
 	    if(dmap[ee.first].type == tinyply::Type::INT32){
 	      int vv;
@@ -758,31 +424,8 @@ public :
 	  }
       	}
       }
-
-      // for ( const auto &ee : dmap ) {
-      // 	if(dmap[ee.first].part == "face" && ee.second.do_exist){
-      // 	  ofs_spx << "\"" << ee.first[0] << "\":\"" ;
-      // 	  for(int nn = 0 ; nn < dmap[ee.first].get_vsize();nn++){
-      // 	    if(dmap[ee.first].type == tinyply::Type::INT32){
-      // 	      int vv;
-      // 	      dmap[ee.first].extract_value(id,vv,nn);
-      // 	      ofs_spx << vv << " ";
-      // 	    }else  if(dmap[ee.first].type == tinyply::Type::UINT32){
-      // 	      uint vv;
-      // 	      dmap[ee.first].extract_value(id,vv,nn);
-      // 	      ofs_spx << vv << " ";
-      // 	    }else  if(dmap[ee.first].type == DATA_FLOAT_TYPE){
-      // 	      double vv;
-      // 	      dmap[ee.first].extract_value(id,vv,nn);
-      // 	      ofs_spx << vv << " ";
-      // 	    }
-      // 	  }
-      // 	  ofs_spx << "\"," << std::endl;
-      // 	}
-      // }
       
       ofs_spx << "\"stroke-width\":\"2\"," <<  std::endl;	
-      //	iit->data().dump_geojson(ofs_spx);
       ofs_spx << "\"prop1\": { \"this\": \"that\" }" << std::endl;
       ofs_spx << "}" << std::endl;
       ofs_spx << "}" << std::endl;
@@ -801,15 +444,10 @@ public :
   
   void write_ply_stream( std::ostream & ss,char nl_char = '\n',bool is_binary = false,bool do_elem_newline = false)
   {
-    //    ss << std::fixed << std::setprecision(NB_DIGIT_OUT);
     try
       {
-
-	//	ss << std::scientific << std::endl;
 	tinyply::PlyFile file_out;
-	//std::cerr << "db 1" << std::endl;
 	for ( const auto &ee : dmap ) {
-	  //std::cerr << "db 2 : "  << std::endl;
 	  if(dmap[ee.first].part == "vertex"){
 	    if(ee.second.do_exist){
 	      if(dmap[ee.first].get_nbe_output() == 0 &&
@@ -828,7 +466,6 @@ public :
 	}
 	for ( const auto &ee : dmap ) {
 	  if(dmap[ee.first].part != "vertex"){
-	    //std::cerr << "db 3 : " << std::endl;
 	    if(ee.second.do_exist){
 	      if(dmap[ee.first].get_nbe_output() == 0 &&
 		 dmap[ee.first].get_nbe_input() != 0){
@@ -850,10 +487,7 @@ public :
 	    }
 	  }
 	}
-	//std::cerr << "db 4 : " << std::endl;
 	file_out.write(ss,is_binary,nl_char,do_elem_newline);
-	//std::cerr << "db 5 : " << std::endl;
-   
       }
     catch (const std::exception & e)
       {
@@ -862,10 +496,6 @@ public :
   }
 
 
-  void remove_infinite(){
-
-
-  }
 
   void write_dataset_stream( std::ostream & ss,char nl_char,int tid)
   {
@@ -875,7 +505,7 @@ public :
     std::vector<int> raw_ids_vertex(std::max(nb_pts_output(),nb_pts_input()),tid);
     std::vector<int> raw_ids_simplex(std::max(nb_simplex_output(),nb_simplex_input()),tid);
 
-    std::cerr << "raw_ids_vertex.size() => " << raw_ids_vertex.size() << std::endl;
+
     
     dmap[vtileid_name] = Data_ply(vtileid_name,"vertex",1,1,tinyply::Type::INT32);
     dmap[ctileid_name] = Data_ply(ctileid_name,"face",1,1,tinyply::Type::INT32);

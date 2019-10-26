@@ -9,7 +9,7 @@ GLOBAL_OUTPUT_DIR="${HOME}/shared_spark/tests_outputs/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
-DEBUG_FLAG="-d"
+#DEBUG_FLAG="-d"
 DO_RUN=true
 
 

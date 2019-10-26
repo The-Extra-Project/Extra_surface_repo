@@ -4,10 +4,6 @@
 
 
 
-
-
-
-
 // Algo
 int send_neighbors(Id tid,algo_params & params, std::map<Id, std::vector<Point_id_id>> & outbox,bool do_send_empty)
 {
@@ -329,7 +325,7 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
 
         hpi.parse_header(std::cin);
         //      std::cerr << "filename: " << hpi.get_file_name() << " [" << hpi.get_lab() << "]" << std::endl;
-        if(hpi.get_lab() == "t" || hpi.get_lab() == "u" || hpi.get_lab() == "v")
+        if(hpi.get_lab() == "t" )
         {
             //  log.step("[read]read_triangulation");
             std::cerr << " " << std::endl;
