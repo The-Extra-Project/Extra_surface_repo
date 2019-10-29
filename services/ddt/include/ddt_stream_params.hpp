@@ -14,10 +14,10 @@
 class algo_params
 {
 public :
-    algo_params() : nbt_side(1),verbose_flag(0),nbp(0),log_level(2),ech_input(1),min_ppt(0),plot_lvl(0),max_ppt(200000),show_ghost(false),finalize_tri(false),extract_edg_nbrs(false),extract_tri_crown(false),io_mode(0),dump_mode(0),do_send_empty_edges(false),do_simple_output(false),input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),
+  algo_params() : nbt_side(1),extract_ply_dim(-1),verbose_flag(0),nbp(0),log_level(2),ech_input(1),min_ppt(0),plot_lvl(0),max_ppt(200000),show_ghost(false),finalize_tri(false),extract_edg_nbrs(false),extract_tri_crown(false),io_mode(0),dump_mode(0),do_send_empty_edges(false),do_simple_output(false),input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),
         style(std::string("tri1.qml")),slabel(std::string("")) {};
     double ech_input;
-    int nbt_side,verbose_flag,io_mode,seed,nbp,log_level,min_ppt,max_ppt,plot_lvl,dump_mode;
+  int nbt_side,verbose_flag,io_mode,seed,nbp,log_level,min_ppt,max_ppt,plot_lvl,dump_mode,extract_ply_dim;
     bool show_ghost,do_simple_output,extract_edg_nbrs,extract_tri_crown,do_send_empty_edges,finalize_tri;
     std::string bbox_string,input_dir,output_dir,algo_step,slabel,style;
     std::ostream& operator<<(std::ostream& os)
@@ -57,7 +57,7 @@ public :
             {"output_dir",  required_argument, 0, 'w'},
             {"label",  required_argument, 0, 'l'},
             {"bbox",  required_argument, 0, 'b'},
-            {"dim",  required_argument, 0, 'd'},
+            {"extract_ply_dim",  required_argument, 0, 'd'},
             {"nbt_side",  required_argument, 0, 't'},
             {"min_ppt",  required_argument, 0, 'p'},
             {"max_ppt",  required_argument, 0, 'k'},
@@ -109,6 +109,9 @@ public :
                 break;
             case 'p':
                 min_ppt = atoi(optarg);
+                break;
+	    case 'd':
+                extract_ply_dim = atoi(optarg);
                 break;
             case 'k':
                 max_ppt = atoi(optarg);

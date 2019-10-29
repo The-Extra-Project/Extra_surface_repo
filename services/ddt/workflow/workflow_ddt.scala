@@ -122,7 +122,6 @@ val iq = new IQlibSched(slvl_glob,slvl_loop)
 val params_new = new Hash_StringSeq with mutable.MultiMap[String, String]
 val params_ddt =  set_params(params_new,List(
   ("exec_path", build_dir + "/bin/ddt-stream-exe"),
-  ("dim",params_scala("dim").head),
   ("bbox",params_scala("bbox").head),
   ("ech_input","1"),
   ("input_dir",input_dir),
@@ -131,18 +130,6 @@ val params_ddt =  set_params(params_new,List(
   ("seed",algo_seed)
 ))
 
-val params_wasure =  set_params(params_new,List(
-  ("exec_path", build_dir + "/bin/wasure-stream-exe"),
-  ("dim",params_scala("dim").head),
-  ("bbox",params_scala("bbox").head),
-  ("lambda",params_scala("lambda").head),
-  ("pscale",params_scala("pscale").head),
-  ("nb_samples",params_scala("nb_samples").head),
-  ("mode",params_scala("mode").head),
-  ("input_dir",input_dir),
-  ("output_dir",output_dir),
-  ("seed",algo_seed)
-))
 
 val fmt = new java.text.DecimalFormat("##0.##############")
 val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
