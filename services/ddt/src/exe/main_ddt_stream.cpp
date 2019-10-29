@@ -166,6 +166,8 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
     {
         ddt::stream_data_header hpi;
         hpi.parse_header(std::cin);
+
+
         if(hpi.get_lab() == "z" )
         {
             //  ddt::read_point_set_serialized(vp, hpi.get_input_stream(),traits);
@@ -282,7 +284,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 
 
     log.step("[write]write_crown");
-    ddt::stream_data_header ozh("z","s",tid);
+    ddt::stream_data_header ozh("z","z",tid);
     ozh.write_header(std::cout);
     ddt::write_point_set_serialized(vp_crown,ozh.get_output_stream(),D);
     ozh.finalize();
@@ -345,55 +347,50 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
             w_datas.dmap[w_datas.xyz_name].extract_full_input(vp,false);
 
         }
-        if(hpi.get_lab() == "p" || hpi.get_lab() == "x")
-        {
+
+	// Parse point only
+        if(hpi.get_lab() == "p"  || hpi.get_lab() == "z")
+	  {
             std::cerr << " " << std::endl;
             std::cerr << "=== Parse pts ===" << std::endl;
-            ddt_data<Traits> w_datas;
-            std::string ext = hpi.get_ext();
-            if(ext == "pts")
-            {
-                // Not handled anymore
-                //ddt::read_points_stream(vp,hpi.get_input_stream(),traits);
-                return 10;
-            }
-            else if(ext == "ply" || hpi.is_stream())
-            {
-                w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
-                for(int i = 0; i < w_datas.nb_pts_input() ; i++)
-                {
-                    vp.emplace_back(std::make_pair(w_datas.get_pts(i),tid));
-                }
-            }
-            else
-            {
-                std::cerr << "format " << ext << " not supported" << std::endl;
-                return 1;
-            }
-        }
-        if(hpi.get_lab() == "z" )
-        {
-            std::cerr << " " << std::endl;
-            std::cerr << "=== Parse z ===" << std::endl;
-            std::vector<Point> rvp;
-            ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
-            for(auto pp : rvp)
-            {
+	    if(hpi.is_serialized()){
+	      std::vector<Point> rvp;
+	      ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+	      for(auto pp : rvp)
+		{
                 vp.emplace_back(std::make_pair(pp,tid));
-            }
-        }
-        if(hpi.get_lab() == "q" || hpi.get_lab() == "r")
+		}
+	    }else{
+	      ddt_data<Traits> w_datas;
+	      std::string ext = hpi.get_ext();
+	      if(ext == "pts")
+		{
+		  // Not handled anymore
+		  //ddt::read_points_stream(vp,hpi.get_input_stream(),traits);
+		  return 10;
+		}
+	      else if(ext == "ply" || hpi.is_stream())
+		{
+		  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+		  for(int i = 0; i < w_datas.nb_pts_input() ; i++)
+		    {
+		      vp.emplace_back(std::make_pair(w_datas.get_pts(i),tid));
+		    }
+		}
+	      else
+		{
+		  std::cerr << "format " << ext << " not supported" << std::endl;
+		  return 1;
+		}
+	    }
+	  }
+
+	// Parse point and Id
+        if(hpi.get_lab() == "q" || hpi.get_lab() == "r" || hpi.get_lab() == "e")
         {
             std::cerr << " " << std::endl;
             std::cerr << "=== Parse q ===" << std::endl;
-            //ddt::read_points_id_source_serialized(vpis, hpi.get_input_stream(), traits);
 	    ddt::read_points_id_source_serialized(vpis, hpi.get_input_stream(), traits);
-        }
-        if( hpi.get_lab() == "e")
-        {
-            std::cerr << " " << std::endl;
-            std::cerr << "=== Parse e ===" << std::endl;
-            ddt::read_points_id_source_serialized(vpis, hpi.get_input_stream(), traits);
         }
         std::cerr << "parsing done" << std::endl;
         hpi.finalize();
