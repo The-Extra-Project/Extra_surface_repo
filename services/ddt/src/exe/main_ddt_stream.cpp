@@ -387,7 +387,7 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
             std::cerr << " " << std::endl;
             std::cerr << "=== Parse q ===" << std::endl;
             //ddt::read_points_id_source_serialized(vpis, hpi.get_input_stream(), traits);
-            ddt::read_points_id_source_stream(vpis, hpi.get_input_stream(), traits);
+	    ddt::read_points_id_source_serialized(vpis, hpi.get_input_stream(), traits);
         }
         if( hpi.get_lab() == "e")
         {

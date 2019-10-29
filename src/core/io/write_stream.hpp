@@ -141,17 +141,39 @@ int write_points_id_source_serialized(const std::vector<Point_id_source> & lp, s
     return 0;
 }
 
-template <typename Point_id_source,typename Point>
-int write_points_id_source_stream(const std::vector<Point_id_source> & lp, std::ostream & ofile, uint D)
-{
+// template <typename Point_id_source,typename Point>
+// int write_points_id_source_stream(const std::vector<Point_id_source> & lp, std::ostream & ofile, uint D)
+// {
 
-    ofile << D << " " << lp.size() << " ";
-    for(auto pp : lp)
-    {
-        write_point_id_source<Point_id_source,Point>(pp,ofile,D);
+//     ofile << D << " " << lp.size() << " ";
+//     for(auto pp : lp)
+//     {
+//         write_point_id_source<Point_id_source,Point>(pp,ofile,D);
+//     }
+//     return 0;
+// }
+
+
+    template <typename Point_id_source,typename Point>
+  int write_points_id_source_stream(const std::vector<Point_id_source> & lp, std::ostream & ofile, uint D)
+  {
+
+    std::vector<double> outputv;
+    for(auto pp : lp){
+      outputv.emplace_back(std::get<1>(pp));
+      outputv.emplace_back(std::get<2>(pp));
+      for(int d = 0 ; d < D; d++)
+	outputv.emplace_back(std::get<0>(pp)[d]);
     }
+    serialize_b64_vect(outputv,ofile);
+
+    // ofile << D << " " << lp.size() << " "; 
+    // for(auto pp : lp)
+    //   {
+    //     write_point_id_source<Point_id_source,Point>(pp,ofile,D);
+    //   }
     return 0;
-}
+  }
 
 
 
