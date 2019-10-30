@@ -842,7 +842,14 @@ int extract_struct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream &
     return 0;
 }
 
-// OK
+
+
+
+
+
+
+// =================== Data Processing =====================
+// Generate point from normal distribution
 int generate_points_normal(Id tid,algo_params & params,ddt::logging_stream & log)
 {
 
@@ -887,17 +894,12 @@ int generate_points_normal(Id tid,algo_params & params,ddt::logging_stream & log
         }
     }
 
-    ddt_data<Traits> datas_out;
-    datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-    datas_out.dmap[datas_out.xyz_name].fill_full_output(vp);
-
     log.step("write");
     std::cout.clear();
-    ddt::stream_data_header oqh("g","s",tid),och("c","s",tid);
-    std::string filename(params.output_dir + "/tile_" + params.slabel +"_id_"+ std::to_string(tid) + "_" + std::to_string(tid));
+    ddt::stream_data_header oqh("z","z",tid),och("c","s",tid);
 
     oqh.write_header(std::cout);
-    datas_out.write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
+    ddt::write_point_set_serialized(vp,oqh.get_output_stream(),D);
     oqh.finalize();
     std::cout << std::endl;
     och.write_header(std::cout);
@@ -909,7 +911,8 @@ int generate_points_normal(Id tid,algo_params & params,ddt::logging_stream & log
     return 0;
 }
 
-// OK
+
+// Generate point from uniform distribution
 int generate_points_uniform(Id tid,algo_params & params,ddt::logging_stream & log)
 {
 
@@ -976,7 +979,12 @@ int generate_points_uniform(Id tid,algo_params & params,ddt::logging_stream & lo
     return 0;
 }
 
-// OK
+
+
+
+
+// ========================= Data tiling section ============================
+// tile ply
 int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 {
 
@@ -1007,6 +1015,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
         {
             w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
         }
+
 
 
         hpi.finalize();
@@ -1108,13 +1117,14 @@ int dump_ply_binary(Id tid,algo_params & params, int nb_dat,ddt::logging_stream 
 }
 
 
-
+//  ================== Main function  ====================
 int main(int argc, char **argv)
 {
 
 
     std::cout.setstate(std::ios_base::failbit);
-    //std::cerr.setstate(std::ios_base::failbit);
+
+    // Main algo parser
     // Read input
     algo_params params;
     params.parse(argc,argv);
@@ -1124,8 +1134,6 @@ int main(int argc, char **argv)
     while(true)
     {
         // Header of the executable generate_points_uniform
-
-
         ddt::stream_app_header sah;
         sah.parse_header(std::cin);
         // If std::cin empty, exit
