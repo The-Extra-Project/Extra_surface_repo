@@ -99,7 +99,7 @@ object ddt_algo {
     if(plot_lvl >= 3){
       iq.run_pipe_fun_KValue(
         dump_ply_binary_cmd ++ List("--label", "tile_pts"),
-        iq.get_kvrdd(res_tiles,"p"), "tile_pts", do_dump = false).collect()
+        iq.get_kvrdd(res_tiles,"z"), "tile_pts", do_dump = false).collect()
     }
 
 
@@ -139,7 +139,7 @@ object ddt_algo {
 
     println("Number of leaf :" + nb_leaf)
     val rep_value = nb_leaf.toInt;// ((if((nb_leaf/2) < spark_core_max) spark_core_max else  nb_leaf/2)).toInt
-    val kvrdd_points : RDD[KValue] = iq.get_kvrdd(res_tiles,"p").map(x => ((x._1+  id_pad),x._2)).cogroup(rdd_idmap).filter(
+    val kvrdd_points : RDD[KValue] = iq.get_kvrdd(res_tiles,"z").map(x => ((x._1+  id_pad),x._2)).cogroup(rdd_idmap).filter(
       x => ((!x._2._2.isEmpty) && (!x._2._1.isEmpty))).map(
       x => (x._2._2.head.toLong,x._2._1.reduce(_ ::: _))).reduceByKey(new HashPartitioner(rep_value),(u,v) => u ::: v).setName("KVRDD_TILING");
 

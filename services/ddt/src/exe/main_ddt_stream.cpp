@@ -170,7 +170,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 
         if(hpi.get_lab() == "z" )
         {
-            //  ddt::read_point_set_serialized(vp, hpi.get_input_stream(),traits);
+            ddt::read_point_set_serialized(vp, hpi.get_input_stream(),traits);
         }
         if(hpi.get_lab() == "p" || hpi.get_lab() == "x")
         {
@@ -1002,6 +1002,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
     std::cerr << "read : " << std::endl;
     log.step("read");
     std::map<Id,ddt_data<Traits> > tile_map;
+    std::map<Id,std::vector<Point> > vp_map;
     Traits traits;
     
     for(int i = 0; i < nb_dat; i++)
@@ -1054,38 +1055,76 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
             int pp = part(p);
             Id id = Id(pp % NT);
 
+	    if(true){
+	      std::vector<double> coords(Traits::D);
+
+	      for(int d = 0 ; d < D; d++){
+		double range = bbox.max(d) - bbox.min(d);
+		coords[d] = p[d];
+	      }
+
+	      vp_map[id].emplace_back(traits.make_point(coords.begin()));
+
+	    }else{
             auto it = tile_map.find(id);
             if(it==tile_map.end())
             {
                 tile_map[id] = ddt_data<Traits>(w_datas.dmap);
             }
             tile_map[id].copy_point(w_datas,count);
+	    }
         }
     }
     std::cout.clear();
     std::cerr << "count finalized" << std::endl;
 
     log.step("write");
-    for ( const auto &myPair : tile_map )
-    {
-        Id id = myPair.first;
-        int nb_out = tile_map[id].nb_pts_output();
-        if(nb_out < params.min_ppt)
-        {
-            continue;
-        }
+    if(true){
 
-        ddt::stream_data_header oqh("p","s",id),och("c","s",id);
-        std::string filename(params.output_dir + "/tile_" + params.slabel +"_id_"+ std::to_string(tid) + "_" + std::to_string(id));
+      for ( const auto &myPair : vp_map ) {
+	Id id = myPair.first;
+	std::vector<Point> & vp = vp_map[id];
+	int nb_out = vp.size();
+	std::cerr << "vp : NBOUT:" << nb_out << std::endl;
+	if(nb_out < params.min_ppt){
+	  std::cerr <<  " === !!!!! WARNING !!!! === "  << std::endl;
+	  std::cerr <<  "skiping tile : " << id << std::endl;
+	  continue;
+	}
 
-        oqh.write_header(std::cout);
-        tile_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
-        oqh.finalize();
-        std::cout << std::endl;
-        och.write_header(std::cout);
-        och.get_output_stream() << nb_out;
-        och.finalize();
-        std::cout << std::endl;
+	ddt::stream_data_header oqh("z","s",id),och("c","s",id);
+	oqh.write_header(std::cout);
+	ddt::write_point_set_serialized(vp,oqh.get_output_stream(),D);
+	oqh.finalize();
+	std::cout << std::endl;
+	och.write_header(std::cout);
+	och.get_output_stream() << nb_out;
+	och.finalize();
+	std::cout << std::endl;
+      }
+    
+    }else{
+      for ( const auto &myPair : tile_map )
+	{
+	  Id id = myPair.first;
+	  int nb_out = tile_map[id].nb_pts_output();
+	  if(nb_out < params.min_ppt)
+	    {
+	      continue;
+	    }
+
+	  ddt::stream_data_header oqh("p","s",id),och("c","s",id);
+	  std::string filename(params.output_dir + "/tile_" + params.slabel +"_id_"+ std::to_string(tid) + "_" + std::to_string(id));
+
+	  oqh.write_header(std::cout);
+	  tile_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
+	  oqh.finalize();
+	  std::cout << std::endl;
+	  och.write_header(std::cout);
+	  och.get_output_stream() << nb_out;
+	  och.finalize();
+	  std::cout << std::endl;
+	}
     }
     return 0;
 }
