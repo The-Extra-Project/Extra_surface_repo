@@ -56,10 +56,10 @@ function run_2d_img_ddt
 
 
 # ========== Random ddt workflow =============
-run_ddt_random
+#run_ddt_random
 
 # ==== 2D surface reconstruction workflow ====
-#run_2d_img_ddt
+run_2d_img_ddt
 
 
 

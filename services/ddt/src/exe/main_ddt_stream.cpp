@@ -1002,46 +1002,54 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
     std::cerr << "read : " << std::endl;
     log.step("read");
     std::map<Id,ddt_data<Traits> > tile_map;
+    Traits traits;
+    
     for(int i = 0; i < nb_dat; i++)
     {
+        std::vector<Point> vp_in;    
         ddt::stream_data_header hpi;
         ddt_data<Traits> w_datas;
+	int count;
         hpi.parse_header(std::cin);
         if(hpi.get_lab() == "p")
         {
             w_datas.read_ply_stream(hpi.get_input_stream());
+	    count = w_datas.nb_pts_input();
         }
         if(hpi.get_lab() == "g")
         {
             w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+	    count = w_datas.nb_pts_input();
         }
-
+	if(hpi.get_lab() == "z" )
+	  {
+	    ddt::read_point_set_serialized(vp_in, hpi.get_input_stream(),traits);
+	    count = vp_in.size();
+	  }
 
 
         hpi.finalize();
         std::cerr << "hpi finalized" << std::endl;
-        int count = w_datas.nb_pts_input();
-        if(false)
-        {
-            std::vector<int> v_pci(count,hpi.get_id(0));
-            std::vector<std::string> rpci_name = {"point_cloud_id"};
-            w_datas.dmap[rpci_name] = ddt_data<Traits>::Data_ply(rpci_name,"vertex",1,1,w_datas.get_int_type());
-            w_datas.dmap[rpci_name].fill_full_output(v_pci);
-        }
+
+
 
         std::cerr << "start tiling" << std::endl;
         for(; count != 0; --count)
-        {
-
-            Point  p = w_datas.get_pts(count);
+	  {
+	    Point  p;
+	    if(vp_in.size() > 0)
+	      p = vp_in[count];
+	    else
+	      p = w_datas.get_pts(count);
+	  
             bool is_out = false;
             for(int d = 0; d < D; d++)
-            {
+	      {
                 if(p[d] < bbox.min(d) || p[d] > bbox.max(d))
-                    is_out = true;
-            }
+		  is_out = true;
+	      }
             if(is_out)
-                continue;
+	      continue;
 
             int pp = part(p);
             Id id = Id(pp % NT);
