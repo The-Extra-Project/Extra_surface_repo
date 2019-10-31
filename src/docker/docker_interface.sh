@@ -79,8 +79,10 @@ function kill_container { # ./docker_interface.sh kill_container : kill all cont
     docker rm -f ${CONTAINER_NAME_COMPILE} 2>/dev/null
 }
 
-
-
+function kill_container_all { # ./docker_interface.sh kill_container_all : kill all docker container 
+    docker stop $(docker ps -a -q) 2>/dev/null
+    docker rm -f $(docker ps -a -q) 2>/dev/null
+}
 
 
 function run_algo_spark # Run the main pipeline

@@ -1105,7 +1105,7 @@ int dump_ply_binary(Id tid,algo_params & params, int nb_dat,ddt::logging_stream 
             Id id = hpi.get_id(0);
             ddt::stream_data_header oqh("p","s",id);
             std::string filename(params.output_dir + "/" + params.slabel + "_id_"+ std::to_string(tid) + "_" + std::to_string(id) + "_" + std::to_string(i) );
-            oqh.init_file_name(filename,".ply",true);
+            oqh.init_file_name(filename,".ply");
             oqh.write_header(std::cout);
             //w_datas_in.write_ply_stream(oqh.get_output_stream(),'\n',false);
             w_datas_in.write_ply_stream(oqh.get_output_stream(),'\n',false);
