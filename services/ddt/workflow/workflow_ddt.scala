@@ -120,7 +120,7 @@ val iq = new IQlibSched(slvl_glob,slvl_loop)
 
 // Set the c++ command line object
 val params_new = new Hash_StringSeq with mutable.MultiMap[String, String]
-val params_ddt =  set_params(params_new,List(
+val params_cpp =  set_params(params_new,List(
   ("exec_path", build_dir + "/bin/ddt-stream-exe"),
   ("bbox",params_scala("bbox").head),
   ("ech_input","1"),
@@ -141,20 +141,20 @@ val nbp_per_tile = nbp/tot_nbt;
 val rep_value = ((if((tot_nbt) < sc.defaultParallelism) sc.defaultParallelism else  (tot_nbt).toInt))
 var nb_leaf = tot_nbt;
 
-params_ddt("output_dir") = collection.mutable.Set(output_dir)
+params_cpp("output_dir") = collection.mutable.Set(output_dir)
 params_scala("output_dir") = collection.mutable.Set(output_dir)
 params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)
-params_ddt("nbt_side") =  collection.mutable.Set(nbt_side.toString)
-
+params_cpp("nbt_side") =  collection.mutable.Set(nbt_side.toString)
+params_scala("df_par") = 4.toString;
 println("")
 println("=======================================================")
 params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
 
 // General c++ commands
-val ply2geojson_cmd =  set_params(params_ddt, List(("step","ply2geojson"))).to_command_line
-val ply2dataset_cmd =  set_params(params_ddt, List(("step","ply2dataset"))).to_command_line
-val extract_struct_cmd =  set_params(params_ddt, List(("step","extract_struct"))).to_command_line
-val dump_ply_binary_cmd =  set_params(params_ddt, List(("step","dump_ply_binary"),("output_dir", output_dir))).to_command_line
+val ply2geojson_cmd =  set_params(params_cpp, List(("step","ply2geojson"))).to_command_line
+val ply2dataset_cmd =  set_params(params_cpp, List(("step","ply2dataset"))).to_command_line
+val extract_struct_cmd =  set_params(params_cpp, List(("step","extract_struct"))).to_command_line
+val dump_ply_binary_cmd =  set_params(params_cpp, List(("step","dump_ply_binary"),("output_dir", output_dir))).to_command_line
 val id_cmd = List(build_dir + "/bin/identity-exe");
 
 
@@ -163,7 +163,7 @@ val id_cmd = List(build_dir + "/bin/identity-exe");
 var kvrdd_points: RDD[KValue] = sc.parallelize(List((0L,List(""))));
 var kvrdd_inputs = format_data(
     params_scala,
-    params_ddt,
+    params_cpp,
     global_build_dir,
     ddt_main_dir,
     input_dir,
@@ -176,7 +176,9 @@ var kvrdd_inputs = format_data(
 
 // =========== Start of the algorithm ==============
 println("======== Tiling =============")
-kvrdd_points = ddt_algo.compute_tiling(kvrdd_inputs,iq,params_ddt,params_scala);
+val t0 = System.nanoTime()
+params_scala("t0") = collection.mutable.Set(t0.toString)
+kvrdd_points = ddt_algo.compute_tiling_2(kvrdd_inputs,iq,params_cpp,params_scala);
 nb_leaf = params_scala("nb_leaf").head.toInt;
 
 val rep_merge = ((if((nb_leaf) < spark_core_max) spark_core_max else  nb_leaf));
@@ -188,8 +190,8 @@ params_scala("rep_merge") = collection.mutable.Set(rep_merge.toString)
 params_scala("dump_mode") = collection.mutable.Set("0")
 
 println("======== Dimenstionnality =============")
-val t0 = System.nanoTime()
-params_scala("t0") = collection.mutable.Set(t0.toString)
+
+
 
 
 var input_ddt = kvrdd_points;
@@ -197,6 +199,6 @@ println("=========== Delauay triangulatin computation ==================")
 val (graph_tri,log_tri,stats_tri)  = ddt_algo.compute_ddt(
   kvrdd_points = input_ddt,
   iq = iq,
-  params_cpp = params_ddt,
+  params_cpp = params_cpp,
   params_scala = params_scala
 );
