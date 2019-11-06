@@ -162,7 +162,7 @@ object ddt_algo {
     val rep_value = nb_leaf.toInt;// ((if((nb_leaf/2) < spark_core_max) spark_core_max else  nb_leaf/2)).toInt
 
     //    val kvrdd_points = iq.get_kvrdd(res_tiles,"p").map(x => (id_map(x._1.toInt + id_pad).toLong,x._2)).reduceByKey( (u,v) => u ::: v,rep_value)
-
+D
     if(plot_lvl > 3){
       res_tiles.saveAsTextFile(output_dir + "/rdd_tiles")
     }
