@@ -81,6 +81,7 @@ object ddt_algo {
     val plot_lvl = params_scala("plot_lvl").head.toInt;
     val tile_cmd =  set_params(params_cpp, List(("step","tile_ply"))).to_command_line
     val dump_ply_binary_cmd =  set_params(params_cpp, List(("step","dump_ply_binary"))).to_command_line
+    val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
     val max_ppt = params_scala("max_ppt").head.toInt;
     val ndtree_depth = params_scala("ndtree_depth").head.toInt;
     val output_dir = params_scala("output_dir").head;
@@ -98,10 +99,17 @@ object ddt_algo {
       tile_cmd ++ List("--label", "pts_tile"),
       kvrdd_inputs, "tile", do_dump = false).setName("KVRDD_TILING");
 
-    if(plot_lvl >= 1 && false){
+    if(plot_lvl >= 3){
+      if(dim == 3){
       iq.run_pipe_fun_KValue(
         dump_ply_binary_cmd ++ List("--label", "tile_pts"),
         iq.get_kvrdd(res_tiles,"z"), "tile_pts", do_dump = false).collect()
+      }
+      if(dim == 2){
+        iq.run_pipe_fun_KValue(
+        tri2geojson_cmd ++ List("--label", "tile_pts"),
+        iq.get_kvrdd(res_tiles,"z"), "tile_pts", do_dump = false).collect()
+      }
     }
 
 
@@ -162,7 +170,7 @@ object ddt_algo {
     val rep_value = nb_leaf.toInt;// ((if((nb_leaf/2) < spark_core_max) spark_core_max else  nb_leaf/2)).toInt
 
     //    val kvrdd_points = iq.get_kvrdd(res_tiles,"p").map(x => (id_map(x._1.toInt + id_pad).toLong,x._2)).reduceByKey( (u,v) => u ::: v,rep_value)
-D
+
     if(plot_lvl > 3){
       res_tiles.saveAsTextFile(output_dir + "/rdd_tiles")
     }
@@ -288,7 +296,7 @@ D
 
     // C++ command init
     val insert_in_triangulation_fun = set_params(params_cpp,List(("step","insert_in_triangulation"))).to_command_line
-    val tri2geojson_fun =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
+    val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
 
     // Loop variables
     val defaultV = (List(""));
@@ -343,7 +351,7 @@ D
       if(plot_lvl >=3 ||  (plot_lvl >=2 && !is_not_last)){
         if(dim_algo.toInt == 2){
           val rdd_json_tri = iq.run_pipe_fun_KValue(
-            tri2geojson_fun ++ List("--label", "tri_loop_" + acc.toString,"--style","tri_main.qml"),
+            tri2geojson_cmd ++ List("--label", "tri_loop_" + acc.toString,"--style","tri_main.qml"),
             kvrdd_cur_tri, "tri_loop", do_dump = false)
           rdd_json_tri.collect()
         }
@@ -367,7 +375,7 @@ D
     // C++ function
     val insert_in_triangulation_fun = set_params(params_cpp,List(("step","insert_in_triangulation"))).to_command_line
     val ply2geojson_fun =  set_params(params_cpp, List(("step","ply2geojson"))).to_command_line
-    val tri2geojson_fun =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
+    val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
 
 
     // Algo variables
@@ -441,7 +449,7 @@ D
     // Ploting section
     if(plot_lvl >=2 && dim_algo.toInt == 2){
       val rdd_json_merged_tri = iq.run_pipe_fun_KValue(
-        tri2geojson_fun ++ List("--label", "res_merged_tri","--style","tri_main.qml"),
+        tri2geojson_cmd ++ List("--label", "res_merged_tri","--style","tri_main.qml"),
         kvrdd_finalized_tri, "res_merged_tri", do_dump = false)
       rdd_json_merged_tri.collect()
       update_time(params_scala,"plotingdone");

@@ -4,30 +4,32 @@
       <dim>2</dim>
       <nbp_and_depth>1000000:5</nbp_and_depth>
       <bbox>0x100000:0x100000</bbox>
-      <max_ppt>1000</max_ppt>
+      <max_ppt>10000</max_ppt>
       <plot_lvl>3</plot_lvl>
       <datatype>random_normal</datatype>
       <spark_core_max>4</spark_core_max>
       <algo_version>1</algo_version>
       <StorageLevel>MEMORY_AND_DISK_SER</StorageLevel>
       <!-- Meta parameters -->
-      <do_process>false</do_process>
+      <do_process>true</do_process>
       <do_expand>true</do_expand>
     </test_small>
 
-
-    <test_small_2d>
+    <test_medium_2d>
       <dim>2</dim>
-      <nbp_and_depth>20000:4</nbp_and_depth>
+      <nbp_and_depth>1000000:6,2000000:6,5000000:6</nbp_and_depth>
       <bbox>0x100000:0x100000</bbox>
-      <max_ppt>2000</max_ppt>
+      <max_ppt>50000</max_ppt>
       <plot_lvl>3</plot_lvl>
       <datatype>random_normal</datatype>
       <algo_version>1</algo_version>
       <StorageLevel>MEMORY_AND_DISK</StorageLevel>
-      <do_process>true</do_process>
-      <do_expand>false</do_expand>
-    </test_small_2d>
+      <algo_seed_cpp>10000</algo_seed_cpp>
+      <do_process>false</do_process>
+      <do_expand>true</do_expand>
+      <sort_criterion>nbp:lt</sort_criterion>
+    </test_medium_2d>
+
     
   </datasets>
 

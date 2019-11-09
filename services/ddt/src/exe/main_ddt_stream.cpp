@@ -734,7 +734,8 @@ int ply2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & lo
 
 int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 {
-  
+
+  int D = Traits::D;
   for(int i = 0; i < nb_dat; i++){
     std::cerr << "convert data " << i << std::endl;
 
@@ -744,15 +745,32 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
     ddt_data<Traits> w_datas;
     DDT tri1;
     Traits traits;
-    if(hpi.get_lab() == "t" || hpi.get_lab() == "u" || hpi.get_lab() == "v"){
-      std::cerr << "READ:" << hpi.get_lab() << std::endl;
-      bool do_clean_data = true;
-      read_ddt_stream(tri1,w_datas, hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
-      auto  tile  = tri1.get_tile(tid);
-					       tile->update_local_flag();
-      typename DDT::Traits::Delaunay_triangulation & ttri = tile->tri();
-					       traits.export_tri_to_data(ttri,w_datas,false);
-    }
+    if(hpi.get_lab() == "t" || hpi.get_lab() == "u" || hpi.get_lab() == "v")
+      {
+	std::cerr << "READ:" << hpi.get_lab() << std::endl;
+	bool do_clean_data = true;
+	read_ddt_stream(tri1,w_datas, hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+	auto  tile  = tri1.get_tile(tid);
+	tile->update_local_flag();
+	typename DDT::Traits::Delaunay_triangulation & ttri = tile->tri();
+	traits.export_tri_to_data(ttri,w_datas,false);
+      } else if(hpi.get_lab() == "p"  || hpi.get_lab() == "z")
+      {
+	std::cerr << " " << std::endl;
+	std::cerr << "=== Parse pts ===" << std::endl;
+	std::vector<Point> vp;
+	if(hpi.is_serialized()){
+	  std::cerr << "is ser!" << std::endl;
+	  std::vector<Point> rvp;
+	  ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+	  for(auto pp : rvp)
+	    {
+	      vp.emplace_back(pp);
+	    }
+	}
+	w_datas.dmap[w_datas.xyz_name] = ddt_data<Traits>::Data_ply(w_datas.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+	w_datas.dmap[w_datas.xyz_name].fill_full_input(vp);
+      }
     std::cerr << "ser1" << std::endl;
     hpi.finalize();
       
@@ -845,7 +863,9 @@ int extract_struct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream &
 
 
 
-
+double doubleRand() {
+  return double(std::rand()) / (double(RAND_MAX) + 1.0);
+}
 
 
 // =================== Data Processing =====================
@@ -853,65 +873,91 @@ int extract_struct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream &
 int generate_points_normal(Id tid,algo_params & params,ddt::logging_stream & log)
 {
 
-    int D = Traits::D;
-    Traits traits;
+  int dim = Traits::D;
+  Traits traits;
 
-    ddt::Bbox<Traits::D> bbox;
-    std::stringstream ss;
-    ss << params.bbox_string;
-    ss >> bbox;
-    double bb_l = bbox.max(0)-bbox.min(0);
+  ddt::Bbox<Traits::D> bbox;
+  std::stringstream ss;
+  ss << params.bbox_string;
+  ss >> bbox;
+  double bb_l = bbox.max(0)-bbox.min(0);
+  
+  std::vector<Point> vp;
+  int nbs = 1;//doubleRand()*1.05; // One tile over 3 produce points to have empty area
+  const int tot_count= params.nbp;//doubleRand()*5000;  // number of experiments
+  int acc = 0;
 
-    std::vector<Point> vp;
-    int nbs = 1;//ddt::doubleRand()*1.05; // One tile over 3 produce points to have empty area
-    const int tot_count= params.nbp;//ddt::doubleRand()*5000;  // number of experiments
-    int acc = 0;
-    while(acc < tot_count-1)
-    {
+  //  int rvvd = std::pow(10,NB_DIGIT_OUT-1);
+  while(acc < tot_count-1){
 
 
-        std::default_random_engine generator(params.seed);
-        std::normal_distribution<double> distribution(0,ddt::doubleRand()*(bb_l/50) + bb_l/10000);
+    std::default_random_engine generator(params.seed);
+    double sig = doubleRand()*(bb_l/10) + bb_l/10000;
+    std::normal_distribution<double> distribution(0,sig);
 
-        std::vector<double> ori(Traits::D);
-        for(int d = 0 ; d < D; d++)
-        {
-            ori[d] = ddt::doubleRand()*bbox.max(d);
-        }
-        int count = 0.5*(params.nbp)*ddt::doubleRand();
-
-        for(int n = 0; n < count; n++)
-        {
-            std::vector<double> coords(Traits::D);
-            for(int d = 0 ; d < D; d++)
-            {
-                coords[d] = ori[d]+distribution(generator); ;
-            }
-            vp.push_back(traits.make_point(coords.begin()));
-            acc++;
-            if(acc >= tot_count-1)
-                break;
-        }
+    std::vector<double> ori(Traits::D);
+    for(int d = 0 ; d < dim; d++){
+      //ori[d] = doubleRand()*(((bbox.max(d)-bbox.min(d)) + bbox.min(d)) - sig*6) + sig*3;
+      double len = bbox.max(d)-bbox.min(d);
+      ori[d] = bbox.min(d) + doubleRand()*(len-sig*6) + sig*3;
     }
+    int count = 0.5*(params.nbp)*doubleRand();
 
-    log.step("write");
-    std::cout.clear();
-    ddt::stream_data_header oqh("z","z",tid),och("c","s",tid);
+    for(int n = 0; n < count; n++)
+      {
+	std::vector<double> coords(Traits::D);
+	for(int d = 0 ; d < dim; d++){
+	  coords[d] = ori[d]+distribution(generator); ;
+	}
 
-    oqh.write_header(std::cout);
-    ddt::write_point_set_serialized(vp,oqh.get_output_stream(),D);
-    oqh.finalize();
-    std::cout << std::endl;
-    och.write_header(std::cout);
-    och.get_output_stream() << vp.size();
-    och.finalize();
-    std::cout << std::endl;
+	bool do_skip = false;
+	for(int d = 0 ; d < dim; d++){
+	  do_skip = ((coords[d] < bbox.min(d) || coords[d] > bbox.max(d)) || do_skip);
+	}
+	if(do_skip)
+	  continue;
+	
+	vp.emplace_back(traits.make_point(coords.begin()));
+	acc++;
+	if(acc >= tot_count-1)
+	  break;
+      }
+  }
+
+  std::cout.clear();
 
 
-    return 0;
+ 
+  ddt::stream_data_header ozh("z","z",tid);
+  ozh.write_header(std::cout);
+  ddt::write_point_set_serialized(vp,ozh.get_output_stream(),dim);
+  ozh.finalize();
+  std::cout << std::endl;
+
+  
+  // ddt_data<Traits> datas_out;  
+  // datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",dim,dim,DATA_FLOAT_TYPE);
+  // datas_out.dmap[datas_out.xyz_name].fill_full_output(vp);
+  // log.step("write");
+
+  // ddt::stream_data_header oqh("g","s",tid);
+  // std::string filename(params.output_dir + "/tile_" + params.slabel +"_id_"+ std::to_string(tid) + "_" + std::to_string(tid));
+  // if(!params.do_stream)
+  //   oqh.init_file_name(filename,".ply");
+  // oqh.write_header(std::cout);
+  // datas_out.write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
+  // oqh.finalize();
+  // std::cout << std::endl;
+
+  ddt::stream_data_header och("c","s",tid);
+  och.write_header(std::cout);
+  och.get_output_stream() << vp.size();
+  och.finalize();
+  std::cout << std::endl;
+  
+ 
+  return 0;
 }
-
-
 // Generate point from uniform distribution
 int generate_points_uniform(Id tid,algo_params & params,ddt::logging_stream & log)
 {
@@ -1092,7 +1138,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	  continue;
 	}
 
-	ddt::stream_data_header oqh("z","s",id),och("c","s",id);
+	ddt::stream_data_header oqh("z","z",id),och("c","s",id);
 	oqh.write_header(std::cout);
 	ddt::write_point_set_serialized(vp,oqh.get_output_stream(),D);
 	oqh.finalize();

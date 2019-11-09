@@ -79,7 +79,7 @@ if (output_dir.isEmpty ||  input_dir.isEmpty || !Files.exists(Paths.get(env_xml)
 }
 
 // Get Params list from xml
-val param_list = parse_xml_datasets(env_xml)
+var param_list = parse_xml_datasets_2(env_xml)
 val df_par = sc.defaultParallelism;
 val params_scala = param_list(0) // We only process 1 set of parameter in this workflow
 
@@ -113,7 +113,7 @@ val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(10
 val wasure_mode = params_scala.get_param("mode", "surface")
 val pscale = params_scala.get_param("pscale", "0").toFloat
 val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
-val min_ppt = params_scala.get_param("min_ppt", "50").toInt
+val min_ppt = params_scala.get_param("min_ppt", "3").toInt
 
 // Set the iq library on
 val iq = new IQlibSched(slvl_glob,slvl_loop)
@@ -155,6 +155,7 @@ val ply2geojson_cmd =  set_params(params_cpp, List(("step","ply2geojson"))).to_c
 val ply2dataset_cmd =  set_params(params_cpp, List(("step","ply2dataset"))).to_command_line
 val extract_struct_cmd =  set_params(params_cpp, List(("step","extract_struct"))).to_command_line
 val dump_ply_binary_cmd =  set_params(params_cpp, List(("step","dump_ply_binary"),("output_dir", output_dir))).to_command_line
+val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
 val id_cmd = List(build_dir + "/bin/identity-exe");
 
 
@@ -171,6 +172,14 @@ var kvrdd_inputs = format_data(
     sc ,
     iq
   )
+
+if(plot_lvl >= 3){
+  if(dim == 2){
+    iq.run_pipe_fun_KValue(
+      tri2geojson_cmd ++ List("--label", "kvrdd_input"),
+      kvrdd_inputs, "kvrdd_input", do_dump = false).collect()
+  }
+}
 
 
 
