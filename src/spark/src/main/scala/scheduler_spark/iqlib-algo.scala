@@ -324,13 +324,6 @@ object ddt_algo {
       kvrdd_cur_tri.persist(iq.get_storage_level_loop()).setName("KVRDD_CUR_TRI_" + acc)
       kvrdd_cur_tri.count
 
-      if(dump_mode == 4){
-        val rdd_finalized_ply: RDD[VData] = iq.filter_rdd(res_tri_insert_nbr, "p",txt = "finalized").setName("tri_full")
-        rdd_finalized_ply.persist(iq.get_storage_level_loop()).count
-        //      saveAsPly2(rdd_finalized_ply,output_dir + "/rdd_ply_finalized_loop_" + acc)
-        val kvrdd_finalized_tri : (Int,RDD[VData]) = (acc,rdd_finalized_ply)
-        kvrdd_ply_list += kvrdd_finalized_tri;
-      }
 
       //Extract the edge of the merging graph
       rdd_cur_edges = iq.get_edgrdd(res_tri_insert_nbr, "e");
@@ -463,11 +456,6 @@ object ddt_algo {
       if(true)
         saveAsPly(rdd_finalized_ply,output_dir + "/rdd_ply_finalized_init",plot_lvl)
       update_time(params_scala,"localdumped");
-      if(dump_mode == 4){
-        kvrdd_finalized_ply_list.map(
-          xx => saveAsPly(xx._2,output_dir + "/rdd_ply_finalized_loop_" + xx._1,plot_lvl)
-        )
-      }
       update_time(params_scala,"W:Dumpingdone");
     }
 

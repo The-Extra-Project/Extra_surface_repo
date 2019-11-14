@@ -297,7 +297,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
     // if(params.dump_mode   > 0 ){
     //   // ddt::stream_data_header oph("p","s",tid);
     //   // ocph.write_header(std::cout);
-    //   if(params.dump_mode >= 3){
+    //   if(params.dump_mode >= 3 || true){
     //     filter_cell filt(tri_bbox);
     //     cgal2ply_split(std::cout,tri_raw,filt,nbc_finalized,params,tid,log,traits_raw);
     //   }else
@@ -499,7 +499,7 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
     log.step("[write]Start");
     if(params.finalize_tri && params.dump_mode > 0)
     {
-        if(params.dump_mode == 3 && Traits::D == 3)
+      if(params.dump_mode == 3 || Traits::D == 3)
         {
             ddt::Bbox<Traits::D> tri_bbox_local;
             Tile_iterator tci = tri1.get_tile(tid);
@@ -892,7 +892,7 @@ int generate_points_normal(Id tid,algo_params & params,ddt::logging_stream & log
 
 
     std::default_random_engine generator(params.seed);
-    double sig = doubleRand()*(bb_l/10) + bb_l/10000;
+    double sig = doubleRand()*(bb_l/50) + bb_l/10000;
     std::normal_distribution<double> distribution(0,sig);
 
     std::vector<double> ori(Traits::D);
@@ -1242,8 +1242,10 @@ int main(int argc, char **argv)
         loop_acc++;
 
         Id tile_id = ((Id)sah.tile_id);
-        //srand(params.seed*tile_id);
-        srand(time(NULL));
+
+	// To have a different seed for each tiles, if not, each tiles in random case has the same point cloud
+        srand(params.seed*tile_id);
+        //srand(time(NULL));
         int nb_dat = sah.get_nb_dat();
         ddt::logging_stream log(params.algo_step, params.log_level);
         bool do_dump_log = false;
