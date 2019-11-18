@@ -113,7 +113,7 @@ val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(10
 val wasure_mode = params_scala.get_param("mode", "surface")
 val pscale = params_scala.get_param("pscale", "0").toFloat
 val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
-val min_ppt = params_scala.get_param("min_ppt", "3").toInt
+val min_ppt = params_scala.get_param("min_ppt", "0").toInt
 
 // Set the iq library on
 val iq = new IQlibSched(slvl_glob,slvl_loop)
@@ -197,9 +197,6 @@ if(ndtree_depth == 8)
 params_scala("rep_loop") = collection.mutable.Set(rep_loop.toString)
 params_scala("rep_merge") = collection.mutable.Set(rep_merge.toString)
 params_scala("dump_mode") = collection.mutable.Set("0")
-
-println("======== Dimenstionnality =============")
-
 
 
 
