@@ -179,6 +179,11 @@ if(plot_lvl >= 3){
       tri2geojson_cmd ++ List("--label", "kvrdd_input"),
       kvrdd_inputs, "kvrdd_input", do_dump = false).collect()
   }
+  if(dim == 3){
+    iq.run_pipe_fun_KValue(
+      dump_ply_binary_cmd ++ List("--label", "tile_pts"),
+      kvrdd_inputs, "tile_pts", do_dump = false).collect()
+  }
 }
 
 

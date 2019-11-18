@@ -1180,16 +1180,37 @@ int dump_ply_binary(Id tid,algo_params & params, int nb_dat,ddt::logging_stream 
 {
 
     std::cout.setstate(std::ios_base::failbit);
-
+    int D = Traits::D;
+    Traits traits;
     for(int i = 0; i < nb_dat; i++)
     {
         ddt::stream_data_header hpi;
         hpi.parse_header(std::cin);
-        if(hpi.get_lab() == "p"  || hpi.get_lab() == "g"  || hpi.get_lab() == "t" || hpi.get_lab() == "u" || hpi.get_lab() == "v")
-        {
-            ddt_data<Traits> w_datas_in;
-            ddt_data<Traits> w_datas_out;
-            w_datas_in.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+
+	ddt_data<Traits> w_datas_in;	
+        if(hpi.get_lab() == "p"  || hpi.get_lab() == "g"  || hpi.get_lab() == "t" || hpi.get_lab() == "u" || hpi.get_lab() == "v" || hpi.get_lab() == "z")
+	  {
+
+	    if(hpi.get_lab() == "p"  || hpi.get_lab() == "z")
+	      {
+		std::cerr << " " << std::endl;
+		std::cerr << "=== Parse pts ===" << std::endl;
+		std::vector<Point> vp;
+		if(hpi.is_serialized()){
+		  std::cerr << "is ser!" << std::endl;
+		  std::vector<Point> rvp;
+		  ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+		  for(auto pp : rvp)
+		    {
+		      vp.emplace_back(pp);
+		    }
+		}
+		std::cerr << "read ser done" << std::endl;
+		w_datas_in.dmap[w_datas_in.xyz_name] = ddt_data<Traits>::Data_ply(w_datas_in.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+		w_datas_in.dmap[w_datas_in.xyz_name].fill_full_output(vp);
+	      }else{
+	      w_datas_in.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+	    }
             hpi.finalize();
 
             std::vector<double> v_xyz;
@@ -1204,7 +1225,7 @@ int dump_ply_binary(Id tid,algo_params & params, int nb_dat,ddt::logging_stream 
             w_datas_in.write_ply_stream(oqh.get_output_stream(),'\n',false);
             oqh.finalize();
             std::cout << std::endl;
-        }
+	  }
     }
     return 0;
 }
@@ -1266,7 +1287,6 @@ int main(int argc, char **argv)
                     rv = insert_raw(tile_id,params,nb_dat,log);
                 else
                     rv = insert_in_triangulation(tile_id,params,nb_dat,log);
-
             }
             else if(params.algo_step == std::string("get_bbox_points"))
             {
@@ -1291,7 +1311,6 @@ int main(int argc, char **argv)
 	    else if(params.algo_step == std::string("tri2geojson"))
             {
                 do_dump_log = false;
-		//		exit(0);
 	        rv = serialized2geojson(tile_id,params,nb_dat,log);
             }
             else if(params.algo_step == std::string("ply2dataset"))
