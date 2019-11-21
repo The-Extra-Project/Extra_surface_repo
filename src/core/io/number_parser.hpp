@@ -3,8 +3,8 @@
 
 
 #include "count.hpp"
-// #include "string-to-double.h"
-// #include "double-to-string.h"
+#include "string-to-double.h"
+ #include "double-to-string.h"
 #include "base64.hpp"
 #include "base64_new.hpp"
 
@@ -12,11 +12,11 @@
 #define NB_DIGIT_OUT (5)
 
 
-// const  int flags_ser = double_conversion::DoubleToStringConverter::UNIQUE_ZERO |
-//   double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN;
+const  int flags_ser = double_conversion::DoubleToStringConverter::UNIQUE_ZERO |
+  double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN;
 
-// const int flags_deser = double_conversion::DoubleToStringConverter::UNIQUE_ZERO |
-//   double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN;
+const int flags_deser = double_conversion::DoubleToStringConverter::UNIQUE_ZERO |
+  double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN;
 
 const char gDigitsLut[200] =
 {

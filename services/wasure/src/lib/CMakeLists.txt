@@ -8,8 +8,10 @@ include_directories(SYSTEM ${GRAPHCUT_INCLUDE_DIR})
 include_directories(SYSTEM ${CIMG_INCLUDE_DIR})
 include_directories(SYSTEM ${TINYPLY_INCLUDE_DIR})
 include_directories(SYSTEM ${PUGIXML_INCLUDE_DIR})
+include_directories(SYSTEM ${DOUBLE_CONV_INCLUDE_DIR})
 include_directories(${DDTLIB_INCLUDE_DIR})
 include_directories(${CUT-PURSUIT_INCLUDE_DIR})
+
 include_directories(../../../ddt/include)
 
 include_directories(${DDT_MAIN_DIR}/include/)

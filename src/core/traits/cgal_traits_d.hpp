@@ -115,6 +115,11 @@ struct Cgal_traits_raw_d
         return f->full_cell();
     }
 
+  inline Cell_const_iterator neighbor(const Delaunay_triangulation& dt, Cell_const_iterator c, int i) const
+    {
+        return c->neighbor(i);
+    }
+
     int
     Cell2lp(const Cell_const_handle & ch,   std::vector<Point> & lp) const
     {
@@ -128,6 +133,29 @@ struct Cgal_traits_raw_d
 
     }
 
+    template<typename PP>
+    double squared_dist(const PP & p1, const PP & p2, int dim) const
+    {
+        double acc = 0;
+        for(int d = 0; d < dim; d++)
+            acc += (p1[d] - p2[d])*(p1[d] - p2[d]);
+        return acc;
+    }
+  
+  template<int D>
+    bool is_inside(const Delaunay_triangulation& dt, const Bbox<D>& bbox, Cell_const_handle c) const
+    {
+        typename Delaunay_triangulation::Geom_traits::FT res = 0, delta;
+        auto point  = c->vertex(0)->point();
+        auto center = circumcenter(dt, c);
+        double dist = sqrt(squared_dist(point,center,D));
+        for(int d = 0; d < D; d++)
+        {
+            if(dist >= fabs(center[d] - bbox.max(d)) || dist >= fabs(center[d] - bbox.min(d)))
+                return false;
+        }
+        return true;
+    }
 
     Point get_center( Cell_const_handle  ch) const
     {

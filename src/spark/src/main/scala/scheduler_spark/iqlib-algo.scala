@@ -362,7 +362,7 @@ object ddt_algo {
     val rep_loop = params_scala("rep_loop").head.toInt;
     val rep_merge = params_scala("rep_merge").head.toInt;
     val plot_lvl = params_scala("plot_lvl").head.toInt;
-    val dump_mode = 0 //params_scala("dump_mode").head.toInt;
+    val dump_mode = params_scala("dump_mode").head.toInt;
     val output_dir = params_scala("output_dir").head;
 
     // C++ function
@@ -466,4 +466,6 @@ object ddt_algo {
 
 
 
+
+//
 

@@ -108,7 +108,7 @@ val nbp =  params_scala.get_param("nbp", "10000").toInt
 val datatype =  params_scala.get_param("datatype", "")
 val spark_core_max = params_scala.get_param("spark_core_max", df_par.toString).toInt
 val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(100000).toString);
-
+val dump_mode = params_scala.get_param("dump_mode", "0").toInt
 // Surface reconstruction prarams
 val wasure_mode = params_scala.get_param("mode", "surface")
 val pscale = params_scala.get_param("pscale", "0").toFloat
@@ -127,6 +127,7 @@ val params_cpp =  set_params(params_new,List(
   ("input_dir",input_dir),
   ("output_dir",output_dir),
   ("min_ppt",params_scala("min_ppt").head),
+  ("dump_mode",params_scala("dump_mode").head),
   ("seed",algo_seed)
 ))
 
@@ -201,7 +202,7 @@ if(ndtree_depth == 8)
   rep_loop = spark_core_max*10;
 params_scala("rep_loop") = collection.mutable.Set(rep_loop.toString)
 params_scala("rep_merge") = collection.mutable.Set(rep_merge.toString)
-params_scala("dump_mode") = collection.mutable.Set("0")
+
 
 
 
@@ -213,3 +214,13 @@ val (graph_tri,log_tri,stats_tri)  = ddt_algo.compute_ddt(
   params_cpp = params_cpp,
   params_scala = params_scala
 );
+
+
+if(dump_mode > 0){
+  fs.listStatus(new Path(output_dir)).filter(
+    dd => (dd.isDirectory)).map(
+    ss => fs.listStatus(ss.getPath)).reduce(_ ++ _).filter(
+    xx => (xx.getPath.toString contains "part-")).map(
+    ff => fs.rename(ff.getPath, new Path(ff.getPath.toString + ".ply"))
+  )
+}

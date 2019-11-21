@@ -32,10 +32,11 @@
 
     <test_small_3d>
       <dim>3</dim>
-      <nbp_and_depth>100000:2</nbp_and_depth>
+      <nbp_and_depth>100000:1</nbp_and_depth>
       <bbox>500x1000:500x1000:500x1000</bbox>
       <max_ppt>5000</max_ppt>
       <plot_lvl>3</plot_lvl>
+      <dump_mode>3</dump_mode>
       <datatype>random_normal</datatype>
       <StorageLevel>MEMORY_ONLY</StorageLevel>
       <StorageLevelLoop>MEMORY_ONLY</StorageLevelLoop>

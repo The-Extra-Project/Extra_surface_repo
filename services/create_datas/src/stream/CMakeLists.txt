@@ -11,6 +11,7 @@ include_directories(SYSTEM ${GRAPHCUT_INCLUDE_DIR})
 include_directories(SYSTEM ${CIMG_INCLUDE_DIR})
 include_directories(SYSTEM ${GLOBAL_BUILD_DIR})
 include_directories(SYSTEM ${HDFS_INCLUDE_DIR})
+include_directories(SYSTEM ${DOUBLE_CONV_INCLUDE_DIR})
 include_directories(../../../ddt-spark/include)
 
 link_directories(${GLOBAL_BUILD_DIR})
