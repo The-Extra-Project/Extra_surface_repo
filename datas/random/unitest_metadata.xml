@@ -36,7 +36,7 @@
       <bbox>500x1000:500x1000:500x1000</bbox>
       <max_ppt>5000</max_ppt>
       <plot_lvl>3</plot_lvl>
-      <dump_mode>3</dump_mode>
+      <dump_mode>4</dump_mode>
       <datatype>random_normal</datatype>
       <StorageLevel>MEMORY_ONLY</StorageLevel>
       <StorageLevelLoop>MEMORY_ONLY</StorageLevelLoop>

@@ -104,7 +104,7 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
   int nb_ply = 0;
   int max_bnc = 1000000;
 
-  if(params.plot_lvl > 2){
+  if(params.dump_mode > 3){
     nb_cell = nbc_finalized*4;
     max_bnc = 4000000;
   }
@@ -149,7 +149,7 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
 	  buffer_char[pos+pp] = ' ';
 	  pos += (pp+1);
 	}
-      if(params.plot_lvl > 2)
+      if(params.dump_mode > 3)
 	buffer_char[pos-1] = ';';
       vertex_map[vit] = ii++;
     }
@@ -169,7 +169,7 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
   log.step("[write_ply]convert_double");
   int acc = 0;
 
-  if(params.plot_lvl <= 2){
+  if(params.dump_mode <= 3){
     for(auto cit = traits.cells_begin(tri); cit != traits.cells_end(tri); ++cit)
       {
 	if(!filter.do_keep(tri,cit,traits))
