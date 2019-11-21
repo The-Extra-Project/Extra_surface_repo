@@ -9,7 +9,7 @@ GLOBAL_OUTPUT_DIR="${HOME}/shared_spark/tests_outputs/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
-DEBUG_FLAG="-d"
+#DEBUG_FLAG="-d"
 DO_RUN=true
 
 
@@ -31,12 +31,22 @@ function run_algo_docker
 
 
 ### Distributed delaunay triangulation on random datasets
-function run_ddt_random
+function run_2d_ddt_random
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/ddt/workflow/workflow_ddt.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/random/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/unitest_metadata.xml"
+    PARAMS="${INPUT_DIR}/unitest_metadata_2D.xml"
+    run_algo_docker
+}
+
+### Distributed delaunay triangulation on random datasets
+function run_3d_ddt_random
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/ddt/workflow/workflow_ddt.scala"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/random/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/unitest_metadata_3D.xml"
     run_algo_docker
 }
 
@@ -56,7 +66,8 @@ function run_2d_img_ddt
 
 
 # ========== Random ddt workflow =============
-run_ddt_random
+# run_2d_ddt_random
+ run_3d_ddt_random
 
 # ==== 2D surface reconstruction workflow ====
 #run_2d_img_ddt
