@@ -6,7 +6,6 @@
 // CGAL and co
 
 
-
 template <typename TTr,typename DTC,typename CHR>
 bool is_inside_bbox(DTC & tri,CHR cit,  ddt::Bbox<TTr::D> & tri_bbox,TTr & traits){
 
@@ -28,6 +27,7 @@ bool is_inside_bbox(DTC & tri,CHR cit,  ddt::Bbox<TTr::D> & tri_bbox,TTr & trait
     return true;
   }  
 }
+
 
 
 struct filter_cell {

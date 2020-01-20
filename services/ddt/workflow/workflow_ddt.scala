@@ -110,6 +110,8 @@ val datatype =  params_scala.get_param("datatype", "")
 val spark_core_max = params_scala.get_param("spark_core_max", df_par.toString).toInt
 val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(100000).toString);
 val dump_mode = params_scala.get_param("dump_mode", "0").toInt
+
+
 // Surface reconstruction prarams
 val wasure_mode = params_scala.get_param("mode", "surface")
 val pscale = params_scala.get_param("pscale", "0").toFloat
@@ -176,11 +178,11 @@ var kvrdd_inputs = format_data(
   )
 
 if(plot_lvl >= 3){
-  if(dim == 2){
-    iq.run_pipe_fun_KValue(
-      tri2geojson_cmd ++ List("--label", "kvrdd_input"),
-      kvrdd_inputs, "kvrdd_input", do_dump = false).collect()
-  }
+  // if(dim == 2){
+  //   iq.run_pipe_fun_KValue(
+  //     tri2geojson_cmd ++ List("--label", "kvrdd_input"),
+  //     kvrdd_inputs, "kvrdd_input", do_dump = false).collect()
+  // }
   if(dim == 3){
     iq.run_pipe_fun_KValue(
       dump_ply_binary_cmd ++ List("--label", "tile_pts"),
