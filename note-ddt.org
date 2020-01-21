@@ -53,3 +53,9 @@ Documentation : https://buildmedia.readthedocs.org/media/pdf/geotrellis/latest/g
 
 * Remarques
 
+
+dump_mode 
+- 0 => (simplement structure de triangulation)
+- 1 => (simplex)
+- 2 => (facets)
+

@@ -413,10 +413,8 @@ object ddt_algo {
         algo_loop(kvrdd_cur_tri,rdd_cur_edges,iq, params_cpp,params_scala);
     }
 
-
     var kvrdd_finalized_tri = kvrdd_last_tri;
     var kvrdd_stats = kvrdd_last_tri;
-
 
     // Insert finalized point into global triangulation (non optimal)
     var kvrdd_b4_union =  kvrdd_last_tri; 

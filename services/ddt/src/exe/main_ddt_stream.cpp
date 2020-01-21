@@ -31,18 +31,16 @@ bool is_inside_bbox(DTC & tri,CHR cit,  ddt::Bbox<TTr::D> & tri_bbox,TTr & trait
 
 
 struct filter_cell {
-
   filter_cell(ddt::Bbox<Traits::D> bb) : tri_bbox(bb) {}
   template <typename TTr,typename DTC,typename CHR>
   bool do_keep(DTC & tri,CHR cit,TTr & traits){
     return traits.is_inside(tri,tri_bbox,cit);
   }
   ddt::Bbox<Traits::D> tri_bbox;
-  
 };
 
-struct filter_cell_ddt {
 
+struct filter_cell_ddt {
   filter_cell_ddt(ddt::Bbox<Traits::D> bb, int ii) : tri_bbox(bb),tid(ii) {}
   template <typename TTr,typename DTC,typename CHR>
   bool do_keep(DTC & tri,CHR cit,TTr & traits){
@@ -61,7 +59,6 @@ struct filter_cell_ddt {
   }
   ddt::Bbox<Traits::D> tri_bbox;
   int tid;
-  
 };
 
 
@@ -75,21 +72,17 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
   log.step("[write_ply]init");
 
   int D = 3;
-
-
   char buffer[kBufferSize];
   double_conversion::StringBuilder builder(buffer, kBufferSize);
   double_conversion::DoubleToStringConverter dc(flags_deser, "Infinity", "NaN", 'e', 0, 0, 0, 0);
 
-
-  
   int full_bufflen; 
   char * buffer_char;
   int nbb;
   int pos = 0;
   int acc_pose = 0;
   char cc;
-  bool do_simplex = true;
+  bool do_simplex = false;
 
   int NB_DIGIT_OUT_PLY  = 3;
       
@@ -556,11 +549,8 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
     Traits traits;
     DT_raw  tri_raw = traits_raw.triangulation(D) ;
 
-
-
     typedef Traits_raw::Vertex_handle_raw                            Vertex_handle_raw;
     std::vector<Point> vp;
-
 
     // ==================================
     log.step("[read]parse_data");
@@ -587,8 +577,6 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
         }
         hpi.finalize();
     }
-
-
 
     std::cerr << "Do the triangulation" << std::endl;
     log.step("[process]triangulation");
@@ -686,7 +674,6 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
     oqh.finalize();
     std::cout << std::endl;
 
-
     log.step("[write]write_crown");
     ddt::stream_data_header ozh("z","z",tid);
     ozh.write_header(std::cout);
@@ -696,7 +683,6 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
     vp_crown.clear();
     vh_crown.clear();
     log.step("[write]write_ply");
-
 
     if(params.dump_mode   > 0 ){
       //      ddt::stream_data_header oph("p","s",tid);

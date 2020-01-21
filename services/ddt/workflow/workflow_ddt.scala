@@ -110,13 +110,9 @@ val datatype =  params_scala.get_param("datatype", "")
 val spark_core_max = params_scala.get_param("spark_core_max", df_par.toString).toInt
 val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(100000).toString);
 val dump_mode = params_scala.get_param("dump_mode", "0").toInt
-
-
-// Surface reconstruction prarams
-val wasure_mode = params_scala.get_param("mode", "surface")
-val pscale = params_scala.get_param("pscale", "0").toFloat
-val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "0").toInt
+
+
 
 // Set the iq library on
 val iq = new IQlibSched(slvl_glob,slvl_loop)
@@ -149,7 +145,7 @@ params_cpp("output_dir") = collection.mutable.Set(output_dir)
 params_scala("output_dir") = collection.mutable.Set(output_dir)
 params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)
 params_cpp("nbt_side") =  collection.mutable.Set(nbt_side.toString)
-params_scala("df_par") = 4.toString;
+params_scala("df_par") = collection.mutable.Set(4.toString);
 println("")
 println("=======================================================")
 params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
@@ -219,6 +215,7 @@ val (graph_tri,log_tri,stats_tri)  = ddt_algo.compute_ddt(
 );
 
 
+println("========= PLY extraction =============")
 if(dump_mode > 0){
   fs.listStatus(new Path(output_dir)).filter(
     dd => (dd.isDirectory)).map(
@@ -227,3 +224,21 @@ if(dump_mode > 0){
     ff => fs.rename(ff.getPath, new Path(ff.getPath.toString + ".ply"))
   )
 }
+
+
+println("======= Convert Raw ply to dataset example ==========")
+val dataset_raw = iq.run_pipe_fun_KValue(
+    ply2dataset_cmd ,
+    kvrdd_dst, "dst", do_dump = false).persist(slvl_glob)
+val raw_header = dataset_raw.filter(x => x(0) == 'h').collect()(0)
+val rdd_vert = dataset_raw.filter(x => x(0) == 'v').map(x => x.tail.tail).setName("VERTS_RDD_filter").persist(slvl_glob)
+val rdd_simp = dataset_raw.filter(x => x(0) == 's').map(x => x.tail.tail).setName("Simplex_RDD_filter").persist(slvl_glob)
+val schema_pts = get_header_schema(raw_header,1)
+val schema_simplex = get_header_schema(raw_header,2)
+val frame_pts = spark.read.option("delimeter", ",").schema(schema_pts).csv(rdd_vert.toDS).persist(slvl_glob)
+val frame_simplex = spark.read.option("delimeter", ",").schema(schema_simplex).csv(rdd_simp.toDS).persist(slvl_glob)
+frame_pts.show
+frame_simplex.show
+
+
+
