@@ -359,39 +359,7 @@ public :
     }
 
 
-    void fill_gids(std::vector<int> & format_gids,bool do_clear = true)
-    {
-        ddt_data<Traits>::dmap[gid_name] = typename ddt_data<Traits>::Data_ply(gid_name,"face",1,1,tinyply::Type::INT32);
-        std::vector<int> raw_gids;
-        for(int i = 0 ; i < format_gids.size(); i++)
-        {
-            raw_gids.push_back(format_gids[i]);
-        }
 
-        ddt_data<Traits>::dmap[gid_name].fill_full_output(raw_gids);
-        ddt_data<Traits>::dmap[gid_name].do_exist = true;
-
-        if(do_clear)
-        {
-            format_gids.clear();
-        }
-        raw_gids.clear();
-    }
-
-    void extract_gids(std::vector<int> & format_gids,bool do_clear = true)
-    {
-        int D = Traits::D;
-        std::vector<int> raw_gids;
-        ddt_data<Traits>::dmap[gid_name].extract_full_input(raw_gids,false);
-
-        uint num_s = ddt_data<Traits>::dmap[gid_name].get_nbe_input();
-        for(int i = 0 ; i < raw_gids.size(); i++)
-        {
-            format_gids.push_back(raw_gids[i]);
-        }
-        if(do_clear)
-            raw_gids.clear();
-    }
 
 
 
@@ -401,7 +369,7 @@ public :
     std::vector<std::vector<double>>  format_sigs ;
     std::vector<std::vector<double>>  format_dst ;
     std::vector<int>  format_labs ;
-    std::vector<int>  format_gids ;
+
 
     std::vector<int> tile_ids;
 

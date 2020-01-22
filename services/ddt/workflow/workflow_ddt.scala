@@ -226,19 +226,9 @@ if(dump_mode > 0){
 }
 
 
-println("======= Convert Raw ply to dataset example ==========")
-val dataset_raw = iq.run_pipe_fun_KValue(
-    ply2dataset_cmd ,
-    kvrdd_dst, "dst", do_dump = false).persist(slvl_glob)
-val raw_header = dataset_raw.filter(x => x(0) == 'h').collect()(0)
-val rdd_vert = dataset_raw.filter(x => x(0) == 'v').map(x => x.tail.tail).setName("VERTS_RDD_filter").persist(slvl_glob)
-val rdd_simp = dataset_raw.filter(x => x(0) == 's').map(x => x.tail.tail).setName("Simplex_RDD_filter").persist(slvl_glob)
-val schema_pts = get_header_schema(raw_header,1)
-val schema_simplex = get_header_schema(raw_header,2)
-val frame_pts = spark.read.option("delimeter", ",").schema(schema_pts).csv(rdd_vert.toDS).persist(slvl_glob)
-val frame_simplex = spark.read.option("delimeter", ",").schema(schema_simplex).csv(rdd_simp.toDS).persist(slvl_glob)
-frame_pts.show
-frame_simplex.show
+
+
+
 
 
 
