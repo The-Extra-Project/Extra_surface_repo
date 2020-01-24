@@ -1259,7 +1259,7 @@ public :
   
   Traits traits;  
   int D = Traits::D;
-
+    std::vector<int> tile_ids;
   std::vector<int>  format_gids ;
   std::map<std::vector<std::string>, Data_ply > dmap;
   std::vector<std::string> xyz_name,

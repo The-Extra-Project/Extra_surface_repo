@@ -17,7 +17,8 @@ void init_global_id(const DDT& ddt, D_MAP & w_datas_tri, int tid)
     int D = Traits::D;
     int acc = 0;
     std::vector<int>  & format_gids = w_datas_tri[tid].format_gids;
-    int nbs = w_datas_tri[tid].nb_simplex_input();
+    int nbs = w_datas_tri[tid].nb_simplex_output();
+    std::cerr << "global id nbs ; " << nbs << std::endl;
     format_gids.resize(nbs);
     for(int i = 0; i < nbs; i++)
         format_gids[i] = -1;
@@ -28,7 +29,6 @@ void init_global_id(const DDT& ddt, D_MAP & w_datas_tri, int tid)
         Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
         if(cd_quickndirty.flag > 0)
             format_gids[cd_quickndirty.id] = w_datas_tri[tid].tile_ids[2] + (acc++);
-        //cd_quickndirty.id = acc++;
     }
     w_datas_tri[tid].fill_gids(w_datas_tri[tid].format_gids);
 }
@@ -948,6 +948,8 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
     }
     else
     {
+
+
         ddt::stream_data_header oth("t","s",tid);
         if(params.extract_tri_crown)
             oth.set_lab("v");
@@ -957,7 +959,15 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
         oth.write_header(std::cout);
         log.step("[write]write_tri");
         Tile_iterator tci = tri1.get_tile(tid);
+
+	if(is_finalized){
+	  D_MAP w_datas_tri;
+	  w_datas_tri[tid] = ddt_data<Traits>();
+	  init_global_id(tri1,w_datas_tri,tid);
+	  ddt::write_ddt_stream(tri1,w_datas_tri[tid], oth.get_output_stream(),tid,oth.is_serialized(),log);
+	}else{
         ddt::write_ddt_stream(tri1, oth.get_output_stream(),tid,oth.is_serialized(),log);
+	}
         oth.finalize();
         std::cout << std::endl;
     }
@@ -1284,7 +1294,7 @@ int extract_struct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream &
 
 
 
-int extract_stream_struct_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int>> & tile_ids,std::ostream & ofile, int main_tile_id, int area_processed)
+int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int>> & tile_ids,std::ostream & ofile, int main_tile_id, int area_processed)
 {
   ofile << std::fixed << std::setprecision(15);
 
@@ -1334,8 +1344,9 @@ int extract_stream_struct_graph(DDT & tri,D_MAP & data_map, std::map<int,std::ve
       //    continue;
       int tid = cit->tile()->id();
       int lid = cit->cell_data().id;
+      std::cerr << lid << std::endl;
       int gid = data_map[tid].format_gids[lid];
-
+      std::cerr << "hihi" << lid << std::endl;
       int lcurr = 0; //data_map[fch->tile()->id()].format_labs[cccid];
 
       ofile << "v " <<   gid  << " ";
@@ -1432,11 +1443,11 @@ int extract_graph(Id tid,algo_params & params,int nb_dat,ddt::logging_stream & l
         if(hpi.get_lab() == "t")
         {
             w_datas_tri[hid] = ddt_data<Traits>();
-            bool do_clean_data = false;
+            bool do_clean_data = true;
             bool do_serialize = false;
-            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
-            w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
-
+	    read_ddt_stream(tri,w_datas_tri[hid],  hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+	    //            w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
+	    w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
         }
         if(hpi.get_lab() == "s")
         {
@@ -1451,6 +1462,9 @@ int extract_graph(Id tid,algo_params & params,int nb_dat,ddt::logging_stream & l
         hpi.finalize();
     }
 
+
+
+
     log.step("compute");
     std::cerr << "seg_step5" << std::endl;
 
@@ -1462,8 +1476,8 @@ int extract_graph(Id tid,algo_params & params,int nb_dat,ddt::logging_stream & l
     std::cerr << "seg_step6" << std::endl;
     int nbc = 0;
 
-    //    int extract_stream_struct_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int>> & tile_ids,std::ostream & ofile, int main_tile_id, int area_processed)
-    nbc = extract_stream_struct_graph(tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid,params.area_processed);
+    //    int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int>> & tile_ids,std::ostream & ofile, int main_tile_id, int area_processed)
+    nbc = extract_tri_full_graph(tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid,params.area_processed);
 
     std::cerr << "seg_step7" << std::endl;
 

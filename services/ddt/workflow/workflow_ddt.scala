@@ -153,7 +153,8 @@ params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
 // General c++ commands
 val ply2geojson_cmd =  set_params(params_cpp, List(("step","ply2geojson"))).to_command_line
 val ply2dataset_cmd =  set_params(params_cpp, List(("step","ply2dataset"))).to_command_line
-val extract_struct_cmd =  set_params(params_cpp, List(("step","extract_struct"))).to_command_line
+val extract_graph_local_cmd =  set_params(params_cpp, List(("step","extract_graph"),("area_processed","1"))).to_command_line
+val extract_graph_shared_cmd =  set_params(params_cpp, List(("step","extract_graph"),("area_processed","1"))).to_command_line
 val dump_ply_binary_cmd =  set_params(params_cpp, List(("step","dump_ply_binary"),("output_dir", output_dir))).to_command_line
 val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
 val id_cmd = List(build_dir + "/bin/identity-exe");
@@ -207,7 +208,7 @@ params_scala("rep_merge") = collection.mutable.Set(rep_merge.toString)
 
 var input_ddt = kvrdd_points;
 println("=========== Delauay triangulatin computation ==================")
-val (graph_tri,log_tri,stats_tri)  = ddt_algo.compute_ddt(
+val (graph_tri,log_tri,kvrdd_stats)  = ddt_algo.compute_ddt(
   kvrdd_points = input_ddt,
   iq = iq,
   params_cpp = params_cpp,
@@ -226,9 +227,20 @@ if(dump_mode > 0){
 }
 
 
+val graph_full = Graph(graph_tri.vertices union kvrdd_stats, graph_tri.edges, List(""))
+val input_vertex : RDD[KValue] =  graph_full.vertices
+val input_edges : RDD[KValue] =  graph_full.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr))
 
 
+val full_graph_local = iq.run_pipe_fun_KValue(
+      extract_graph_local_cmd,
+      input_vertex, "ext_gr", do_dump = false)
 
 
+val full_graph_shared = iq.run_pipe_fun_KValue(
+      extract_graph_shared_cmd, 
+      input_edges, "ext_gr", do_dump = false)
+
+val full_graph_merged =  (full_graph_local union full_graph_shared);
 
 
