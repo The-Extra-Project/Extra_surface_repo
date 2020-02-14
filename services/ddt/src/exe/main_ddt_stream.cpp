@@ -1473,6 +1473,9 @@ int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<
 	    }
 
 
+	  if(tmp_fch->is_infinite()  || tmp_fchn->is_infinite())
+	    continue;
+
 	  Cell_const_iterator fch = tmp_fch->main();
 	  int idx = tmp_idx;
 	  Cell_const_iterator fchn = tmp_fchn->main();
