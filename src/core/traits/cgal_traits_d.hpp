@@ -720,7 +720,13 @@ struct Cgal_traits_d
             for(uint i = 0; i < num_c; ++i)
             {
                 int ii = i;
-                cell_map[ii]->data() =  v_char[ii];
+                cell_map[ii]->data().flag =  v_char[ii];
+            }
+	    deserialize_b64_vect(v_int,ifile);
+            for(uint i = 0; i < num_c; ++i)
+            {
+                int ii = i;
+                cell_map[ii]->data().gid =  v_int[ii];
             }
         }
         else
@@ -868,12 +874,16 @@ struct Cgal_traits_d
         {
             for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
             {
-                if(false)
-                    continue;
                 v_char.push_back(it->data().flag);
 
             }
             serialize_b64_vect(v_char,ofile);
+	    for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
+            {
+                v_int.push_back(it->data().gid);
+
+            }
+            serialize_b64_vect(v_int,ofile);
         }
 
 
