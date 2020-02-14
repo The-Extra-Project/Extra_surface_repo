@@ -8,7 +8,7 @@ typedef std::map<Id,ddt_data<Traits> > D_MAP;
 
 
 template<typename DDT>
-void init_global_id(const DDT& ddt, D_MAP & w_datas_tri, int tid)
+void init_global_id(const DDT& ddt, D_MAP & w_datas_tri,std::map<int,std::vector<int>> & tile_ids)
 {
     typedef typename DDT::Traits Traits;
     typedef typename Traits::Flag_C                    Flag_C;
@@ -16,21 +16,27 @@ void init_global_id(const DDT& ddt, D_MAP & w_datas_tri, int tid)
     int nextid = 0;
     int D = Traits::D;
     int acc = 0;
-    std::vector<int>  & format_gids = w_datas_tri[tid].format_gids;
-    int nbs = w_datas_tri[tid].nb_simplex_output();
-    std::cerr << "global id nbs ; " << nbs << std::endl;
-    format_gids.resize(nbs);
-    for(int i = 0; i < nbs; i++)
-        format_gids[i] = -1;
+
+    for(auto vit = ddt.vertices_begin(); vit != ddt.vertices_end(); ++vit)
+    {
+
+      const Data_V & vd = vit->vertex_data();
+      Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
+      Id main_id = vit->main_id();
+      std::cerr << "mid:" << main_id << " " << tile_ids[main_id][0] << std::endl;
+      vd_quickndirty.gid = tile_ids[main_id][0] + (acc++);
+
+    }
+
+    acc = 0;
     for(auto iit = ddt.cells_begin(); iit != ddt.cells_end(); ++iit)
     {
-        int local = 0;
         const Data_C & cd = iit->cell_data();
         Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
-        if(cd_quickndirty.flag > 0)
-            format_gids[cd_quickndirty.id] = w_datas_tri[tid].tile_ids[2] + (acc++);
+	Id main_id = iit->main_id();
+	std::cerr << "mid" << main_id << " " << tile_ids[main_id][2] << std::endl;
+	cd_quickndirty.gid = tile_ids[main_id][2] + (acc++);
     }
-    w_datas_tri[tid].fill_gids(w_datas_tri[tid].format_gids);
 }
 
 
@@ -819,6 +825,66 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
 }
 
 
+int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
+{
+
+  std::cout.setstate(std::ios_base::failbit);
+    std::cerr << "seg_step0" << std::endl;
+
+    DDT tri; 
+    Scheduler sch(1);
+
+    std::cerr << "seg_step1" << std::endl;
+    D_MAP w_datas_tri;
+
+
+    log.step("read");
+    int D = Traits::D;
+    std::map<int,std::vector<int>> tile_ids;;
+
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+
+        if(hpi.get_lab() == "t")
+        {
+            w_datas_tri[hid] = ddt_data<Traits>();
+            bool do_clean_data = true;
+            bool do_serialize = false;
+	    read_ddt_stream(tri,w_datas_tri[hid],  hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+									      
+        }
+        if(hpi.get_lab() == "s")
+        {
+	  std::cerr << "tile ids loal:" << hid << std::endl;
+            std::vector<int> vv(3);
+            for(int d = 0; d < 3; d++)
+            {
+                hpi.get_input_stream() >> vv[d];
+            }
+            tile_ids[hid] = vv;
+        }
+        hpi.finalize();
+
+    }
+
+    init_global_id(tri,w_datas_tri,tile_ids);
+
+    std::cout.clear();
+    ddt::stream_data_header oth("t","s",tid);
+    oth.serialize(true);
+    std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
+    oth.set_logger(&log);
+    oth.write_header(std::cout);
+    log.step("[write]write_tri");
+    Tile_iterator tci = tri.get_tile(tid);
+
+    ddt::write_ddt_stream(tri, oth.get_output_stream(),tid,oth.is_serialized(),log);
+    return 0;
+
+}
 
 int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 {
@@ -907,8 +973,10 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
     // If finalized, computer the total number of simplex for using gobal iterators next
     // If not useless for distributed delaunay triangulation algorithm
     bool is_finalized  = (nbi1 == 0) || params.finalize_tri;
-    if(is_finalized)
+    if(is_finalized){
         tri1.finalize(sch);
+
+    }
 
 
     // ===================== Dumping ================
@@ -950,7 +1018,7 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
     {
 
 
-        ddt::stream_data_header oth("t","s",tid);
+      ddt::stream_data_header oth("t","s",tid);
         if(params.extract_tri_crown)
             oth.set_lab("v");
 	oth.serialize(true);
@@ -963,7 +1031,6 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
 	if(is_finalized){
 	  D_MAP w_datas_tri;
 	  w_datas_tri[tid] = ddt_data<Traits>();
-	  init_global_id(tri1,w_datas_tri,tid);
 	  ddt::write_ddt_stream(tri1,w_datas_tri[tid], oth.get_output_stream(),tid,oth.is_serialized(),log);
 	}else{
         ddt::write_ddt_stream(tri1, oth.get_output_stream(),tid,oth.is_serialized(),log);
@@ -1299,6 +1366,7 @@ int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<
   ofile << std::fixed << std::setprecision(15);
 
   typedef typename DDT::Cell_const_iterator                 Cell_const_iterator;
+  typedef typename DDT::Vertex_const_iterator                 Vertex_const_iterator;
   typedef typename DDT::DT::Full_cell::Vertex_handle_iterator Vertex_h_iterator;
     
   int chunk_size = 10;
@@ -1306,7 +1374,7 @@ int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<
   int targetId = 1;
   int  N = tri.number_of_cells();
   int NF = 0;
-
+  int dim = Traits::D;
   chunk_size = 1;
 
   std::cerr << "init graph" << std::endl;
@@ -1319,14 +1387,28 @@ int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<
 
   int acc = 0;
   //    std::map<int,int> id_map;
-  std::map<Cell_const_iterator,int> id_map;
+  std::map<Vertex_const_iterator,int> vid_map;
   std::vector<int> id2gid_vec;
   std::cerr << "create ids" << std::endl;
-  for( auto cit = tri.cells_begin();
-       cit != tri.cells_end(); ++cit )
-    {
-      id_map[cit];
-    }
+  std::cerr << "area_processed:" << area_processed  << std::endl;
+  if(area_processed == 1){
+    for( auto vit = tri.vertices_begin();
+	 vit != tri.vertices_end(); ++vit )
+      {
+	vid_map[vit] = acc++;
+	if(vit->is_main()){
+	  std::cerr << "ismain" << std::endl;
+	}else{
+	    std::cerr << "isnotmain" << std::endl;
+	  }
+	if(vit->is_main()){
+	  ofile << "v ";
+	  ofile << vit->vertex_data().gid << " ";
+	  for(int i = 0 ; i < dim;i++)
+	    ofile << vit->point()[i] << " ";
+		     ofile << std::endl;
+	}
+      }
 
 
   std::cerr << "score simplex" << std::endl;
@@ -1334,26 +1416,34 @@ int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<
        cit != tri.cells_end(); ++cit )
     {
       Cell_const_iterator fch = *cit;
-      if(cit->main_id() != main_tile_id)
+      if(!cit->is_main())
 	continue;
-      if(area_processed > 1)
-	continue;
-
-
+   
       // if(tri->is_infinite(fch))
       //    continue;
       int tid = cit->tile()->id();
       int lid = cit->cell_data().id;
-      std::cerr << lid << std::endl;
-      int gid = data_map[tid].format_gids[lid];
-      std::cerr << "hihi" << lid << std::endl;
+
+      int gid = cit->cell_data().gid;
       int lcurr = 0; //data_map[fch->tile()->id()].format_labs[cccid];
 
-      ofile << "v " <<   gid  << " ";
-      if(++acc % chunk_size == 0) ofile << std::endl;
+      std::vector<double> cent(dim,0);
+      for(int i = 0 ; i < dim+1;i++)
+	for(int j = 0 ; j < dim;j++)
+	  cent[j] += cit->vertex(i)->point()[j];
+
+      
+      ofile << "s " <<   gid  << " ";
+      for(int i = 0 ; i < dim;i++)
+	ofile << cent[i]/(dim+1) << " ";
+      // for(int i = 0 ; i < dim+1;i++)
+      // 	ofile << cit->vertex(i)->vertex_data().gid << " ";
+
+      // if(++acc % chunk_size == 0)
+      ofile << std::endl;
 
     }
-
+  }
 
   std::cerr << "score facet " << std::endl;
   for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
@@ -1369,7 +1459,7 @@ int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<
 
 	  if(
 	     (area_processed == 1 && tmp_fch->main_id() != tmp_fchn->main_id()) ||
-	     (area_processed == 2 && tmp_fch->main_id() == tmp_fchn->main_id()))
+ 	     (area_processed == 2 && tmp_fch->main_id() == tmp_fchn->main_id()))
 	    {
 	      continue;
 	    }
@@ -1396,15 +1486,15 @@ int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<
 	  int tidc = fch->tile()->id();
 	  int tidn = fchn->tile()->id();
 
-
-	  int gidc = data_map[tidc].format_gids[lidc];
-	  int gidn = data_map[tidn].format_gids[lidn];
+	  int gidc = fch->cell_data().gid;
+	  int gidn = fchn->cell_data().gid;
 
 
 
 	  // Belief spark
 	  ofile << "e " << gidc << " " << gidn  << " ";
-	  if(++acc % chunk_size == 0) ofile << std::endl;
+	  // if(++acc % chunk_size == 0)
+	  ofile << std::endl;
 
 	}
       catch (ddt::DDT_exeption& e)
@@ -1423,7 +1513,7 @@ int extract_graph(Id tid,algo_params & params,int nb_dat,ddt::logging_stream & l
     std::cout.setstate(std::ios_base::failbit);
     std::cerr << "seg_step0" << std::endl;
 
-    DDT tri;
+    DDT tri; 
     Scheduler sch(1);
 
     std::cerr << "seg_step1" << std::endl;
@@ -1447,10 +1537,13 @@ int extract_graph(Id tid,algo_params & params,int nb_dat,ddt::logging_stream & l
             bool do_serialize = false;
 	    read_ddt_stream(tri,w_datas_tri[hid],  hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
 	    //            w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
-	    w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
+	    //	    w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
+
+									      
         }
         if(hpi.get_lab() == "s")
         {
+	  std::cerr << "tile ids loal:" << hid << std::endl;
             std::vector<int> vv(3);
             for(int d = 0; d < 3; d++)
             {
@@ -1458,9 +1551,11 @@ int extract_graph(Id tid,algo_params & params,int nb_dat,ddt::logging_stream & l
             }
             tile_ids[hid] = vv;
         }
-        tri.finalize(sch);
         hpi.finalize();
+
     }
+
+    //    init_global_id(tri,w_datas_tri,tile_ids);
 
 
 
@@ -1964,6 +2059,11 @@ int main(int argc, char **argv)
 	    else if(params.algo_step == std::string("extract_graph"))
             {
                 rv = extract_graph(tile_id,params,nb_dat,log);
+                do_dump_log = false;
+            }
+	    else if(params.algo_step == std::string("update_global_id"))
+            {
+                rv = update_global_id(tile_id,params,nb_dat,log);
                 do_dump_log = false;
             }
             else if(params.algo_step == std::string("get_neighbors"))

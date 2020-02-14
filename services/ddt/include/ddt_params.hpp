@@ -30,7 +30,7 @@ class algo_params
 {
 public :
   algo_params() : lambda(1), terr(0.1), rat_ray_sample(0.1), max_it(10), nb_labs(6), dim(2), nb_threads(1),rat_extra_pts(0.2),nb_samples(1),
-		  center_type(1),min_scale(0.1),verbose_flag(0),extra_datas(0),tile_id(-1), estep(ERR),ech_input(1),
+		  center_type(1),min_scale(0.1),verbose_flag(0),extra_datas(0),tile_id(-1), estep(ERR),ech_input(1),area_processed(0),
 		  input_tri_dir(std::string("")), output_tri_dir(std::string("")),  input_wasure_dir(std::string("")), output_wasure_dir(std::string("")),
 		  bbox_string(std::string("")), tiling_name(std::string("")) {};
 

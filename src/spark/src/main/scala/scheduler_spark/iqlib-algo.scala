@@ -188,9 +188,9 @@ object ddt_algo {
 
 
 
-      println("Repartition done")
-      kvrdd_points.persist(iq.get_storage_level()).setName("KVRDD_POINT_TILED");
-      kvrdd_points.count();
+    println("Repartition done")
+    kvrdd_points.persist(iq.get_storage_level()).setName("KVRDD_POINT_TILED");
+    kvrdd_points.count();
 
 
 

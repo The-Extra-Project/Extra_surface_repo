@@ -9,20 +9,21 @@ namespace ddt
 template<typename I, typename F>
 struct Data
 {
-    typedef I Id;
+  typedef I Id;
     typedef F Flag;
 
-    Data(Id i=0, Flag f=0) : id(i), flag(f) {}
+  Data(Id i=0,Id gid=0, Flag f=0) : id(i),gid(i), flag(f) {}
 
     void write(std::ostream& os,bool is_ascii) const
     {
         if(is_ascii)
         {
-            os << id << " "  << flag << " ";
+	  os << id << " "  << gid << " " <<  flag << " ";
         }
         else
         {
             os.write((char*)(&(id)), sizeof(id));
+	    os.write((char*)(&(gid)), sizeof(id));
             os.write((char*)(&(flag)), sizeof(flag));
         }
     }
@@ -30,17 +31,18 @@ struct Data
     {
         if(is_ascii)
         {
-            is >> id >> flag;
+	  is >> id >> gid >> flag;
         }
         else
         {
             is.read((char*)(&(id)), sizeof(id));
+	    is.read((char*)(&(gid)), sizeof(id));
             is.read((char*)(&(flag)), sizeof(flag));
         }
     }
 
 
-    Id id;
+  Id id,gid;
     mutable Flag flag;
 };
 

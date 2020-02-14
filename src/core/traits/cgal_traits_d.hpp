@@ -677,6 +677,12 @@ struct Cgal_traits_d
                 int ii = i;
                 vertex_map[ii]->data().id = v_int[ii];
             }
+	    deserialize_b64_vect(v_int,ifile);
+            for(uint i = 1; i <= num_v; ++i)
+            {
+                int ii = i;
+                vertex_map[ii]->data().gid = v_int[ii];
+            }
             deserialize_b64_vect(v_int,ifile);
             for(uint i = 1; i <= num_v; ++i)
             {
@@ -814,6 +820,14 @@ struct Cgal_traits_d
                 if(tri.is_infinite(vit))
                     continue;
                 v_int.push_back(vit->data().id);
+            }
+            serialize_b64_vect(v_int,ofile);
+	    v_int.push_back(0);
+            for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
+            {
+                if(tri.is_infinite(vit))
+                    continue;
+                v_int.push_back(vit->data().gid);
             }
             serialize_b64_vect(v_int,ofile);
             v_int.push_back(0);
@@ -997,23 +1011,23 @@ struct Cgal_traits_d
         }
 
 	if(do_fill_output){
-        data.dmap[data.xyz_name].fill_full_output(v_xyz);
-        data.dmap[data.simplex_name].fill_full_output(v_simplex);
-        data.dmap[data.nb_name].fill_full_output(v_nb);
+	  data.dmap[data.xyz_name].fill_full_output(v_xyz);
+	  data.dmap[data.simplex_name].fill_full_output(v_simplex);
+	  data.dmap[data.nb_name].fill_full_output(v_nb);
 
-        data.dmap[data.vid_name].fill_full_output(v_vid);
-        //      data.dmap[data.cid_name].fill_full_output(v_cid);
-        data.dmap[data.flag_vertex_name].fill_full_output(v_flagv);
-        data.dmap[data.flag_simplex_name].fill_full_output(v_flags);
+	  data.dmap[data.vid_name].fill_full_output(v_vid);
+	  //      data.dmap[data.cid_name].fill_full_output(v_cid);
+	  data.dmap[data.flag_vertex_name].fill_full_output(v_flagv);
+	  data.dmap[data.flag_simplex_name].fill_full_output(v_flags);
 	}else{
-        data.dmap[data.xyz_name].fill_full_input(v_xyz);
-        data.dmap[data.simplex_name].fill_full_input(v_simplex);
-        data.dmap[data.nb_name].fill_full_input(v_nb);
+	  data.dmap[data.xyz_name].fill_full_input(v_xyz);
+	  data.dmap[data.simplex_name].fill_full_input(v_simplex);
+	  data.dmap[data.nb_name].fill_full_input(v_nb);
 
-        data.dmap[data.vid_name].fill_full_input(v_vid);
-        //      data.dmap[data.cid_name].fill_full_input(v_cid);
-        data.dmap[data.flag_vertex_name].fill_full_input(v_flagv);
-        data.dmap[data.flag_simplex_name].fill_full_input(v_flags);
+	  data.dmap[data.vid_name].fill_full_input(v_vid);
+	  //      data.dmap[data.cid_name].fill_full_input(v_cid);
+	  data.dmap[data.flag_vertex_name].fill_full_input(v_flagv);
+	  data.dmap[data.flag_simplex_name].fill_full_input(v_flags);
 
 
 
