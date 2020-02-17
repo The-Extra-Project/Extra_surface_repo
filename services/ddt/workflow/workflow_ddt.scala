@@ -230,11 +230,11 @@ if(dump_mode > 0){
 
 if(dim == 2){
   val stats_cum = kvrdd_simplex_id(kvrdd_stats,sc)
-
   val res_tri_gid = iq.run_pipe_fun_KValue(
     update_global_id_cmd,
     (graph_tri.vertices union stats_cum).reduceByKey(_ ::: _), "ext_gr", do_dump = false).filter(!_.isEmpty())
   val kvrdd_gid_tri = iq.get_kvrdd(res_tri_gid)
+
   val graph_full = Graph((kvrdd_gid_tri union stats_cum).reduceByKey(_ ::: _) , graph_tri.edges, List(""))
   val input_vertex : RDD[KValue] =  graph_full.vertices
   val input_edges : RDD[KValue] =  graph_full.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr))

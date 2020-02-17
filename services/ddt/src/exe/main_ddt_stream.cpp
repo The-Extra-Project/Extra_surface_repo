@@ -1423,7 +1423,6 @@ int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<
       //    continue;
       int tid = cit->tile()->id();
       int lid = cit->cell_data().id;
-
       int gid = cit->cell_data().gid;
       int lcurr = 0; //data_map[fch->tile()->id()].format_labs[cccid];
 
