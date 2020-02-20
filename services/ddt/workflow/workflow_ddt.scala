@@ -153,12 +153,11 @@ params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
 // General c++ commands
 val ply2geojson_cmd =  set_params(params_cpp, List(("step","ply2geojson"))).to_command_line
 val ply2dataset_cmd =  set_params(params_cpp, List(("step","ply2dataset"))).to_command_line
-val extract_graph_local_cmd =  set_params(params_cpp, List(("step","extract_graph"),("area_processed","1"))).to_command_line
-val extract_graph_shared_cmd =  set_params(params_cpp, List(("step","extract_graph"),("area_processed","2"))).to_command_line
+
 val dump_ply_binary_cmd =  set_params(params_cpp, List(("step","dump_ply_binary"),("output_dir", output_dir))).to_command_line
 val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
 val id_cmd = List(build_dir + "/bin/identity-exe");
-val update_global_id_cmd =  set_params(params_cpp, List(("step","update_global_id"))).to_command_line
+
 
 
 // =================================================
@@ -215,7 +214,7 @@ val (graph_tri,log_tri,kvrdd_stats)  = ddt_algo.compute_ddt(
   params_cpp = params_cpp,
   params_scala = params_scala
 );
-
+val stats_cum = kvrdd_simplex_id(kvrdd_stats,sc)
 
 println("========= PLY extraction =============")
 if(dump_mode > 0){
@@ -229,77 +228,8 @@ if(dump_mode > 0){
 
 
 if(dim == 2){
-  val stats_cum = kvrdd_simplex_id(kvrdd_stats,sc)
-  val res_tri_gid = iq.run_pipe_fun_KValue(
-    update_global_id_cmd,
-    (graph_tri.vertices union stats_cum).reduceByKey(_ ::: _), "ext_gr", do_dump = false).filter(!_.isEmpty())
-  val kvrdd_gid_tri = iq.get_kvrdd(res_tri_gid)
-
-  val graph_full = Graph((kvrdd_gid_tri union stats_cum).reduceByKey(_ ::: _) , graph_tri.edges, List(""))
-  val input_vertex : RDD[KValue] =  graph_full.vertices
-  val input_edges : RDD[KValue] =  graph_full.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr))
-
-  val full_graph_local = iq.run_pipe_fun_KValue(
-    extract_graph_local_cmd,
-    input_vertex, "ext_gr", do_dump = false).filter(!_.isEmpty())
-
-  val full_graph_shared = iq.run_pipe_fun_KValue(
-    extract_graph_shared_cmd,
-    input_edges, "ext_gr", do_dump = false).filter(!_.isEmpty())
-
-  val tri_vertex = full_graph_local.filter(x => x(0) == 'v').map(
-    x => x.split(" ")).map(x => x.splitAt(2)).map(cc => (cc._1(1).toLong, cc._2.map(_.toDouble)))
-  val tri_simplex = full_graph_local.filter(x => x(0) == 's').filter(x => x.count(_ == 's') == 1).map(
-    x => x.split(" ")).map(x => x.splitAt(2)).map(cc => (cc._1(1).toLong, cc._2.map(_.toDouble)))
-  val tri_edges = (full_graph_local.filter(x => x(0) == 'e') union full_graph_shared.filter(x => x(0) == 'e')).map(
-    x => x.split(" ")).map(cc => Edge(cc(1).toLong, cc(2).toLong,""))
-
-  val g_voronoi = Graph(tri_simplex,tri_edges)
-
-  val geojson_header= raw"""{
-    "type": "FeatureCollection",
-    "features": [
-    """
-  val geojson_footer = raw"""
-     ]
-     }
-  """
-
-  val geojson_fh = raw"""
-     {
-      "type": "Feature",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-  """
-  val geojson_fb =   raw"""
-        ]
-      }
-    }
-  """
-  val vr_str = geojson_header + g_voronoi.triplets.filter(tt => tt.dstAttr != null &&  tt.srcAttr != null).map(
-    tt => geojson_fh + "[" + tt.srcAttr(0) + "," + tt.srcAttr(1) + "],[" + tt.dstAttr(0) + "," + tt.dstAttr(1) + "]" + geojson_fb ).reduce(_ + ","+_) + geojson_footer
-
-  val bname =  params_scala("output_dir").head +"/voronoi";
-  val pw1 = new PrintWriter(new File(bname + ".geojson" ))
-  pw1.write(vr_str)
-  pw1.close
+  ddt_algo.extract_2D_voronoi(graph_tri, stats_cum,iq,params_cpp,params_scala);
 }
-// {
-//   "type": "FeatureCollection",
-//   "features": [
-//      {
-//       "type": "Feature",
-//       "geometry": {
-//         "type": "LineString",
-//         "coordinates": [
-//           [102.0, 0.0], [103.0, 1.0], [104.0, 0.0], [105.0, 1.0]
-//         ]
-//       },
-//       "properties": {
-//         "prop0": "value0",
-//         "prop1": 0.0
-//       }
-//      },
-//   ]
-// }
+
+
+// Some very dirty scala code on my server

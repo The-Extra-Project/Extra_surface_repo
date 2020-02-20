@@ -1361,7 +1361,7 @@ int extract_struct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream &
 
 
 
-int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int>> & tile_ids,std::ostream & ofile, int main_tile_id, int area_processed)
+int extract_tri_voronoi(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int>> & tile_ids,std::ostream & ofile, int main_tile_id, int area_processed)
 {
   ofile << std::fixed << std::setprecision(15);
 
@@ -1510,7 +1510,7 @@ int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<
   return acc;
 }
 
-int extract_graph(Id tid,algo_params & params,int nb_dat,ddt::logging_stream & log)
+int extract_voronoi(Id tid,algo_params & params,int nb_dat,ddt::logging_stream & log)
 {
     std::cout.setstate(std::ios_base::failbit);
     std::cerr << "seg_step0" << std::endl;
@@ -1574,7 +1574,7 @@ int extract_graph(Id tid,algo_params & params,int nb_dat,ddt::logging_stream & l
     int nbc = 0;
 
     //    int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int>> & tile_ids,std::ostream & ofile, int main_tile_id, int area_processed)
-    nbc = extract_tri_full_graph(tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid,params.area_processed);
+    nbc = extract_tri_voronoi(tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid,params.area_processed);
 
     std::cerr << "seg_step7" << std::endl;
 
@@ -2058,9 +2058,9 @@ int main(int argc, char **argv)
             {
                 rv = extract_struct(tile_id,params,nb_dat,log);
             }
-	    else if(params.algo_step == std::string("extract_graph"))
+	    else if(params.algo_step == std::string("extract_voronoi"))
             {
-                rv = extract_graph(tile_id,params,nb_dat,log);
+                rv = extract_voronoi(tile_id,params,nb_dat,log);
                 do_dump_log = false;
             }
 	    else if(params.algo_step == std::string("update_global_id"))
