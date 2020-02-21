@@ -7,7 +7,7 @@
 
 ## Build the docker image
 ```console
-src/docker/docker_interface.sh build
+./src/docker/docker_interface.sh build
 ```
 
 ## Compile the project
