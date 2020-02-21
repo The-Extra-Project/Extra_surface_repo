@@ -1,4 +1,4 @@
-FROM ubuntu:18.10
+FROM ubuntu:19.10
 
 MAINTAINER Laurent Caraffa "caraffa.laurent@gmail.com"
 
@@ -42,6 +42,8 @@ RUN apt-get update && apt-get install -y imagemagick --assume-yes
 RUN apt-get update && apt-get -y install libcgal-qt5-dev libcgal-dev libxerces-c-dev  libboost-dev libtinyxml-dev libxerces-c-dev libann-dev --assume-yes
 
 
+
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -65,6 +67,9 @@ RUN cd /usr/local/bin/ && \
 
 
 RUN apt-get update && apt-get install -y python3-pip python3-gdal && pip3 install matplotlib 
+
+## For the benchmark
+RUN apt-get update && yes "8" | apt-get -y install liblapack-dev libblas-dev ffmpeg openexr libtiff-dev libopenexr-dev libsuitesparse-dev --assume-yes ##  gnuplot --assume-yes
 
 RUN mkdir /root/.ssh/
 

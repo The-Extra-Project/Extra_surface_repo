@@ -11,7 +11,7 @@ else
     exit 1
 fi
 
-
+#NO_CACHE="--no-cache"
 print_fun() # Show a list of functions
 {
     grep "^function" $0
@@ -70,7 +70,7 @@ function compile # ./docker_interface.sh  Compile [-jx]
 
 function build # Build docker container
 {
-    docker build ${PROXY_CMD} ${NO_CASH} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-18-10 ${DDT_MAIN_DIR}
+    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-18-10 ${DDT_MAIN_DIR}
 }
 
 function kill_container { # ./docker_interface.sh kill_container : kill all container related to wasure

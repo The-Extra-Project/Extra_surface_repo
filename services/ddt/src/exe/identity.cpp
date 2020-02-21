@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     std::string str;
     while(std::cin >> str)
     {
-        std::cout << str << " ";
+      std::cout << str << " ";
     }
     std::cout << std::endl;
     return 0;

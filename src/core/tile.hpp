@@ -127,7 +127,7 @@ public:
     inline const Data_C& datac(Cell_const_handle c) const  {  return traits_.data(c); }
     inline const Data_V& datav(Vertex_const_handle v) const  {  return traits_.data(v); }
 
-
+  
 
 
 
