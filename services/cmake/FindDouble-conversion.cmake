@@ -1,11 +1,11 @@
 FIND_PATH(DOUBLE_CONV_INCLUDE_DIR string-to-double.h double-to-string.h
-  ${EXTERN_PROJECT_SRC_DIR}/double-conversion/double-conversion/
+  ${EXTERN_PROJECT_SRC_DIR}/double-conv/double-conversion/
 )
 
-SET(DOUBLE_CONV_INCLUDE_DIR ${EXTERN_PROJECT_SRC_DIR}/double-conversion/double-conversion/)
+SET(DOUBLE_CONV_INCLUDE_DIR ${EXTERN_PROJECT_SRC_DIR}/double-conv/double-conversion/)
 
 FIND_LIBRARY(DOUBLE_CONV_LIBRARIES libdouble-conversion.a
-  ${EXTERN_PROJECT_SRC_DIR}/double-conversion/build/
+  ${EXTERN_PROJECT_SRC_DIR}/double-conv/build/
 )
 
 IF (DOUBLE_CONV_INCLUDE_DIR)
