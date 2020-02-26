@@ -243,6 +243,8 @@ public:
     bool is_infinite() const { return tile_->cell_is_infinite(cell_); }
     bool is_inside() const { return tile_->cell_is_inside(cell_); }
 
+  bool circumcircle() const { return tile_->cell_is_inside(cell_); }
+
     bool is_valid()    const
     {
         return tile_ == end_ || cell_ != tile_->cells_end();
@@ -252,3 +254,10 @@ public:
 }
 
 #endif // DDT_CELL_CONST_ITERATOR_HPP
+
+
+
+
+
+
+

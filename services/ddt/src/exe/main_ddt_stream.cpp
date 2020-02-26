@@ -1430,11 +1430,17 @@ int extract_tri_voronoi(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int
       for(int i = 0 ; i < dim+1;i++)
 	for(int j = 0 ; j < dim;j++)
 	  cent[j] += cit->vertex(i)->point()[j];
-
+ 
       
       ofile << "s " <<   gid  << " ";
+      // for(int i = 0 ; i < dim;i++)
+      // 	ofile << cent[i]/(dim+1) << " ";
+      std::cerr << "get_circumcenter" << std::endl;
+      auto circumcenter = cit->tile()->circumcenter(cit->full_cell());
+      std::cerr << "get_circumcenter" << std::endl;
+      std::cerr << circumcenter << std::endl; 
       for(int i = 0 ; i < dim;i++)
-	ofile << cent[i]/(dim+1) << " ";
+	ofile << circumcenter[i] << " ";
       // for(int i = 0 ; i < dim+1;i++)
       // 	ofile << cit->vertex(i)->vertex_data().gid << " ";
 

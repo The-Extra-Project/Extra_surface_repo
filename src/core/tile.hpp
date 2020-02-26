@@ -172,7 +172,9 @@ public:
     inline bool cell_is_visible(const Bbox<D>& bbox, Cell_const_handle c, int i) const { return traits_.is_visible(dt_, bbox, c, i); }
     inline bool cell_is_touching(const Bbox<D>& bbox, Cell_const_handle c) const { return traits_.is_touching(dt_, bbox, c); }
 
-    template<typename Unary_op> inline void incident_cells(Vertex_const_handle v, Unary_op op) const { traits_.incident_cells(dt_, v, op); }
+  inline const Point circumcenter(Cell_const_handle c) const { return traits_.circumcenter(dt_,c); }
+  
+  template<typename Unary_op> inline void incident_cells(Vertex_const_handle v, Unary_op op) const { traits_.incident_cells(dt_, v, op); }
     template<typename Unary_op> inline void finite_adjacent_vertices(Vertex_const_handle v, Unary_op op) const { traits_.finite_adjacent_vertices(dt_, v, op); }
 
 
