@@ -44,8 +44,6 @@ object ddt_algo {
 
 
 
-
-
   def saveAsPly(rdd_ply : RDD[VData],output_dir : String,plot_lvl : Int = 3){
     if(plot_lvl > 2)
       saveAsPly2(rdd_ply,output_dir)
@@ -394,8 +392,8 @@ object ddt_algo {
     val kvrdd_pts_crown: RDD[KValue] = iq.get_kvrdd(res_tri_local, "z",txt = "tri_crown").setName("tri_crown")
     val kvrdd_pts_finalized: RDD[KValue] = iq.get_kvrdd(res_tri_local, "r",txt = "pts_finalized").setName("pts_finalized")
     kvrdd_pts_crown.coalesce(rep_loop).persist(iq.get_storage_level_loop())
-    val rdd_finalized_ply: RDD[VData] = iq.filter_rdd(res_tri_local, "p",txt = "finalized").setName("tri_full")
-    rdd_finalized_ply.persist(iq.get_storage_level())
+    val rdd_finalized_ply_local: RDD[VData] = iq.filter_rdd(res_tri_local, "p",txt = "finalized").setName("tri_full")
+    rdd_finalized_ply_local.persist(iq.get_storage_level())
     val kvrdd_bbox: RDD[KValue] = iq.get_kvrdd(res_tri_local, "q",txt = "tri_full").setName("bbox")
     val kvrdd_count: RDD[KValue] = iq.get_kvrdd(res_tri_local, "c",txt="stats");
 
@@ -456,7 +454,7 @@ object ddt_algo {
       kvrdd_last_tri.unpersist();
       update_time(params_scala,"shareddumped");
       if(true)
-        saveAsPly(rdd_finalized_ply,output_dir + "/rdd_ply_finalized_init",plot_lvl)
+        saveAsPly(rdd_finalized_ply_local,output_dir + "/rdd_ply_finalized_init",plot_lvl)
       update_time(params_scala,"localdumped");
       update_time(params_scala,"W:Dumpingdone");
     }

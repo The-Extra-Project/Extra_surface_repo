@@ -936,13 +936,9 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
     if(vpis.size() > 0) // If point with label recieved, insertion by taking into account the id
     {
         log.step("[process]insert");
-	std::cerr << "&&" << vp.size() << std::endl;
         bool do_insert_local = params.finalize_tri;
-	std::cerr << "bb" << vp.size() << std::endl;
 	Tile_iterator tci = tri1.get_tile(tid);
-	std::cerr << "cc" << vp.size() << std::endl;
         nbi1 += tci->insert_points_id_id(vpis,tid,do_insert_local);
-	std::cerr << "dd" << vp.size() << std::endl;
         vpis.clear();
         std::cerr << "insert_id_id done" << std::endl;
     }

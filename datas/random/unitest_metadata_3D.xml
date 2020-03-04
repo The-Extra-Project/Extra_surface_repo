@@ -11,7 +11,7 @@
       <StorageLevel>MEMORY_ONLY</StorageLevel>
       <StorageLevelLoop>MEMORY_ONLY</StorageLevelLoop>
       <spark_core_max>4</spark_core_max>
-      <do_process>false</do_process>
+      <do_process>true</do_process>
       <do_expand>true</do_expand>
     </test_small_3d>
     <test_small_3d>
@@ -39,7 +39,7 @@
       <StorageLevel>MEMORY_ONLY</StorageLevel>
       <StorageLevelLoop>MEMORY_ONLY</StorageLevelLoop>
       <spark_core_max>4</spark_core_max>
-      <do_process>true</do_process>
+      <do_process>false</do_process>
       <do_expand>true</do_expand>
     </test_small_3d>
   </datasets>
