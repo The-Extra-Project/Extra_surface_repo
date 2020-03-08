@@ -229,7 +229,26 @@ if(dump_mode > 0){
 
 if(dim == 2){
   ddt_algo.extract_2D_voronoi(graph_tri, stats_cum,iq,params_cpp,params_scala);
+
 }
 
 
+
+if(false){
+  val extract_simplex_soup_cmd =  set_params(params_cpp, List(("step","extract_simplex_soup"),("area_processed","1"))).to_command_line
+
+  val input_vertex : RDD[KValue] =  graph_tri.vertices
+  val full_graph_local = iq.run_pipe_fun_KValue(
+    extract_simplex_soup_cmd,
+    input_vertex, "ext_gr", do_dump = false).filter(!_.isEmpty())
+
+  val tri_vertex = full_graph_local.filter(x => x(0) == 'v').map(
+    x => x.split(" ")).map(x => x.splitAt(2)).map(cc => (cc._1(1).toLong, cc._2.map(_.toDouble)))
+  val tri_simplex = full_graph_local.filter(x => x(0) == 's').filter(x => x.count(_ == 's') == 1).map(
+    x => x.split(" ")).map(x => x.splitAt(2)).map(cc => (cc._1(1).toLong, cc._2.map(_.toDouble)))
+  val tri_edges = (full_graph_local.filter(x => x(0) == 'e') union full_graph_shared.filter(x => x(0) == 'e')).map(
+    x => x.split(" ")).map(cc => Edge(cc(1).toLong, cc(2).toLong,""))
+
+  val g_voronoi = Graph(tri_simplex,tri_edges)
+}
 // Some very dirty scala code on my server
