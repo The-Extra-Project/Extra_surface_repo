@@ -131,7 +131,8 @@ struct filter_cell_ddt {
 };
 
 
-
+// Cgal2soup
+// produce a soup of simplex from the cgal structure
 template <typename TTr,typename DTC, typename FTC>
 std::ostream & cgal2soup(std::ostream & ofile,DTC & tri, FTC &filter, int nbc_finalized,algo_params & params,Id tid,ddt::logging_stream & log ) 
 {
@@ -278,6 +279,7 @@ std::ostream & cgal2soup(std::ostream & ofile,DTC & tri, FTC &filter, int nbc_fi
   return ofile;
 }
 
+// Create a ply from the cgal structure
 template <typename TTr,typename DTC, typename FTC>
 std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int nbc_finalized,algo_params & params,Id tid,ddt::logging_stream & log ) 
 {
@@ -443,7 +445,7 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
 
 
 
-
+// The same, exept that the cgal structure is raw (without any information inside)
 template <typename TTr>
 std::ostream & cgal2ply_raw(std::ostream & ofile,DT_raw & tri, ddt::Bbox<Traits::D> & tri_bbox,algo_params & params,Id tid,ddt::logging_stream & log ) 
 {
@@ -623,7 +625,7 @@ std::ostream & cgal2ply_raw(std::ostream & ofile,DT_raw & tri, ddt::Bbox<Traits:
 
 
 
-// Algo
+// "broadcast" the neighbors of the given tiles 
 int send_neighbors(Id tid,algo_params & params, std::map<Id, std::vector<Point_id_id>> & outbox,bool do_send_empty)
 {
   int D = Traits::D;
@@ -699,7 +701,8 @@ void get_neighbors_pids_bool(Tile_iterator & tci, std::map<Id, std::vector<Point
 
 
 
-
+// Extract the crown of each triangulation
+// This is the first step of the iterative scheme
 int extract_tri_crown(DDT & tri1, std::vector<Point> & vp_crown,int tid,int D,ddt::logging_stream & log)
 {
   //    log.step("[process]split2tri");
@@ -1012,6 +1015,8 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
 }
 
 
+// Upodate the global id
+// Takes input triangulation and triangulation global id
 int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 {
 
@@ -1073,6 +1078,9 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
 
 }
 
+
+// Insert in triangulation
+// Main function of the algorithm
 int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 {
 
