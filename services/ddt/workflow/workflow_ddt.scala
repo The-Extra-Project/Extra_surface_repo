@@ -246,7 +246,7 @@ if(false){
     x => x.split(" ")).map(x => x.splitAt(2)).map(cc => (cc._1(1).toLong, cc._2.map(_.toDouble)))
   val tri_simplex = full_graph_local.filter(x => x(0) == 's').filter(x => x.count(_ == 's') == 1).map(
     x => x.split(" ")).map(x => x.splitAt(2)).map(cc => (cc._1(1).toLong, cc._2.map(_.toDouble)))
-  val tri_edges = (full_graph_local.filter(x => x(0) == 'e') union full_graph_shared.filter(x => x(0) == 'e')).map(
+  val tri_edges = (full_graph_local.filter(x => x(0) == 'e') ).map(
     x => x.split(" ")).map(cc => Edge(cc(1).toLong, cc(2).toLong,""))
 
   val g_voronoi = Graph(tri_simplex,tri_edges)

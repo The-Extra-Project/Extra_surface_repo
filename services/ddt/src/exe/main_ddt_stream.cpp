@@ -40,6 +40,39 @@ void init_global_id(const DDT& ddt, D_MAP & w_datas_tri,std::map<int,std::vector
 }
 
 
+
+// The function that allow to init the global id of each simplex
+template<typename DDT>
+void init_local_id(const DDT& ddt, D_MAP & w_datas_tri)
+{
+  typedef typename DDT::Traits Traits;
+  typedef typename Traits::Flag_C                    Flag_C;
+  typedef typename Traits::Data_C                    Data_C;
+  int nextid = 0;
+  int D = Traits::D;
+  int acc = 0;
+
+  for(auto vit = ddt.vertices_begin(); vit != ddt.vertices_end(); ++vit)
+    {
+
+      const Data_V & vd = vit->vertex_data();
+      Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
+      Id main_id = vit->main_id();
+      vd_quickndirty.gid =  (acc++);
+
+    }
+
+  acc = 0;
+  for(auto iit = ddt.cells_begin(); iit != ddt.cells_end(); ++iit)
+    {
+      const Data_C & cd = iit->cell_data();
+      Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
+      Id main_id = iit->main_id();
+      cd_quickndirty.gid =  (acc++);
+    }
+}
+
+
 // Test if we are inside the bbox
 // Usefull when we want to split the pointset in two, inside outside the bbox
 template <typename TTr,typename DTC,typename CHR>
@@ -1803,6 +1836,9 @@ int extract_simplex_soup(Id tid,algo_params & params,int nb_dat,ddt::logging_str
 
 
   // ======================================
+  init_local_id(tri,w_datas_tri);
+
+  // ======================================
   int area_processed = params.area_processed;
   std::ostream & ofile = oth.get_output_stream();
   ofile << std::fixed << std::setprecision(15);
@@ -1839,7 +1875,7 @@ int extract_simplex_soup(Id tid,algo_params & params,int nb_dat,ddt::logging_str
 	if(vit->is_main()){
 	  //	  vit->vertex_data().id = (lo_id++);
 	  ofile << "v ";
-	  ofile << vit->vertex_data().id << " ";
+	  ofile << vit->vertex_data().gid << " ";
 	  for(int i = 0 ; i < dim;i++)
 	    ofile << vit->point()[i] << " ";
 	  ofile << std::endl;
@@ -1868,7 +1904,7 @@ int extract_simplex_soup(Id tid,algo_params & params,int nb_dat,ddt::logging_str
 	    cent[j] += cit->vertex(i)->point()[j];
  
       
-	ofile << "s " <<   lid  << " ";
+	ofile << "s " <<   gid  << " ";
 	// for(int i = 0 ; i < dim;i++)
 	// 	ofile << cent[i]/(dim+1) << " ";
 	std::cerr << "get_circumcenter" << std::endl;
@@ -1936,7 +1972,7 @@ int extract_simplex_soup(Id tid,algo_params & params,int nb_dat,ddt::logging_str
 
 
 	  // Belief spark
-	  ofile << "e " << lidc << " " << lidn  << " ";
+	  ofile << "e " << gidc << " " << gidn  << " ";
 	  // if(++acc % chunk_size == 0)
 	  ofile << std::endl;
 
