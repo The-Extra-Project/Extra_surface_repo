@@ -42,8 +42,6 @@ import geojson_export._;
 
 object ddt_algo {
 
-
-
   def saveAsPly(rdd_ply : RDD[VData],output_dir : String,plot_lvl : Int = 3){
     if(plot_lvl > 2)
       saveAsPly2(rdd_ply,output_dir)

@@ -843,7 +843,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
         }
       else
         {
-	  if(params.dump_mode > -1)
+	  if(params.dump_mode == 0)
             {
 	      for(int d = 0; d < D+1; d++)
                 {
@@ -857,8 +857,6 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   for(auto vv : vh_crown)
     vp_crown.emplace_back(vv->point());
 
-
-
   std::cerr << vvhc.size() << std::endl;
   std::cerr << vp_crown.size() << std::endl;
   std::cerr << "get dump" << std::endl;
@@ -867,7 +865,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   // ==== Stat dumping section ======
   std::cout.clear();
 
-  if(params.dump_mode > -1)
+  if(params.dump_mode == 0)
     {
       std::vector<Point_id_id> vvp_finalized;
       for(auto vv : vh_finalized)
@@ -909,6 +907,8 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   vh_crown.clear();
   log.step("[write]write_ply");
 
+  // if dump_mode > 0 we dump ply
+  // The if it's note the case, we'll extract a soup of simplex
   if(params.dump_mode   > 0 ){
     //      ddt::stream_data_header oph("p","s",tid);
     //      oph.write_header(std::cout);
@@ -921,6 +921,10 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
     std::cout << std::endl;
     //    cgal2plysplit(std::cout,tri_raw,tri_bbox,params,log);
     //oph.finalize();
+  }else{
+    // 
+
+
   }
   std::cerr << "insert tri done" << std::endl;
 
