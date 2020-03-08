@@ -305,7 +305,8 @@ std::ostream & cgal2soup_split(std::ostream & ofile,DTC & tri, FTC &filter, int 
   typedef typename TTr::Cell_handle                            Cell_handle_raw;
   log.step("[write_ply]init");
 
-  int D = 3;
+
+  int D = Traits::D;
   char buffer[kBufferSize];
   double_conversion::StringBuilder builder(buffer, kBufferSize);
   double_conversion::DoubleToStringConverter dc(flags_deser, "Infinity", "NaN", 'e', 0, 0, 0, 0);
@@ -1416,8 +1417,6 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
     }
   else
     {
-
-
       ddt::stream_data_header oth("t","s",tid);
       if(params.extract_tri_crown)
 	oth.set_lab("v");

@@ -227,9 +227,8 @@ if(dump_mode > 0){
 }
 
 
-if(dim == 2){
+if(dim == 2 && dump_mode == 0){
   ddt_algo.extract_2D_voronoi(graph_tri, stats_cum,iq,params_cpp,params_scala);
-
 }
 
 
