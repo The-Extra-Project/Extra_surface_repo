@@ -1,7 +1,5 @@
 package iqlib_algo
 
-
-
 import sys.process._
 import scala.io.Source
 import java.io._
@@ -36,8 +34,6 @@ import params_parser._;
 import files_opt._;
 import tiling._;
 import geojson_export._;
-
-
 
 
 object ddt_algo {

@@ -6,12 +6,28 @@
       <bbox>0x100000:0x100000</bbox>
       <max_ppt>500</max_ppt>
       <plot_lvl>3</plot_lvl>
+      <dump_mode>1</dump_mode>
       <datatype>random_normal</datatype>
       <spark_core_max>4</spark_core_max>
       <algo_version>1</algo_version>
       <StorageLevel>MEMORY_AND_DISK_SER</StorageLevel>
       <!-- Meta parameters -->
       <do_process>true</do_process>
+      <do_expand>true</do_expand>
+    </test_small>
+    <test_small>
+      <dim>2</dim>
+      <nbp_and_depth>5000:2</nbp_and_depth>
+      <bbox>0x100000:0x100000</bbox>
+      <max_ppt>500</max_ppt>
+      <plot_lvl>3</plot_lvl>
+      <dump_mode>0</dump_mode>
+      <datatype>random_normal</datatype>
+      <spark_core_max>4</spark_core_max>
+      <algo_version>1</algo_version>
+      <StorageLevel>MEMORY_AND_DISK_SER</StorageLevel>
+      <!-- Meta parameters -->
+      <do_process>false</do_process>
       <do_expand>true</do_expand>
     </test_small>
   </datasets>
