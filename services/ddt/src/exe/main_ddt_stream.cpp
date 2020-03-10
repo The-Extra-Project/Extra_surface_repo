@@ -295,166 +295,6 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
 
 
 
-// Create a ply from the cgal structure
-template <typename TTr,typename DTC, typename FTC>
-std::ostream & cgal2soup_split(std::ostream & ofile,DTC & tri, FTC &filter, int nbc_finalized,algo_params & params,Id tid,ddt::logging_stream & log ) 
-{
-
-  TTr traits;
-  typedef typename TTr::Vertex_handle                            Vertex_handle_raw;
-  typedef typename TTr::Cell_handle                            Cell_handle_raw;
-  log.step("[write_ply]init");
-
-
-  int D = Traits::D;
-  char buffer[kBufferSize];
-  double_conversion::StringBuilder builder(buffer, kBufferSize);
-  double_conversion::DoubleToStringConverter dc(flags_deser, "Infinity", "NaN", 'e', 0, 0, 0, 0);
-
-  int full_bufflen; 
-  char * buffer_char;
-  int nbb;
-  int pos = 0;
-  int acc_pose = 0;
-  char cc;
-  bool do_simplex = false;
-
-  int NB_DIGIT_OUT_PLY  = 3;
-      
-  // ======= Serializing  Vertex ==============
-  
-  CGAL::Unique_hash_map<Vertex_handle_raw, uint> vertex_map;
-  
-
-  int nb_vert = tri.number_of_vertices();
-  int nb_cell = nbc_finalized;
-  int nb_cell2 = 0;
-  int nb_ply = 0;
-  int max_bnc = 1000000;
-
-  if(params.dump_mode > 3){
-    nb_cell = nbc_finalized*4;
-    max_bnc = 4000000;
-  }
-  
-  std::string buffer_header("ply;");
-  buffer_header.append("format ascii 1.0;");
-  buffer_header.append("comment tid_" + std::to_string(tid) + "_0 ;");
-  buffer_header.append("element vertex " + std::to_string(nb_vert) + ";");
-  buffer_header.append("property double x;");
-  buffer_header.append("property double y;");
-  buffer_header.append("property double z;");
-  buffer_header.append("element face " + std::to_string(nb_cell) + ";");
-  buffer_header.append("property list uchar int vertex_index ;");
-  buffer_header.append("end_header;");
-  ofile << buffer_header ;
-  
-
-  std::stringstream sstr_d;
-  
-  
-  full_bufflen = kBufferSize*nb_vert*D;
-  buffer_char  = new char[full_bufflen];
-
-  pos = 0;
-  //  //log.step("[serialize]loop_vertex");
-
-  log.step("[write_ply]convert_pts");
-  int ii=0;
-  for(auto vit = traits.vertices_begin(tri); vit != traits.vertices_end(tri); ++vit)
-    {
-      if(tri.is_infinite(vit))
-	{
-	  continue;
-	}
-      for(int d = 0; d < D; d++)
-	{
-	  double dd = vit->point()[d];
-	  builder.Reset();
-	  dc.ToFixed(dd,NB_DIGIT_OUT_PLY,&builder);
-	  int pp = builder.position();
-	  memcpy( buffer_char + pos, buffer, pp );
-	  buffer_char[pos+pp] = ' ';
-	  pos += (pp+1);
-	}
-      if(params.dump_mode > 3)
-	buffer_char[pos-1] = ';';
-      vertex_map[vit] = ii++;
-    }
-  log.step("[write_ply]write_pts");
-  ofile.write(buffer_char,pos);
-  ofile << " ";
-  delete[] buffer_char;
-
-
-  if(nb_cell < max_bnc)
-    full_bufflen = nb_cell*kBufferSize*(D+1);
-  else
-    full_bufflen = max_bnc*kBufferSize*(D+1);
-  buffer_char = new char[full_bufflen];
-  pos = 0;
-
-  log.step("[write_ply]convert_double");
-  int acc = 0;
-
-  if(params.dump_mode <= 3){
-    for(auto cit = traits.cells_begin(tri); cit != traits.cells_end(tri); ++cit)
-      {
-	if(!filter.do_keep(tri,cit,traits))
-	  continue;
-	buffer_char[pos++] = '4';
-	buffer_char[pos++] = ' ';
-	for(int d = 0; d < D+1; d++)
-	  {
-	    Id vid = vertex_map[cit->vertex(d)] ;
-	    pos += u32toa_countlut(vid,buffer_char + pos);
-	  }
-	acc++;
-	if(acc > max_bnc){
-	  ofile.write(buffer_char,pos);
-	  ofile << std::endl;
-	  ofile << "ply tid_" << std::to_string(tid) << "_" << std::to_string(++nb_ply) << " ;";
-	  std::fill(buffer_char, buffer_char + full_bufflen, ' ');
-	  pos = 0;
-	  acc = 0;
-	}	
-      }
-  }else{
-    for(auto cit = traits.cells_begin(tri); cit != traits.cells_end(tri); ++cit)
-      {
-	if(!filter.do_keep(tri,cit,traits))
-	  continue;
-	for(int ss = 0; ss < D+1;ss++){
-	  buffer_char[pos++] = '3';
-	  buffer_char[pos++] = ' ';
-	  for(int d = 0; d < D+1; d++)
-	    {
-	      if(d == ss)
-		continue;
-	      Id vid = vertex_map[cit->vertex(d)] ;
-	      pos += u32toa_countlut(vid,buffer_char + pos);
-	    }
-	  buffer_char[pos-1] = ';';
-	  acc++;
-	  if(acc > max_bnc){
-	    ofile.write(buffer_char,pos);
-	    ofile << std::endl;
-	    ofile << "ply tid_" << std::to_string(tid) << "_" << std::to_string(++nb_ply) << " ;";
-	    std::fill(buffer_char, buffer_char + full_bufflen, ' ');
-	    pos = 0;
-	    acc = 0;
-	  }	
-	}
-      }
-  }
-  std::cerr << "TEST_CMP:" << nb_cell << "_" << nb_cell2 << std::endl;
-  
-  log.step("[write_ply]write_double");
-  ofile.write(buffer_char,pos);
-  log.step("[write_ply]finalize");
-  delete [] buffer_char;      
-  return ofile;
-}
 
 
 
@@ -645,183 +485,6 @@ std::ostream & cgal2ply_raw(std::ostream & ofile,DT_raw & tri, ddt::Bbox<Traits:
 
 
 
-// The same, exept that the cgal structure is raw (without any information inside)
-template <typename TTr>
-std::ostream & cgal2soup_raw(std::ostream & ofile,DT_raw & tri, ddt::Bbox<Traits::D> & tri_bbox,algo_params & params,Id tid,ddt::logging_stream & log ) 
-{
-
-  TTr traits;
-  typedef typename TTr::Vertex_handle_raw                            Vertex_handle_raw;
-  typedef typename TTr::Cell_handle_raw                            Cell_handle_raw;
-  log.step("[write_ply]init");
-
-
-  int D = Traits::D;
-  uint num_v = traits.number_of_vertices(tri);
-  uint num_c = traits.number_of_cells(tri);
-
-
-  char buffer[kBufferSize];
-  double_conversion::StringBuilder builder(buffer, kBufferSize);
-  double_conversion::DoubleToStringConverter dc(flags_deser, "Infinity", "NaN", 'e', 0, 0, 0, 0);
-
-
-  
-  int full_bufflen; 
-  char * buffer_char;
-  int nbb;
-  int pos = 0;
-  char cc;
-  bool do_simplex = true;
-
-  int NB_DIGIT_OUT_PLY  = 3;
-      
-  // ======= Serializing  Vertex ==============
-  std::unordered_map<Vertex_handle_raw, uint> vertex_map;
-  std::vector<Vertex_handle_raw> vertex_v;
-
-
-  int nb_vert = 0;
-  int nb_cell = 0;
-  int nb_ply = 0;
-  int max_bnc = 1000000;
-
-  
-  log.step("[write_ply]select_cell");
-  if(do_simplex){
-    for(auto cit = traits.cells_begin(tri); cit != traits.cells_end(tri); ++cit)
-      {
-	if(!traits.is_inside(tri,tri_bbox,cit))
-	  continue;
-	nb_cell++;
-	for(int d = 0; d < D+1; d++)
-	  {
-	    if(vertex_map.find(cit->vertex(d)) == vertex_map.end()){
-	      vertex_map[cit->vertex(d)]  = nb_vert++;
-	      vertex_v.emplace_back(cit->vertex(d));
-	    }
-	  }
-      }
-  }
-  // ============= With facets  ================
-  else{
-    for(auto fit = traits.facets_begin(tri); fit != traits.facets_end(tri); ++fit)
-      {
-	int ii = fit->index_of_covertex();
-	auto cit1 = traits.full_cell(tri,fit);
-	auto cit2 = traits.neighbor(tri,cit1,ii);
-	if(! traits.is_inside(tri,tri_bbox,cit1) && ! traits.is_inside(tri,tri_bbox,cit2) )
-	  continue;
-	nb_cell++;
-	for(int d = 0; d < D+1; d++)
-	  {
-	    if( d != ii){
-	      if(vertex_map.find(cit1->vertex(d)) == vertex_map.end()){
-		vertex_map[cit1->vertex(d)]  = nb_vert++;
-		vertex_v.emplace_back(cit1->vertex(d));
-	      }
-	    }
-	  }
-      }
-  }
-  
-  std::string buffer_header("ply;");
-  buffer_header.append("format ascii 1.0;");
-  buffer_header.append("comment tid_" + std::to_string(tid) + ";");
-  buffer_header.append("element vertex " + std::to_string(nb_vert) + ";");
-  buffer_header.append("property double x;");
-  buffer_header.append("property double y;");
-  buffer_header.append("property double z;");
-  buffer_header.append("element face " + std::to_string(nb_cell) + ";");
-  buffer_header.append("property list uchar int vertex_index ;");
-  buffer_header.append("end_header;");
-  ofile << buffer_header ;
-  
-
-  std::stringstream sstr_d;
-  
-
-  full_bufflen = kBufferSize*num_v*D;
-  buffer_char  = new char[full_bufflen];
-
-  pos = 0;
-  //  //log.step("[serialize]loop_vertex");
-  //  for(auto vit = tri.all_vertices_begin(); vit != tri.all_vertices_end(); ++vit)
-  log.step("[write_ply]convert_pts");
-  for(auto vit : vertex_v)    
-    {
-
-      for(int d = 0; d < D; d++)
-	{
-	  double dd = vit->point()[d];
-	  builder.Reset();
-	  dc.ToFixed(dd,NB_DIGIT_OUT_PLY,&builder);
-	  int pp = builder.position();
-	  memcpy( buffer_char + pos, buffer, pp );
-	  buffer_char[pos+pp] = ' ';
-	  pos += (pp+1);
-	}
-    }
-  log.step("[write_ply]write_pts");
-  ofile.write(buffer_char,pos);
-  ofile << " ";
-  delete[] buffer_char;
-
-
-  
-  full_bufflen = nb_cell*kBufferSize*(D+1);
-  buffer_char = new char[full_bufflen];
-  pos = 0;
-
-  log.step("[write_ply]convert_double");
-  if(do_simplex){
-    for(auto cit = traits.cells_begin(tri); cit != traits.cells_end(tri); ++cit)
-      {
-	if(!traits.is_inside(tri,tri_bbox,cit))
-	  continue;
-	buffer_char[pos++] = '4';
-	buffer_char[pos++] = ' ';
-	for(int d = 0; d < D+1; d++)
-	  {
-	    Id vid = vertex_map[cit->vertex(d)] ;
-	    pos += u32toa_countlut(vid,buffer_char + pos);
-	  }
-      }
-  }else{
-    for(auto fit = traits.facets_begin(tri); fit != traits.facets_end(tri); ++fit)
-      {
-	int ii = fit->index_of_covertex();
-	auto cit1 = fit->full_cell();;
-	auto cit2 = cit1->neighbor(ii);
-	if(!traits.is_inside(tri,tri_bbox,cit1) && !traits.is_inside(tri,tri_bbox,cit2) )
-	  continue;
-
-
-	buffer_char[pos++] = '3';
-	buffer_char[pos++] = ' ';
-	for(int d = 0; d < D+1; d++)
-	  {
-	    if(d != ii){
-	      Id vid = vertex_map[cit1->vertex(d)] ;
-	      pos += u32toa_countlut(vid,buffer_char + pos);
-	    }
-	  }
-      }
-  }
-
-  int acc = 0;
-  int buff_size = 65536;
-  // while(acc + buff_size < pos){
-  //   ofile.write(buffer_char+acc,buff_size);
-  //   acc+=buff_size;
-  // }
-  log.step("[write_ply]write_double");
-  ofile.write(buffer_char+acc,pos-acc);
-  ofile << " ";
-  log.step("[write_ply]finalize");
-  delete [] buffer_char;      
-  return ofile;
-}
 
 
 
@@ -1117,7 +780,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
     if(params.dump_mode >= 3 && false){
       cgal2ply_split<Traits_raw>(std::cout,tri_raw,filt,nbc_finalized,params,tid,log);
     } if(params.dump_mode == 1){
-      cgal2soup_raw<Traits_raw>(std::cout,tri_raw,tri_bbox,params,tid,log);
+      
     }else{
       cgal2ply_raw<Traits_raw>(std::cout,tri_raw,tri_bbox,params,tid,log);
     }
@@ -1387,33 +1050,32 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
     {
       // if(params.dump_mode == 3 )
       //   {
-	  ddt::Bbox<Traits::D> tri_bbox_local;
-	  Tile_iterator tci = tri1.get_tile(tid);
-	  for(auto vit = tci->vertices_begin(); vit != tci->vertices_end(); ++vit)
-            {
-	      if(!tci->vertex_is_infinite(vit))
-                {
-		  if(tci->vertex_is_local(vit))
-                    {
-		      tri_bbox_local += vit->point();
-                    }
-                }
-            }
-	  int nb_keep = 0;
-	  filter_cell_ddt filt(tri_bbox_local,tid);
+      ddt::Bbox<Traits::D> tri_bbox_local;
+      Tile_iterator tci = tri1.get_tile(tid);
+      for(auto vit = tci->vertices_begin(); vit != tci->vertices_end(); ++vit)
+	{
+	  if(!tci->vertex_is_infinite(vit))
+	    {
+	      if(tci->vertex_is_local(vit))
+		{
+		  tri_bbox_local += vit->point();
+		}
+	    }
+	}
+      int nb_keep = 0;
+      filter_cell_ddt filt(tri_bbox_local,tid);
 
-	  for(auto cit = tci->cells_begin(); cit != tci->cells_end(); ++cit)
-            {
-	      if(filt.do_keep(tci->triangulation(),cit,traits))
-		nb_keep++;
-            }
+      for(auto cit = tci->cells_begin(); cit != tci->cells_end(); ++cit)
+	{
+	  if(filt.do_keep(tci->triangulation(),cit,traits))
+	    nb_keep++;
+	}
 
-	  if(D == 3)
-	    cgal2ply_split<Traits>(std::cout,tci->triangulation(), filt, nb_keep,params,tid,log);
-	  else
-	    cgal2soup_split<Traits>(std::cout,tci->triangulation(), filt, nb_keep,params,tid,log);
-	  std::cout << std::endl;
-	  //}
+      if(D == 3)
+	cgal2ply_split<Traits>(std::cout,tci->triangulation(), filt, nb_keep,params,tid,log);
+
+      std::cout << std::endl;
+      //}
     }
   else
     {
@@ -2003,7 +1665,7 @@ int extract_voronoi(Id tid,algo_params & params,int nb_dat,ddt::logging_stream &
 template <typename FTC>
 int extract_simplex_soup(DDT & tri,D_MAP & w_datas_tri,FTC &filter,std::ostream & ofile, int main_tile_id, int area_processed)
 {
-   // ======================================
+  // ======================================
   init_local_id(tri,w_datas_tri);
 
   // ======================================
@@ -2216,12 +1878,99 @@ int extract_simplex_soup_main(Id tid,algo_params & params,int nb_dat,ddt::loggin
   //  extract_simplex_soup(tri,w_datas_tri,oth.get_output_stream(),tid,params.area_processed);
   oth.finalize();
   std::cout << std::endl;
-
-
-
   return 0;
 }
 
+
+int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
+{
+
+  int D = Traits::D;
+
+  D_MAP w_datas_tri;
+    
+  for(int i = 0; i < nb_dat; i++){
+    std::cerr << "convert data " << i << std::endl;
+
+    ddt::stream_data_header hpi;
+    hpi.parse_header(std::cin);
+
+    DDT tri1;
+    Traits traits;
+
+    Id hid = hpi.get_id(0);
+    if(hpi.get_lab() == "t" || hpi.get_lab() == "u" || hpi.get_lab() == "v")
+      {
+	std::cerr << "READ:" << hpi.get_lab() << std::endl;
+	bool do_clean_data = true;
+	read_ddt_stream(tri1,w_datas_tri[hid],hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+	auto  tile  = tri1.get_tile(tid);
+	tile->update_local_flag();
+	typename DDT::Traits::Delaunay_triangulation & ttri = tile->tri();
+	traits.export_tri_to_data(ttri,w_datas_tri[hid],false);
+      } else if(hpi.get_lab() == "p"  || hpi.get_lab() == "z")
+      {
+	std::cerr << " " << std::endl;
+	std::cerr << "=== Parse pts ===" << std::endl;
+	std::vector<Point> vp;
+	if(hpi.is_serialized()){
+	  std::cerr << "is ser!" << std::endl;
+	  std::vector<Point> rvp;
+	  ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+	  for(auto pp : rvp)
+	    {
+	      vp.emplace_back(pp);
+	    }
+	}
+	w_datas_tri[hid].dmap[w_datas_tri[hid].xyz_name] = ddt_data<Traits>::Data_ply(w_datas_tri[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+	w_datas_tri[hid].dmap[w_datas_tri[hid].xyz_name].fill_full_input(vp);
+      }
+    hpi.finalize();
+
+    std::cout.clear();
+
+    for (auto  it = w_datas_tri.begin(); it != w_datas_tri.end(); it++ )
+      {
+	Id hid =  it->first;
+	std::cerr << "hid" << hid << std::endl;
+	ddt::stream_data_header ozh("t","z",hid);
+	ozh.write_header(std::cout);
+	w_datas_tri[hid].write_serialized_stream(ozh.get_output_stream());
+	ozh.finalize();
+	std::cout << std::endl;
+      }
+  }
+  return 0;
+      
+}
+
+int read_datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log){
+  int D = Traits::D;
+  D_MAP w_datas_tri;
+    
+  for(int i = 0; i < nb_dat; i++){
+    std::cerr << "convert data " << i << std::endl;
+
+    ddt::stream_data_header hpi;
+    hpi.parse_header(std::cin);
+
+    DDT tri1;
+    Traits traits;
+
+    Id hid = hpi.get_id(0);
+
+    ddt_data<Traits>  w_datas;
+    w_datas.read_serialized_stream(hpi.get_input_stream());
+
+  }
+
+  return 0;
+
+}
+
+
+
+  
 
 
 double doubleRand() {
@@ -2358,10 +2107,10 @@ int generate_points_uniform(Id tid,algo_params & params,ddt::logging_stream & lo
     {
       std::vector<double> coords(Traits::D);
       for(int d = 0 ; d < D; d++)
-        {
+	{
 	  double range = bbox.max(d) - bbox.min(d);
 	  coords[d] = base[d] + (((double) rand() / (RAND_MAX))/(((double)ND)/2.0))*(range*0.95) + range*0.01;
-        }
+	}
       vp.push_back(traits.make_point(coords.begin()));
     }
 
@@ -2420,15 +2169,15 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
       int count;
       hpi.parse_header(std::cin);
       if(hpi.get_lab() == "p")
-        {
+	{
 	  w_datas.read_ply_stream(hpi.get_input_stream());
 	  count = w_datas.nb_pts_input();
-        }
+	}
       if(hpi.get_lab() == "g")
-        {
+	{
 	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
 	  count = w_datas.nb_pts_input();
-        }
+	}
       if(hpi.get_lab() == "z" )
 	{
 	  ddt::read_point_set_serialized(vp_in, hpi.get_input_stream(),traits);
@@ -2473,14 +2222,14 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	    vp_map[id].emplace_back(traits.make_point(coords.begin()));
 
 	  }else{
-            auto it = tile_map.find(id);
-            if(it==tile_map.end())
+	    auto it = tile_map.find(id);
+	    if(it==tile_map.end())
 	      {
-                tile_map[id] = ddt_data<Traits>(w_datas.dmap);
+		tile_map[id] = ddt_data<Traits>(w_datas.dmap);
 	      }
-            tile_map[id].copy_point(w_datas,count);
+	    tile_map[id].copy_point(w_datas,count);
 	  }
-        }
+	}
     }
   std::cout.clear();
   std::cerr << "count finalized" << std::endl;
@@ -2616,11 +2365,11 @@ int main(int argc, char **argv)
 	return 0;
 
       if(loop_acc == 0)
-        {
+	{
 	  std::cerr << "================= CPP PIPE LOG =======================" << std::endl;
 	  std::cerr << "     cpp_label_" << params.slabel << std::endl;
 	  std::cerr << "     cpp_step_" << params.algo_step << std::endl;
-        }
+	}
       loop_acc++;
 
       Id tile_id = ((Id)sah.tile_id);
@@ -2633,78 +2382,88 @@ int main(int argc, char **argv)
       bool do_dump_log = false;
       std::cerr << " ------------  [LOOP DATA LOG] ===> " << tile_id << "_" << params.algo_step << std::endl;
       try
-        {
+	{
 	  if(params.algo_step == std::string("generate_points_random_uniform"))
-            {
+	    {
 	      rv = generate_points_uniform(tile_id,params,log);
-            }
+	    }
 	  else if(params.algo_step == std::string("generate_points_random_normal"))
-            {
+	    {
 	      rv = generate_points_normal(tile_id,params,log);
-            }
+	    }
 	  else if(params.algo_step == std::string("insert_in_triangulation"))
-            {
+	    {
 	      if(params.extract_tri_crown)
 		rv = insert_raw(tile_id,params,nb_dat,log);
 	      else
 		rv = insert_in_triangulation(tile_id,params,nb_dat,log);
-            }
+	    }
 	  else if(params.algo_step == std::string("get_bbox_points"))
-            {
+	    {
 	      rv = get_bbox_points(tile_id,params,nb_dat,log);
 	      do_dump_log  = false;
-            }
+	    }
 	  else if(params.algo_step == std::string("tile_ply"))
-            {
+	    {
 	      if(params.bbox_string.empty())
-                {
+		{
 		  std::cerr << "ERROR, no bbox " << std::endl;
 		  return 1;
-                }
+		}
 	      rv = tile_ply(tile_id,params,nb_dat,log);
 	      do_dump_log = false;
-            }
+	    }
 	  else if(params.algo_step == std::string("ply2geojson"))
-            {
+	    {
 	      do_dump_log = false;
 	      rv = ply2geojson(tile_id,params,nb_dat,log);
-            }
+	    }
 	  else if(params.algo_step == std::string("tri2geojson"))
-            {
+	    {
 	      do_dump_log = false;
 	      rv = serialized2geojson(tile_id,params,nb_dat,log);
-            }
+	    }
+	  else if(params.algo_step == std::string("read_datastruct"))
+	    {
+	      do_dump_log = false;
+	      rv = read_datastruct(tile_id,params,nb_dat,log);
+	    }
+	  else if(params.algo_step == std::string("serialized2datastruct"))
+	    {
+	      do_dump_log = false;
+	      rv = serialized2datastruct(tile_id,params,nb_dat,log);
+	    }
 	  else if(params.algo_step == std::string("ply2dataset"))
-            {
+	    {
 	      do_dump_log = false;
 	      rv = ply2dataset(tile_id,params,nb_dat,log);
-            }
+	    }
 	  else if(params.algo_step == std::string("dump_ply_binary"))
-            {
+	    {
 	      rv = dump_ply_binary(tile_id,params,nb_dat,log);
 	      do_dump_log  = false;
-            }
+	    }
 	  else if(params.algo_step == std::string("extract_struct"))
-            {
+	    {
 	      rv = extract_struct(tile_id,params,nb_dat,log);
-            }
+	    }
 	  else if(params.algo_step == std::string("extract_voronoi"))
-            {
+	    {
 	      rv = extract_voronoi(tile_id,params,nb_dat,log);
 	      do_dump_log = false;
-            }
+	    }
 	  else if(params.algo_step == std::string("extract_simplex_soup_main"))
-            {
+	    {
 	      rv = extract_simplex_soup_main(tile_id,params,nb_dat,log);
 	      do_dump_log = false;
-            }
+	    }
 	  else if(params.algo_step == std::string("update_global_id"))
-            {
+	    {
 	      rv = update_global_id(tile_id,params,nb_dat,log);
 	      do_dump_log = false;
-            }
+	    }
 	  else if(params.algo_step == std::string("get_neighbors"))
-            {
+	    {
 	      std::map<Id, std::vector<Point_id_id>>  outbox;
 	      log.step("read");
 	      rv = get_neighbors(tile_id,params,outbox,log);
@@ -2712,38 +2471,38 @@ int main(int argc, char **argv)
 	      log.step("write");
 	      rv = send_neighbors(tile_id,params,outbox,true);
 	      do_dump_log = false;
-            }
+	    }
 	  else if(params.algo_step == std::string("validity_check"))
-            {
+	    {
 	      //validity_check(tile_id,params,outbox);
-            }
+	    }
 	  else
-            {
+	    {
 	      std::cerr << "no params, step unknown =[" << params.algo_step << "]" << std::endl;
 	      return 10;
-            }
+	    }
 	  if(rv != 0)
-            {
+	    {
 	      std::cerr << "ERROR RV : main_ddt_stream.cpp main function, RV != 0" << std::endl;
 	      return rv;
-            }
+	    }
 	  //std::cerr << "     [ERR LOG] <=== " << tile_id << "_" << params.algo_step << std::endl;
 
 	  if(do_dump_log)
-            {
+	    {
 	      ddt::stream_data_header olh("l","s",tile_id);
 	      olh.write_header(std::cout);
 	      log.dump_log(olh.get_output_stream());
 	      olh.finalize();
 	      std::cout << std::endl;
-            }
+	    }
 
-        }
+	}
       catch (std::exception& e)
-        {
+	{
 	  std::cerr << "Exception catched : " << e.what() << std::endl;
 	  std::cerr << "tid               : " << tile_id << std::endl;
-        }
+	}
     }
 
   std::cerr << "[ERR LOG] end exe " << std::endl;

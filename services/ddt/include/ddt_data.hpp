@@ -15,6 +15,29 @@
 #define NB_DIGIT_OUT (5)
 
 
+tinyply::Type int2type(int ii){
+      switch(ii)
+	{
+	case 0 :
+	  return tinyply::Type::INVALID;
+	case 1 :
+	  return tinyply::Type::INT8;
+	case 2 :
+	  return tinyply::Type::UINT8;
+	case 3 :
+	  return tinyply::Type::INT16;
+	case 4 :
+	  return tinyply::Type::UINT16;
+	case 5 :
+	  return tinyply::Type::INT32;
+	case 6 :
+	  return tinyply::Type::UINT32;
+	case 7 :
+	  return tinyply::Type::FLOAT64;
+	}
+}
+
+
 template<typename Traits>
 class ddt_data {
 public :
@@ -440,8 +463,71 @@ public :
   }
 
 
+  void write_serialized_stream( std::ostream & ss)
+  {
+    int nn = 0;
+    for ( const auto &ee : dmap ) {
+      if(ee.second.do_exist){
+	nn++;
+      }
+    }
 
+    ss << nn << " ";
+    
+    for ( const auto &ee : dmap ) {
+      if(ee.second.do_exist){
+	std::cerr << "do_exist" << std::endl;
+	// if(dmap[ee.first].get_nbe_output() == 0 &&
+	//    dmap[ee.first].get_nbe_input() != 0){
+	//   std::cerr << "i2o" << std::endl;
+	//   dmap[ee.first].input2output();
+	// }
 
+	
+	int nbe = dmap[ee.first].get_nbe_input();
+	auto vv = dmap[ee.first].input_vect_uint;
+	ss << dmap[ee.first].vname.size() << " ";
+	for(auto nn : dmap[ee.first].vname){
+	  ss << nn << " ";
+	}
+	ss << ee.second.part << " ";
+	ss << ee.second.get_vsize() << " ";
+	ss << ((int) ee.second.type) << " ";
+	serialize_b64_vect(vv,ss);
+	ss << " ";
+	std::cerr << "done" << std::endl;
+      }
+    }
+  }
+
+  void read_serialized_stream(std::istream & ss){
+    int nbe;
+    ss >> nbe;
+    std::cerr << "nbe:" << nbe << std::endl;
+    for(int i = 0 ; i < nbe;i++){
+      std::vector<std::string> data_name;
+      std::string tt_name("vertex");
+      int dim,vs,dn_size;
+      tinyply::Type tt;
+
+      ss >> dn_size;
+      std::cerr << "dn_size:" << dn_size << std::endl;
+      std::cerr << ":";
+      for(int i = 0; i < dn_size; i++){
+	std::string nnn;
+	ss >> nnn;
+	std::cerr << nnn << " ";
+	data_name.push_back(nnn);
+      }
+      std::cerr << std::endl;
+      ss >> tt_name;
+      ss >> vs;
+      int ttti;
+      ss >> ttti;
+      dmap[xyz_name] = Data_ply(xyz_name,tt_name,dim,vs,static_cast<tinyply::Type>(ttti));
+      deserialize_b64_vect(dmap[xyz_name].input_vect_uint,ss);
+    }
+  }
   
   void write_ply_stream( std::ostream & ss,char nl_char = '\n',bool is_binary = false,bool do_elem_newline = false)
   {
@@ -669,131 +755,6 @@ public :
 
 
 
-  void read_b64_data_fast(Data_ply & dp,std::istream & ifile){
-
-    int bufflen_in;
-    long unsigned int bufflen_out;
-    char cc;
-    ifile >> bufflen_in;
-    ifile.get(cc);
-    unsigned char * buffer_char_in = new unsigned char[bufflen_in];
-    unsigned char * buffer_char_out;
-    ifile.read(((char *)buffer_char_in),bufflen_in);
-    dp.do_exist = true;
-    buffer_char_out = fast_base64_decode(buffer_char_in,bufflen_in,&bufflen_out);
-    dp.input_vect_uint.resize(bufflen_out);
-    std::memcpy(&dp.input_vect_uint[0], buffer_char_out, bufflen_out);
-    delete [] buffer_char_in;
-    delete [] buffer_char_out;
-  }
-
-  void read_b64_data(Data_ply & dp,std::istream & ifile){
-    int nbc;
-    std::string  buffer_char;
-    char cc;
-    std::cerr << "nbc:" << nbc << std::endl;
-    ifile >> nbc;
-    ifile >> buffer_char;
-    dp.do_exist = true;
-    dp.input_vect_uint = base64_decode(buffer_char);
-  }
-
-  
-  void read_b64_stream(std::istream & ifile)
-  {
-    int do_datav_int,do_datac_int,num_v,num_c;
-
-    ifile >> do_datav_int;// >> num_v >> num_c;
-    ifile >> do_datac_int;// >> num_v >> num_c;
-
-    bool do_datav = (do_datav_int == 1);
-    bool do_datac = (do_datac_int == 1);
-
-    dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,get_float_type());
-    read_b64_data_fast(dmap[xyz_name],ifile);
-
-    dmap[simplex_name] = Data_ply(simplex_name,"face",D+1,D+1,get_int_type());
-    read_b64_data_fast(dmap[simplex_name],ifile);
-
-    dmap[nb_name] = Data_ply(nb_name,"face",D+1,D+1,get_int_type());
-    read_b64_data_fast(dmap[nb_name],ifile);
-
-    if(do_datav){
-      dmap[vid_name] = Data_ply(vid_name,"vertex",1,1,get_int_type());
-      read_b64_data_fast(dmap[vid_name],ifile);
-      
-      dmap[flag_vertex_name] = Data_ply(flag_vertex_name,"vertex",1,1,get_int_type());
-      read_b64_data_fast(dmap[flag_vertex_name],ifile);
-    }
-    if(do_datac){
-      dmap[flag_simplex_name] = Data_ply(flag_simplex_name,"face",1,1,tinyply::Type::INT8);
-      read_b64_data_fast(dmap[flag_simplex_name],ifile);
-    }
-    // std::cerr << "Read face simplex" << std::endl;
-    // ifile >> buffer_char;
-    // dmap[simplex_name] = Data_ply(simplex_name,"face",D+1,D+1,get_int_type());
-    // dmap[simplex_name].do_exist = true;
-    // dmap[simplex_name].input_vect_uint = base64_decode(buffer_char);
-    // std::cerr << dmap[simplex_name].input_vect_uint.size() << std::endl;
-    // buffer_char.clear();
-    
-  };
-    
-    
-
-  void write_dataply_stream(Data_ply & dp,std::ostream & ss){
-    int bufflen = dp.output_vect.size();
-    std::vector<BYTE> myData(bufflen);
-    std::memcpy(&myData[0], &dp.output_vect[0], bufflen);
-    std::string encodedData = base64_encode(&myData[0], myData.size());
-    ss << encodedData.length() << " ";
-    ss << encodedData << " ";
-    
-  }
-
-
-  void write_dataply_stream_fast(Data_ply & dp,std::ostream & ss,ddt::logging_stream & log){
-    log.step("[write]write_b64_stream_init");
-    int bufflen_in = dp.output_vect.size();
-    unsigned long int bufflen_out;
-    unsigned char * buff_in = new unsigned char[bufflen_in];
-    log.step("[write]write_b64_stream_memcpy");
-    std::memcpy(buff_in, &dp.output_vect[0], bufflen_in);
-    dp.output_vect.clear();
-    log.step("[write]write_b64_stream_encode");
-    unsigned char * buff_out = fast_base64_encode(buff_in, bufflen_in,&bufflen_out);
-    log.step("[write]write_b64_dump_size");
-    ss << bufflen_out << " ";
-    log.step("[write]write_b64_dump_write_" + std::to_string(bufflen_out) + "_" + std::to_string(bufflen_in));
-    ss.write(reinterpret_cast<char*>(buff_out),bufflen_out);
-    ss << " ";
-    log.step("[write]write_b64_dump_finalize");
-    delete [] buff_in;
-    delete [] buff_out;
-  }
-
-
-  void write_b64_stream( std::ostream & ss,ddt::logging_stream & log)
-  {
-    int do_data_int,num_v,num_c;
-    bool do_data_v = dmap[vid_name].do_exist;
-    bool do_data_c = dmap[flag_simplex_name].do_exist;
-    ss << (do_data_v ? 1 : 0) << " ";
-    ss << (do_data_c ? 1 : 0) << " "; 
-
-    write_dataply_stream_fast(dmap[xyz_name],ss,log);
-    write_dataply_stream_fast(dmap[simplex_name],ss,log);
-    write_dataply_stream_fast(dmap[nb_name],ss,log);
-    if(do_data_v){
-      write_dataply_stream_fast(dmap[vid_name],ss,log);
-      write_dataply_stream_fast(dmap[flag_vertex_name],ss,log);
-    }
-    if(do_data_c){
-      //      write_dataply_stream_fast(dmap[cid_name],ss,log);
-      write_dataply_stream_fast(dmap[flag_simplex_name],ss,log);
-    }
-
-  }
 
 
 
@@ -852,154 +813,6 @@ public :
 
 
 
-  void write_dataply_stream_block(Data_ply & dp,std::ostream & ss, char * full_buff, int & full_pos){
-    std::cerr << "--1" << std::endl;
-    int bufflen_in = dp.output_vect.size();
-    unsigned long int bufflen_out;
-    unsigned char * buff_in = new unsigned char[bufflen_in];
-    std::cerr << "--2" << std::endl;
-    std::memcpy(buff_in, &dp.output_vect[0], bufflen_in);
-    char * buff_out = reinterpret_cast<char*>(fast_base64_encode(buff_in, bufflen_in,&bufflen_out));
-    std::memcpy(full_buff + full_pos, buff_out, bufflen_out);
-    full_pos += bufflen_out;
-    std::cerr << "--3" << std::endl;
-    delete [] buff_in;
-    delete [] buff_out;
-  }
-
-
-
-
-  void write_b64_stream_block( std::ostream & ss,ddt::logging_stream & log)
-  {
-    int do_data_int,num_v,num_c;
-    bool do_data = dmap[vid_name].do_exist;
-    ss << (do_data ? 1 : 0) << " "; 
-
-    char * full_buff = new char[200000000];
-    int full_pos = 0;
-    log.step("[write]b64_convert_data");
-    write_dataply_stream_block(dmap[xyz_name],ss,full_buff,full_pos);
-    write_dataply_stream_block(dmap[simplex_name],ss,full_buff,full_pos);
-    write_dataply_stream_block(dmap[nb_name],ss,full_buff,full_pos);
-    if(do_data){
-      write_dataply_stream_block(dmap[vid_name],ss,full_buff,full_pos);
-      write_dataply_stream_block(dmap[flag_vertex_name],ss,full_buff,full_pos);
-    }
-    log.step("[write]b64_dump_data");
-    ss.write(full_buff,full_pos);
-    log.step("[write]b64_done");
-    delete [] full_buff;
-  }
-
-
-  
-  
-  // void read_tri(Dt & tri){
-  //   std::cerr << "reading triangulation" << std::endl;
-  //   std::vector<double> v_xyz;
-  //   std::vector<int> v_simplex,v_nb,v_vid,v_cid,v_flagv,v_flags;
-  //   dmap[xyz_name].extract_full_input(v_xyz,false);
-  //   dmap[vid_name].extract_full_input(v_vid,false);
-  //   dmap[cid_name].extract_full_input(v_cid,false);
-  //   dmap[flag_vertex_name].extract_full_input(v_flagv,false);
-  //   dmap[flag_simplex_name].extract_full_input(v_flags,false);
-  //   dmap[simplex_name].extract_full_input(v_simplex,false);
-  //   dmap[nb_name].extract_full_input(v_nb,false);
-
-  //   std::cerr << "initialization done" << std::endl;
-    
-  //   tri.set_current_dimension(D);
-
-  //   auto cit = tri.full_cells_begin();
-  //   Cell_handle inf_ch = cit;
-  //   tri.tds().delete_full_cell(inf_ch);
-
-  //   // 4) read the number of vertices
-  //   uint num_v = dmap[xyz_name].get_nbe_input();
-  //   std::cerr << "num_v:" << num_v << std::endl;
-  //   std::vector<Vertex_handle> vertex_map(num_v);
-  //   vertex_map[0] = tri.infinite_vertex();
-
-  //   // 5) read and create the vertices
-
-  //   for(uint i = 1; i < num_v; ++i)
-  //     {
-  // 	int ii = i;
-  // 	std::vector<double> coords_v(D);
-  // 	for(uint d = 0; d < D; d++)
-  // 	  {
-  // 	    coords_v[d] = v_xyz[ii*D +d];
-  // 	  }
-  // 	Point p(D,coords_v.begin(),coords_v.end());
-  // 	vertex_map[ii] = tri.new_vertex(p);
-  // 	vertex_map[ii]->data().id = v_vid[ii];
-  // 	vertex_map[ii]->data().flag = v_flagv[ii];
-  //     }
-
-
-  //   // 6) read the number of cells
-  //   uint num_c = dmap[simplex_name].get_nbe_input();///(D+1);
-  //   std::cerr << "num_c:" << num_c << std::endl;
-  //   // 7) read and create the cells
-  //   std::vector<Cell_handle> cell_map(num_c);
-  //   uint ik;
-
-  //   //std::cerr << "number of cells to read.." << num_c << std::endl;
-
-  //   for(uint i = 0; i < num_c; ++i)
-  //     {
-  // 	int ii = i;
-  // 	Cell_handle ch = tri.new_full_cell();
-  // 	for (uint d = 0; d < D+1; d++)
-  // 	  {
-
-  // 	    ik = v_simplex[i*(D+1)+d];
-  // 	    ch->set_vertex(d, vertex_map[ik]);
-  // 	    vertex_map[ik]->set_full_cell(ch);
-  // 	  }
-
-  // 	cell_map[ii] = ch;
-  // 	ch->data().flag = v_flags[ii];
-  // 	ch->data().id = ii;//v_cid[ii];
-  //     }
-
-
-  //   //std::cerr << "number of cells created : " << tri.number_of_full_cells() << std::endl;
-  //   // 8) read and construct neighbourhood relationships for cells
-  //   for(uint j = 0; j < num_c; ++j)
-  //     {
-  // 	Cell_handle ch  = cell_map[j];
-  // 	for(uint d = 0; d < D+1; d++)
-  // 	  {
-  // 	    ik = v_nb[j*(D+1)+d];
-  // 	    ch->set_neighbor(d, cell_map[ik]);
-  // 	  }
-  //     }
-
-
-  //   // compute the mirror indices
-  //   for(uint j = 0; j < num_c; ++j)
-  //     {
-  // 	Cell_handle s  = cell_map[j];
-  // 	for( uint j = 0; j <= D; ++j )
-  // 	  {
-  // 	    if( -1 != s->mirror_index(j) )
-  // 	      continue;
-  // 	    Cell_handle n = s->neighbor(j);
-  // 	    int k = 0;
-  // 	    Cell_handle nn = n->neighbor(k);
-  // 	    while( s != nn )
-  // 	      nn = n->neighbor(++k);
-  // 	    s->set_mirror_index(j,k);
-  // 	    n->set_mirror_index(k,j);
-  // 	  }
-  //     }
-
-  // }
-
-
-
   tinyply::Type get_int_type(){
     return tinyply::Type::INT32;
   }
@@ -1008,121 +821,6 @@ public :
     return DATA_FLOAT_TYPE;
   }
 
-  
-  // void dump_tri(Dt & tri, bool do_init_id = false){
-  //   dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-  //   dmap[vid_name] = Data_ply(vid_name,"vertex",1,1,tinyply::Type::INT32);
-  //   dmap[cid_name] = Data_ply(cid_name,"face",1,1,tinyply::Type::INT32);
-  //   dmap[flag_vertex_name] = Data_ply(flag_vertex_name,"vertex",1,1,tinyply::Type::INT32);
-  //   dmap[flag_simplex_name] = Data_ply(flag_simplex_name,"face",1,1,tinyply::Type::INT32);
-  //   dmap[simplex_name] = Data_ply(simplex_name,"face",D+1,D+1,tinyply::Type::INT32);
-  //   dmap[nb_name] = Data_ply(nb_name,"face",D+1,D+1,tinyply::Type::INT32);
-
-
-  //   std::vector<double> v_xyz;
-  //   std::vector<int> v_simplex,v_nb,v_vid,v_cid,v_flagv,v_flags;
-	
-  //   uint n = tri.number_of_vertices();
-  //   std::map<Vertex_const_handle, uint> vertex_map;
-
-  //   vertex_map[tri.infinite_vertex()] = 0;
-  //   v_vid.push_back(0);
-  //   v_flagv.push_back(0);
-  //   for(int d = 0; d < D; d++)
-  //     {
-  // 	v_xyz.push_back(0.0);
-  //     }
-  //   uint i = 1;
-
-  //   // Infinite hack
-  //   // for(int d = 0; d < D; d++)
-  //   //   {
-  //   // 	v_xyz.push_back(0);
-  //   //   }
-  //   for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
-  //     {
-  // 	if(tri.is_infinite(vit))
-  // 	  {
-  // 	    // vertex_map[vit] = 0;
-  // 	    // v_vid.push_back(0);
-  // 	    // v_flagv.push_back(0);
-  // 	    // for(int d = 0; d < D; d++)
-  // 	    //   {
-  // 	    // 	v_xyz.push_back(0.0);
-  // 	    //   }
-  // 	    // i++;
-  // 	    continue;
-  // 	  }
-
-
-  // 	int ii = i;
-  // 	// if(!do_init_id)
-  // 	//   ii = vit->data().id;
-	
-	
-  // 	for(int d = 0; d < D; d++)
-  // 	  {
-  // 	    double pv = vit->point()[d];
-  // 	    v_xyz.push_back(pv);
-  // 	  }
-  // 	v_vid.push_back(vit->data().id);
-  // 	v_flagv.push_back(vit->data().flag);
-	    
-  // 	vertex_map[vit] = ii;
-  // 	i++;
-  //     }
-  //   // write the number of cells
-  //   n = tri.number_of_full_cells();
-  //   // write the cells
-  //   std::map<Cell_const_handle, uint> cell_map;
-  //   i = 0;
-  //   for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
-  //     {
-  // 	// if(tri.is_infinite(it))
-  // 	// 	continue;
-
-  // 	int ii = i;
-  // 	if(!do_init_id)
-  // 	  int ii =  it->data().id;
-
-  // 	cell_map[it] = ii;
-  // 	++i;
-  // 	for(int d = 0; d < D+1; d++)
-  // 	  {
-  // 	    int vertex_id = vertex_map[it->vertex(d)] ;
-  // 	    v_simplex.push_back(vertex_id);
-	      
-  // 	    // write the id
-  // 	  }
-  // 	v_flags.push_back(it->data().flag);
-  // 	v_cid.push_back(ii);
-  //     }
-
-  //   // write the neighbors of the cells
-  //   for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it){
-  //     for(int j = 0; j < D+1; j++)
-  // 	{
-  // 	  int nb_id = cell_map[it->neighbor(j)];
-  // 	  v_nb.push_back(nb_id);
-  // 	}
-  //   }
-
-  //   dmap[xyz_name].fill_full_output(v_xyz);
-  //   dmap[simplex_name].fill_full_output(v_simplex);
-  //   dmap[nb_name].fill_full_output(v_nb);
-  //   dmap[vid_name].fill_full_output(v_vid);
-  //   dmap[cid_name].fill_full_output(v_cid);
-  //   dmap[flag_vertex_name].fill_full_output(v_flagv);
-  //   dmap[flag_simplex_name].fill_full_output(v_flags);
-
-  //   dmap[xyz_name].do_exist = true;
-  //   dmap[simplex_name].do_exist = true;
-  //   dmap[nb_name].do_exist = true;
-  //   dmap[vid_name].do_exist = true;
-  //   dmap[cid_name].do_exist = true;	
-  //   dmap[flag_vertex_name].do_exist = true;
-  //   dmap[flag_simplex_name].do_exist = true;
-  // }
   
 
   std::shared_ptr<tinyply::PlyData> & get_raw_points_ref(){

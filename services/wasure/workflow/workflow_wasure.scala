@@ -264,44 +264,46 @@ val coef_mult_list = List(10)
 val ll = lambda_list.head
 val coef_mult = coef_mult_list.head
 // Loop over the differents parameters
-lambda_list.foreach{ ll =>
-  coef_mult_list.foreach{ coef_mult =>
 
-    params_wasure("lambda") = collection.mutable.Set(ll)
-    params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)
-    val ext_cmd_vertex =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","1"))).to_command_line
-    val ext_cmd_edges =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","2"))).to_command_line
+if(false){
+  lambda_list.foreach{ ll =>
+    coef_mult_list.foreach{ coef_mult =>
 
-    println("==== Segmentation with lambda:" + ll + " coef_mult:" + coef_mult +  "  ====")
-    val graph_bp = Graph(graph_dst.vertices union graph_stats.vertices, graph_tri.edges, List(""))
-    val epsilon = 0.001;
-    val kvrdd_seg = compute_belief_prop_v2(
-      graph_bp,
-      max_it,epsilon,
-      stats_tri, params_wasure, iq, sc,rep_merge);
-    val graph_seg = Graph(kvrdd_seg, graph_dst.edges, List(""));
+      params_wasure("lambda") = collection.mutable.Set(ll)
+      params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)
+      val ext_cmd_vertex =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","1"))).to_command_line
+      val ext_cmd_edges =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","2"))).to_command_line
 
-    if (dim == 2)  {
-      iq.run_pipe_fun_KValue(
-        ply2geojson_cmd ++ List("--label","sparkcuted_v2_ll_" + ll,"--style","tri_seg.qml"),
-        kvrdd_seg, "seg", do_dump = false).collect()
+      println("==== Segmentation with lambda:" + ll + " coef_mult:" + coef_mult +  "  ====")
+      val graph_bp = Graph(graph_dst.vertices union graph_stats.vertices, graph_tri.edges, List(""))
+      val epsilon = 0.001;
+      val kvrdd_seg = compute_belief_prop_v2(
+        graph_bp,
+        max_it,epsilon,
+        stats_tri, params_wasure, iq, sc,rep_merge);
+      val graph_seg = Graph(kvrdd_seg, graph_dst.edges, List(""));
+
+      if (dim == 2)  {
+        iq.run_pipe_fun_KValue(
+          ply2geojson_cmd ++ List("--label","sparkcuted_v2_ll_" + ll,"--style","tri_seg.qml"),
+          kvrdd_seg, "seg", do_dump = false).collect()
+      }
+
+      val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
+        ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge_" + ll + "_it_" + fmt.format(coef_mult)),
+        graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false)
+      val rdd_ply_surface_vertex = iq.run_pipe_fun_KValue(
+        ext_cmd_vertex ++ List("--label","ext_spark_ll_v2_tile_" + ll + "_it_" + fmt.format(coef_mult)),
+        graph_seg.vertices, "seg", do_dump = false)
+
+      val rdd_ply_surface = iq.run_pipe_fun_KValue(
+        ext_cmd ++ List("--label","ext_spark_" + acc +  "_ll_" + ll + "_it_" + fmt.format(coef_mult)),
+        iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
+      rdd_ply_surface.collect()
+      acc = acc + 1;
     }
-
-    val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
-      ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge_" + ll + "_it_" + fmt.format(coef_mult)),
-      graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false)
-    val rdd_ply_surface_vertex = iq.run_pipe_fun_KValue(
-      ext_cmd_vertex ++ List("--label","ext_spark_ll_v2_tile_" + ll + "_it_" + fmt.format(coef_mult)),
-      graph_seg.vertices, "seg", do_dump = false)
-
-    val rdd_ply_surface = iq.run_pipe_fun_KValue(
-      ext_cmd ++ List("--label","ext_spark_" + acc +  "_ll_" + ll + "_it_" + fmt.format(coef_mult)),
-      iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
-    rdd_ply_surface.collect()
-    acc = acc + 1;
   }
 }
-
 
 // ====== Dump geojson ======
 if(plot_lvl > 0){

@@ -188,8 +188,6 @@ object ddt_algo {
     kvrdd_points.persist(iq.get_storage_level()).setName("KVRDD_POINT_TILED");
     kvrdd_points.count();
 
-
-
     update_time(params_scala,"mapping");
     println("");
     println("");
@@ -276,8 +274,6 @@ object ddt_algo {
 
   //   return kvrdd_points
   // }
-
-
 
 
   def algo_loop(cur_tri : RDD[KValue], cur_edges : RDD[TEdge] , iq : IQlibSched , params_cpp : params_map,params_scala : params_map) : (RDD[KValue],RDD[TEdge],ListBuffer[(Int,RDD[VData])]) = {
@@ -458,27 +454,30 @@ object ddt_algo {
   }
 
 
-
+  // Ok this is not optimal but it's working
   def extract_2D_voronoi(graph_tri : TGraph, stats_cum : RDD[KValue],  iq : IQlibSched,params_cpp : params_map,params_scala : params_map){
-
 
     val update_global_id_cmd =  set_params(params_cpp, List(("step","update_global_id"))).to_command_line
     val extract_graph_local_cmd =  set_params(params_cpp, List(("step","extract_voronoi"),("area_processed","1"))).to_command_line
     val extract_graph_shared_cmd =  set_params(params_cpp, List(("step","extract_voronoi"),("area_processed","2"))).to_command_line
 
+    // Update global id of the voronoi function
     val res_tri_gid = iq.run_pipe_fun_KValue(
       update_global_id_cmd,
       (graph_tri.vertices union stats_cum).reduceByKey(_ ::: _), "ext_gr", do_dump = false).filter(!_.isEmpty())
     val kvrdd_gid_tri = iq.get_kvrdd(res_tri_gid)
 
+    // Build the full graph
     val graph_full = Graph((kvrdd_gid_tri union stats_cum).reduceByKey(_ ::: _) , graph_tri.edges, List(""))
     val input_vertex : RDD[KValue] =  graph_full.vertices
     val input_edges : RDD[KValue] =  graph_full.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr))
 
+    // Full graph local
     val full_graph_local = iq.run_pipe_fun_KValue(
       extract_graph_local_cmd,
       input_vertex, "ext_gr", do_dump = false).filter(!_.isEmpty())
 
+    // Full graph shared
     val full_graph_shared = iq.run_pipe_fun_KValue(
       extract_graph_shared_cmd,
       input_edges, "ext_gr", do_dump = false).filter(!_.isEmpty())

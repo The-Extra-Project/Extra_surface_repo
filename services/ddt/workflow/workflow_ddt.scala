@@ -153,6 +153,7 @@ params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
 // General c++ commands
 val ply2geojson_cmd =  set_params(params_cpp, List(("step","ply2geojson"))).to_command_line
 val ply2dataset_cmd =  set_params(params_cpp, List(("step","ply2dataset"))).to_command_line
+val ser2datastruct_cmd =  set_params(params_cpp, List(("step","serialized2dataset"))).to_command_line
 
 val dump_ply_binary_cmd =  set_params(params_cpp, List(("step","dump_ply_binary"),("output_dir", output_dir))).to_command_line
 val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
@@ -232,22 +233,51 @@ if(dim == 2 && dump_mode == 0){
 }
 
 
+val ser2datastruct_cmd =  set_params(params_cpp, List(("step","serialized2datastruct"))).to_command_line
+val datastruct2ser_cmd =  set_params(params_cpp, List(("step","read_datastruct"))).to_command_line
+val input_vertex : RDD[KValue] =  graph_tri.vertices
+val dataset_raw = iq.run_pipe_fun_KValue(
+  ser2datastruct_cmd ,
+  input_vertex, "dst", do_dump = false).persist(slvl_glob)
+val kvrdd_dataset = iq.get_kvrdd(dataset_raw)
 
-if(false){
-  val extract_simplex_soup_cmd =  set_params(params_cpp, List(("step","extract_simplex_soup"),("area_processed","1"))).to_command_line
+val dataset_raw2 = iq.run_pipe_fun_KValue(
+  datastruct2ser_cmd ,
+  kvrdd_dataset, "dst", do_dump = false).persist(slvl_glob)
 
-  val input_vertex : RDD[KValue] =  graph_tri.vertices
-  val full_graph_local = iq.run_pipe_fun_KValue(
-    extract_simplex_soup_cmd,
-    input_vertex, "ext_gr", do_dump = false).filter(!_.isEmpty())
 
-  val tri_vertex = full_graph_local.filter(x => x(0) == 'v').map(
-    x => x.split(" ")).map(x => x.splitAt(2)).map(cc => (cc._1(1).toLong, cc._2.map(_.toDouble)))
-  val tri_simplex = full_graph_local.filter(x => x(0) == 's').filter(x => x.count(_ == 's') == 1).map(
-    x => x.split(" ")).map(x => x.splitAt(2)).map(cc => (cc._1(1).toLong, cc._2.map(_.toDouble)))
-  val tri_edges = (full_graph_local.filter(x => x(0) == 'e') ).map(
-    x => x.split(" ")).map(cc => Edge(cc(1).toLong, cc(2).toLong,""))
+// val input_vertex : RDD[KValue] =  graph_tri.vertices
+//   val dataset_raw = iq.run_pipe_fun_KValue(
+//     ply2dataset_cmd ,
+//     input_vertex, "dst", do_dump = false).persist(slvl_glob)
+//   val raw_header = dataset_raw.filter(x => x(0) == 'h').collect()(0)
+//   val rdd_vert = dataset_raw.filter(x => x(0) == 'v').map(x => x.tail.tail).setName("VERTS_RDD_filter").persist(slvl_glob)
+//   val rdd_simp = dataset_raw.filter(x => x(0) == 's').map(x => x.tail.tail).setName("Simplex_RDD_filter").persist(slvl_glob)
+//   val schema_pts = get_header_schema(raw_header,1)
+//   val schema_simplex = get_header_schema(raw_header,2)
+//   val frame_pts = spark.read.option("delimeter", ",").schema(schema_pts).csv(rdd_vert.toDS).persist(slvl_glob)
+//   val frame_simplex = spark.read.option("delimeter", ",").schema(schema_simplex).csv(rdd_simp.toDS).persist(slvl_glob)
+//   frame_pts.show
+//   frame_simplex.show
 
-  val g_voronoi = Graph(tri_simplex,tri_edges)
-}
+
+// if(false){
+//   val extract_simplex_soup_cmd =  set_params(params_cpp, List(("step","extract_simplex_soup"),("area_processed","1"))).to_command_line
+
+//   val input_vertex : RDD[KValue] =  graph_tri.vertices
+//   val full_graph_local = iq.run_pipe_fun_KValue(
+//     extract_simplex_soup_cmd,
+//     input_vertex, "ext_gr", do_dump = false).filter(!_.isEmpty())
+
+//   val tri_vertex = full_graph_local.filter(x => x(0) == 'v').map(
+//     x => x.split(" ")).map(x => x.splitAt(2)).map(cc => (cc._1(1).toLong, cc._2.map(_.toDouble)))
+//   val tri_simplex = full_graph_local.filter(x => x(0) == 's').filter(x => x.count(_ == 's') == 1).map(
+//     x => x.split(" ")).map(x => x.splitAt(2)).map(cc => (cc._1(1).toLong, cc._2.map(_.toDouble)))
+//   val tri_edges = (full_graph_local.filter(x => x(0) == 'e') ).map(
+//     x => x.split(" ")).map(cc => Edge(cc(1).toLong, cc(2).toLong,""))
+
+//   val g_voronoi = Graph(tri_simplex,tri_edges)
+// }
 // Some very dirty scala code on my server
+
+
