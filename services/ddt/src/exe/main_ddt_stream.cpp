@@ -8,7 +8,7 @@ typedef std::map<Id,ddt_data<Traits> > D_MAP;
 
 // The function that allow to init the global id of each simplex
 template<typename DDT>
-void init_global_id(const DDT& ddt, D_MAP & w_datas_tri,std::map<int,std::vector<int>> & tile_ids)
+void init_global_id(const DDT& ddt, D_MAP & w_datas_tri,std::map<int,std::vector<int>> & tile_ids,int tid)
 {
   typedef typename DDT::Traits Traits;
   typedef typename Traits::Flag_C                    Flag_C;
@@ -17,6 +17,13 @@ void init_global_id(const DDT& ddt, D_MAP & w_datas_tri,std::map<int,std::vector
   int D = Traits::D;
   int acc = 0;
 
+  std::vector<int>  & format_gids = w_datas_tri[tid].format_gids;
+  std::vector<int>  & format_gidv = w_datas_tri[tid].format_gidv;
+  int nbv = ddt.number_of_vertices();
+  format_gidv.resize(nbv);
+  int nbs = ddt.number_of_cells();
+  format_gids.resize(nbs);
+  
   for(auto vit = ddt.vertices_begin(); vit != ddt.vertices_end(); ++vit)
     {
 
@@ -932,7 +939,7 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
 
     }
 
-  init_global_id(tri,w_datas_tri,tile_ids);
+  init_global_id(tri,w_datas_tri,tile_ids,tid);
 
   std::cout.clear();
   ddt::stream_data_header oth("t","s",tid);
