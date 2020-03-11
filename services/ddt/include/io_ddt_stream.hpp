@@ -52,6 +52,7 @@ int read_ddt_stream(DDT & ddt, ddt_data<typename DDT::Traits> & w_datas_in, std:
 	  //	  ttraits.build_tri_from_data(ttri,w_datas_in,false,tid);
       //	}else{
       ttraits.deserialize_b64_cgal(ttri,ifile);
+      deserialize_b64_vect(tile->tile_ids,ifile);
 	  //	}
 	
       std::string input;
@@ -59,6 +60,7 @@ int read_ddt_stream(DDT & ddt, ddt_data<typename DDT::Traits> & w_datas_in, std:
       std::stringstream ifile2(input);
       ddt::read_map_stream(tile->points_sent_,ifile2,tile->traits());
       ddt::read_json_stream<typename DDT::Tile_iterator, typename DDT::Id>(tile,ifile2);
+
 
 
 	
@@ -111,6 +113,7 @@ std::ostream & write_ddt_stream(const DDT& ddt, ddt_data<typename DDT::Traits> &
     if(do_serialize)
     {
         ttraits.serialize_b64_cgal(ttri,ofile);
+	serialize_b64_vect(tile->tile_ids,ofile);
     }
     else
     {
@@ -120,6 +123,7 @@ std::ostream & write_ddt_stream(const DDT& ddt, ddt_data<typename DDT::Traits> &
     //tile->write_cgal(ofile);
     ddt::write_map_stream(tile->points_sent_,ofile,tile->current_dimension());
     ddt::write_json_stream(tile,ofile);
+
 
 
     return ofile; // FIXME ?

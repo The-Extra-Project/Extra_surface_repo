@@ -87,6 +87,33 @@ void serialize_b64_vect(std::vector<TT> & vv,std::ostream & ss)
 }
 
 
+template<typename TT>
+void serialize_b64_vect(const std::vector<TT> & vv,std::ostream & ss)
+{
+    int buff_size = 65536;
+    int nbdat = vv.size();
+    int bufflen_in = sizeof(TT)*nbdat;
+    unsigned long int bufflen_out;
+    unsigned char * buff_in = new unsigned char[bufflen_in];
+    memcpy(buff_in, &vv[0], bufflen_in);
+
+
+    unsigned char * buff_out = fast_base64_encode(buff_in, bufflen_in,&bufflen_out);
+    ss << nbdat << " " <<  bufflen_out << " ";
+
+    //ss.write(reinterpret_cast<char*>(buff_out),bufflen_out);
+    int acc = 0;
+    // while(acc + buff_size < bufflen_out){
+    // 	ss.write(reinterpret_cast<char*>(buff_out+acc),buff_size);
+    // 	acc+=buff_size;
+    // }
+    ss.write(reinterpret_cast<char*>(buff_out+acc), bufflen_out - acc);
+    ss << " ";
+    delete [] buff_in;
+    delete [] buff_out;
+}
+
+
 
 
 template<typename TT>

@@ -31,7 +31,7 @@ void init_global_id(const DDT& ddt, D_MAP & w_datas_tri,std::map<int,std::vector
       Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
       Id main_id = vit->main_id();
       std::cerr << "mid:" << main_id << " " << tile_ids[main_id][0] << std::endl;
-      vd_quickndirty.gid = tile_ids[main_id][0] + (acc++);
+      vd_quickndirty.gid =  (acc++);
 
     }
 
@@ -42,7 +42,7 @@ void init_global_id(const DDT& ddt, D_MAP & w_datas_tri,std::map<int,std::vector
       Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
       Id main_id = iit->main_id();
       std::cerr << "mid" << main_id << " " << tile_ids[main_id][2] << std::endl;
-      cd_quickndirty.gid = tile_ids[main_id][2] + (acc++);
+      cd_quickndirty.gid =  (acc++);
     }
 }
 
@@ -916,7 +916,7 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
       ddt::stream_data_header hpi;
       hpi.parse_header(std::cin);
       Id hid = hpi.get_id(0);
-
+      auto tile  = tri.get_tile(tid);
       if(hpi.get_lab() == "t")
         {
 	  w_datas_tri[hid] = ddt_data<Traits>();
@@ -932,8 +932,10 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
 	  for(int d = 0; d < 3; d++)
             {
 	      hpi.get_input_stream() >> vv[d];
+	      tile->tile_ids[d] = vv[d];
             }
 	  tile_ids[hid] = vv;
+	  
         }
       hpi.finalize();
 
@@ -1473,7 +1475,7 @@ int extract_tri_voronoi(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int
 	}
 	if(vit->is_main()){
 	  ofile << "v ";
-	  ofile << vit->vertex_data().gid << " ";
+	  ofile << vit->gid() << " ";
 	  for(int i = 0 ; i < dim;i++)
 	    ofile << vit->point()[i] << " ";
 	  ofile << std::endl;
@@ -1493,7 +1495,7 @@ int extract_tri_voronoi(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int
 	//    continue;
 	int tid = cit->tile()->id();
 	int lid = cit->cell_data().id;
-	int gid = cit->cell_data().gid;
+	int gid = cit->gid();
 	int lcurr = 0; //data_map[fch->tile()->id()].format_labs[cccid];
 
 	std::vector<double> cent(dim,0);
@@ -1564,8 +1566,8 @@ int extract_tri_voronoi(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int
 	  int tidc = fch->tile()->id();
 	  int tidn = fchn->tile()->id();
 
-	  int gidc = fch->cell_data().gid;
-	  int gidn = fchn->cell_data().gid;
+	  int gidc = fch->gid();
+	  int gidn = fchn->gid();
 
 
 

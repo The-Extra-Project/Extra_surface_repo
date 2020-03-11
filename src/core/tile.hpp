@@ -56,7 +56,9 @@ public:
           number_of_main_vertices_(0),
           number_of_main_facets_(0),
           number_of_main_cells_(0)
-    {}
+    {
+      tile_ids =  std::vector<int>(3,0);
+    }
 
     template<class C> Cell_const_handle deref(C c) const { return *c; }
     Cell_const_handle deref(Cell_const_handle c) const { return c; }
@@ -122,6 +124,9 @@ public:
 
     inline Id   id  (Vertex_const_handle v) const { assert(!vertex_is_infinite(v)); return traits_.id  (v); }
     inline Id   id  (Cell_const_handle c) const { assert(!vertex_is_infinite(c)); return traits_.id  (c); }
+    inline Id   gid  (Vertex_const_handle v) const {
+      assert(!vertex_is_infinite(v)); return tile_ids[0] + traits_.gid  (v); }
+    inline Id   gid  (Cell_const_handle c) const { assert(!vertex_is_infinite(c)); return tile_ids[2] + traits_.gid  (c); }
     inline Flag_V& flagv(Vertex_const_handle v) const { assert(!vertex_is_infinite(v)); return traits_.flag(v); }
     inline Flag_C& flagc(Cell_const_handle c) const {  return traits_.flag(c); }
     inline const Data_C& datac(Cell_const_handle c) const  {  return traits_.data(c); }
@@ -844,6 +849,7 @@ public:
     }
 
     std::map<Id, std::set<Point>> points_sent_;
+    std::vector<int> tile_ids;
 private:
     Traits traits_;
     Id id_;
@@ -852,6 +858,7 @@ private:
     size_t number_of_main_vertices_;
     size_t number_of_main_facets_;
     size_t number_of_main_cells_;
+
 
     std::map<Id, Bbox<D>> bbox_;
     mutable std::map<Id, std::unordered_set<Vertex_const_handle>> sent_;
