@@ -1243,7 +1243,7 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
 	auto  tile  = tri1.get_tile(tid);
 	tile->update_local_flag();
 	typename DDT::Traits::Delaunay_triangulation & ttri = tile->tri();
-	traits.export_tri_to_data(ttri,w_datas,false);
+	traits.export_tri_to_data(ttri,w_datas);
       } else if(hpi.get_lab() == "p"  || hpi.get_lab() == "z")
       {
 	std::cerr << " " << std::endl;
@@ -1259,7 +1259,7 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
 	    }
 	}
 	w_datas.dmap[w_datas.xyz_name] = ddt_data<Traits>::Data_ply(w_datas.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-	w_datas.dmap[w_datas.xyz_name].fill_full_input(vp);
+	w_datas.dmap[w_datas.xyz_name].fill_full_output(vp);
       }
     std::cerr << "ser1" << std::endl;
     hpi.finalize();
@@ -1830,7 +1830,7 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
 	auto  tile  = tri1.get_tile(tid);
 	tile->update_local_flag();
 	typename DDT::Traits::Delaunay_triangulation & ttri = tile->tri();
-	traits.export_tri_to_data(ttri,w_datas_tri[hid],false);
+	traits.export_tri_to_data(ttri,w_datas_tri[hid]);
       } else if(hpi.get_lab() == "p"  || hpi.get_lab() == "z")
       {
 	std::cerr << " " << std::endl;
@@ -1846,7 +1846,7 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
 	    }
 	}
 	w_datas_tri[hid].dmap[w_datas_tri[hid].xyz_name] = ddt_data<Traits>::Data_ply(w_datas_tri[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-	w_datas_tri[hid].dmap[w_datas_tri[hid].xyz_name].fill_full_input(vp);
+	w_datas_tri[hid].dmap[w_datas_tri[hid].xyz_name].fill_full_output(vp);
       }
     hpi.finalize();
 

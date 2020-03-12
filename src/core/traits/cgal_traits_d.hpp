@@ -880,7 +880,7 @@ struct Cgal_traits_d
 
 
     template<typename DDT_DATA>
-    void export_tri_to_data(Delaunay_triangulation& tri,DDT_DATA & data,bool do_fill_output = true)
+    void export_tri_to_data(Delaunay_triangulation& tri,DDT_DATA & data)
     {
         typedef typename DDT_DATA::Data_ply Data_ply;
         int D = data.D;
@@ -994,7 +994,7 @@ struct Cgal_traits_d
             }
         }
 
-	if(do_fill_output){
+
 	  data.dmap[data.xyz_name].fill_full_output(v_xyz);
 	  data.dmap[data.simplex_name].fill_full_output(v_simplex);
 	  data.dmap[data.nb_name].fill_full_output(v_nb);
@@ -1003,19 +1003,8 @@ struct Cgal_traits_d
 	  //      data.dmap[data.cid_name].fill_full_output(v_cid);
 	  data.dmap[data.flag_vertex_name].fill_full_output(v_flagv);
 	  data.dmap[data.flag_simplex_name].fill_full_output(v_flags);
-	}else{
-	  data.dmap[data.xyz_name].fill_full_input(v_xyz);
-	  data.dmap[data.simplex_name].fill_full_input(v_simplex);
-	  data.dmap[data.nb_name].fill_full_input(v_nb);
-
-	  data.dmap[data.vid_name].fill_full_input(v_vid);
-	  //      data.dmap[data.cid_name].fill_full_input(v_cid);
-	  data.dmap[data.flag_vertex_name].fill_full_input(v_flagv);
-	  data.dmap[data.flag_simplex_name].fill_full_input(v_flags);
 
 
-
-	}
 
     }
 

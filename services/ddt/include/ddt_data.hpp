@@ -15,27 +15,6 @@
 #define NB_DIGIT_OUT (5)
 
 
-tinyply::Type int2type(int ii){
-      switch(ii)
-	{
-	case 0 :
-	  return tinyply::Type::INVALID;
-	case 1 :
-	  return tinyply::Type::INT8;
-	case 2 :
-	  return tinyply::Type::UINT8;
-	case 3 :
-	  return tinyply::Type::INT16;
-	case 4 :
-	  return tinyply::Type::UINT16;
-	case 5 :
-	  return tinyply::Type::INT32;
-	case 6 :
-	  return tinyply::Type::UINT32;
-	case 7 :
-	  return tinyply::Type::FLOAT64;
-	}
-}
 
 
 template<typename Traits>
@@ -79,8 +58,15 @@ public :
     int get_nbe_input(){
       if(input_vect != nullptr)
 	return get_nbe_input_shp();
-      if(input_vect_uint.size() != 0)
-	return get_nbe_input_uint();
+      return 0;
+    }
+
+
+    int get_nbe(){
+      if(input_vect != nullptr)
+	return get_nbe_input();
+      if(output_vect.size() != 0)
+	return get_nbe_output();
       return 0;
     }
     
@@ -91,12 +77,6 @@ public :
 	return input_vect->buffer.size_bytes()/((tinyply::PropertyTable[type].stride)*vsize);
     }
 
-    int get_nbe_input_uint() const {
-      if(input_vect_uint.size() == 0)
-	return 0;
-      else	
-	return input_vect_uint.size()/((tinyply::PropertyTable[type].stride)*vsize);
-    }
 
 
     bool has_label(std::string v1) const {
@@ -132,7 +112,7 @@ public :
       if(input_vect != nullptr)
 	return input_vect->buffer.size_bytes();
       else
-	return input_vect_uint.size();
+	return output_vect.size();
     }
 
     void input2output(bool do_clean = true){
@@ -160,7 +140,7 @@ public :
       if(szd > 0){
 	vv =  reinterpret_cast<DT &>(input_vect->buffer.get()[id*vnbb+i*tinyply::PropertyTable[type].stride]);
       }else{
-	std::memcpy(&vv,&input_vect_uint[id*vnbb+i],tinyply::PropertyTable[type].stride);
+	std::memcpy(&vv,&output_vect[id*vnbb+i],tinyply::PropertyTable[type].stride);
       }
     }
 
@@ -168,6 +148,7 @@ public :
     template<typename DT>
     void extract_full_input(std::vector<DT> & formated_data, bool do_clean = true){
       int szd = get_nbe_input_shp()*vsize;
+      std::cerr << "nbe_i" << szd << std::endl;
       if(szd > 0){
 	formated_data.resize(szd);
 	std::memcpy(formated_data.data(), input_vect->buffer.get(),size_bytes());
@@ -175,18 +156,11 @@ public :
 	  input_vect.reset();
 	return;
       }
-      szd = get_nbe_input_uint()*vsize;
-      if(szd > 0){
-	formated_data.resize(szd);
-	std::memcpy(formated_data.data(), &input_vect_uint[0],size_bytes());
-	std::cerr << "memcpy ok" << std::endl;
-	if(do_clean)
-	  input_vect_uint.clear();
-	return;
-      }
       szd = get_nbe_output()*vsize;
+      std::cerr << "==> " << szd << std::endl;
       if(szd > 0){
 	formated_data.resize(szd);
+	std::cerr << "==> -- " << szd << std::endl;
 	std::memcpy(formated_data.data(), &output_vect[0],size_bytes());
 	std::cerr << "memcpy ok" << std::endl;
 	if(do_clean)
@@ -201,17 +175,6 @@ public :
       int szb = sizeof(DT)*formated_data.size();
       output_vect.resize(szb);
       std::memcpy(output_vect.data(), formated_data.data(),szb);
-      if(do_clean)
-	formated_data.clear();
-      do_exist = true;
-    }
-
-
-    template<typename DT>
-    void fill_full_input(std::vector<DT> & formated_data, bool do_clean = true){
-      int szb = sizeof(DT)*formated_data.size();
-      input_vect_uint.resize(szb);
-      std::memcpy(input_vect_uint.data(), formated_data.data(),szb);
       if(do_clean)
 	formated_data.clear();
       do_exist = true;
@@ -238,7 +201,6 @@ public :
     std::string part;
     std::vector<std::string>  vname;
     std::shared_ptr<tinyply::PlyData> input_vect;
-    std::vector<uint8_t> input_vect_uint;
     std::vector<uint8_t> output_vect;
     tinyply::Type type;
   protected :
@@ -316,6 +278,7 @@ public :
   
   void write_geojson_tri(std::ostream & ofs_pts,std::ostream & ofs_spx, bool is_full = true){
     //    ofs_spx << std::fixed << std::setprecision(12);
+    std::cerr << "vcyz ==>" << std::endl;
     int D = Traits::D;
     std::vector<std::string> lab_color = {"\"red\"","\"green\"","\"blue\""};
     bool is_first = is_full;
@@ -325,12 +288,12 @@ public :
       write_geojson_header(ofs_spx);
     }
 
-   
+    std::cerr << "vcyz <<<" << std::endl;
     std::vector<double> v_xyz;
     std::vector<int> v_simplex;
     dmap[xyz_name].extract_full_input(v_xyz,false);
     dmap[simplex_name].extract_full_input(v_simplex,false);
-
+    std::cerr << "vcyz :::" << std::endl;
     std::cerr << v_xyz.size() << std::endl;
     int nb_pts = v_xyz.size()/D;
     std::cerr << "nbpts:" << nb_pts << std::endl;
@@ -380,7 +343,7 @@ public :
     }
 
     is_first=true;
-    uint num_c = dmap[simplex_name].get_nbe_input();///(D+1);
+    uint num_c = dmap[simplex_name].get_nbe();///(D+1);
     for(int id = 0; id < num_c; id++){
       int local = 0;
       bool is_infinite = false;
@@ -463,7 +426,7 @@ public :
   }
 
 
-  void write_serialized_stream( std::ostream & ss)
+  void write_serialized_stream( std::ostream & ss) 
   {
     int nn = 0;
     for ( const auto &ee : dmap ) {
@@ -484,8 +447,8 @@ public :
 	// }
 
 	
-	int nbe = dmap[ee.first].get_nbe_input();
-	auto vv = dmap[ee.first].input_vect_uint;
+	int nbe = dmap[ee.first].get_nbe_output();
+	auto vv = dmap[ee.first].output_vect;
 	ss << dmap[ee.first].vname.size() << " ";
 	for(auto nn : dmap[ee.first].vname){
 	  ss << nn << " ";
@@ -525,7 +488,7 @@ public :
       int ttti;
       ss >> ttti;
       dmap[xyz_name] = Data_ply(xyz_name,tt_name,dim,vs,static_cast<tinyply::Type>(ttti));
-      deserialize_b64_vect(dmap[xyz_name].input_vect_uint,ss);
+      deserialize_b64_vect(dmap[xyz_name].output_vect,ss);
     }
   }
   
@@ -880,13 +843,11 @@ public :
   template<typename DT>
   int extract_full_input(std::vector<std::string> & name,std::vector<DT> & formated_data, bool do_clean = true){
     dmap[name].extract_full_input(formated_data,do_clean);
-    return 0;
   }
 
   template<typename DT>
   int fill_full_output(std::vector<std::string> & name,std::vector<DT> & formated_data, bool do_clean = true){
     dmap[name].fill_full_output(formated_data,do_clean);
-    return 0;
   }
 
   int nb_simplex_input(){
