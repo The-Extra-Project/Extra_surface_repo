@@ -85,7 +85,6 @@ object algo_iqlibbp {
     val kvrdd_seg = iq.get_kvrdd(res_seg_mf,"t");
     return kvrdd_seg;
 
-
   }
 
 

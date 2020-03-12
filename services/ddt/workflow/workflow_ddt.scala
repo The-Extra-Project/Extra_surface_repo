@@ -83,88 +83,88 @@ if (output_dir.isEmpty ||  input_dir.isEmpty || !Files.exists(Paths.get(env_xml)
 var param_list = parse_xml_datasets_2(env_xml)
 val df_par = sc.defaultParallelism;
 val params_scala = param_list(0) // We only process 1 set of parameter in this workflow
+var acc=0;
+for(params_scala <- param_list){
+
+
+  // ===============================================
+  // ==== Scala and param initialization ===========
+  // Param scala is mutable, get params set the default value to the collection if it's empty
+  //  Se for instance the xml documentation / Algorithm params for the effect
+
+  // System params
+  val cur_output_dir = output_dir +"/"+ acc.toString + "_" + params_scala("name").head
+  val dim = params_scala.get_param("dim", "2").toInt
+  val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-D" + dim.toString)
+  val build_dir = global_build_dir + "/" + ddt_kernel_dir
+  val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
+  val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "MEMORY_AND_DISK_SER"))
+
+  // General Algo params
+  val bbox = params_scala.get_param("bbox", "")
+  val do_profile = params_scala.get_param("do_profile", "false").toBoolean;
+  val plot_lvl = params_scala.get_param("plot_lvl", "1").toInt;
+  val regexp_filter = params_scala.get_param("regexp_filter", "");
+  val max_ppt = params_scala.get_param("max_ppt", "1000").toInt
+  val ndtree_depth = params_scala.get_param("ndtree_depth", "4").toInt
+  val nbp =  params_scala.get_param("nbp", "10000").toInt
+  val datatype =  params_scala.get_param("datatype", "")
+  val spark_core_max = params_scala.get_param("spark_core_max", df_par.toString).toInt
+  val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(100000).toString);
+  val dump_mode = params_scala.get_param("dump_mode", "NONE")
+  val min_ppt = params_scala.get_param("min_ppt", "0").toInt
 
 
 
-// ===============================================
-// ==== Scala and param initialization ===========
-// Param scala is mutable, get params set the default value to the collection if it's empty
-//  Se for instance the xml documentation / Algorithm params for the effect
+  // Set the iq library on
+  val iq = new IQlibSched(slvl_glob,slvl_loop)
 
-// System params
-val dim = params_scala.get_param("dim", "2").toInt
-val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-D" + dim.toString)
-val build_dir = global_build_dir + "/" + ddt_kernel_dir
-val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
-val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "MEMORY_AND_DISK_SER"))
-
-// General Algo params
-val bbox = params_scala.get_param("bbox", "")
-val do_profile = params_scala.get_param("do_profile", "false").toBoolean;
-val plot_lvl = params_scala.get_param("plot_lvl", "1").toInt;
-val regexp_filter = params_scala.get_param("regexp_filter", "");
-val max_ppt = params_scala.get_param("max_ppt", "1000").toInt
-val ndtree_depth = params_scala.get_param("ndtree_depth", "4").toInt
-val nbp =  params_scala.get_param("nbp", "10000").toInt
-val datatype =  params_scala.get_param("datatype", "")
-val spark_core_max = params_scala.get_param("spark_core_max", df_par.toString).toInt
-val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(100000).toString);
-val dump_mode = params_scala.get_param("dump_mode", "0").toInt
-val min_ppt = params_scala.get_param("min_ppt", "0").toInt
+  // Set the c++ command line object
+  val params_new = new Hash_StringSeq with mutable.MultiMap[String, String]
+  val params_cpp =  set_params(params_new,List(
+    ("exec_path", build_dir + "/bin/ddt-stream-exe"),
+    ("bbox",params_scala("bbox").head),
+    ("ech_input","1"),
+    ("input_dir",input_dir),
+    ("output_dir",cur_output_dir),
+    ("min_ppt",params_scala("min_ppt").head),
+    ("dump_mode",params_scala("dump_mode").head),
+    ("seed",algo_seed)
+  ))
 
 
+  val fmt = new java.text.DecimalFormat("##0.##############")
+  val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
 
-// Set the iq library on
-val iq = new IQlibSched(slvl_glob,slvl_loop)
+  fs.mkdirs(new Path( cur_output_dir),new FsPermission("777"))
+  val nbt_side = math.pow(2,ndtree_depth)
+  val tot_nbt = scala.math.pow(nbt_side,dim).toInt;
+  val nbp_per_tile = nbp/tot_nbt;
+  val rep_value = ((if((tot_nbt) < sc.defaultParallelism) sc.defaultParallelism else  (tot_nbt).toInt))
+  var nb_leaf = tot_nbt;
 
-// Set the c++ command line object
-val params_new = new Hash_StringSeq with mutable.MultiMap[String, String]
-val params_cpp =  set_params(params_new,List(
-  ("exec_path", build_dir + "/bin/ddt-stream-exe"),
-  ("bbox",params_scala("bbox").head),
-  ("ech_input","1"),
-  ("input_dir",input_dir),
-  ("output_dir",output_dir),
-  ("min_ppt",params_scala("min_ppt").head),
-  ("dump_mode",params_scala("dump_mode").head),
-  ("seed",algo_seed)
-))
+  params_cpp("output_dir") = collection.mutable.Set(cur_output_dir)
+  params_scala("output_dir") = collection.mutable.Set(cur_output_dir)
+  params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)
+  params_cpp("nbt_side") =  collection.mutable.Set(nbt_side.toString)
+  params_scala("df_par") = collection.mutable.Set(4.toString);
+  println("")
+  println("=======================================================")
+  params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
 
-
-val fmt = new java.text.DecimalFormat("##0.##############")
-val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
-
-fs.mkdirs(new Path( output_dir),new FsPermission("777"))
-val nbt_side = math.pow(2,ndtree_depth)
-val tot_nbt = scala.math.pow(nbt_side,dim).toInt;
-val nbp_per_tile = nbp/tot_nbt;
-val rep_value = ((if((tot_nbt) < sc.defaultParallelism) sc.defaultParallelism else  (tot_nbt).toInt))
-var nb_leaf = tot_nbt;
-
-params_cpp("output_dir") = collection.mutable.Set(output_dir)
-params_scala("output_dir") = collection.mutable.Set(output_dir)
-params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)
-params_cpp("nbt_side") =  collection.mutable.Set(nbt_side.toString)
-params_scala("df_par") = collection.mutable.Set(4.toString);
-println("")
-println("=======================================================")
-params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
-
-// General c++ commands
-val ply2geojson_cmd =  set_params(params_cpp, List(("step","ply2geojson"))).to_command_line
-val ply2dataset_cmd =  set_params(params_cpp, List(("step","ply2dataset"))).to_command_line
-val ser2datastruct_cmd =  set_params(params_cpp, List(("step","serialized2dataset"))).to_command_line
-
-val dump_ply_binary_cmd =  set_params(params_cpp, List(("step","dump_ply_binary"),("output_dir", output_dir))).to_command_line
-val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
-val id_cmd = List(build_dir + "/bin/identity-exe");
+  // General c++ commands
+  val ply2geojson_cmd =  set_params(params_cpp, List(("step","ply2geojson"))).to_command_line
+  val ply2dataset_cmd =  set_params(params_cpp, List(("step","ply2dataset"))).to_command_line
+  val dump_ply_binary_cmd =  set_params(params_cpp, List(("step","dump_ply_binary"),("output_dir", cur_output_dir))).to_command_line
+  val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
+  val id_cmd = List(build_dir + "/bin/identity-exe");
 
 
 
-// =================================================
-// ============  Parsing and init data ===========
-var kvrdd_points: RDD[KValue] = sc.parallelize(List((0L,List(""))));
-var kvrdd_inputs = format_data(
+  // =================================================
+  // ============  Parsing and init data ===========
+  var kvrdd_points: RDD[KValue] = sc.parallelize(List((0L,List(""))));
+  var kvrdd_inputs = format_data(
     params_scala,
     params_cpp,
     global_build_dir,
@@ -175,76 +175,78 @@ var kvrdd_inputs = format_data(
     iq
   )
 
-if(plot_lvl >= 3){
-  // if(dim == 2){
-  //   iq.run_pipe_fun_KValue(
-  //     tri2geojson_cmd ++ List("--label", "kvrdd_input"),
-  //     kvrdd_inputs, "kvrdd_input", do_dump = false).collect()
-  // }
-  if(dim == 3){
-    iq.run_pipe_fun_KValue(
-      dump_ply_binary_cmd ++ List("--label", "tile_pts"),
-      kvrdd_inputs, "tile_pts", do_dump = false).collect()
+  if(plot_lvl >= 3){
+    // if(dim == 2){
+    //   iq.run_pipe_fun_KValue(
+    //     tri2geojson_cmd ++ List("--label", "kvrdd_input"),
+    //     kvrdd_inputs, "kvrdd_input", do_dump = false).collect()
+    // }
+    if(dim == 3){
+      iq.run_pipe_fun_KValue(
+        dump_ply_binary_cmd ++ List("--label", "tile_pts"),
+        kvrdd_inputs, "tile_pts", do_dump = false).collect()
+    }
   }
+
+
+
+  // =========== Start of the algorithm ==============
+  println("======== Tiling =============")
+  val t0 = System.nanoTime()
+  params_scala("t0") = collection.mutable.Set(t0.toString)
+  kvrdd_points = ddt_algo.compute_tiling_2(kvrdd_inputs,iq,params_cpp,params_scala);
+  nb_leaf = params_scala("nb_leaf").head.toInt;
+
+  val rep_merge = ((if((nb_leaf) < spark_core_max) spark_core_max else  nb_leaf));
+  var rep_loop = nb_leaf;
+  if(ndtree_depth == 8)
+    rep_loop = spark_core_max*10;
+  params_scala("rep_loop") = collection.mutable.Set(rep_loop.toString)
+  params_scala("rep_merge") = collection.mutable.Set(rep_merge.toString)
+
+
+
+
+  var input_ddt = kvrdd_points;
+  println("=========== Delauay triangulatin computation ==================")
+  val (graph_tri,log_tri,kvrdd_stats)  = ddt_algo.compute_ddt(
+    kvrdd_points = input_ddt,
+    iq = iq,
+    params_cpp = params_cpp,
+    params_scala = params_scala
+  );
+  val stats_cum = kvrdd_simplex_id(kvrdd_stats,sc)
+
+  println("========= PLY extraction =============")
+  if(dump_mode != "NONE"){
+    fs.listStatus(new Path(cur_output_dir)).filter(
+      dd => (dd.isDirectory)).map(
+      ss => fs.listStatus(ss.getPath)).reduce(_ ++ _).filter(
+      xx => (xx.getPath.toString contains "part-")).map(
+      ff => fs.rename(ff.getPath, new Path(ff.getPath.toString + ".ply"))
+    )
+  }
+
+
+  if(dim == 2 && dump_mode == "NONE"){
+    ddt_algo.extract_2D_voronoi(graph_tri, stats_cum,iq,params_cpp,params_scala);
+  }
+
+
+  val ser2datastruct_cmd =  set_params(params_cpp, List(("step","serialized2datastruct"))).to_command_line
+  val datastruct2ser_cmd =  set_params(params_cpp, List(("step","read_datastruct"))).to_command_line
+  val input_vertex : RDD[KValue] =  graph_tri.vertices
+  val dataset_raw = iq.run_pipe_fun_KValue(
+    ser2datastruct_cmd ,
+    input_vertex, "dst", do_dump = false).persist(slvl_glob)
+  val kvrdd_dataset = iq.get_kvrdd(dataset_raw)
+
+  val dataset_raw2 = iq.run_pipe_fun_KValue(
+    datastruct2ser_cmd ,
+    kvrdd_dataset, "dst", do_dump = false).persist(slvl_glob)
+
+  acc += 1
 }
-
-
-
-// =========== Start of the algorithm ==============
-println("======== Tiling =============")
-val t0 = System.nanoTime()
-params_scala("t0") = collection.mutable.Set(t0.toString)
-kvrdd_points = ddt_algo.compute_tiling_2(kvrdd_inputs,iq,params_cpp,params_scala);
-nb_leaf = params_scala("nb_leaf").head.toInt;
-
-val rep_merge = ((if((nb_leaf) < spark_core_max) spark_core_max else  nb_leaf));
-var rep_loop = nb_leaf;
-if(ndtree_depth == 8)
-  rep_loop = spark_core_max*10;
-params_scala("rep_loop") = collection.mutable.Set(rep_loop.toString)
-params_scala("rep_merge") = collection.mutable.Set(rep_merge.toString)
-
-
-
-
-var input_ddt = kvrdd_points;
-println("=========== Delauay triangulatin computation ==================")
-val (graph_tri,log_tri,kvrdd_stats)  = ddt_algo.compute_ddt(
-  kvrdd_points = input_ddt,
-  iq = iq,
-  params_cpp = params_cpp,
-  params_scala = params_scala
-);
-val stats_cum = kvrdd_simplex_id(kvrdd_stats,sc)
-
-println("========= PLY extraction =============")
-if(dump_mode > 0){
-  fs.listStatus(new Path(output_dir)).filter(
-    dd => (dd.isDirectory)).map(
-    ss => fs.listStatus(ss.getPath)).reduce(_ ++ _).filter(
-    xx => (xx.getPath.toString contains "part-")).map(
-    ff => fs.rename(ff.getPath, new Path(ff.getPath.toString + ".ply"))
-  )
-}
-
-
-if(dim == 2 && dump_mode == 0){
-  ddt_algo.extract_2D_voronoi(graph_tri, stats_cum,iq,params_cpp,params_scala);
-}
-
-
-val ser2datastruct_cmd =  set_params(params_cpp, List(("step","serialized2datastruct"))).to_command_line
-val datastruct2ser_cmd =  set_params(params_cpp, List(("step","read_datastruct"))).to_command_line
-val input_vertex : RDD[KValue] =  graph_tri.vertices
-val dataset_raw = iq.run_pipe_fun_KValue(
-  ser2datastruct_cmd ,
-  input_vertex, "dst", do_dump = false).persist(slvl_glob)
-val kvrdd_dataset = iq.get_kvrdd(dataset_raw)
-
-val dataset_raw2 = iq.run_pipe_fun_KValue(
-  datastruct2ser_cmd ,
-  kvrdd_dataset, "dst", do_dump = false).persist(slvl_glob)
-
 
 // val input_vertex : RDD[KValue] =  graph_tri.vertices
 //   val dataset_raw = iq.run_pipe_fun_KValue(

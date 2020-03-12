@@ -208,7 +208,7 @@ if(ndtree_depth == 8)
   rep_loop = spark_core_max*10;
 params_scala("rep_loop") = collection.mutable.Set(rep_loop.toString)
 params_scala("rep_merge") = collection.mutable.Set(rep_merge.toString)
-params_scala("dump_mode") = collection.mutable.Set("0")
+params_scala("dump_mode") = collection.mutable.Set("NONE")
 
 println("======== Dimenstionnality =============")
 val t0 = System.nanoTime()

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-libs=("./extern/graphcut" "./extern/ann_1.1.2" "./extern/double-conv" "./extern/tinyply" "./ddt" "./wasure" "./create_datas" "extern/3d_benchmark/")
-      #"./extern/ann_1.1.2"  "./extern/cimg"  "./extern/cut -pursuit"  "./extern/graphcut"  "./extern/pugixml"  ) 
+libs=("./extern/graphcut" "./extern/ann_1.1.2" "./extern/double-conv" "./extern/tinyply" "./ddt" "./wasure" "./create_datas")
+# "extern/3d_benchmark/")
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/"
 COMPILE_TYPE=Release
 DDT_TRAITS="D2"

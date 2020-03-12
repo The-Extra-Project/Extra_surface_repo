@@ -1,49 +1,34 @@
 <env>
   <datasets>
-    <test_small>
-      <dim>2</dim>
-      <nbp_and_depth>100000:5</nbp_and_depth>
-      <bbox>0x100000:0x100000</bbox>
-      <max_ppt>10000</max_ppt>
-      <plot_lvl>3</plot_lvl>
-      <datatype>random_normal</datatype>
-      <spark_core_max>4</spark_core_max>
-      <algo_version>1</algo_version>
-      <StorageLevel>MEMORY_AND_DISK_SER</StorageLevel>
-      <!-- Meta parameters -->
-      <do_process>false</do_process>
-      <do_expand>true</do_expand>
-    </test_small>
-
-    <test_small>
+    <test_small_2D>
       <dim>2</dim>
       <nbp_and_depth>5000:2</nbp_and_depth>
       <bbox>0x100000:0x100000</bbox>
       <max_ppt>500</max_ppt>
       <plot_lvl>3</plot_lvl>
+      <dump_mode>NONE,SIMPLEX_SOUP</dump_mode>
       <datatype>random_normal</datatype>
       <spark_core_max>4</spark_core_max>
       <algo_version>1</algo_version>
       <StorageLevel>MEMORY_AND_DISK_SER</StorageLevel>
       <!-- Meta parameters -->
-      <do_process>false</do_process>
+      <do_process>true</do_process>
       <do_expand>true</do_expand>
-    </test_small>
-
-    <test_small_3d>
+    </test_small_2D>
+    <test_small_3D>
       <dim>3</dim>
       <nbp_and_depth>100000:1</nbp_and_depth>
       <bbox>500x1000:500x1000:500x1000</bbox>
       <max_ppt>5000</max_ppt>
       <plot_lvl>3</plot_lvl>
-      <dump_mode>4</dump_mode>
+      <dump_mode>SIMPLEX_SOUP</dump_mode>
       <datatype>random_normal</datatype>
       <StorageLevel>MEMORY_ONLY</StorageLevel>
       <StorageLevelLoop>MEMORY_ONLY</StorageLevelLoop>
       <spark_core_max>4</spark_core_max>
       <do_process>true</do_process>
       <do_expand>true</do_expand>
-    </test_small_3d>
+    </test_small_3D>
   </datasets>
 </env>
 

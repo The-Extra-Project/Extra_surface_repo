@@ -284,7 +284,7 @@ object ddt_algo {
     val output_dir = params_scala("output_dir").head;
     val plot_lvl = params_scala("plot_lvl").head.toInt;
     val dim_algo = params_scala("dim").head
-    val dump_mode = params_scala("dump_mode").head.toInt;
+    val dump_mode = params_scala("dump_mode").head;
 
     // C++ command init
     val insert_in_triangulation_fun = set_params(params_cpp,List(("step","insert_in_triangulation"))).to_command_line
@@ -354,7 +354,7 @@ object ddt_algo {
     val rep_loop = params_scala("rep_loop").head.toInt;
     val rep_merge = params_scala("rep_merge").head.toInt;
     val plot_lvl = params_scala("plot_lvl").head.toInt;
-    val dump_mode = params_scala("dump_mode").head.toInt;
+    val dump_mode = params_scala("dump_mode").head;
     val output_dir = params_scala("output_dir").head;
 
     // C++ function
@@ -410,7 +410,7 @@ object ddt_algo {
 
     // Insert finalized point into global triangulation (non optimal)
     var kvrdd_b4_union =  kvrdd_last_tri; 
-    if(dump_mode == 0){
+    if(dump_mode == "NONE"){
       kvrdd_b4_union =  (kvrdd_last_tri union kvrdd_pts_finalized).reduceByKey((u,v) => u ::: v)
     }
     val res_finalized_tri = iq.run_pipe_fun_KValue(
@@ -439,7 +439,7 @@ object ddt_algo {
     }
 
     // Dumping section
-    if(dump_mode > 0){
+    if(dump_mode != "NONE"){
       saveAsPly(rdd_finalized_ply_crown,output_dir + "/rdd_ply_finalized_last",plot_lvl)
       kvrdd_last_tri.unpersist();
       update_time(params_scala,"shareddumped");

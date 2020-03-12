@@ -13,7 +13,7 @@
 #include <unordered_set>
 #include <limits>
 #include <math.h>
-
+#include "../io/number_parser.hpp"
 typedef std::numeric_limits< double > dbl;
 
 namespace ddt
@@ -41,8 +41,6 @@ struct Cgal_traits_raw_d
 
     typedef typename Delaunay_triangulation::Facet_iterator                 Facet_iterator;
     typedef Facet_iterator                   Facet_const_handle;
-    //    typedef typename Delaunay_triangulation::Facet_iterator                       Facet_iterator;
-    //    typedef typename Delaunay_triangulation::Facet_handle                         Facet_handle;
 
     typedef typename K::Point_d                                    Point;
     typedef std::pair<Cell_const_handle, int>                      Facet;
@@ -219,42 +217,6 @@ struct Cgal_traits_d
     typedef  CGAL::Unique_hash_map<Vertex_handle,uint> v_hmap_uint;
 
 
-// template<typename I, typename F,typename G = bool, typename Dim = CGAL::Dynamic_dimension_tag>
-// struct Cgal_traits_d
-// {
-//     typedef Dim                                                    Dim_tag;
-//     typedef I                                                      Id;
-//     typedef F                                                      Flag_V;
-//     typedef G                                                      Flag_C;
-//     typedef ddt::Data<Id, Flag_V>                                  Data_V;
-//     typedef ddt::Data<Id, Flag_C>                                  Data_C;
-//     typedef CGAL::Epick_d<Dim_tag>                                 K;
-//     typedef CGAL::Triangulation_vertex<K,Data_V>                   Vb;
-//     typedef CGAL::Triangulation_full_cell<K,Data_C>                Cb;
-//     typedef CGAL::Triangulation_data_structure<Dim_tag,Vb,Cb>      TDS;
-//     typedef typename K::Point_d                                    Point;
-//     typedef std::pair<Point,Id>                                    Point_id;
-//     typedef std::tuple<Point,Id,Id>                                Point_id_id;
-
-//     typedef typename TDS::Face                                    Face;
-//     typedef typename TDS::Vertex_const_iterator                    Vertex_const_iterator;
-//     typedef typename TDS::Vertex_const_handle                      Vertex_const_handle;
-//     typedef typename TDS::Vertex_iterator                          Vertex_iterator;
-//     typedef typename TDS::Vertex_handle                            Vertex_handle;
-
-//     typedef typename TDS::Full_cell_const_iterator                 Cell_const_iterator;
-//     typedef typename TDS::Full_cell_const_handle                   Cell_const_handle;
-//     typedef typename TDS::Full_cell_iterator                       Cell_iterator;
-//     typedef typename TDS::Full_cell_handle                         Cell_handle;
-
-//     typedef std::pair<Cell_const_handle, int>                      Facet;
-//     typedef Facet_const_iterator_d<TDS>                            Facet_const_iterator;
-//     typedef Facet_const_iterator                                   Facet_const_handle;
-//     typedef Facet_const_iterator                                   Facet_iterator;
-//     typedef Facet_const_iterator                                   Facet_handle;
-
-//     typedef CGAL::Delaunay_triangulation<K,TDS>                    Delaunay_triangulation;
-//     typedef CGAL::Random_points_in_cube_d<Point>                   Random_points_in_box;
 
     Delaunay_triangulation triangulation(int dimension) const
     {
@@ -308,7 +270,6 @@ struct Cgal_traits_d
     inline size_t number_of_cells(const Delaunay_triangulation& dt) const
     {
         return dt.number_of_full_cells();
-        //	return dt.number_of_finite_full_cells();
     }
     inline size_t number_of_vertices(const Delaunay_triangulation& dt) const
     {
@@ -665,7 +626,7 @@ struct Cgal_traits_d
 
 
         // 5) read and create the vertices
-        deserialize_b64_vect(v_double,ifile);
+        deserialize_b64_vect<double>(v_double,ifile);
         std::vector<Vertex_handle> vertex_map(num_v+1);
         vertex_map[0] = tri.infinite_vertex();
 

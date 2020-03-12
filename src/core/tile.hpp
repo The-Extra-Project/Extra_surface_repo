@@ -21,8 +21,6 @@ const T& at_with_default(const Map& map, K k, const T& t)
 }
 
 
-
-
 template<class T>
 class Tile
 {
@@ -74,6 +72,8 @@ public:
     inline int maximal_dimension() const { return traits_.maximal_dimension(dt_); }
     inline int current_dimension() const { return traits_.current_dimension(dt_); }
 
+
+  
     inline Cell_const_iterator cells_begin() const { return traits_.cells_begin(dt_); }
     inline Cell_const_iterator cells_end  () const { return traits_.cells_end  (dt_); }
 
@@ -126,7 +126,7 @@ public:
     inline Id   id  (Cell_const_handle c) const { assert(!vertex_is_infinite(c)); return traits_.id  (c); }
     inline Id   gid  (Vertex_const_handle v) const {
       assert(!vertex_is_infinite(v)); return tile_ids[0] + traits_.gid  (v); }
-    inline Id   gid  (Cell_const_handle c) const { assert(!vertex_is_infinite(c)); return tile_ids[2] + traits_.gid  (c); }
+    inline Id   gid  (Cell_const_handle c) const { assert(!cell_is_infinite(c)); return tile_ids[2] + traits_.gid  (c); }
     inline Flag_V& flagv(Vertex_const_handle v) const { assert(!vertex_is_infinite(v)); return traits_.flag(v); }
     inline Flag_C& flagc(Cell_const_handle c) const {  return traits_.flag(c); }
     inline const Data_C& datac(Cell_const_handle c) const  {  return traits_.data(c); }
@@ -331,6 +331,8 @@ public:
         return !vertex_is_infinite(v) && vertex_is_local(v) ;
     }
 
+
+  // Check if the facet is main
     template<typename F>
     bool facet_is_main(F f) const
     {

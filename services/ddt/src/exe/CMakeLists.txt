@@ -15,10 +15,13 @@ include_directories(SYSTEM ${HDFS_INCLUDE_DIR})
 include_directories(SYSTEM ${DOUBLE_CONV_INCLUDE_DIR})
 find_package(ZLIB)
 
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(ddt_stream_SOURCES
   main_ddt_stream.cpp
   )
 add_executable(ddt-stream-exe ${ddt_stream_SOURCES})
+target_compile_options(ddt-stream-exe PRIVATE -Wall -Wextra )
 set_property(TARGET ddt-stream-exe PROPERTY CXX_STANDARD 11)
 target_link_libraries(ddt-stream-exe
   # intern dependencies

@@ -82,7 +82,7 @@ else()
   endif()
 endif()
 
-add_definitions("-Wall -Wunused -O3 -std=gnu++11")
+add_definitions("-Wunused -O3 -std=gnu++11")
 if(DDT_DEBUG)
   add_definitions("-DDDT_DEBUG=1")
 endif()
@@ -95,7 +95,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -pthread")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}  -Wall -g -O0  -std=gnu++11")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0  -std=gnu++11")
 
 
 

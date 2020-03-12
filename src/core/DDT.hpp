@@ -287,6 +287,10 @@ public:
         return true;
     }
 
+
+
+
+
     template<class Scheduler> bool is_valid(Scheduler &s) const
     {
         bool valid = true;

@@ -6,51 +6,13 @@
 // CGAL and co
 typedef std::map<Id,ddt_data<Traits> > D_MAP;
 
-// The function that allow to init the global id of each simplex
-template<typename DDT>
-void init_global_id(const DDT& ddt, D_MAP & w_datas_tri,std::map<int,std::vector<int>> & tile_ids,int tid)
-{
-  typedef typename DDT::Traits Traits;
-  typedef typename Traits::Flag_C                    Flag_C;
-  typedef typename Traits::Data_C                    Data_C;
-  int nextid = 0;
-  int D = Traits::D;
-  int acc = 0;
 
-  std::vector<int>  & format_gids = w_datas_tri[tid].format_gids;
-  std::vector<int>  & format_gidv = w_datas_tri[tid].format_gidv;
-  int nbv = ddt.number_of_vertices();
-  format_gidv.resize(nbv);
-  int nbs = ddt.number_of_cells();
-  format_gids.resize(nbs);
-  
-  for(auto vit = ddt.vertices_begin(); vit != ddt.vertices_end(); ++vit)
-    {
-
-      const Data_V & vd = vit->vertex_data();
-      Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
-      Id main_id = vit->main_id();
-      std::cerr << "mid:" << main_id << " " << tile_ids[main_id][0] << std::endl;
-      vd_quickndirty.gid =  (acc++);
-
-    }
-
-  acc = 0;
-  for(auto iit = ddt.cells_begin(); iit != ddt.cells_end(); ++iit)
-    {
-      const Data_C & cd = iit->cell_data();
-      Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
-      Id main_id = iit->main_id();
-      std::cerr << "mid" << main_id << " " << tile_ids[main_id][2] << std::endl;
-      cd_quickndirty.gid =  (acc++);
-    }
-}
 
 
 
 // The function that allow to init the global id of each simplex
 template<typename DDT>
-void init_local_id(const DDT& ddt, D_MAP & w_datas_tri)
+void init_local_id(const DDT& ddt)
 {
   typedef typename DDT::Traits Traits;
   typedef typename Traits::Flag_C                    Flag_C;
@@ -139,6 +101,8 @@ struct filter_cell_ddt {
 
 
 
+
+
 // Create a ply from the cgal structure
 template <typename TTr,typename DTC, typename FTC>
 std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int nbc_finalized,algo_params & params,Id tid,ddt::logging_stream & log ) 
@@ -149,7 +113,7 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
   typedef typename TTr::Cell_handle                            Cell_handle_raw;
   log.step("[write_ply]init");
 
-  int D = 3;
+  int D = TTr::D;
   char buffer[kBufferSize];
   double_conversion::StringBuilder builder(buffer, kBufferSize);
   double_conversion::DoubleToStringConverter dc(flags_deser, "Infinity", "NaN", 'e', 0, 0, 0, 0);
@@ -175,7 +139,7 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
   int nb_ply = 0;
   int max_bnc = 1000000;
 
-  if(params.dump_mode > 3){
+  if(params.dump_mode == "TRIANGLE_SOUP"){
     nb_cell = nbc_finalized*4;
     max_bnc = 4000000;
   }
@@ -220,7 +184,7 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
 	  buffer_char[pos+pp] = ' ';
 	  pos += (pp+1);
 	}
-      if(params.dump_mode > 3)
+      if(params.dump_mode == "TRIANGLE_SOUP")
 	buffer_char[pos-1] = ';';
       vertex_map[vit] = ii++;
     }
@@ -240,7 +204,171 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
   log.step("[write_ply]convert_double");
   int acc = 0;
 
-  if(params.dump_mode <= 3){
+  if(params.dump_mode == "SIMPLEX_SOUP"){
+    for(auto cit = traits.cells_begin(tri); cit != traits.cells_end(tri); ++cit)
+      {
+	if(!filter.do_keep(tri,cit,traits))
+	  continue;
+	buffer_char[pos++] = '1'+D;
+	buffer_char[pos++] = ' ';
+	for(int d = 0; d < D+1; d++)
+	  {
+	    Id vid = vertex_map[cit->vertex(d)] ;
+	    pos += u32toa_countlut(vid,buffer_char + pos);
+	  }
+	acc++;
+	if(acc > max_bnc){
+	  ofile.write(buffer_char,pos);
+	  ofile << std::endl;
+	  ofile << "ply tid_" << std::to_string(tid) << "_" << std::to_string(++nb_ply) << " ;";
+	  std::fill(buffer_char, buffer_char + full_bufflen, ' ');
+	  pos = 0;
+	  acc = 0;
+	}	
+      }
+  }else{
+    for(auto cit = traits.cells_begin(tri); cit != traits.cells_end(tri); ++cit)
+      {
+	if(!filter.do_keep(tri,cit,traits))
+	  continue;
+	for(int ss = 0; ss < D+1;ss++){
+	  buffer_char[pos++] = '0'+D;
+	  buffer_char[pos++] = ' ';
+	  for(int d = 0; d < D+1; d++)
+	    {
+	      if(d == ss)
+		continue;
+	      Id vid = vertex_map[cit->vertex(d)] ;
+	      pos += u32toa_countlut(vid,buffer_char + pos);
+	    }
+	  buffer_char[pos-1] = ';';
+	  acc++;
+	  if(acc > max_bnc){
+	    ofile.write(buffer_char,pos);
+	    ofile << std::endl;
+	    ofile << "ply tid_" << std::to_string(tid) << "_" << std::to_string(++nb_ply) << " ;";
+	    std::fill(buffer_char, buffer_char + full_bufflen, ' ');
+	    pos = 0;
+	    acc = 0;
+	  }	
+	}
+      }
+  }
+  std::cerr << "TEST_CMP:" << nb_cell << "_" << nb_cell2 << std::endl;
+  
+  log.step("[write_ply]write_double");
+  ofile.write(buffer_char,pos);
+  log.step("[write_ply]finalize");
+  delete [] buffer_char;      
+  return ofile;
+}
+
+
+
+
+
+// Create a ply from the cgal structure
+template <typename TTr,typename DTC, typename FTC>
+std::ostream & tri2ply(std::ostream & ofile,DTC & tri, FTC &filter, int nbc_finalized,algo_params & params,Id tid,ddt::logging_stream & log ) 
+{
+
+  TTr traits;
+  typedef typename TTr::Vertex_handle                            Vertex_handle_raw;
+  typedef typename TTr::Cell_handle                            Cell_handle_raw;
+  log.step("[write_ply]init");
+
+  int D = 3;
+  char buffer[kBufferSize];
+  double_conversion::StringBuilder builder(buffer, kBufferSize);
+  double_conversion::DoubleToStringConverter dc(flags_deser, "Infinity", "NaN", 'e', 0, 0, 0, 0);
+
+  int full_bufflen; 
+  char * buffer_char;
+  int nbb;
+  int pos = 0;
+  int acc_pose = 0;
+  char cc;
+  bool do_simplex = false;
+
+  int NB_DIGIT_OUT_PLY  = 3;
+      
+  // ======= Serializing  Vertex ==============
+  
+  CGAL::Unique_hash_map<Vertex_handle_raw, uint> vertex_map;
+  
+
+  int nb_vert = tri.number_of_vertices();
+  int nb_cell = nbc_finalized;
+  int nb_cell2 = 0;
+  int nb_ply = 0;
+  int max_bnc = 1000000;
+
+  if(params.dump_mode == "SIMPLEX_SOUP"){
+    nb_cell = nbc_finalized*4;
+    max_bnc = 4000000;
+  }
+  
+  std::string buffer_header("ply;");
+  buffer_header.append("format ascii 1.0;");
+  buffer_header.append("comment tid_" + std::to_string(tid) + "_0 ;");
+  buffer_header.append("element vertex " + std::to_string(nb_vert) + ";");
+  buffer_header.append("property double x;");
+  buffer_header.append("property double y;");
+  buffer_header.append("property double z;");
+  buffer_header.append("element face " + std::to_string(nb_cell) + ";");
+  buffer_header.append("property list uchar int vertex_index ;");
+  buffer_header.append("end_header;");
+  ofile << buffer_header ;
+  
+
+  std::stringstream sstr_d;
+  
+  
+  full_bufflen = kBufferSize*nb_vert*D;
+  buffer_char  = new char[full_bufflen];
+
+  pos = 0;
+  //  //log.step("[serialize]loop_vertex");
+
+  log.step("[write_ply]convert_pts");
+  int ii=0;
+  for(auto vit = traits.vertices_begin(tri); vit != traits.vertices_end(tri); ++vit)
+    {
+      if(tri.is_infinite(vit))
+	{
+	  continue;
+	}
+      for(int d = 0; d < D; d++)
+	{
+	  double dd = vit->point()[d];
+	  builder.Reset();
+	  dc.ToFixed(dd,NB_DIGIT_OUT_PLY,&builder);
+	  int pp = builder.position();
+	  memcpy( buffer_char + pos, buffer, pp );
+	  buffer_char[pos+pp] = ' ';
+	  pos += (pp+1);
+	}
+      if(params.dump_mode == "SIMPLEX_SOUP")
+	buffer_char[pos-1] = ';';
+      vertex_map[vit] = ii++;
+    }
+  log.step("[write_ply]write_pts");
+  ofile.write(buffer_char,pos);
+  ofile << " ";
+  delete[] buffer_char;
+
+
+  if(nb_cell < max_bnc)
+    full_bufflen = nb_cell*kBufferSize*(D+1);
+  else
+    full_bufflen = max_bnc*kBufferSize*(D+1);
+  buffer_char = new char[full_bufflen];
+  pos = 0;
+
+  log.step("[write_ply]convert_double");
+  int acc = 0;
+
+  if(params.dump_mode == "TRIANGLE_SOUP"){
     for(auto cit = traits.cells_begin(tri); cit != traits.cells_end(tri); ++cit)
       {
 	if(!filter.do_keep(tri,cit,traits))
@@ -298,196 +426,6 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
   delete [] buffer_char;      
   return ofile;
 }
-
-
-
-
-
-
-
-
-
-
-
-// The same, exept that the cgal structure is raw (without any information inside)
-template <typename TTr>
-std::ostream & cgal2ply_raw(std::ostream & ofile,DT_raw & tri, ddt::Bbox<Traits::D> & tri_bbox,algo_params & params,Id tid,ddt::logging_stream & log ) 
-{
-
-  TTr traits;
-  typedef typename TTr::Vertex_handle_raw                            Vertex_handle_raw;
-  typedef typename TTr::Cell_handle_raw                            Cell_handle_raw;
-  log.step("[write_ply]init");
-
-  int D = 3;
-  uint num_v = traits.number_of_vertices(tri);
-  uint num_c = traits.number_of_cells(tri);
-
-
-  char buffer[kBufferSize];
-  double_conversion::StringBuilder builder(buffer, kBufferSize);
-  double_conversion::DoubleToStringConverter dc(flags_deser, "Infinity", "NaN", 'e', 0, 0, 0, 0);
-
-
-  
-  int full_bufflen; 
-  char * buffer_char;
-  int nbb;
-  int pos = 0;
-  char cc;
-  bool do_simplex = true;
-
-  int NB_DIGIT_OUT_PLY  = 3;
-      
-  // ======= Serializing  Vertex ==============
-  std::unordered_map<Vertex_handle_raw, uint> vertex_map;
-  std::vector<Vertex_handle_raw> vertex_v;
-
-
-  int nb_vert = 0;
-  int nb_cell = 0;
-  int nb_ply = 0;
-  int max_bnc = 1000000;
-
-  
-  log.step("[write_ply]select_cell");
-  if(do_simplex){
-    for(auto cit = traits.cells_begin(tri); cit != traits.cells_end(tri); ++cit)
-      {
-	if(!traits.is_inside(tri,tri_bbox,cit))
-	  continue;
-	nb_cell++;
-	for(int d = 0; d < D+1; d++)
-	  {
-	    if(vertex_map.find(cit->vertex(d)) == vertex_map.end()){
-	      vertex_map[cit->vertex(d)]  = nb_vert++;
-	      vertex_v.emplace_back(cit->vertex(d));
-	    }
-	  }
-      }
-  }
-  // ============= With facets  ================
-  else{
-    for(auto fit = traits.facets_begin(tri); fit != traits.facets_end(tri); ++fit)
-      {
-	int ii = fit->index_of_covertex();
-	auto cit1 = traits.full_cell(tri,fit);
-	auto cit2 = traits.neighbor(tri,cit1,ii);
-	if(! traits.is_inside(tri,tri_bbox,cit1) && ! traits.is_inside(tri,tri_bbox,cit2) )
-	  continue;
-	nb_cell++;
-	for(int d = 0; d < D+1; d++)
-	  {
-	    if( d != ii){
-	      if(vertex_map.find(cit1->vertex(d)) == vertex_map.end()){
-		vertex_map[cit1->vertex(d)]  = nb_vert++;
-		vertex_v.emplace_back(cit1->vertex(d));
-	      }
-	    }
-	  }
-      }
-  }
-  
-  std::string buffer_header("ply;");
-  buffer_header.append("format ascii 1.0;");
-  buffer_header.append("comment tid_" + std::to_string(tid) + ";");
-  buffer_header.append("element vertex " + std::to_string(nb_vert) + ";");
-  buffer_header.append("property double x;");
-  buffer_header.append("property double y;");
-  buffer_header.append("property double z;");
-  buffer_header.append("element face " + std::to_string(nb_cell) + ";");
-  buffer_header.append("property list uchar int vertex_index ;");
-  buffer_header.append("end_header;");
-  ofile << buffer_header ;
-  
-
-  std::stringstream sstr_d;
-  
-
-  full_bufflen = kBufferSize*num_v*D;
-  buffer_char  = new char[full_bufflen];
-
-  pos = 0;
-  //  //log.step("[serialize]loop_vertex");
-  //  for(auto vit = tri.all_vertices_begin(); vit != tri.all_vertices_end(); ++vit)
-  log.step("[write_ply]convert_pts");
-  for(auto vit : vertex_v)    
-    {
-
-      for(int d = 0; d < D; d++)
-	{
-	  double dd = vit->point()[d];
-	  builder.Reset();
-	  dc.ToFixed(dd,NB_DIGIT_OUT_PLY,&builder);
-	  int pp = builder.position();
-	  memcpy( buffer_char + pos, buffer, pp );
-	  buffer_char[pos+pp] = ' ';
-	  pos += (pp+1);
-	}
-    }
-  log.step("[write_ply]write_pts");
-  ofile.write(buffer_char,pos);
-  ofile << " ";
-  delete[] buffer_char;
-
-
-  
-  full_bufflen = nb_cell*kBufferSize*(D+1);
-  buffer_char = new char[full_bufflen];
-  pos = 0;
-
-  log.step("[write_ply]convert_double");
-  if(do_simplex){
-    for(auto cit = traits.cells_begin(tri); cit != traits.cells_end(tri); ++cit)
-      {
-	if(!traits.is_inside(tri,tri_bbox,cit))
-	  continue;
-	buffer_char[pos++] = '4';
-	buffer_char[pos++] = ' ';
-	for(int d = 0; d < D+1; d++)
-	  {
-	    Id vid = vertex_map[cit->vertex(d)] ;
-	    pos += u32toa_countlut(vid,buffer_char + pos);
-	  }
-      }
-  }else{
-    for(auto fit = traits.facets_begin(tri); fit != traits.facets_end(tri); ++fit)
-      {
-	int ii = fit->index_of_covertex();
-	auto cit1 = fit->full_cell();;
-	auto cit2 = cit1->neighbor(ii);
-	if(!traits.is_inside(tri,tri_bbox,cit1) && !traits.is_inside(tri,tri_bbox,cit2) )
-	  continue;
-
-
-	buffer_char[pos++] = '3';
-	buffer_char[pos++] = ' ';
-	for(int d = 0; d < D+1; d++)
-	  {
-	    if(d != ii){
-	      Id vid = vertex_map[cit1->vertex(d)] ;
-	      pos += u32toa_countlut(vid,buffer_char + pos);
-	    }
-	  }
-      }
-  }
-
-  int acc = 0;
-  int buff_size = 65536;
-  // while(acc + buff_size < pos){
-  //   ofile.write(buffer_char+acc,buff_size);
-  //   acc+=buff_size;
-  // }
-  log.step("[write_ply]write_double");
-  ofile.write(buffer_char+acc,pos-acc);
-  ofile << " ";
-  log.step("[write_ply]finalize");
-  delete [] buffer_char;      
-  return ofile;
-}
-
-
-
 
 
 
@@ -714,7 +652,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
         }
       else
         {
-	  if(params.dump_mode == 0)
+	  if(params.dump_mode == "NONE")
             {
 	      for(int d = 0; d < D+1; d++)
                 {
@@ -736,7 +674,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   // ==== Stat dumping section ======
   std::cout.clear();
 
-  if(params.dump_mode == 0)
+  if(params.dump_mode == "NONE")
     {
       std::vector<Point_id_id> vvp_finalized;
       for(auto vv : vh_finalized)
@@ -780,17 +718,12 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 
   // if dump_mode > 0 we dump ply
   // The if it's note the case, we'll extract a soup of simplex
-  if(params.dump_mode   > 0 ){
+  if(params.dump_mode != "NONE" ){
     //      ddt::stream_data_header oph("p","s",tid);
     //      oph.write_header(std::cout);
     filter_cell filt(tri_bbox);
-    if(params.dump_mode >= 3 && false){
-      cgal2ply_split<Traits_raw>(std::cout,tri_raw,filt,nbc_finalized,params,tid,log);
-    } if(params.dump_mode == 1){
-      
-    }else{
-      cgal2ply_raw<Traits_raw>(std::cout,tri_raw,tri_bbox,params,tid,log);
-    }
+    cgal2ply_split<Traits_raw>(std::cout,tri_raw,filt,nbc_finalized,params,tid,log);
+
     std::cout << std::endl;
     //    cgal2plysplit(std::cout,tri_raw,tri_bbox,params,log);
     //oph.finalize();
@@ -941,7 +874,7 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
 
     }
 
-  init_global_id(tri,w_datas_tri,tile_ids,tid);
+  init_local_id(tri);
 
   std::cout.clear();
   ddt::stream_data_header oth("t","s",tid);
@@ -1055,7 +988,7 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
 
   // Mode > 0 && triangulation finalized : Dumping simplex soup
   log.step("[write]Start");
-  if(params.finalize_tri && params.dump_mode > 0)
+  if(params.finalize_tri && params.dump_mode != "NONE")
     {
       // if(params.dump_mode == 3 )
       //   {
@@ -1080,8 +1013,8 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
 	    nb_keep++;
 	}
 
-      if(D == 3)
-	cgal2ply_split<Traits>(std::cout,tci->triangulation(), filt, nb_keep,params,tid,log);
+
+      cgal2ply_split<Traits>(std::cout,tci->triangulation(), filt, nb_keep,params,tid,log);
 
       std::cout << std::endl;
       //}
@@ -1675,7 +1608,7 @@ template <typename FTC>
 int extract_simplex_soup(DDT & tri,D_MAP & w_datas_tri,FTC &filter,std::ostream & ofile, int main_tile_id, int area_processed)
 {
   // ======================================
-  init_local_id(tri,w_datas_tri);
+  init_local_id(tri);
 
   // ======================================
 
@@ -1742,8 +1675,7 @@ int extract_simplex_soup(DDT & tri,D_MAP & w_datas_tri,FTC &filter,std::ostream 
 	  for(int j = 0 ; j < dim;j++)
 	    cent[j] += cit->vertex(i)->point()[j];
  
-      
-	ofile << "s " <<   gid  << " ";
+      	ofile << "s " <<   gid  << " ";
 	// for(int i = 0 ; i < dim;i++)
 	// 	ofile << cent[i]/(dim+1) << " ";
 	std::cerr << "get_circumcenter" << std::endl;

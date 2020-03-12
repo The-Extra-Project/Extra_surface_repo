@@ -880,11 +880,13 @@ public :
   template<typename DT>
   int extract_full_input(std::vector<std::string> & name,std::vector<DT> & formated_data, bool do_clean = true){
     dmap[name].extract_full_input(formated_data,do_clean);
+    return 0;
   }
 
   template<typename DT>
   int fill_full_output(std::vector<std::string> & name,std::vector<DT> & formated_data, bool do_clean = true){
     dmap[name].fill_full_output(formated_data,do_clean);
+    return 0;
   }
 
   int nb_simplex_input(){

@@ -31,6 +31,17 @@ function run_algo_docker
 
 
 ### Distributed delaunay triangulation on random datasets
+function run_all_tests
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/ddt/workflow/workflow_ddt.scala"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/random/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/unitest_metadata.xml"
+    run_algo_docker
+}
+
+
+### Distributed delaunay triangulation on random datasets
 function run_2d_ddt_random
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/ddt/workflow/workflow_ddt.scala"
@@ -66,7 +77,8 @@ function run_2d_img_ddt
 
 
 # ========== Random ddt workflow =============
-run_2d_ddt_random
+run_all_tests
+#run_2d_ddt_random
 #run_3d_ddt_random
 
 # ==== 2D surface reconstruction workflow ====
