@@ -604,7 +604,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
         {
 	  ddt_data<Traits> w_datas;
 	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
-	  for(int i = 0; i < w_datas.nb_pts_input() ; i++)
+	  for(int i = 0; i < w_datas.nb_pts_shpt_vect() ; i++)
             {
 	      vp.emplace_back(w_datas.get_pts(i));
             }
@@ -769,7 +769,7 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
 	  std::cerr << " " << std::endl;
 	  std::cerr << "=== Parse tri ===" << std::endl;
 	  ddt_data<Traits> w_datas;
-	  w_datas.dmap[w_datas.xyz_name].extract_full_input(vp,false);
+	  w_datas.dmap[w_datas.xyz_name].extract_full_shpt_vect(vp,false);
 
         }
 
@@ -797,7 +797,7 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
 	    else if(ext == "ply" || hpi.is_stream())
 	      {
 		w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
-		for(int i = 0; i < w_datas.nb_pts_input() ; i++)
+		for(int i = 0; i < w_datas.nb_pts_shpt_vect() ; i++)
 		  {
 		    vp.emplace_back(std::make_pair(w_datas.get_pts(i),tid));
 		  }
@@ -1259,7 +1259,7 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
 	    }
 	}
 	w_datas.dmap[w_datas.xyz_name] = ddt_data<Traits>::Data_ply(w_datas.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-	w_datas.dmap[w_datas.xyz_name].fill_full_output(vp);
+	w_datas.dmap[w_datas.xyz_name].fill_full_uint8_vect(vp);
       }
     std::cerr << "ser1" << std::endl;
     hpi.finalize();
@@ -1846,7 +1846,7 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
 	    }
 	}
 	w_datas_tri[hid].dmap[w_datas_tri[hid].xyz_name] = ddt_data<Traits>::Data_ply(w_datas_tri[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-	w_datas_tri[hid].dmap[w_datas_tri[hid].xyz_name].fill_full_output(vp);
+	w_datas_tri[hid].dmap[w_datas_tri[hid].xyz_name].fill_full_uint8_vect(vp);
       }
     hpi.finalize();
 
@@ -1970,7 +1970,7 @@ int generate_points_normal(Id tid,algo_params & params,ddt::logging_stream & log
   
   // ddt_data<Traits> datas_out;  
   // datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",dim,dim,DATA_FLOAT_TYPE);
-  // datas_out.dmap[datas_out.xyz_name].fill_full_output(vp);
+  // datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(vp);
   // log.step("write");
 
   // ddt::stream_data_header oqh("g","s",tid);
@@ -2039,7 +2039,7 @@ int generate_points_uniform(Id tid,algo_params & params,ddt::logging_stream & lo
 
   ddt_data<Traits> datas_out;
   datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-  datas_out.dmap[datas_out.xyz_name].fill_full_output(vp);
+  datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(vp);
 
   log.step("write");
   std::cout.clear();
@@ -2094,12 +2094,12 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
       if(hpi.get_lab() == "p")
 	{
 	  w_datas.read_ply_stream(hpi.get_input_stream());
-	  count = w_datas.nb_pts_input();
+	  count = w_datas.nb_pts_shpt_vect();
 	}
       if(hpi.get_lab() == "g")
 	{
 	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
-	  count = w_datas.nb_pts_input();
+	  count = w_datas.nb_pts_shpt_vect();
 	}
       if(hpi.get_lab() == "z" )
 	{
@@ -2186,7 +2186,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
     for ( const auto &myPair : tile_map )
       {
 	Id id = myPair.first;
-	int nb_out = tile_map[id].nb_pts_output();
+	int nb_out = tile_map[id].nb_pts_uint8_vect();
 	if(nb_out < params.min_ppt)
 	  {
 	    continue;
@@ -2240,7 +2240,7 @@ int dump_ply_binary(Id tid,algo_params & params, int nb_dat,ddt::logging_stream 
 	      }
 	      std::cerr << "read ser done" << std::endl;
 	      w_datas_in.dmap[w_datas_in.xyz_name] = ddt_data<Traits>::Data_ply(w_datas_in.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-	      w_datas_in.dmap[w_datas_in.xyz_name].fill_full_output(vp);
+	      w_datas_in.dmap[w_datas_in.xyz_name].fill_full_uint8_vect(vp);
 	    }else{
 	    w_datas_in.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
 	  }

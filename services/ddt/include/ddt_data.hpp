@@ -46,35 +46,35 @@ public :
 
 
     bool is_init() const {
-      return(output_vect.size() > 0);
+      return(uint8_vect.size() > 0);
     }
 
     
-    int get_nbe_output(){
-      return output_vect.size()/((tinyply::PropertyTable[type].stride)*vsize);
+    int get_nbe_uint8_vect(){
+      return uint8_vect.size()/((tinyply::PropertyTable[type].stride)*vsize);
     }
 
     
-    int get_nbe_input(){
-      if(input_vect != nullptr)
-	return get_nbe_input_shp();
+    int get_nbe_shpt_vect(){
+      if(shpt_vect != nullptr)
+	return get_nbe_shpt_vect_shp();
       return 0;
     }
 
 
     int get_nbe(){
-      if(input_vect != nullptr)
-	return get_nbe_input();
-      if(output_vect.size() != 0)
-	return get_nbe_output();
+      if(shpt_vect != nullptr)
+	return get_nbe_shpt_vect();
+      if(uint8_vect.size() != 0)
+	return get_nbe_uint8_vect();
       return 0;
     }
     
-    int get_nbe_input_shp() const {
-      if(input_vect == nullptr)
+    int get_nbe_shpt_vect_shp() const {
+      if(shpt_vect == nullptr)
 	return 0;
       else
-	return input_vect->buffer.size_bytes()/((tinyply::PropertyTable[type].stride)*vsize);
+	return shpt_vect->buffer.size_bytes()/((tinyply::PropertyTable[type].stride)*vsize);
     }
 
 
@@ -94,8 +94,8 @@ public :
 	std::cout << ee << "\t";
       }
       std::cout << std::endl;
-      for(int i = 0; i < output_vect.size(); i++){
-	std::cout << output_vect[i] << "\t";
+      for(int i = 0; i < uint8_vect.size(); i++){
+	std::cout << uint8_vect[i] << "\t";
 	if(i % vsize == vsize-1)
 	  std::cout << std::endl;
       }
@@ -109,84 +109,84 @@ public :
     }
 
     int size_bytes(){
-      if(input_vect != nullptr)
-	return input_vect->buffer.size_bytes();
+      if(shpt_vect != nullptr)
+	return shpt_vect->buffer.size_bytes();
       else
-	return output_vect.size();
+	return uint8_vect.size();
     }
 
-    void input2output(bool do_clean = true){
-      output_vect.resize(size_bytes());
-      std::memcpy(output_vect.data(), input_vect->buffer.get(),size_bytes());
+    void shpt_vect2uint8_vect(bool do_clean = true){
+      uint8_vect.resize(size_bytes());
+      std::memcpy(uint8_vect.data(), shpt_vect->buffer.get(),size_bytes());
       if(do_clean)
-	input_vect.reset();
+	shpt_vect.reset();
     }
 
     Point extract_pts(int id){
-      return traits.make_point( reinterpret_cast< double * >(input_vect->buffer.get())+id*D);
+      return traits.make_point( reinterpret_cast< double * >(shpt_vect->buffer.get())+id*D);
     }
 
     template<typename DT>
     Point extract_vect(std::vector<DT> & formated_data,int id){
       int vnbb =  get_vnbb();
       formated_data.resize(vsize);
-      std::memcpy(formated_data.data(), (input_vect->buffer.get())+id*D ,vnbb);
+      std::memcpy(formated_data.data(), (shpt_vect->buffer.get())+id*D ,vnbb);
     }
 
     template<typename DT>
     void  extract_value( int id, DT & vv, int i=0) const {
       int vnbb =  get_vnbb();
-      int szd = get_nbe_input_shp()*vsize;
+      int szd = get_nbe_shpt_vect_shp()*vsize;
       if(szd > 0){
-	vv =  reinterpret_cast<DT &>(input_vect->buffer.get()[id*vnbb+i*tinyply::PropertyTable[type].stride]);
+	vv =  reinterpret_cast<DT &>(shpt_vect->buffer.get()[id*vnbb+i*tinyply::PropertyTable[type].stride]);
       }else{
-	std::memcpy(&vv,&output_vect[id*vnbb+i],tinyply::PropertyTable[type].stride);
+	std::memcpy(&vv,&uint8_vect[id*vnbb+i],tinyply::PropertyTable[type].stride);
       }
     }
 
     
     template<typename DT>
-    void extract_full_input(std::vector<DT> & formated_data, bool do_clean = true){
-      int szd = get_nbe_input_shp()*vsize;
-      std::cerr << "nbe_i" << szd << std::endl;
+    void extract_full_shpt_vect(std::vector<DT> & formated_data, bool do_clean = true){
+      int szd = get_nbe_shpt_vect_shp()*vsize;
+      //std::cerr << "nbe_i" << szd << std::endl;
       if(szd > 0){
 	formated_data.resize(szd);
-	std::memcpy(formated_data.data(), input_vect->buffer.get(),size_bytes());
+	std::memcpy(formated_data.data(), shpt_vect->buffer.get(),size_bytes());
 	if(do_clean)
-	  input_vect.reset();
+	  shpt_vect.reset();
 	return;
       }
-      szd = get_nbe_output()*vsize;
-      std::cerr << "==> " << szd << std::endl;
+      szd = get_nbe_uint8_vect()*vsize;
+      //std::cerr << "==> " << szd << std::endl;
       if(szd > 0){
 	formated_data.resize(szd);
-	std::cerr << "==> -- " << szd << std::endl;
-	std::memcpy(formated_data.data(), &output_vect[0],size_bytes());
-	std::cerr << "memcpy ok" << std::endl;
+	//std::cerr << "==> -- " << szd << std::endl;
+	std::memcpy(formated_data.data(), &uint8_vect[0],size_bytes());
+	//std::cerr << "memcpy ok" << std::endl;
 	if(do_clean)
-	  output_vect.clear();
+	  uint8_vect.clear();
       }
       return;
     }
 
 
     template<typename DT>
-    void fill_full_output(std::vector<DT> & formated_data, bool do_clean = true){
+    void fill_full_uint8_vect(std::vector<DT> & formated_data, bool do_clean = true){
       int szb = sizeof(DT)*formated_data.size();
-      output_vect.resize(szb);
-      std::memcpy(output_vect.data(), formated_data.data(),szb);
+      uint8_vect.resize(szb);
+      std::memcpy(uint8_vect.data(), formated_data.data(),szb);
       if(do_clean)
 	formated_data.clear();
       do_exist = true;
     }
 
 
-    void clean_input(){
-      input_vect.reset();
+    void clean_shpt_vect(){
+      shpt_vect.reset();
     }
 
-    void clean_output(){
-      output_vect.clear();
+    void clean_uint8_vect(){
+      uint8_vect.clear();
     }
 
     void set_exist(bool bb){
@@ -200,8 +200,8 @@ public :
     bool do_exist;
     std::string part;
     std::vector<std::string>  vname;
-    std::shared_ptr<tinyply::PlyData> input_vect;
-    std::vector<uint8_t> output_vect;
+    std::shared_ptr<tinyply::PlyData> shpt_vect;
+    std::vector<uint8_t> uint8_vect;
     tinyply::Type type;
   protected :
     int D,vsize;
@@ -257,7 +257,7 @@ public :
 
   void clear ()  {
     for ( const auto &ee : dmap ) {
-      std::vector<uint8_t>().swap(dmap[ee.first].output_vect);
+      std::vector<uint8_t>().swap(dmap[ee.first].uint8_vect);
     }
   }
 
@@ -278,7 +278,7 @@ public :
   
   void write_geojson_tri(std::ostream & ofs_pts,std::ostream & ofs_spx, bool is_full = true){
     //    ofs_spx << std::fixed << std::setprecision(12);
-    std::cerr << "vcyz ==>" << std::endl;
+    //std::cerr << "vcyz ==>" << std::endl;
     int D = Traits::D;
     std::vector<std::string> lab_color = {"\"red\"","\"green\"","\"blue\""};
     bool is_first = is_full;
@@ -288,17 +288,17 @@ public :
       write_geojson_header(ofs_spx);
     }
 
-    std::cerr << "vcyz <<<" << std::endl;
+    //std::cerr << "vcyz <<<" << std::endl;
     std::vector<double> v_xyz;
     std::vector<int> v_simplex;
-    dmap[xyz_name].extract_full_input(v_xyz,false);
-    dmap[simplex_name].extract_full_input(v_simplex,false);
-    std::cerr << "vcyz :::" << std::endl;
-    std::cerr << v_xyz.size() << std::endl;
+    dmap[xyz_name].extract_full_shpt_vect(v_xyz,false);
+    dmap[simplex_name].extract_full_shpt_vect(v_simplex,false);
+    //std::cerr << "vcyz :::" << std::endl;
+    //std::cerr << v_xyz.size() << std::endl;
     int nb_pts = v_xyz.size()/D;
-    std::cerr << "nbpts:" << nb_pts << std::endl;
+    //std::cerr << "nbpts:" << nb_pts << std::endl;
     for(int id = 0; id < nb_pts; id++){
-      std::cerr << "id:" << id << std::endl;
+      //std::cerr << "id:" << id << std::endl;
       int id_pts = id*D;
       if(!is_first)
 	ofs_pts << "," << std::endl;
@@ -439,16 +439,10 @@ public :
     
     for ( const auto &ee : dmap ) {
       if(ee.second.do_exist){
-	std::cerr << "do_exist" << std::endl;
-	// if(dmap[ee.first].get_nbe_output() == 0 &&
-	//    dmap[ee.first].get_nbe_input() != 0){
-	//   std::cerr << "i2o" << std::endl;
-	//   dmap[ee.first].input2output();
-	// }
-
+	//std::cerr << "do_exist" << std::endl;
 	
-	int nbe = dmap[ee.first].get_nbe_output();
-	auto vv = dmap[ee.first].output_vect;
+	int nbe = dmap[ee.first].get_nbe_uint8_vect();
+	auto vv = dmap[ee.first].uint8_vect;
 	ss << dmap[ee.first].vname.size() << " ";
 	for(auto nn : dmap[ee.first].vname){
 	  ss << nn << " ";
@@ -458,7 +452,7 @@ public :
 	ss << ((int) ee.second.type) << " ";
 	serialize_b64_vect(vv,ss);
 	ss << " ";
-	std::cerr << "done" << std::endl;
+	//std::cerr << "done" << std::endl;
       }
     }
   }
@@ -466,7 +460,7 @@ public :
   void read_serialized_stream(std::istream & ss){
     int nbe;
     ss >> nbe;
-    std::cerr << "nbe:" << nbe << std::endl;
+    //std::cerr << "nbe:" << nbe << std::endl;
     for(int i = 0 ; i < nbe;i++){
       std::vector<std::string> data_name;
       std::string tt_name("vertex");
@@ -474,21 +468,21 @@ public :
       tinyply::Type tt;
 
       ss >> dn_size;
-      std::cerr << "dn_size:" << dn_size << std::endl;
-      std::cerr << ":";
+      //std::cerr << "dn_size:" << dn_size << std::endl;
+      //std::cerr << ":";
       for(int i = 0; i < dn_size; i++){
 	std::string nnn;
 	ss >> nnn;
-	std::cerr << nnn << " ";
+	//std::cerr << nnn << " ";
 	data_name.push_back(nnn);
       }
-      std::cerr << std::endl;
+      //std::cerr << std::endl;
       ss >> tt_name;
       ss >> vs;
       int ttti;
       ss >> ttti;
       dmap[xyz_name] = Data_ply(xyz_name,tt_name,dim,vs,static_cast<tinyply::Type>(ttti));
-      deserialize_b64_vect(dmap[xyz_name].output_vect,ss);
+      deserialize_b64_vect(dmap[xyz_name].uint8_vect,ss);
     }
   }
   
@@ -500,12 +494,12 @@ public :
 	for ( const auto &ee : dmap ) {
 	  if(dmap[ee.first].part == "vertex"){
 	    if(ee.second.do_exist){
-	      if(dmap[ee.first].get_nbe_output() == 0 &&
-		 dmap[ee.first].get_nbe_input() != 0){
-		dmap[ee.first].input2output();
+	      if(dmap[ee.first].get_nbe_uint8_vect() == 0 &&
+		 dmap[ee.first].get_nbe_shpt_vect() != 0){
+		dmap[ee.first].shpt_vect2uint8_vect();
 	      }
-	      int nbe = dmap[ee.first].get_nbe_output();
-	      uint8_t * vv = dmap[ee.first].output_vect.data();
+	      int nbe = dmap[ee.first].get_nbe_uint8_vect();
+	      uint8_t * vv = dmap[ee.first].uint8_vect.data();
 	      if(nbe > 0){
 		file_out.add_properties_to_element(dmap[ee.first].part, dmap[ee.first].get_name() , 
 						   dmap[ee.first].type, nbe, reinterpret_cast<uint8_t*>(vv), tinyply::Type::INVALID, 0);
@@ -517,12 +511,12 @@ public :
 	for ( const auto &ee : dmap ) {
 	  if(dmap[ee.first].part != "vertex"){
 	    if(ee.second.do_exist){
-	      if(dmap[ee.first].get_nbe_output() == 0 &&
-		 dmap[ee.first].get_nbe_input() != 0){
-		dmap[ee.first].input2output();
+	      if(dmap[ee.first].get_nbe_uint8_vect() == 0 &&
+		 dmap[ee.first].get_nbe_shpt_vect() != 0){
+		dmap[ee.first].shpt_vect2uint8_vect();
 	      }
-	      int nbe = dmap[ee.first].get_nbe_output();
-	      uint8_t * vv = dmap[ee.first].output_vect.data();
+	      int nbe = dmap[ee.first].get_nbe_uint8_vect();
+	      uint8_t * vv = dmap[ee.first].uint8_vect.data();
 	      if(nbe > 0){
 		if(dmap[ee.first].part == "face"){
 		  if(ee.first[0] == simplex_name[0] || ee.first[0] == nb_name[0])
@@ -549,18 +543,14 @@ public :
 
   void write_dataset_stream( std::ostream & ss,char nl_char,int tid)
   {
-
-
     
-    std::vector<int> raw_ids_vertex(std::max(nb_pts_output(),nb_pts_input()),tid);
-    std::vector<int> raw_ids_simplex(std::max(nb_simplex_output(),nb_simplex_input()),tid);
-
-
+    std::vector<int> raw_ids_vertex(std::max(nb_pts_uint8_vect(),nb_pts_shpt_vect()),tid);
+    std::vector<int> raw_ids_simplex(std::max(nb_simplex_uint8_vect(),nb_simplex_shpt_vect()),tid);
     
     dmap[vtileid_name] = Data_ply(vtileid_name,"vertex",1,1,tinyply::Type::INT32);
     dmap[ctileid_name] = Data_ply(ctileid_name,"face",1,1,tinyply::Type::INT32);
-    dmap[vtileid_name].fill_full_output(raw_ids_vertex);
-    dmap[ctileid_name].fill_full_output(raw_ids_simplex);
+    dmap[vtileid_name].fill_full_uint8_vect(raw_ids_vertex);
+    dmap[ctileid_name].fill_full_uint8_vect(raw_ids_simplex);
     dmap[vtileid_name].do_exist = true;
     dmap[ctileid_name].do_exist = true;
 
@@ -574,12 +564,12 @@ public :
 	  //std::cerr << "db 2 : "  << std::endl;
 	  if(dmap[ee.first].part == "vertex"){
 	    if(ee.second.do_exist){
-	      if(dmap[ee.first].get_nbe_output() == 0 &&
-		 dmap[ee.first].get_nbe_input() != 0){
-		dmap[ee.first].input2output();
+	      if(dmap[ee.first].get_nbe_uint8_vect() == 0 &&
+		 dmap[ee.first].get_nbe_shpt_vect() != 0){
+		dmap[ee.first].shpt_vect2uint8_vect();
 	      }
-	      int nbe = dmap[ee.first].get_nbe_output();
-	      uint8_t * vv = dmap[ee.first].output_vect.data();
+	      int nbe = dmap[ee.first].get_nbe_uint8_vect();
+	      uint8_t * vv = dmap[ee.first].uint8_vect.data();
 	      if(nbe > 0){
 		file_out.add_properties_to_element(dmap[ee.first].part, dmap[ee.first].get_name() , 
 						   dmap[ee.first].type, nbe, reinterpret_cast<uint8_t*>(vv), tinyply::Type::INVALID, 0);
@@ -592,12 +582,12 @@ public :
 	  if(dmap[ee.first].part != "vertex"){
 	    //std::cerr << "db 3 : " << std::endl;
 	    if(ee.second.do_exist){
-	      if(dmap[ee.first].get_nbe_output() == 0 &&
-		 dmap[ee.first].get_nbe_input() != 0){
-		dmap[ee.first].input2output();
+	      if(dmap[ee.first].get_nbe_uint8_vect() == 0 &&
+		 dmap[ee.first].get_nbe_shpt_vect() != 0){
+		dmap[ee.first].shpt_vect2uint8_vect();
 	      }
-	      int nbe = dmap[ee.first].get_nbe_output();
-	      uint8_t * vv = dmap[ee.first].output_vect.data();
+	      int nbe = dmap[ee.first].get_nbe_uint8_vect();
+	      uint8_t * vv = dmap[ee.first].uint8_vect.data();
 	      if(nbe > 0){
 		if(dmap[ee.first].part == "face"){
 		  if(ee.first[0] == simplex_name[0] || ee.first[0] == nb_name[0])
@@ -629,9 +619,7 @@ public :
       {
 	tinyply::PlyFile file;
 	file.parse_header(ss,nl_char);
-  
 	int vsize = 0;
-	//for (auto c : file.get_comments()) std::cerr << "Comment: " << c << std::endl;
 	for (auto e : file.get_elements())
 	  {
 	    if(true){
@@ -641,10 +629,6 @@ public :
 	      for (auto p : e.properties){
 		std::vector<std::string> pname({p.name});
 		bool do_exist = false;
-
-		// if(tinyply::PropertyTable[p.propertyType].str != "double")
-		//   continue;
-		
 		for(auto vp : pname)
 		   std::cerr << "\tproperty - " << vp << " (" << tinyply::PropertyTable[p.propertyType].str << ")" << std::endl;
 
@@ -658,8 +642,6 @@ public :
 		    do_exist = true;
 		    dmap[ee.first].do_exist = true;
 		    dmap[ee.first].type = p.propertyType;
-		    // if(!dmap[ee.first].do_exist)
-		    //   dmap[ee.first].init(vsize);
 		    break;
 		  }
 		}
@@ -667,8 +649,6 @@ public :
 		  std::cerr << p.name << " create!" << std::endl;
 		  dmap[pname] = Data_ply(pname,e.name,D,1,p.propertyType);
 		  dmap[pname].do_exist = true;
-		  // if(!dmap[pname].do_exist)
-		  //   dmap[pname].init(vsize);
 		}
 
 	      }
@@ -678,35 +658,16 @@ public :
 	// std::cerr << "........................................................................\n";
 
 
-	//std::cerr << "file read" << std::endl;
+
 	for ( const auto &ee : dmap ) {
 	  if(ee.second.do_exist){
-	    //std::cerr << "[" << ee.first.size() << "] => ";
-	    // for(auto ie : ee.first)
-	    //   std::cerr << ie << " - ";  
-	    // std::cerr << std::endl;
 	    std::cerr << "ok parse" <<  ee.first[0] << std::endl;
-	    try { dmap[ee.first].input_vect = file.request_properties_from_element(ee.second.part, dmap[ee.first].get_name() ); }
+	    try { dmap[ee.first].shpt_vect = file.request_properties_from_element(ee.second.part, dmap[ee.first].get_name() ); }
 	    catch (const std::exception & e) { std::cerr << "tinyply exception: " << e.what() << std::endl; }
 	  }
 	}
-	//std::cerr << "reading done" << std::endl;
-
-
-	// std::string input_buff;
-	// std::getline(ss, input_buff);
-	// std::stringstream iss(input_buff);
-
-	
 	file.read(ss);
 
-	// std::cerr << "file convert" << std::endl;
-	// for ( const auto &ee : dmap ) {
-	//   if(ee.second.do_exist){
-	//     dmap[ee.first].format(vsize);
-	//   }
-	//   //dmap[ee.first].print_elems();
-	// }
 	std::cerr << "read tri done" << std::endl;
       }
 
@@ -787,7 +748,7 @@ public :
   
 
   std::shared_ptr<tinyply::PlyData> & get_raw_points_ref(){
-    return dmap[xyz_name].input_vect;
+    return dmap[xyz_name].shpt_vect;
   }
 
 
@@ -797,7 +758,7 @@ public :
 	if(ee.second.do_exist){
 	  int vnbb =  ee.second.get_vnbb();
 	  for(int i = 0 ; i < vnbb; i++){
-	    dmap[ee.first].output_vect.push_back(wd.dmap[ee.first].input_vect->buffer.get()[id*vnbb+i]);
+	    dmap[ee.first].uint8_vect.push_back(wd.dmap[ee.first].shpt_vect->buffer.get()[id*vnbb+i]);
 	  }
 	  dmap[ee.first].do_exist = true;
 	}
@@ -811,7 +772,7 @@ public :
       if(ee.second.do_exist){
 	int vnbb =  ee.second.get_vnbb();
 	for(int i = 0 ; i < vnbb; i++){
-	  dmap[ee.first].output_vect.push_back(wd.dmap[ee.first].input_vect->buffer.get()[id*vnbb+i]);
+	  dmap[ee.first].uint8_vect.push_back(wd.dmap[ee.first].shpt_vect->buffer.get()[id*vnbb+i]);
 	}
 	dmap[ee.first].do_exist = true;
       }
@@ -820,7 +781,7 @@ public :
 
 
   Point get_pts(int id,std::vector<std::string> & name){
-    std::shared_ptr<tinyply::PlyData> & rp = dmap[name].input_vect;
+    std::shared_ptr<tinyply::PlyData> & rp = dmap[name].shpt_vect;
     return traits.make_point( reinterpret_cast< double * >(rp->buffer.get())+id*D);
   }
 
@@ -830,99 +791,38 @@ public :
     return traits.make_point( reinterpret_cast< double * >(rp->buffer.get())+id*D);
   }
   
-  int nb_pts_input(){
-    return dmap[xyz_name].get_nbe_input();
+  int nb_pts_shpt_vect(){
+    return dmap[xyz_name].get_nbe_shpt_vect();
   }
 
-  int nb_pts_output(){
-    return dmap[xyz_name].get_nbe_output();
+  int nb_pts_uint8_vect(){
+    return dmap[xyz_name].get_nbe_uint8_vect();
   }
 
 
 
   template<typename DT>
-  int extract_full_input(std::vector<std::string> & name,std::vector<DT> & formated_data, bool do_clean = true){
-    dmap[name].extract_full_input(formated_data,do_clean);
+  int extract_full_shpt_vect(std::vector<std::string> & name,std::vector<DT> & formated_data, bool do_clean = true){
+    dmap[name].extract_full_shpt_vect(formated_data,do_clean);
   }
 
   template<typename DT>
-  int fill_full_output(std::vector<std::string> & name,std::vector<DT> & formated_data, bool do_clean = true){
-    dmap[name].fill_full_output(formated_data,do_clean);
+  int fill_full_uint8_vect(std::vector<std::string> & name,std::vector<DT> & formated_data, bool do_clean = true){
+    dmap[name].fill_full_uint8_vect(formated_data,do_clean);
   }
 
-  int nb_simplex_input(){
-    return dmap[simplex_name].get_nbe_input();
+  int nb_simplex_shpt_vect(){
+    return dmap[simplex_name].get_nbe_shpt_vect();
   }
 
-  int nb_simplex_output(){
-    return dmap[simplex_name].get_nbe_output();
-  }
-
-
-
-  void extract_ptsvect(std::vector<std::string> & name,std::vector<Point> & formated_data, bool do_clean = true){
-    std::cerr << "start extract ptsvect" << std::endl;
-    int nbv = dmap[name].get_nbe_input();
-
-    for(int nn = 0; nn < nbv ; nn++)
-      formated_data.push_back(get_pts(nn,name));
-    if(do_clean)
-      dmap[name].clean_input();
+  int nb_simplex_uint8_vect(){
+    return dmap[simplex_name].get_nbe_uint8_vect();
   }
 
 
-  void fill_ptsvect(std::vector<std::string> & name,std::vector<Point> & formated_data, bool do_clean = true){
-    dmap[name] = Data_ply(xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-    std::vector<double> raw_pts;
-    for(int n = 0; n < formated_data.size();n++){
-      for(int d = 0; d < D; d++){
-	raw_pts.push_back(formated_data[n][d]);
-      }
-    }
-
-    dmap[name].fill_full_output(raw_pts);
-    //    dmap[name].do_exist = true;
-  }
-
-    void fill_gids(std::vector<int> & format_gids,bool do_clear = true)
-    {
-        ddt_data<Traits>::dmap[gid_name] = typename ddt_data<Traits>::Data_ply(gid_name,"face",1,1,tinyply::Type::INT32);
-        std::vector<int> raw_gids;
-        for(int i = 0 ; i < format_gids.size(); i++)
-        {
-            raw_gids.push_back(format_gids[i]);
-        }
-
-        ddt_data<Traits>::dmap[gid_name].fill_full_output(raw_gids);
-        ddt_data<Traits>::dmap[gid_name].do_exist = true;
-
-        if(do_clear)
-        {
-            format_gids.clear();
-        }
-        raw_gids.clear();
-    }
-
-    void extract_gids(std::vector<int> & format_gids,bool do_clear = true)
-    {
-        int D = Traits::D;
-        std::vector<int> raw_gids;
-        ddt_data<Traits>::dmap[gid_name].extract_full_input(raw_gids,false);
-
-        uint num_s = ddt_data<Traits>::dmap[gid_name].get_nbe_input();
-        for(int i = 0 ; i < raw_gids.size(); i++)
-        {
-            format_gids.push_back(raw_gids[i]);
-        }
-        if(do_clear)
-            raw_gids.clear();
-    }  
   
   Traits traits;  
   int D = Traits::D;
-    std::vector<int> tile_ids;
-  std::vector<int>  format_gids ;
-  std::vector<int>  format_gidv ;
   std::map<std::vector<std::string>, Data_ply > dmap;
   std::vector<std::string> xyz_name,
     vtileid_name,

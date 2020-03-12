@@ -995,14 +995,14 @@ struct Cgal_traits_d
         }
 
 
-	  data.dmap[data.xyz_name].fill_full_output(v_xyz);
-	  data.dmap[data.simplex_name].fill_full_output(v_simplex);
-	  data.dmap[data.nb_name].fill_full_output(v_nb);
+	  data.dmap[data.xyz_name].fill_full_uint8_vect(v_xyz);
+	  data.dmap[data.simplex_name].fill_full_uint8_vect(v_simplex);
+	  data.dmap[data.nb_name].fill_full_uint8_vect(v_nb);
 
-	  data.dmap[data.vid_name].fill_full_output(v_vid);
-	  //      data.dmap[data.cid_name].fill_full_output(v_cid);
-	  data.dmap[data.flag_vertex_name].fill_full_output(v_flagv);
-	  data.dmap[data.flag_simplex_name].fill_full_output(v_flags);
+	  data.dmap[data.vid_name].fill_full_uint8_vect(v_vid);
+	  //      data.dmap[data.cid_name].fill_full_uint8_vect(v_cid);
+	  data.dmap[data.flag_vertex_name].fill_full_uint8_vect(v_flagv);
+	  data.dmap[data.flag_simplex_name].fill_full_uint8_vect(v_flags);
 
 
 
