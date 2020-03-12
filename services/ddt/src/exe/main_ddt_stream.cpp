@@ -758,10 +758,9 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
 	  //  log.step("[read]read_triangulation");
 	  std::cerr << " " << std::endl;
 	  std::cerr << "=== Parse tri ===" << std::endl;
-	  ddt_data<Traits> w_datas;
 	  bool do_clean_data = true;
 	  std::cerr << "parse stream tri" << std::endl;
-	  read_ddt_stream(tri1,w_datas, hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+	  read_ddt_stream(tri1, hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
 	  std::cerr << "tri finalized" << std::endl;
         }
       if(hpi.get_lab() == "d")
@@ -837,7 +836,7 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
   Scheduler sch(1);
 
   std::cerr << "seg_step1" << std::endl;
-  D_MAP w_datas_tri;
+  //  D_MAP w_datas_tri;
 
 
   log.step("read");
@@ -852,10 +851,9 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
       auto tile  = tri.get_tile(tid);
       if(hpi.get_lab() == "t")
         {
-	  w_datas_tri[hid] = ddt_data<Traits>();
 	  bool do_clean_data = true;
 	  bool do_serialize = false;
-	  read_ddt_stream(tri,w_datas_tri[hid],  hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+	  read_ddt_stream(tri, hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
 									      
         }
       if(hpi.get_lab() == "s")
@@ -1030,14 +1028,7 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
       oth.write_header(std::cout);
       log.step("[write]write_tri");
       Tile_iterator tci = tri1.get_tile(tid);
-
-      if(is_finalized){
-	D_MAP w_datas_tri;
-	w_datas_tri[tid] = ddt_data<Traits>();
-	ddt::write_ddt_stream(tri1,w_datas_tri[tid], oth.get_output_stream(),tid,oth.is_serialized(),log);
-      }else{
-        ddt::write_ddt_stream(tri1, oth.get_output_stream(),tid,oth.is_serialized(),log);
-      }
+      ddt::write_ddt_stream(tri1, oth.get_output_stream(),tid,oth.is_serialized(),log);
       oth.finalize();
       std::cout << std::endl;
     }
@@ -1121,13 +1112,12 @@ int get_bbox_points(Id tid,algo_params & params, int nb_dat,ddt::logging_stream 
 
       ddt::stream_data_header hpi;
       hpi.parse_header(std::cin);
-      ddt_data<Traits> w_datas;
       if(hpi.get_lab() == "t" || hpi.get_lab() == "u")
         {
 	  std::string filename = hpi.get_file_name();
 	  std::cerr << "read : " << filename << std::endl;
 	  bool do_clean_data = true;
-	  ddt::read_ddt_stream(tri,w_datas, hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+	  ddt::read_ddt_stream(tri, hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
 	  std::cerr << "read stream done" << std::endl;
         }
 
@@ -1249,7 +1239,7 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
       {
 	std::cerr << "READ:" << hpi.get_lab() << std::endl;
 	bool do_clean_data = true;
-	read_ddt_stream(tri1,w_datas, hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+	read_ddt_stream(tri1,hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
 	auto  tile  = tri1.get_tile(tid);
 	tile->update_local_flag();
 	typename DDT::Traits::Delaunay_triangulation & ttri = tile->tri();
@@ -1327,9 +1317,8 @@ int extract_struct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream &
       if(hpi.get_lab() == "t" || hpi.get_lab() == "v" )
         {
 	  log.step("[read]read_triangulation");
-	  ddt_data<Traits> w_datas;
 	  bool do_clean_data = true;
-	  read_ddt_stream(tri,w_datas, hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+	  read_ddt_stream(tri,hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
         }
       hpi.finalize();
     }
@@ -1366,7 +1355,7 @@ int extract_struct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream &
 // Extract t he voronoi of the delaunay triangulation
 // For each simplex, extract the centroi
 // After looping on the edges in order to extract the neighboorhood
-int extract_tri_voronoi(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int>> & tile_ids,std::ostream & ofile, int main_tile_id, int area_processed)
+int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std::ostream & ofile, int main_tile_id, int area_processed)
 {
   ofile << std::fixed << std::setprecision(15);
 
@@ -1429,7 +1418,7 @@ int extract_tri_voronoi(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int
 	int tid = cit->tile()->id();
 	int lid = cit->cell_data().id;
 	int gid = cit->gid();
-	int lcurr = 0; //data_map[fch->tile()->id()].format_labs[cccid];
+	int lcurr = 0;
 
 	std::vector<double> cent(dim,0);
 	for(int i = 0 ; i < dim+1;i++)
@@ -1530,8 +1519,6 @@ int extract_voronoi(Id tid,algo_params & params,int nb_dat,ddt::logging_stream &
   Scheduler sch(1);
 
   std::cerr << "seg_step1" << std::endl;
-  D_MAP w_datas_tri;
-
 
   log.step("read");
   int D = Traits::D;
@@ -1545,12 +1532,9 @@ int extract_voronoi(Id tid,algo_params & params,int nb_dat,ddt::logging_stream &
 
       if(hpi.get_lab() == "t")
         {
-	  w_datas_tri[hid] = ddt_data<Traits>();
 	  bool do_clean_data = true;
 	  bool do_serialize = false;
-	  read_ddt_stream(tri,w_datas_tri[hid],  hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
-	  //            w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
-	  //	    w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
+	  read_ddt_stream(tri,hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
 
 									      
         }
@@ -1568,7 +1552,7 @@ int extract_voronoi(Id tid,algo_params & params,int nb_dat,ddt::logging_stream &
 
     }
 
-  //    init_global_id(tri,w_datas_tri,tile_ids);
+
 
 
 
@@ -1584,8 +1568,7 @@ int extract_voronoi(Id tid,algo_params & params,int nb_dat,ddt::logging_stream &
   std::cerr << "seg_step6" << std::endl;
   int nbc = 0;
 
-  //    int extract_tri_full_graph(DDT & tri,D_MAP & data_map, std::map<int,std::vector<int>> & tile_ids,std::ostream & ofile, int main_tile_id, int area_processed)
-  nbc = extract_tri_voronoi(tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid,params.area_processed);
+  nbc = extract_tri_voronoi(tri,tile_ids,oth.get_output_stream(),tid,params.area_processed);
 
   std::cerr << "seg_step7" << std::endl;
 
@@ -1605,7 +1588,7 @@ int extract_voronoi(Id tid,algo_params & params,int nb_dat,ddt::logging_stream &
 
 
 template <typename FTC>
-int extract_simplex_soup(DDT & tri,D_MAP & w_datas_tri,FTC &filter,std::ostream & ofile, int main_tile_id, int area_processed)
+int extract_simplex_soup(DDT & tri,FTC &filter,std::ostream & ofile, int main_tile_id, int area_processed)
 {
   // ======================================
   init_local_id(tri);
@@ -1668,7 +1651,7 @@ int extract_simplex_soup(DDT & tri,D_MAP & w_datas_tri,FTC &filter,std::ostream 
 	int tid = cit->tile()->id();
 	int lid = cit->cell_data().id;
 	int gid = cit->cell_data().gid;
-	int lcurr = 0; //data_map[fch->tile()->id()].format_labs[cccid];
+	int lcurr = 0; 
 
 	std::vector<double> cent(dim,0);
 	for(int i = 0 ; i < dim+1;i++)
@@ -1774,7 +1757,7 @@ int extract_simplex_soup_main(Id tid,algo_params & params,int nb_dat,ddt::loggin
   Scheduler sch(1);
 
   std::cerr << "seg_step1" << std::endl;
-  D_MAP w_datas_tri;
+
 
 
   log.step("read");
@@ -1789,10 +1772,9 @@ int extract_simplex_soup_main(Id tid,algo_params & params,int nb_dat,ddt::loggin
 
       if(hpi.get_lab() == "t")
         {
-	  w_datas_tri[hid] = ddt_data<Traits>();
 	  bool do_clean_data = true;
 	  bool do_serialize = false;
-	  read_ddt_stream(tri,w_datas_tri[hid],  hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+	  read_ddt_stream(tri,hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
         }
       if(hpi.get_lab() == "s")
         {
@@ -1844,7 +1826,7 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
       {
 	std::cerr << "READ:" << hpi.get_lab() << std::endl;
 	bool do_clean_data = true;
-	read_ddt_stream(tri1,w_datas_tri[hid],hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+	read_ddt_stream(tri1,hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
 	auto  tile  = tri1.get_tile(tid);
 	tile->update_local_flag();
 	typename DDT::Traits::Delaunay_triangulation & ttri = tile->tri();
