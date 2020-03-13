@@ -103,6 +103,39 @@ bool is_inside_bbox(DTC & tri,CHR cit,  ddt::Bbox<TR::D> & tri_bbox, TR ttr)
 
 
 
+// filter the cell, if cells are inside or outside the bounding box.
+template <typename T> 
+struct filter_cell {
+  filter_cell(ddt::Bbox<T::D> bb) : tri_bbox(bb) {}
+  template <typename TTr,typename DTC,typename CHR>
+  bool do_keep(DTC & tri,CHR cit,TTr & traits){
+    return traits.is_inside(tri,tri_bbox,cit);
+  }
+  ddt::Bbox<T::D> tri_bbox;
+};
+
+// the same filter as above
+  template <typename T> 
+struct filter_cell_ddt {
+  filter_cell_ddt(ddt::Bbox<T::D> bb, int ii) : tri_bbox(bb),tid(ii) {}
+  template <typename TTr,typename DTC,typename CHR>
+  bool do_keep(DTC & tri,CHR cit,TTr & traits){
+    int local_score = 0;
+    bool is_main = true;
+    if(tri.is_infinite(cit))
+      return false;
+    for(int d = 0; d < (T::D) +1;d++){
+      int pid = traits.id(cit->vertex(d));
+      if(pid < tid)
+	is_main = false;
+      if(pid == tid)
+	local_score++;
+    }
+    return (!traits.is_inside(tri,tri_bbox,cit) && local_score != 0 && is_main);
+  }
+  ddt::Bbox<T::D> tri_bbox;
+  int tid;
+};
 
 
 

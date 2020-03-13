@@ -352,6 +352,11 @@ public:
         return s.all_of(tiles_begin(), tiles_end(), [&counts2](const Tile& t) { return t.sanity_check_recv(counts2.at(t.id())); });
     }
 
+
+
+
+
+  
 private:
 
     Tile_container tiles;
