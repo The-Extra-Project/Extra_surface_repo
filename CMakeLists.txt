@@ -103,7 +103,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0  -std=gnu++11")
 include_directories(${INCLUDE_DIR})
 include_directories(${HDFS_INCLUDE_DIR})
 include_directories(${DOUBLE_CONV_INCLUDE_DIR})
-
+include(${CGAL_USE_FILE})
 
 # ---------- Make libs ----------
 set(libddt_SOURCES

@@ -288,7 +288,35 @@ public:
     }
 
 
+// The function that allow to init the global id of each simplex
 
+  void init_local_id(){
+    typedef typename Traits::Flag_C                    Flag_C;
+    typedef typename Traits::Data_C                    Data_C;
+    typedef typename Traits::Data_V                    Data_V;
+    int nextid = 0;
+    int D = Traits::D;
+    int acc = 0;
+
+    for(auto vit = vertices_begin(); vit != vertices_end(); ++vit)
+      {
+
+	const Data_V & vd = vit->vertex_data();
+	Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
+	Id main_id = vit->main_id();
+	vd_quickndirty.gid =  (acc++);
+
+      }
+
+    acc = 0;
+    for(auto iit = cells_begin(); iit != cells_end(); ++iit)
+      {
+	const Data_C & cd = iit->cell_data();
+	Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
+	Id main_id = iit->main_id();
+	cd_quickndirty.gid =  (acc++);
+      }
+  }  
 
 
     template<class Scheduler> bool is_valid(Scheduler &s) const

@@ -4,9 +4,10 @@
 
 #include "count.hpp"
 #include "string-to-double.h"
- #include "double-to-string.h"
+#include "double-to-string.h"
 #include "base64.hpp"
 #include "base64_new.hpp"
+
 
 #define kBufferSize (10)
 #define NB_DIGIT_OUT (5)

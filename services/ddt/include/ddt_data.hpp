@@ -293,12 +293,8 @@ public :
     std::vector<int> v_simplex;
     dmap[xyz_name].extract_full_shpt_vect(v_xyz,false);
     dmap[simplex_name].extract_full_shpt_vect(v_simplex,false);
-    //std::cerr << "vcyz :::" << std::endl;
-    //std::cerr << v_xyz.size() << std::endl;
     int nb_pts = v_xyz.size()/D;
-    //std::cerr << "nbpts:" << nb_pts << std::endl;
     for(int id = 0; id < nb_pts; id++){
-      //std::cerr << "id:" << id << std::endl;
       int id_pts = id*D;
       if(!is_first)
 	ofs_pts << "," << std::endl;
@@ -439,8 +435,6 @@ public :
     
     for ( const auto &ee : dmap ) {
       if(ee.second.do_exist){
-	//std::cerr << "do_exist" << std::endl;
-	
 	int nbe = dmap[ee.first].get_nbe_uint8_vect();
 	auto vv = dmap[ee.first].uint8_vect;
 	ss << dmap[ee.first].vname.size() << " ";
@@ -452,7 +446,6 @@ public :
 	ss << ((int) ee.second.type) << " ";
 	serialize_b64_vect(vv,ss);
 	ss << " ";
-	//std::cerr << "done" << std::endl;
       }
     }
   }
@@ -460,7 +453,6 @@ public :
   void read_serialized_stream(std::istream & ss){
     int nbe;
     ss >> nbe;
-    //std::cerr << "nbe:" << nbe << std::endl;
     for(int i = 0 ; i < nbe;i++){
       std::vector<std::string> data_name;
       std::string tt_name("vertex");
@@ -468,15 +460,11 @@ public :
       tinyply::Type tt;
 
       ss >> dn_size;
-      //std::cerr << "dn_size:" << dn_size << std::endl;
-      //std::cerr << ":";
       for(int i = 0; i < dn_size; i++){
 	std::string nnn;
 	ss >> nnn;
-	//std::cerr << nnn << " ";
 	data_name.push_back(nnn);
       }
-      //std::cerr << std::endl;
       ss >> tt_name;
       ss >> vs;
       int ttti;
@@ -543,9 +531,10 @@ public :
 
   void write_dataset_stream( std::ostream & ss,char nl_char,int tid)
   {
-    
-    std::vector<int> raw_ids_vertex(std::max(nb_pts_uint8_vect(),nb_pts_shpt_vect()),tid);
-    std::vector<int> raw_ids_simplex(std::max(nb_simplex_uint8_vect(),nb_simplex_shpt_vect()),tid);
+
+    int nbp = nb_pts();
+    std::vector<int> raw_ids_vertex(nbp,tid);
+    std::vector<int> raw_ids_simplex(nbp,tid);
     
     dmap[vtileid_name] = Data_ply(vtileid_name,"vertex",1,1,tinyply::Type::INT32);
     dmap[ctileid_name] = Data_ply(ctileid_name,"face",1,1,tinyply::Type::INT32);
@@ -556,12 +545,9 @@ public :
 
     try
       {
-	//	ss << std::fixed << std::setprecision(12);
-	//	ss << std::scientific << std::endl;
+
 	tinyply::PlyFile file_out;
-	//std::cerr << "db 1" << std::endl;
 	for ( const auto &ee : dmap ) {
-	  //std::cerr << "db 2 : "  << std::endl;
 	  if(dmap[ee.first].part == "vertex"){
 	    if(ee.second.do_exist){
 	      if(dmap[ee.first].get_nbe_uint8_vect() == 0 &&
@@ -580,7 +566,6 @@ public :
 	}
 	for ( const auto &ee : dmap ) {
 	  if(dmap[ee.first].part != "vertex"){
-	    //std::cerr << "db 3 : " << std::endl;
 	    if(ee.second.do_exist){
 	      if(dmap[ee.first].get_nbe_uint8_vect() == 0 &&
 		 dmap[ee.first].get_nbe_shpt_vect() != 0){
@@ -602,9 +587,7 @@ public :
 	    }
 	  }
 	}
-	//std::cerr << "db 4 : " << std::endl;
 	file_out.write(ss,false,nl_char,true);
-	//std::cerr << "db 5 : " << std::endl;
    
       }
     catch (const std::exception & e)
@@ -798,7 +781,9 @@ public :
   int nb_pts_uint8_vect(){
     return dmap[xyz_name].get_nbe_uint8_vect();
   }
-
+  int nb_pts(){
+    return std::max(nb_pts_shpt_vect(),nb_pts_uint8_vect());
+  }
 
 
   template<typename DT>

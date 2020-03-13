@@ -227,19 +227,22 @@ struct Cgal_traits_d
     {
         return v->data().id;
     }
-      inline Id    gid  (Vertex_const_handle v) const
+    inline Id    gid  (Vertex_const_handle v) const
     {
         return v->data().gid;
     }
 
-      inline Id    id  (Cell_const_handle v) const
+    inline Id    id  (Cell_const_handle v) const
     {
         return v->data().id;
     }
-      inline Id    gid  (Cell_const_handle v) const
+    inline Id    gid  (Cell_const_handle v) const
     {
         return v->data().gid;
     }
+
+  
+  
     inline Flag_V& flag(Vertex_const_handle v) const
     {
         return v->data().flag;
