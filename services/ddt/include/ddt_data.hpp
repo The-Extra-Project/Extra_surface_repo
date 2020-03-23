@@ -126,6 +126,8 @@ public :
       return traits.make_point( reinterpret_cast< double * >(shpt_vect->buffer.get())+id*D);
     }
 
+
+    
     template<typename DT>
     Point extract_vect(std::vector<DT> & formated_data,int id){
       int vnbb =  get_vnbb();
@@ -148,7 +150,6 @@ public :
     template<typename DT>
     void extract_full_shpt_vect(std::vector<DT> & formated_data, bool do_clean = true){
       int szd = get_nbe_shpt_vect_shp()*vsize;
-      //std::cerr << "nbe_i" << szd << std::endl;
       if(szd > 0){
 	formated_data.resize(szd);
 	std::memcpy(formated_data.data(), shpt_vect->buffer.get(),size_bytes());
@@ -157,12 +158,9 @@ public :
 	return;
       }
       szd = get_nbe_uint8_vect()*vsize;
-      //std::cerr << "==> " << szd << std::endl;
       if(szd > 0){
 	formated_data.resize(szd);
-	//std::cerr << "==> -- " << szd << std::endl;
 	std::memcpy(formated_data.data(), &uint8_vect[0],size_bytes());
-	//std::cerr << "memcpy ok" << std::endl;
 	if(do_clean)
 	  uint8_vect.clear();
       }
@@ -803,6 +801,16 @@ public :
   int nb_simplex_uint8_vect(){
     return dmap[simplex_name].get_nbe_uint8_vect();
   }
+
+  
+    void extract_ptsvect(std::vector<std::string> & name,std::vector<Point> & formated_data, bool do_clean = true)
+    {
+      int nbv = dmap[name].get_nbe_shpt_vect();
+        for(int nn = 0; nn < nbv ; nn++)
+            formated_data.push_back(get_pts(nn,name));
+        if(do_clean)
+            dmap[name].clean_shpt_vect();
+    }
 
 
   

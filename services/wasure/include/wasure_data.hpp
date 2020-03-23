@@ -70,10 +70,10 @@ public :
         std::vector<double> raw_egv;
         std::vector<double> raw_sigs;
 
-        ddt_data<Traits>::dmap[ddt_data<Traits>::xyz_name].extract_full_input(raw_points,false);
-        ddt_data<Traits>::dmap[center_name].extract_full_input(raw_centers,false);
-        ddt_data<Traits>::dmap[sig_name].extract_full_input(raw_sigs,false);
-        ddt_data<Traits>::dmap[egv_name].extract_full_input(raw_egv,false);
+        ddt_data<Traits>::dmap[ddt_data<Traits>::xyz_name].extract_full_shpt_vect(raw_points,false);
+        ddt_data<Traits>::dmap[center_name].extract_full_shpt_vect(raw_centers,false);
+        ddt_data<Traits>::dmap[sig_name].extract_full_shpt_vect(raw_sigs,false);
+        ddt_data<Traits>::dmap[egv_name].extract_full_shpt_vect(raw_egv,false);
 
         bool do_ray = false;
         int D = Traits::D;
@@ -82,7 +82,7 @@ public :
         ofs << "\"type\": \"FeatureCollection\"," << std::endl;
         ofs << "\"features\": [" << std::endl;
 
-        for(int id = 0; id < ddtd::nb_pts_input(); id++)
+        for(int id = 0; id < ddtd::nb_pts_shpt_vect(); id++)
         {
             int id_pts = id*D;
             int id_sigs = id*D;
@@ -181,7 +181,7 @@ public :
 
         int D = Traits::D;
         std::vector<double> raw_egv;
-        ddt_data<Traits>::dmap[egv_name].extract_full_input(raw_egv,false);
+        ddt_data<Traits>::dmap[egv_name].extract_full_shpt_vect(raw_egv,false);
         double coords[D];
 
         std::vector<Point> act_vect;
@@ -221,7 +221,7 @@ public :
             }
         }
 
-        ddt_data<Traits>::dmap[egv_name].fill_full_output(raw_egv);
+        ddt_data<Traits>::dmap[egv_name].fill_full_uint8_vect(raw_egv);
         ddt_data<Traits>::dmap[egv_name].do_exist = true;
 
         if(do_clear)
@@ -234,7 +234,7 @@ public :
     {
         int D = Traits::D;
         std::vector<double> raw_sigs;
-        ddt_data<Traits>::dmap[sig_name].extract_full_input(raw_sigs,false);
+        ddt_data<Traits>::dmap[sig_name].extract_full_shpt_vect(raw_sigs,false);
         double coords[D];
         std::vector<double> act_vsig;
         for(int i = 0 ; i < raw_sigs.size(); i++)
@@ -261,7 +261,7 @@ public :
                 raw_sigs.push_back(format_sigs[i][d]);
         }
 
-        ddt_data<Traits>::dmap[sig_name].fill_full_output(raw_sigs);
+        ddt_data<Traits>::dmap[sig_name].fill_full_uint8_vect(raw_sigs);
         ddt_data<Traits>::dmap[sig_name].do_exist = true;
 
         if(do_clear)
@@ -277,7 +277,7 @@ public :
     {
         int D = Traits::D;
         std::vector<double> raw_dst;
-        ddt_data<Traits>::dmap[dst_name].extract_full_input(raw_dst,false);
+        ddt_data<Traits>::dmap[dst_name].extract_full_shpt_vect(raw_dst,false);
 
 
         std::vector<double> act_vdst;
@@ -311,7 +311,7 @@ public :
             }
         }
         std::cerr << "ii3" << std::endl;
-        ddt_data<Traits>::dmap[dst_name].fill_full_output(raw_dst);
+        ddt_data<Traits>::dmap[dst_name].fill_full_uint8_vect(raw_dst);
         ddt_data<Traits>::dmap[dst_name].do_exist = true;
 
         if(do_clear)
@@ -333,7 +333,7 @@ public :
             raw_labs.push_back(format_labs[i]);
         }
 
-        ddt_data<Traits>::dmap[labseg_name].fill_full_output(raw_labs);
+        ddt_data<Traits>::dmap[labseg_name].fill_full_uint8_vect(raw_labs);
         ddt_data<Traits>::dmap[labseg_name].do_exist = true;
 
         if(do_clear)
@@ -347,9 +347,9 @@ public :
     {
         int D = Traits::D;
         std::vector<int> raw_labs;
-        ddt_data<Traits>::dmap[labseg_name].extract_full_input(raw_labs,false);
+        ddt_data<Traits>::dmap[labseg_name].extract_full_shpt_vect(raw_labs,false);
 
-        uint num_s = ddt_data<Traits>::dmap[labseg_name].get_nbe_input();
+        uint num_s = ddt_data<Traits>::dmap[labseg_name].get_nbe_shpt_vect();
         for(int i = 0 ; i < raw_labs.size(); i++)
         {
             format_labs.push_back(raw_labs[i]);

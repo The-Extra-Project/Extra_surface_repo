@@ -73,6 +73,15 @@ function run_2d_img_ddt
 }
 
 
+### 2D Surface reconstruction 
+function run_2d_wasure
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/2d_austin/imgs/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/wasure_metadata_surface.xml"
+    run_algo_docker
+}
 
 
 
@@ -82,7 +91,7 @@ run_all_tests
 #run_3d_ddt_random
 
 # ==== 2D surface reconstruction workflow ====
-#run_2d_img_ddt
+#run_2d_wasure
 
 
 

@@ -198,8 +198,10 @@ var kvrdd_inputs = format_data(
 
 
 // =========== Start of the algorithm ==============
+val t0 = System.nanoTime()
+params_scala("t0") = collection.mutable.Set(t0.toString)
 println("======== Tiling =============")
-kvrdd_points = ddt_algo.compute_tiling(kvrdd_inputs,iq,params_ddt,params_scala);
+kvrdd_points = ddt_algo.compute_tiling_2(kvrdd_inputs,iq,params_ddt,params_scala);
 nb_leaf = params_scala("nb_leaf").head.toInt;
 
 val rep_merge = ((if((nb_leaf) < spark_core_max) spark_core_max else  nb_leaf));

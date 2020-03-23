@@ -7,15 +7,7 @@
 typedef std::map<Id,ddt_data<Traits> > D_MAP;
 
 
-
-
-
-
-
-
-
-
-
+// The test test test test
 
 // "broadcast" the neighbors of the given tiles 
 int send_neighbors(Id tid,algo_params & params, std::map<Id, std::vector<Point_id_id>> & outbox,bool do_send_empty)
@@ -42,19 +34,7 @@ int send_neighbors(Id tid,algo_params & params, std::map<Id, std::vector<Point_i
 }
 
 
-void get_neighbors_pids(Tile_iterator & tci, std::map<Id, std::vector<Point_id_id>> & outbox)
-{
-  std::vector<Vertex_const_handle_and_id> out;
-  ddt::get_neighbors()(*tci, std::back_inserter(out));
-  for(auto&& pair : out)
-    {
-      auto pp = pair.first->point();
-      Id idp =  tci->id(pair.first);
-      Id id_source =  tci->id();
-      outbox[pair.second].emplace_back(std::make_tuple(pp,idp,id_source));
-    }
-}
-
+// Extract the edge of the global graph
 void get_edges(Tile_iterator & tci, std::map<Id, std::vector<Point_id_id>> & outbox)
 {
   std::vector<Vertex_const_handle_and_id> out;
@@ -68,7 +48,21 @@ void get_edges(Tile_iterator & tci, std::map<Id, std::vector<Point_id_id>> & out
 }
 
 
-void get_neighbors_pids_bool(Tile_iterator & tci, std::map<Id, std::vector<Point_id_id>> & outbox)
+void get_all_neighbors(Tile_iterator & tci, std::map<Id, std::vector<Point_id_id>> & outbox,bool skip_inserted = false)
+{
+  std::vector<Vertex_const_handle_and_id> out;
+  ddt::get_neighbors()(*tci, std::back_inserter(out));
+  for(auto&& pair : out)
+    {
+      auto pp = pair.first->point();
+      Id idp =  tci->id(pair.first);
+      Id id_source =  tci->id();
+      outbox[pair.second].emplace_back(std::make_tuple(pp,idp,id_source));
+    }
+}
+
+// Ok here we 
+void get_neighbors(Tile_iterator & tci, std::map<Id, std::vector<Point_id_id>> & outbox, bool skip_inserted = false)
 {
   std::vector<Vertex_const_handle_and_id> out;
   ddt::get_neighbors()(*tci, std::back_inserter(out));
@@ -546,7 +540,7 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
       Tile_iterator tci = tri1.get_tile(tid);
       if(outbox_nbrs.size() == 0)
         {
-	  get_neighbors_pids_bool(tci,outbox_nbrs);
+	  get_neighbors(tci,outbox_nbrs);
         }
     }
 
@@ -734,7 +728,7 @@ int get_neighbors(Id tid,algo_params & params, std::map<Id, std::vector<Point_id
   ddt::read_ddt_full_stream<DDT,Scheduler>(tri,std::cin,1,log);
   Tile_iterator tci = tri.get_tile(tid);
   std::cerr << "get neighbors pids" << std::endl;
-  get_neighbors_pids(tci,outbox);
+  get_all_neighbors(tci,outbox);
 
   return 0;
 }

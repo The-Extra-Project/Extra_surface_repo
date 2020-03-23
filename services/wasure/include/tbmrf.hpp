@@ -860,7 +860,7 @@ public :
             //    continue;
             int tid = cit->tile()->id();
             int lid = cit->cell_data().id;
-            int gid = data_map[tid].format_gids[lid];
+            int gid = cit->gid();//data_map[tid].format_gids[lid];
 
             int lcurr = 0; //data_map[fch->tile()->id()].format_labs[cccid];
             e0 = get_score_linear(fch,lcurr,data_map);
@@ -946,8 +946,8 @@ public :
                 int tidn = fchn->tile()->id();
 
 
-                int gidc = data_map[tidc].format_gids[lidc];
-                int gidn = data_map[tidn].format_gids[lidn];
+                int gidc = fch->gid();//data_map[tidc].format_gids[lidc];
+                int gidn = fchn->gid();//data_map[tidn].format_gids[lidn];
 
                 double surface = get_surface(tmp_fch,tmp_idx);
                 double coef = lambda*surface;
@@ -1109,7 +1109,7 @@ public :
             //    continue;
             int tid = cit->tile()->id();
             int lid = cit->cell_data().id;
-            int gid = data_map[tid].format_gids[lid];
+            int gid = cit->gid();
 
             int lcurr = 0; //data_map[fch->tile()->id()].format_labs[cccid];
             e0 = get_score_linear(fch,lcurr,data_map);
@@ -1187,8 +1187,8 @@ public :
                 int tidc = fch->tile()->id();
                 int tidn = fchn->tile()->id();
 
-                int gidc = data_map[tidc].format_gids[lidc];
-                int gidn = data_map[tidn].format_gids[lidn];
+                int gidc = fch->gid();//data_map[tidc].format_gids[lidc];
+                int gidn = fchn->gid();//data_map[tidn].format_gids[lidn];
 
                 double surface = get_surface(tmp_fch,tmp_idx);
                 double coef = lambda*surface;
@@ -1333,7 +1333,7 @@ public :
             //    continue;
             int tid = cit->tile()->id();
             int lid = cit->cell_data().id;
-            int gid = data_map[tid].format_gids[lid];
+            int gid = cit->gid(); //data_map[tid].format_gids[lid];
 
             int lcurr = 0; //data_map[fch->tile()->id()].format_labs[cccid];
             e0 = get_score_linear(fch,lcurr,data_map);
@@ -1382,8 +1382,8 @@ public :
                 int tidc = fch->tile()->id();
                 int tidn = fchn->tile()->id();
 
-                int gidc = data_map[tidc].format_gids[lidc];
-                int gidn = data_map[tidn].format_gids[lidn];
+                int gidc = fch->gid(); //data_map[tidc].format_gids[lidc];
+                int gidn = fchn->gid();//data_map[tidn].format_gids[lidn];
 
                 double surface = get_surface(tmp_fch,tmp_idx);
                 double coef = lambda*surface;

@@ -87,7 +87,6 @@ val params_scala = param_list(0) // We only process 1 set of parameter in this w
 var acc=0;
 for(params_scala <- param_list){
 
-
   // ===============================================
   // ==== Scala and param initialization ===========
   // Param scala is mutable, get params set the default value to the collection if it's empty

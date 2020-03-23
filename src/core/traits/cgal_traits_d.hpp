@@ -917,30 +917,15 @@ struct Cgal_traits_d
         }
         uint i = 1;
 
-        // Infinite hack
-        // for(int d = 0; d < D; d++)
-        //   {
-        // 	v_xyz.push_back(0);
-        //   }
         for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
         {
             if(tri.is_infinite(vit))
             {
-                // vertex_map[vit] = 0;
-                // v_vid.push_back(0);
-                // v_flagv.push_back(0);
-                // for(int d = 0; d < D; d++)
-                //   {
-                // 	v_xyz.push_back(0.0);
-                //   }
-                // i++;
                 continue;
             }
 
 
             int ii = i;
-            // if(!do_init_id)
-            //   ii = vit->data().id;
 
 
             for(int d = 0; d < D; d++)
@@ -1003,7 +988,6 @@ struct Cgal_traits_d
 	  data.dmap[data.nb_name].fill_full_uint8_vect(v_nb);
 
 	  data.dmap[data.vid_name].fill_full_uint8_vect(v_vid);
-	  //      data.dmap[data.cid_name].fill_full_uint8_vect(v_cid);
 	  data.dmap[data.flag_vertex_name].fill_full_uint8_vect(v_flagv);
 	  data.dmap[data.flag_simplex_name].fill_full_uint8_vect(v_flags);
 
@@ -1140,11 +1124,6 @@ struct Cgal_traits_d
         });
         for(auto w : vertices) if(v != w && !dt.is_infinite(w)) op(w);
     }
-
-
-
-
-
 
 
 

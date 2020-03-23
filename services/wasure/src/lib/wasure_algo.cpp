@@ -1387,7 +1387,7 @@ void wasure_algo::extract_surface(DTW & tri, std::map<Id,wasure_data<Traits> >  
   std::cerr << "==>" << format_points.size() << " " << v_simplex.size() << " " << std::endl;
   datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",dim,dim,DATA_FLOAT_TYPE);
   datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",dim,dim,tinyply::Type::INT32);
-  datas_out.dmap[datas_out.xyz_name].fill_full_output(format_points);
-  datas_out.dmap[datas_out.simplex_name].fill_full_output(v_simplex);
+  datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(format_points);
+  datas_out.dmap[datas_out.simplex_name].fill_full_uint8_vect(v_simplex);
 
 }
