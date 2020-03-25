@@ -1433,7 +1433,7 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
 	ddt::stream_data_header ozh(hpi.get_lab(),"z",hid);
 	ozh.write_header(std::cout);
 	w_datas_tri[hid].write_serialized_stream(ozh.get_output_stream());
-	ozh.finalize();
+	ozh.finalize();  
 	std::cout << std::endl;
       }
   }
