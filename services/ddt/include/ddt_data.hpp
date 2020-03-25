@@ -451,12 +451,12 @@ public :
   void read_serialized_stream(std::istream & ss){
     int nbe;
     ss >> nbe;
+    std::cerr << "nbe:" << nbe << std::endl;
     for(int i = 0 ; i < nbe;i++){
       std::vector<std::string> data_name;
       std::string tt_name("vertex");
       int dim,vs,dn_size;
       tinyply::Type tt;
-
       ss >> dn_size;
       for(int i = 0; i < dn_size; i++){
 	std::string nnn;
@@ -467,8 +467,9 @@ public :
       ss >> vs;
       int ttti;
       ss >> ttti;
-      dmap[xyz_name] = Data_ply(xyz_name,tt_name,dim,vs,static_cast<tinyply::Type>(ttti));
-      deserialize_b64_vect(dmap[xyz_name].uint8_vect,ss);
+      std::cerr << "     read stats:" <<  tt_name << " " << vs << " " << ttti << " " << std::endl;
+      dmap[data_name] = Data_ply(data_name,tt_name,dim,vs,static_cast<tinyply::Type>(ttti));
+      deserialize_b64_vect(dmap[data_name].uint8_vect,ss);
     }
   }
   

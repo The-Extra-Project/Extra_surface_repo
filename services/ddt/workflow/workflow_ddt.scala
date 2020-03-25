@@ -237,13 +237,13 @@ for(params_scala <- param_list){
   val datastruct2ser_cmd =  set_params(params_cpp, List(("step","read_datastruct"))).to_command_line
   val input_vertex : RDD[KValue] =  graph_tri.vertices
   val dataset_raw = iq.run_pipe_fun_KValue(
-    ser2datastruct_cmd ,
-    input_vertex, "dst", do_dump = false).persist(slvl_glob)
+    ser2datastruct_cmd ++ List("--label", "struct"),
+    kvrdd_inputs, "struct", do_dump = false).persist(slvl_glob)
   val kvrdd_dataset = iq.get_kvrdd(dataset_raw)
 
   val dataset_raw2 = iq.run_pipe_fun_KValue(
-    datastruct2ser_cmd ,
-    kvrdd_dataset, "dst", do_dump = false).persist(slvl_glob)
+    datastruct2ser_cmd ++ List("--label", "struct","--style","tri_main.qml"),
+    kvrdd_dataset, "struct", do_dump = false).persist(slvl_glob)
 
   acc += 1
 }
