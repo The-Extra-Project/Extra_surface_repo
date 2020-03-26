@@ -197,10 +197,13 @@ class IQlibSched(
 
   def split_key_value2(ss: VData): KValue = {
     var rr = "";
+    var pad = 0;
+    if(ss.charAt(0) == ' ')
+      pad = 1
     if(ss.length > 10)
-      rr = (ss.charAt(4).toString + ss.charAt(5) + ss.charAt(6) + ss.charAt(7) + ss.charAt(8) + ss.charAt(9) + ss.charAt(10)).split(" ").head
+      rr = (ss.charAt(4).toString + ss.charAt(5) + ss.charAt(6) + ss.charAt(7) + ss.charAt(8) + ss.charAt(9) + ss.charAt(10)).split(" ")(pad)
     else
-      rr = (ss.split(" ", 4))(2)
+      rr = (ss.split(" ", 4))(2+pad)
     (rr.toLong, List(ss))
   }
 

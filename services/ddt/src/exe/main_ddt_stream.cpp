@@ -1384,7 +1384,7 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
 
   int D = Traits::D;
 
-  D_MAP w_datas_tri;
+  D_MAP datas_map;
     
   for(int i = 0; i < nb_dat; i++){
     std::cerr << "convert data " << i << std::endl;
@@ -1404,7 +1404,7 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
 	auto  tile  = tri1.get_tile(tid);
 	tile->update_local_flag();
 	typename DDT::Traits::Delaunay_triangulation & ttri = tile->tri();
-	traits.export_tri_to_data(ttri,w_datas_tri[hid]);
+	traits.export_tri_to_data(ttri,datas_map[hid]);
       } else if(hpi.get_lab() == "p"  || hpi.get_lab() == "z")
       {
 	std::cerr << " " << std::endl;
@@ -1419,31 +1419,35 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
 	      vp.emplace_back(pp);
 	    }
 	}
-	w_datas_tri[hid].dmap[w_datas_tri[hid].xyz_name] = ddt_data<Traits>::Data_ply(w_datas_tri[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-	w_datas_tri[hid].dmap[w_datas_tri[hid].xyz_name].fill_full_uint8_vect(vp);
+	datas_map[hid].dmap[datas_map[hid].xyz_name] = ddt_data<Traits>::Data_ply(datas_map[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+	datas_map[hid].dmap[datas_map[hid].xyz_name].fill_full_uint8_vect(vp);
       }
+
+    datas_map[hid].stream_lab = hpi.get_lab();
+    std::cerr << "stream lab: " << datas_map[hid].stream_lab << std::endl;
     hpi.finalize();
+  }
+  std::cout.clear();
 
-    std::cout.clear();
-
-    for (auto  it = w_datas_tri.begin(); it != w_datas_tri.end(); it++ )
+  for (auto  it = datas_map.begin(); it != datas_map.end(); it++ )
       {
 	Id hid =  it->first;
 	std::cerr << "hid" << hid << std::endl;
-	ddt::stream_data_header ozh(hpi.get_lab(),"z",hid);
+	std::string stream_lab = datas_map[hid].stream_lab;
+	ddt::stream_data_header ozh(stream_lab,"z",hid);
 	ozh.write_header(std::cout);
-	w_datas_tri[hid].write_serialized_stream(ozh.get_output_stream());
+	datas_map[hid].write_serialized_stream(ozh.get_output_stream());
 	ozh.finalize();  
 	std::cout << std::endl;
       }
-  }
+
   return 0;
       
 }
 
-int read_datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log){
+int datastruct_identity(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log){
   int D = Traits::D;
-  D_MAP data_map;
+  D_MAP datas_map;
     
   for(int i = 0; i < nb_dat; i++){
     std::cerr << "convert data " << i << std::endl;
@@ -1458,35 +1462,28 @@ int read_datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream 
     Id hid = hpi.get_id(0);
 
     ddt_data<Traits>  w_datas;
+    w_datas.stream_lab = hpi.get_lab();
     w_datas.read_serialized_stream(hpi.get_input_stream());
     hpi.finalize();
 
-    data_map[hid] = w_datas;
+    datas_map[hid] = w_datas;
 
   }
   std::cout.clear();
-  for (auto  it = data_map.begin(); it != data_map.end(); it++ )
+
+  for (auto  it = datas_map.begin(); it != datas_map.end(); it++ )
     {
       Id hid =  it->first;
-
-
-      ddt::stream_data_header oqh_1("p","s",hid),oqh_2("p","s",hid);
-      std::string filename(params.output_dir + "/" + params.slabel +
-			   "_id_" + std::to_string(hid) + "_" + std::to_string(tid) ) ;
-      oqh_1.init_file_name(filename,"_pts.geojson");
-      oqh_1.write_header(std::cout);
-      oqh_2.init_file_name(filename,"_spx.geojson");
-      oqh_2.write_header(std::cout);
-      data_map[hid].write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
-      oqh_1.finalize();
-      oqh_2.finalize();
-
-      ddt::add_qgis_style(oqh_2.get_file_name(),params.style);
-
+      std::string stream_lab = datas_map[hid].stream_lab;
+      std::cerr << "==== WRITE ==== " << hid << std::endl;
+      ddt::stream_data_header ozh(stream_lab,"z",hid);
+      ozh.write_header(std::cout);
+      datas_map[hid].write_serialized_stream(ozh.get_output_stream());
+      ozh.finalize();  
       std::cout << std::endl;
-
-     
     }
+  
+
   
   return 0;
 
@@ -1947,10 +1944,10 @@ int main(int argc, char **argv)
 	      do_dump_log = false;
 	      rv = serialized2geojson(tile_id,params,nb_dat,log);
 	    }
-	  else if(params.algo_step == std::string("read_datastruct"))
+	  else if(params.algo_step == std::string("datastruct_identity"))
 	    {
 	      do_dump_log = false;
-	      rv = read_datastruct(tile_id,params,nb_dat,log);
+	      rv = datastruct_identity(tile_id,params,nb_dat,log);
 	    }
 	  else if(params.algo_step == std::string("serialized2datastruct"))
 	    {

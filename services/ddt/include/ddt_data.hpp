@@ -430,7 +430,7 @@ public :
     }
 
     ss << nn << " ";
-    
+    std::cerr << "----- write: " << nn << std::endl;
     for ( const auto &ee : dmap ) {
       if(ee.second.do_exist){
 	int nbe = dmap[ee.first].get_nbe_uint8_vect();
@@ -469,6 +469,7 @@ public :
       ss >> ttti;
       std::cerr << "     read stats:" <<  tt_name << " " << vs << " " << ttti << " " << std::endl;
       dmap[data_name] = Data_ply(data_name,tt_name,dim,vs,static_cast<tinyply::Type>(ttti));
+      dmap[data_name].set_exist(true);
       deserialize_b64_vect(dmap[data_name].uint8_vect,ss);
     }
   }
@@ -817,6 +818,7 @@ public :
   
   Traits traits;  
   int D = Traits::D;
+  std::string stream_lab;
   std::map<std::vector<std::string>, Data_ply > dmap;
   std::vector<std::string> xyz_name,
     vtileid_name,
