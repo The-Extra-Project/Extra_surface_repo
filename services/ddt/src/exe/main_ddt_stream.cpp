@@ -172,7 +172,11 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
       hpi.parse_header(std::cin);
       if(hpi.get_lab() == "z" )
         {
-	  ddt::read_point_set_serialized(vp, hpi.get_input_stream(),traits);
+	  
+	  ddt_data<Traits> w_datas;
+	  w_datas.read_serialized_stream(hpi.get_input_stream());
+	  w_datas.extract_ptsvect(w_datas.xyz_name,vp,false);
+	  //	  ddt::read_point_set_serialized(vp, hpi.get_input_stream(),traits);
         }
       if(hpi.get_lab() == "p" || hpi.get_lab() == "x")
         {
@@ -354,7 +358,10 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
 	  std::cerr << "=== Parse pts ===" << std::endl;
 	  if(hpi.is_serialized()){
 	    std::vector<Point> rvp;
-	    ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+	    //ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+	    ddt_data<Traits> w_datas;
+	    w_datas.read_serialized_stream(hpi.get_input_stream());
+	    w_datas.extract_ptsvect(w_datas.xyz_name,rvp,false);
 	    for(auto pp : rvp)
 	      {
                 vp.emplace_back(std::make_pair(pp,tid));
@@ -826,7 +833,10 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
 	if(hpi.is_serialized()){
 	  std::cerr << "is ser!" << std::endl;
 	  std::vector<Point> rvp;
-	  ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+	  //ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+	  ddt_data<Traits> w_datas;
+	  w_datas.read_serialized_stream(hpi.get_input_stream());
+	  w_datas.extract_ptsvect(w_datas.xyz_name,rvp,false);
 	  for(auto pp : rvp)
 	    {
 	      vp.emplace_back(pp);
@@ -1413,7 +1423,10 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
 	if(hpi.is_serialized()){
 	  std::cerr << "is ser!" << std::endl;
 	  std::vector<Point> rvp;
-	  ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+	  //	  ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+	  ddt_data<Traits> w_datas;
+	  w_datas.read_serialized_stream(hpi.get_input_stream());
+	  w_datas.extract_ptsvect(w_datas.xyz_name,rvp,false);
 	  for(auto pp : rvp)
 	    {
 	      vp.emplace_back(pp);
@@ -1701,8 +1714,15 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	}
       if(hpi.get_lab() == "z" )
 	{
-	  ddt::read_point_set_serialized(vp_in, hpi.get_input_stream(),traits);
+	  //	  ddt::read_point_set_serialized(vp_in, hpi.get_input_stream(),traits);
+	  ddt_data<Traits> w_datas;
+	  std::cerr << "read serialized" << std::endl;
+	  w_datas.read_serialized_stream(hpi.get_input_stream());
+	  std::cerr << "extract" << std::endl;
+	  w_datas.extract_ptsvect(w_datas.xyz_name,vp_in,false);
+	  std::cerr << "done" << std::endl;
 	  count = vp_in.size();
+
 	}
 
 
@@ -1830,7 +1850,10 @@ int dump_ply_binary(Id tid,algo_params & params, int nb_dat,ddt::logging_stream 
 	      if(hpi.is_serialized()){
 		std::cerr << "is ser!" << std::endl;
 		std::vector<Point> rvp;
-		ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+		//		ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+		ddt_data<Traits> w_datas;
+		w_datas.read_serialized_stream(hpi.get_input_stream());
+		w_datas.extract_ptsvect(w_datas.xyz_name,rvp,false);
 		for(auto pp : rvp)
 		  {
 		    vp.emplace_back(pp);
