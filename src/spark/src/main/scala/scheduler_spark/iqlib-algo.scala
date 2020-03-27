@@ -382,13 +382,13 @@ object ddt_algo {
     res_tri_local.count
     update_time(params_scala,"local");
 
-    val kvrdd_pts_crown: RDD[KValue] = iq.get_kvrdd(res_tri_local, "z",txt = "tri_crown").setName("tri_crown")
-    val kvrdd_pts_finalized: RDD[KValue] = iq.get_kvrdd(res_tri_local, "r",txt = "pts_finalized").setName("pts_finalized")
+    val kvrdd_pts_crown : RDD[KValue] = iq.get_kvrdd(res_tri_local, "z",txt = "tri_crown").setName("tri_crown")
+    val kvrdd_pts_finalized : RDD[KValue] = iq.get_kvrdd(res_tri_local, "r",txt = "pts_finalized").setName("pts_finalized")
     kvrdd_pts_crown.coalesce(rep_loop).persist(iq.get_storage_level_loop())
-    val rdd_finalized_ply_local: RDD[VData] = iq.filter_rdd(res_tri_local, "p",txt = "finalized").setName("tri_full")
+    val rdd_finalized_ply_local : RDD[VData] = iq.filter_rdd(res_tri_local, "p",txt = "finalized").setName("tri_full")
     rdd_finalized_ply_local.persist(iq.get_storage_level())
-    val kvrdd_bbox: RDD[KValue] = iq.get_kvrdd(res_tri_local, "q",txt = "tri_full").setName("bbox")
-    val kvrdd_count: RDD[KValue] = iq.get_kvrdd(res_tri_local, "c",txt="stats");
+    val kvrdd_bbox : RDD[KValue] = iq.get_kvrdd(res_tri_local, "q",txt = "tri_full").setName("bbox")
+    val kvrdd_count : RDD[KValue] = iq.get_kvrdd(res_tri_local, "c",txt="stats");
 
 
     val ll_bbox_pts = kvrdd_bbox.map(x => x.value).reduce(_ ++ _)
@@ -401,7 +401,7 @@ object ddt_algo {
 
 
     // ============= DO LOOP ==============
-    var kvrdd_cur_tri : RDD[KValue] = iq.get_kvrdd(res_tri_bbox, "t",txt = "tri_bbox")
+    var kvrdd_cur_tri  : RDD[KValue] = iq.get_kvrdd(res_tri_bbox, "t",txt = "tri_bbox")
     var rdd_cur_edges = iq.get_edgrdd(res_tri_bbox, "e");
     val defaultV = (List(""));
     val (kvrdd_last_tri,kvrdd_last_edges,kvrdd_finalized_ply_list) = {
@@ -423,7 +423,7 @@ object ddt_algo {
         "--extract_edg_nbrs","",
         "--label", "ftri"),
       kvrdd_b4_union , "merge", do_dump = false);
-    val rdd_finalized_ply_crown: RDD[VData] = iq.filter_rdd(res_finalized_tri, "p",txt = "finalized").setName("tri_full")
+    val rdd_finalized_ply_crown : RDD[VData] = iq.filter_rdd(res_finalized_tri, "p",txt = "finalized").setName("tri_full")
     kvrdd_finalized_tri = iq.get_kvrdd(res_finalized_tri, "t",txt = "merged_tri")
     kvrdd_stats = iq.get_kvrdd(res_finalized_tri, "s",txt="stats").cache()
     val kvrdd_finalized_edges =  iq.get_edgrdd(res_finalized_tri, "e");

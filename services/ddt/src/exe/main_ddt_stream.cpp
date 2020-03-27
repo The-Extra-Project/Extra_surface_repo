@@ -289,7 +289,10 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   log.step("[write]write_crown");
   ddt::stream_data_header ozh("z","z",tid);
   ozh.write_header(std::cout);
-  ddt::write_point_set_serialized(vp_crown,ozh.get_output_stream(),D);
+  //ddt::write_point_set_serialized(vp_crown,ozh.get_output_stream(),D);
+  ddt_data<Traits> w_datas;
+  w_datas.dmap[w_datas.xyz_name].fill_full_uint8_vect(vp_crown);
+  w_datas.write_serialized_stream(ozh.get_output_stream());
   ozh.finalize();
   std::cout << std::endl;
   vp_crown.clear();
@@ -360,10 +363,10 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
 	  std::cerr << "=== Parse pts ===" << std::endl;
 	  if(hpi.is_serialized()){
 	    std::vector<Point> rvp;
-	    //ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
-	    ddt_data<Traits> w_datas;
-	    w_datas.read_serialized_stream(hpi.get_input_stream());
-	    w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(rvp,true);
+	    ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+	    // ddt_data<Traits> w_datas;
+	    // w_datas.read_serialized_stream(hpi.get_input_stream());
+	    // w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(rvp,true);
 	    //w_datas.extract_ptsvect(w_datas.xyz_name,rvp,false);
 	    for(auto pp : rvp)
 	      {
@@ -1445,10 +1448,10 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
 	if(hpi.is_serialized()){
 	  std::cerr << "is ser!" << std::endl;
 	  std::vector<Point> rvp;
-	   ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
-	  // ddt_data<Traits> w_datas;
-	  // w_datas.read_serialized_stream(hpi.get_input_stream());
-	  // w_datas.extract_ptsvect(w_datas.xyz_name,rvp,false);
+	  //ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+	  ddt_data<Traits> w_datas;
+	  w_datas.read_serialized_stream(hpi.get_input_stream());
+	  w_datas.extract_ptsvect(w_datas.xyz_name,rvp,false);
 	  for(auto pp : rvp)
 	    {
 	      vp.emplace_back(pp);
