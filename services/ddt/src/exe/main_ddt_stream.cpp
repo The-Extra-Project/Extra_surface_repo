@@ -175,9 +175,10 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
         {
 	  
 	  ddt_data<Traits> w_datas;
+	  std::vector<Point> vp1;
 	  w_datas.read_serialized_stream(hpi.get_input_stream());
-	  //	  w_datas.extract_ptsvect(w_datas.xyz_name,vp,false);
-	  w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(vp,true);
+	  w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(vp1,true);
+	  vp.insert(vp.end(), vp1.begin(), vp1.end());
 	  //	  ddt::read_point_set_serialized(vp, hpi.get_input_stream(),traits);
         }
       if(hpi.get_lab() == "p" || hpi.get_lab() == "x")
