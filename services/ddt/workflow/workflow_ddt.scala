@@ -112,7 +112,7 @@ for(params_scala <- param_list){
   val spark_core_max = params_scala.get_param("spark_core_max", df_par.toString).toInt
   val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(100000).toString);
   val dump_mode = params_scala.get_param("dump_mode", "NONE")
-  val min_ppt = params_scala.get_param("min_ppt", "0").toInt
+  val min_ppt = params_scala.get_param("min_ppt", (dim+1).toString).toInt
 
 
 
@@ -157,6 +157,8 @@ for(params_scala <- param_list){
   val ply2dataset_cmd =  set_params(params_cpp, List(("step","ply2dataset"))).to_command_line
   val dump_ply_binary_cmd =  set_params(params_cpp, List(("step","dump_ply_binary"),("output_dir", cur_output_dir))).to_command_line
   val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
+  val ser2datastruct_cmd =  set_params(params_cpp, List(("step","serialized2datastruct"))).to_command_line
+  val datastruct_identity_cmd =  set_params(params_cpp, List(("step","datastruct_identity"))).to_command_line
   val id_cmd = List(build_dir + "/bin/identity-exe");
 
 
@@ -164,7 +166,7 @@ for(params_scala <- param_list){
   // =================================================
   // ============  Parsing and init data ===========
   var kvrdd_points: RDD[KValue] = sc.parallelize(List((0L,List(""))));
-  var kvrdd_inputs = format_data(
+  var kvrdd_raw_inputs = format_data(
     params_scala,
     params_cpp,
     global_build_dir,
@@ -175,12 +177,22 @@ for(params_scala <- param_list){
     iq
   )
 
+  val struct_inputs = iq.run_pipe_fun_KValue(
+    ser2datastruct_cmd ++ List("--label", "struct"),
+    kvrdd_raw_inputs, "struct", do_dump = false)
+  val kvrdd_inputs = iq.get_kvrdd(struct_inputs)
+
+  val struct_inputs_id = iq.run_pipe_fun_KValue(
+    datastruct_identity_cmd ++ List("--label", "struct"),
+    kvrdd_inputs, "struct", do_dump = false)
+
+
   if(plot_lvl >= 3){
-    // if(dim == 2){
-    //   iq.run_pipe_fun_KValue(
-    //     tri2geojson_cmd ++ List("--label", "kvrdd_input"),
-    //     kvrdd_inputs, "kvrdd_input", do_dump = false).collect()
-    // }
+    if(dim == 2){
+      iq.run_pipe_fun_KValue(
+        tri2geojson_cmd ++ List("--label", "kvrdd_input"),
+        kvrdd_inputs, "kvrdd_input", do_dump = false).collect()
+    }
     if(dim == 3){
       iq.run_pipe_fun_KValue(
         dump_ply_binary_cmd ++ List("--label", "tile_pts"),
@@ -196,6 +208,13 @@ for(params_scala <- param_list){
   params_scala("t0") = collection.mutable.Set(t0.toString)
   kvrdd_points = ddt_algo.compute_tiling_2(kvrdd_inputs,iq,params_cpp,params_scala);
   nb_leaf = params_scala("nb_leaf").head.toInt;
+
+  if(dim == 2){
+    iq.run_pipe_fun_KValue(
+      tri2geojson_cmd ++ List("--label", "tile_pts"),
+      kvrdd_points, "tile_pts", do_dump = false).collect()
+}
+
 
   val rep_merge = ((if((nb_leaf) < spark_core_max) spark_core_max else  nb_leaf));
   var rep_loop = nb_leaf;
@@ -233,8 +252,7 @@ for(params_scala <- param_list){
   }
 
 
-  val ser2datastruct_cmd =  set_params(params_cpp, List(("step","serialized2datastruct"))).to_command_line
-  val datastruct_identity_cmd =  set_params(params_cpp, List(("step","datastruct_identity"))).to_command_line
+
   val input_vertex : RDD[KValue] =  graph_tri.vertices
   val dataset_raw2 = iq.run_pipe_fun_KValue(
     ser2datastruct_cmd ++ List("--label", "struct"),

@@ -158,12 +158,19 @@ public :
 	return;
       }
       szd = get_nbe_uint8_vect()*vsize;
+      std::cerr << "uintsize" << uint8_vect.size() << std::endl;
+      std::cerr << "szd" << szd << std::endl;
+      std::cerr << "sb" << size_bytes() << std::endl;
+
+      
       if(szd > 0){
 	formated_data.resize(szd);
+
 	std::memcpy(formated_data.data(), &uint8_vect[0],size_bytes());
 	if(do_clean)
 	  uint8_vect.clear();
       }
+      std::cerr << "return" << std::endl;
       return;
     }
 
@@ -178,6 +185,24 @@ public :
       do_exist = true;
     }
 
+
+    template<typename DT>
+    void extract_full_uint8_vect(std::vector<DT> & formated_data, bool do_clean = true){
+      int nbe = get_nbe_uint8_vect();
+      int szb = sizeof(uint8_t)*uint8_vect.size();
+      formated_data.resize(nbe);
+      std::cerr << "szb:" << szb << std::endl;
+      std::cerr << "nbe:" << nbe << std::endl;
+      std::memcpy(formated_data.data(),uint8_vect.data(),szb);
+      if(do_clean){
+	uint8_vect.clear();
+	do_exist = false;
+      }
+    }
+
+
+
+    
 
     void clean_shpt_vect(){
       shpt_vect.reset();
@@ -215,7 +240,8 @@ public :
 
   void init_map(){
     int D = Traits::D;
-    dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,tinyply::Type::INVALID);
+    //    dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,tinyply::Type::INVALID);
+    dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
     dmap[simplex_name] = Data_ply(simplex_name,"face",D+1,D+1,tinyply::Type::INT32);
     dmap[nb_name] = Data_ply(nb_name,"face",D+1,D+1,tinyply::Type::INT32);
   }
@@ -750,18 +776,32 @@ public :
   }
 
   
-  void copy_point(ddt_data & wd, int id){
+  // void copy_point(ddt_data & wd, int id){
+  //   for ( const auto &ee : wd.dmap ) {
+  //     if(ee.second.do_exist){
+  // 	int vnbb =  ee.second.get_vnbb();
+  // 	for(int i = 0 ; i < vnbb; i++){
+  // 	  dmap[ee.first].uint8_vect.push_back(wd.dmap[ee.first].shpt_vect->buffer.get()[id*vnbb+i]);
+  // 	}
+  // 	dmap[ee.first].do_exist = true;
+  //     }
+  //   }
+  // }
+
+
+    void copy_point(ddt_data & wd, int id){
     for ( const auto &ee : wd.dmap ) {
       if(ee.second.do_exist){
 	int vnbb =  ee.second.get_vnbb();
 	for(int i = 0 ; i < vnbb; i++){
-	  dmap[ee.first].uint8_vect.push_back(wd.dmap[ee.first].shpt_vect->buffer.get()[id*vnbb+i]);
+	  dmap[ee.first].uint8_vect.push_back(wd.dmap[ee.first].uint8_vect[id*vnbb+i]);
 	}
 	dmap[ee.first].do_exist = true;
       }
     }
   }
 
+  
 
   Point get_pts(int id,std::vector<std::string> & name){
     std::shared_ptr<tinyply::PlyData> & rp = dmap[name].shpt_vect;
@@ -804,15 +844,44 @@ public :
     return dmap[simplex_name].get_nbe_uint8_vect();
   }
 
-  
-    void extract_ptsvect(std::vector<std::string> & name,std::vector<Point> & formated_data, bool do_clean = true)
+  void extract_ptsvect(std::vector<std::string> & name,std::vector<Point> & formated_data, bool do_clean = true)
     {
+      std::cerr << "0" << std::endl;
       int nbv = dmap[name].get_nbe_shpt_vect();
-        for(int nn = 0; nn < nbv ; nn++)
-            formated_data.push_back(get_pts(nn,name));
-        if(do_clean)
-            dmap[name].clean_shpt_vect();
+      std::cerr << "0.1" << std::endl;
+      if(nbv > 0){
+	for(int nn = 0; nn < nbv ; nn++)
+	  formated_data.push_back(get_pts(nn,name));
+	if(do_clean)
+	  dmap[name].clean_shpt_vect();
+      }
+      std::cerr << "0.2" << std::endl;
+      nbv = dmap[name].get_nbe_uint8_vect();
+      std::cerr << "0.3 : " << nbv <<  std::endl;
+      if(nbv > 0){
+	//	std::vector<Point> input_v;
+	std::cerr << "1" << std::endl;
+	extract_full_shpt_vect(name,formated_data,do_clean);
+	std::cerr << "2" << std::endl;
+	// double coords[Traits::D];
+	// for(int n = 0; n< input_v.size()/(D); n++)
+	//   {
+	//     for(int d = 0; d < D; d++)
+	//       coords[d] = input_v[n*D+d];
+	//     formated_data.push_back(traits.make_point(coords));
+	//   }
+	std::cerr << "3" << std::endl;
+      }
     }
+  
+    // void extract_ptsvect(std::vector<std::string> & name,std::vector<Point> & formated_data, bool do_clean = true)
+    // {
+    //   int nbv = dmap[name].get_nbe_shpt_vect();
+    //     for(int nn = 0; nn < nbv ; nn++)
+    //         formated_data.push_back(get_pts(nn,name));
+    //     if(do_clean)
+    //         dmap[name].clean_shpt_vect();
+    // }
 
 
   

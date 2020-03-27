@@ -101,11 +101,6 @@ object ddt_algo {
         dump_ply_binary_cmd ++ List("--label", "tile_pts"),
         iq.get_kvrdd(res_tiles,"z"), "tile_pts", do_dump = false).collect()
       }
-      if(dim == 2){
-        iq.run_pipe_fun_KValue(
-        tri2geojson_cmd ++ List("--label", "tile_pts"),
-        iq.get_kvrdd(res_tiles,"z"), "tile_pts", do_dump = false).collect()
-      }
     }
 
 
@@ -174,6 +169,14 @@ object ddt_algo {
     val kvrdd_points : RDD[KValue] = iq.get_kvrdd(res_tiles,"z").map(x => ((x._1+  id_pad),x._2)).cogroup(rdd_idmap).filter(
       x => ((!x._2._2.isEmpty) && (!x._2._1.isEmpty))).map(
       x => (x._2._2.head.toLong,x._2._1.reduce(_ ::: _))).map(x => (idmap_sorted(x._1),x._2)).reduceByKey(new HashPartitioner(rep_value),(u,v) => u ::: v).setName("KVRDD_TILING");
+
+
+
+    // if(dim == 2){
+    //   iq.run_pipe_fun_KValue(
+    //     tri2geojson_cmd ++ List("--label", "tile_pts"),
+    //     kvrdd_points,"z"), "tile_pts", do_dump = false).collect()
+    //   }
 
     // val range_p  = new RangePartitioner(rep_value,kvrdd_points) ;
     // kvrdd_points.partitionBy(range_p)
