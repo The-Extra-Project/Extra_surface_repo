@@ -1600,10 +1600,10 @@ int generate_points_normal(Id tid,algo_params & params,ddt::logging_stream & log
  
   ddt::stream_data_header ozh("z","z",tid);
   ozh.write_header(std::cout);
-  // ddt_data<Traits> w_datas;
-  // w_datas.dmap[w_datas.xyz_name].fill_full_uint8_vect(vp);
-  // w_datas.write_serialized_stream(ozh.get_output_stream());
-  ddt::write_point_set_serialized(vp,ozh.get_output_stream(),dim);
+  ddt_data<Traits> w_datas;
+  w_datas.dmap[w_datas.xyz_name].fill_full_uint8_vect(vp);
+  w_datas.write_serialized_stream(ozh.get_output_stream());
+  //  ddt::write_point_set_serialized(vp,ozh.get_output_stream(),dim);
   ozh.finalize();
   std::cout << std::endl;
 
