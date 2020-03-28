@@ -1721,7 +1721,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
   Grid_partitioner part(bbox, ND);
   std::cerr << "read : " << std::endl;
   log.step("read");
-  std::map<Id,ddt_data<Traits> > tile_map;
+  std::map<Id,ddt_data<Traits> > datas_map;
   std::map<Id,std::vector<Point> > vp_map;
   Traits traits;
     
@@ -1729,28 +1729,33 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
     {
       std::vector<Point> vp_in;    
       ddt::stream_data_header hpi;
-      ddt_data<Traits> w_datas;
+
       int count;
       hpi.parse_header(std::cin);
-      if(hpi.get_lab() == "p")
-	{
-	  w_datas.read_ply_stream(hpi.get_input_stream());
-	  count = w_datas.nb_pts_shpt_vect();
-	}
-      if(hpi.get_lab() == "g")
-	{
-	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
-	  count = w_datas.nb_pts_shpt_vect();
-	}
+      Id hid = hpi.get_id(0);
+      //datas_map[hid].dmap[datas_map[hid].xyz_name] = ddt_data<Traits>::Data_ply(datas_map[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+      //      ddt_data<Traits> & w_datas = datas_map[hid];
+      ddt_data<Traits>  w_datas;// = ddt_data<Traits>::Data_ply(datas_map[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+      // if(hpi.get_lab() == "p")
+      // 	{
+      // 	  w_datas.read_ply_stream(hpi.get_input_stream());
+      // 	  count = w_datas.nb_pts_shpt_vect();
+      // 	}
+      // if(hpi.get_lab() == "g")
+      // 	{
+      // 	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+      // 	  count = w_datas.nb_pts_shpt_vect();
+      // 	}
+
       if(hpi.get_lab() == "z" )
 	{
 	  //	  ddt::read_point_set_serialized(vp_in, hpi.get_input_stream(),traits);
-	  ddt_data<Traits> w_datas;
 	  std::cerr << " ======= read serialized ====== " << std::endl;
-	  w_datas.read_serialized_stream(hpi.get_input_stream());
 	  std::cerr << "extract" << std::endl;
 	  //	  w_datas.extract_ptsvect(w_datas.xyz_name,vp_in,false);
-	  w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(vp_in,true);
+
+	  w_datas.read_serialized_stream(hpi.get_input_stream());
+	  w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(vp_in,false);
 	  std::cerr << "done" << std::endl;
 	  count = vp_in.size();
 	  std::cerr << "==== count:" << count << std::endl;
@@ -1785,7 +1790,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	  int pp = part(p);
 	  Id id = Id(pp % NT);
 
-	  if(true){
+	  if(false){
 	    std::vector<double> coords(Traits::D);
 
 	    for(int d = 0 ; d < D; d++){
@@ -1796,12 +1801,12 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	    vp_map[id].emplace_back(traits.make_point(coords.begin()));
 
 	  }else{
-	    auto it = tile_map.find(id);
-	    if(it==tile_map.end())
+	    auto it = datas_map.find(id);
+	    if(it==datas_map.end())
 	      {
-		tile_map[id] = ddt_data<Traits>(w_datas.dmap);
+		datas_map[id] = ddt_data<Traits>(w_datas.dmap);
 	      }
-	    tile_map[id].copy_point(w_datas,count);
+	    datas_map[id].copy_point(w_datas,count);
 	  }
 	}
     }
@@ -1809,7 +1814,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
   std::cerr << "count finalized" << std::endl;
 
   log.step("write");
-  if(true){
+  if(false){
 
     for ( const auto &myPair : vp_map ) {
       Id id = myPair.first;
@@ -1837,10 +1842,12 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
     }
     
   }else{
-    for ( const auto &myPair : tile_map )
+    std::cerr << "ddddmappp" << std::endl;
+    for ( const auto &myPair : datas_map )
       {
 	Id id = myPair.first;
-	int nb_out = tile_map[id].nb_pts_uint8_vect ();
+	int nb_out = datas_map[id].nb_pts_uint8_vect ();
+	std::cerr << "nbout" << nb_out << std::endl;
 	if(nb_out < params.min_ppt)
 	  {
 	    continue;
@@ -1850,8 +1857,8 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	std::string filename(params.output_dir + "/tile_" + params.slabel +"_id_"+ std::to_string(tid) + "_" + std::to_string(id));
 
 	oqh.write_header(std::cout);
-	tile_map[id].write_serialized_stream(oqh.get_output_stream());
-	//	tile_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
+	datas_map[id].write_serialized_stream(oqh.get_output_stream());
+	//	datas_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
 	oqh.finalize();
 	std::cout << std::endl;
 	och.write_header(std::cout);
