@@ -357,6 +357,7 @@ object params_parser {
 
 
     val generate_points_cmd =  set_params(params_cpp,  List(("step","generate_points_" + datatype))).to_command_line
+    val ser2datastruct_cmd =  set_params(params_cpp, List(("step","serialized2datastruct"))).to_command_line
     var kvrdd_points: RDD[KValue] = sc.parallelize(List((0L,List(""))));
     var kvrdd_inputs: RDD[KValue] = sc.parallelize(List((0L,List(""))));
     println("")
@@ -426,6 +427,11 @@ object params_parser {
       }
 
     }
+
+    val struct_inputs = iq.run_pipe_fun_KValue(
+      ser2datastruct_cmd ++ List("--label", "struct"),
+      kvrdd_inputs, "struct", do_dump = false)
+    kvrdd_inputs = iq.get_kvrdd(struct_inputs)
 
     // if(plot_lvl >=3 && dim == 2){
     //   val rdd_json_tri_simp = iq.run_pipe_fun_KValue(

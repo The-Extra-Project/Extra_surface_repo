@@ -166,7 +166,7 @@ for(params_scala <- param_list){
   // =================================================
   // ============  Parsing and init data ===========
   var kvrdd_points: RDD[KValue] = sc.parallelize(List((0L,List(""))));
-  var kvrdd_raw_inputs = format_data(
+  var kvrdd_inputs = format_data(
     params_scala,
     params_cpp,
     global_build_dir,
@@ -177,10 +177,10 @@ for(params_scala <- param_list){
     iq
   )
 
-  val struct_inputs = iq.run_pipe_fun_KValue(
-    ser2datastruct_cmd ++ List("--label", "struct"),
-    kvrdd_raw_inputs, "struct", do_dump = false)
-  val kvrdd_inputs = iq.get_kvrdd(struct_inputs)
+  // val struct_inputs = iq.run_pipe_fun_KValue(
+  //   ser2datastruct_cmd ++ List("--label", "struct"),
+  //   kvrdd_raw_inputs, "struct", do_dump = false)
+  // val kvrdd_inputs = iq.get_kvrdd(struct_inputs)
 
   val struct_inputs_id = iq.run_pipe_fun_KValue(
     datastruct_identity_cmd ++ List("--label", "struct"),
