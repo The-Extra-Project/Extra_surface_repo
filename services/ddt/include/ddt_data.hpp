@@ -452,6 +452,10 @@ public :
     for ( const auto &ee : dmap ) {
       if(ee.second.do_exist){
 	nn++;
+	if(dmap[ee.first].get_nbe_uint8_vect() == 0 &&
+	   dmap[ee.first].get_nbe_shpt_vect() != 0){
+	  dmap[ee.first].shpt_vect2uint8_vect();
+	}
       }
     }
 

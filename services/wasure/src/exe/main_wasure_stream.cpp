@@ -197,7 +197,8 @@ int dim_fun(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
           //       vp.emplace_back(std::make_pair(pp,tid));
 	  //     }
             std::cerr << "start read ply" << std::endl;
-            w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+	    w_datas.read_serialized_stream(hpi.get_input_stream());
+            //w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
             std::cerr << "end read ply" << std::endl;
 	  }
         //}

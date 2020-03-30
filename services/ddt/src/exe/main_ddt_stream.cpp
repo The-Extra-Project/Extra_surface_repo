@@ -1432,6 +1432,7 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
     Traits traits;
 
     Id hid = hpi.get_id(0);
+    std::string ext = hpi.get_ext();
     if(hpi.get_lab() == "t" || hpi.get_lab() == "u" || hpi.get_lab() == "v")
       {
 	std::cerr << "READ:" << hpi.get_lab() << std::endl;
@@ -1441,6 +1442,7 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
 	tile->update_local_flag();
 	typename DDT::Traits::Delaunay_triangulation & ttri = tile->tri();
 	traits.export_tri_to_data(ttri,datas_map[hid]);
+	datas_map[hid].stream_lab = hpi.get_lab();
       } else if(hpi.get_lab() == "p"  || hpi.get_lab() == "z")
       {
 	std::cerr << " " << std::endl;
@@ -1457,12 +1459,18 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
 	    {
 	      vp.emplace_back(pp);
 	    }
-	}
-	datas_map[hid].dmap[datas_map[hid].xyz_name] = ddt_data<Traits>::Data_ply(datas_map[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-	datas_map[hid].dmap[datas_map[hid].xyz_name].fill_full_uint8_vect(vp);
+
+	  datas_map[hid].dmap[datas_map[hid].xyz_name] = ddt_data<Traits>::Data_ply(datas_map[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+	  datas_map[hid].dmap[datas_map[hid].xyz_name].fill_full_uint8_vect(vp);
+
+	} else if(ext == "ply" || hpi.is_stream())
+	  {
+	    datas_map[hid].read_ply_stream(hpi.get_input_stream());
+	  }
+	datas_map[hid].stream_lab = "z";
       }
 
-    datas_map[hid].stream_lab = hpi.get_lab();
+
     std::cerr << "stream lab: " << datas_map[hid].stream_lab << std::endl;
     hpi.finalize();
   }

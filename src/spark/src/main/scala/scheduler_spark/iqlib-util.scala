@@ -346,15 +346,10 @@ object params_parser {
     import files_opt._
 
     val fs = FileSystem.get(sc.hadoopConfiguration);
-
-
-
     val datatype =  params_scala.get_param("datatype", "")
     val regexp_filter = params_scala.get_param("regexp_filter", "");
     val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
     var rep_value = df_par.toLong;
-
-
 
     val generate_points_cmd =  set_params(params_cpp,  List(("step","generate_points_" + datatype))).to_command_line
     val ser2datastruct_cmd =  set_params(params_cpp, List(("step","serialized2datastruct"))).to_command_line
@@ -431,7 +426,7 @@ object params_parser {
     val struct_inputs = iq.run_pipe_fun_KValue(
       ser2datastruct_cmd ++ List("--label", "struct"),
       kvrdd_inputs, "struct", do_dump = false)
-    kvrdd_inputs = iq.get_kvrdd(struct_inputs)
+    val kvrdd_inputs_struct = iq.get_kvrdd(struct_inputs)
 
     // if(plot_lvl >=3 && dim == 2){
     //   val rdd_json_tri_simp = iq.run_pipe_fun_KValue(
@@ -440,7 +435,7 @@ object params_parser {
     //   rdd_json_tri_simp.collect()
     // }
 
-    return kvrdd_inputs
+    return kvrdd_inputs_struct
 
   }
 
