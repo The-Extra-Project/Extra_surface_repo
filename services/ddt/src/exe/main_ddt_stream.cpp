@@ -171,7 +171,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
     {
       ddt::stream_data_header hpi;
       hpi.parse_header(std::cin);
-      if(hpi.get_lab() == "z" )
+      if(hpi.get_lab() == "z"  || hpi.get_lab() == "x")
         {
 	  
 	  ddt_data<Traits> w_datas;
@@ -181,7 +181,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 	  vp.insert(vp.end(), vp1.begin(), vp1.end());
 	  //	  ddt::read_point_set_serialized(vp, hpi.get_input_stream(),traits);
         }
-      if(hpi.get_lab() == "p" || hpi.get_lab() == "x")
+      if(hpi.get_lab() == "p" )
         {
 	  ddt_data<Traits> w_datas;
 	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);

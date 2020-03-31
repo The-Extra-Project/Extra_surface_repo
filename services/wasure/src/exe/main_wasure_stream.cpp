@@ -109,7 +109,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
         int count = w_datas.nb_pts_shpt_vect();
         std::vector<bool> do_keep(count,false);
         std::vector<float> v_xyz;
-        w_datas.dmap[w_datas.xyz_name].extract_full_shpt_vect(v_xyz,false);
+        w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(v_xyz,false);
         for(int jj = 0; jj < count; jj++)
         {
             double coords[Traits::D];
@@ -156,7 +156,9 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
         //    if(!params.do_stream)
         oqh.init_file_name(filename,".ply");
         oqh.write_header(std::cout);
-        tile_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR,false);
+
+	tile_map[id].write_serialized_stream(oqh.get_output_stream());
+        //tile_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR,false);
         //    tile_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
         oqh.finalize();
         std::cout << std::endl;
@@ -187,7 +189,7 @@ int dim_fun(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
         hpi.parse_header(std::cin);
 
         log.step("read");
-        if(hpi.get_lab() == "p" )
+        if(hpi.get_lab() == "z" )
 	  {
 	  // if(hpi.is_serialized()){
 	  //   std::vector<Point> rvp;
@@ -206,9 +208,12 @@ int dim_fun(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
         std::cerr << "finalize" << std::endl;
 
         log.step("compute");
-        w_datas.extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
-        w_datas.extract_ptsvect(w_datas.center_name,w_datas.format_centers,false);
-
+        // w_datas.extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
+        // w_datas.extract_ptsvect(w_datas.center_name,w_datas.format_centers,false);
+	w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(w_datas.format_points,false);
+	std::cerr << "xyz ok" << std::endl;
+	w_datas.dmap[w_datas.center_name].extract_full_uint8_vect(w_datas.format_centers,false);
+	std::cerr << "center ok" << std::endl;
         std::vector<Point> p_simp;
         if(params.pscale >= 0)
         {
@@ -270,11 +275,12 @@ int dim_fun(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 
 
         log.step("write");
-        ddt::stream_data_header oth("p","s",tid);
+        ddt::stream_data_header oth("z","s",tid);
         if(!params.do_stream)
             oth.init_file_name(ply_name,".ply");
         oth.write_header(std::cout);
-        w_datas.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
+	w_datas.write_serialized_stream(oth.get_output_stream());
+        //w_datas.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
         oth.finalize();
         std::cout << std::endl;
         if(p_simp.size() > 0)
@@ -287,7 +293,7 @@ int dim_fun(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
             if(!params.do_stream)
                 oxh.init_file_name(ply_name,".ply");
             oxh.write_header(std::cout);
-            datas_out.write_ply_stream(oxh.get_output_stream(),PLY_CHAR);
+            datas_out.write_serialized_stream(oxh.get_output_stream());
             oxh.finalize();
             std::cout << std::endl;
         }
@@ -330,7 +336,7 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
             w_datas_tri[hid] = wasure_data<Traits>();
             bool do_clean_data = false;
             bool do_serialize = false;
-	    //            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+	    read_ddt_stream(tri, hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
 
         }
         if(hpi.get_lab() == "s")
@@ -342,11 +348,12 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
             }
             w_datas_tri[hid].tile_ids = vv;
         }
-        if(hpi.get_lab() == "p")
+        if(hpi.get_lab() == "z")
         {
 
             w_datas_pts[hid].push_back(wasure_data<Traits>());
-            w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+            //w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+	    w_datas_pts[hid].back().read_serialized_stream(hpi.get_input_stream());
 
         }
         hpi.finalize();
@@ -364,10 +371,13 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
 
         for(auto & wpt : w_datas_pts[it->first])
         {
-            wpt.extract_ptsvect(w_data_full.xyz_name,w_data_full.format_points,false);
+	  //wpt.extract_ptsvect(w_data_full.xyz_name,w_data_full.format_points,false);
+	    wpt.dmap[w_data_full.xyz_name].extract_full_uint8_vect(w_data_full.format_points,false);
+	  //wpt.extract_ptsvect(w_data_full.xyz_name,w_data_full.format_points,false);
             wpt.extract_egv(w_data_full.format_egv,false);
             wpt.extract_sigs(w_data_full.format_sigs,false);
-            wpt.extract_ptsvect(w_data_full.center_name,w_data_full.format_centers,false);
+            //wpt.extract_ptsvect(w_data_full.center_name,w_data_full.format_centers,false);
+	    wpt.dmap[w_data_full.center_name].extract_full_uint8_vect(w_data_full.format_centers,false);
         }
     }
 
@@ -430,7 +440,7 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
     if(!params.do_stream)
         oth.init_file_name(filename,".ply");
     oth.write_header(std::cout);
-    //    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
     std::cout << std::endl;
 
@@ -471,7 +481,7 @@ int dst_conflict(const Id tid,wasure_params & params,int nb_dat,ddt::logging_str
             w_datas_tri[hid] = wasure_data<Traits>();
             bool do_clean_data = false;
             bool do_serialize = false;
-	    //            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
         }
         if(hpi.get_lab() == "s")
         {
@@ -482,13 +492,14 @@ int dst_conflict(const Id tid,wasure_params & params,int nb_dat,ddt::logging_str
             }
             w_datas_tri[hid].tile_ids = vv;
         }
-        if(hpi.get_lab() == "p")
+        if(hpi.get_lab() == "z")
         {
             //      auto wdt = wasure_data<Traits>();
             // if(w_datas_pts.find(hid) == w_datas_pts.end())
             // 	w_datas_pts[hid] = new std::list<wasure_data<Traits>>();
             w_datas_pts[hid].push_back(wasure_data<Traits>());
-            w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+            //w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+	    w_datas_pts[hid].back().read_serialized_stream(hpi.get_input_stream());
 
         }
         hpi.finalize();
@@ -500,10 +511,12 @@ int dst_conflict(const Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     {
         for(auto & wpt : w_datas_pts[it->first])
         {
-            wpt.extract_ptsvect(wpt.xyz_name,wpt.format_points,false);
+	    wpt.dmap[w_data_full.xyz_name].extract_full_uint8_vect(w_data_full.format_points,false);
+          //  wpt.extract_ptsvect(wpt.xyz_name,wpt.format_points,false);
             wpt.extract_egv(wpt.format_egv,false);
             wpt.extract_sigs(wpt.format_sigs,false);
-            wpt.extract_ptsvect(wpt.center_name,wpt.format_centers,false);
+            //wpt.extract_ptsvect(wpt.center_name,wpt.format_centers,false);
+	    wpt.dmap[w_data_full.center_name].extract_full_uint8_vect(w_data_full.format_centers,false);
         }
     }
 
@@ -614,7 +627,7 @@ int dst_conflict(const Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     if(!params.do_stream)
         oth.init_file_name(filename,".ply");
     oth.write_header(std::cout);
-    //    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
     std::cout << std::endl;
     return 0;
@@ -655,7 +668,7 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
             w_datas_tri[hid] = wasure_data<Traits>();
             bool do_clean_data = false;
             bool do_serialize = false;
-	    //            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
 
         }
         if(hpi.get_lab() == "s")
@@ -667,19 +680,21 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
             }
             w_datas_tri[hid].tile_ids = vv;
         }
-        if(hpi.get_lab() == "p")
+        if(hpi.get_lab() == "z")
         {
             //      auto wdt = wasure_data<Traits>();
             // if(w_datas_pts.find(hid) == w_datas_pts.end())
             // 	w_datas_pts[hid] = new std::list<wasure_data<Traits>>();
             w_datas_pts[hid].push_back(wasure_data<Traits>());
-            w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+	    w_datas_pts[hid].back().read_serialized_stream(hpi.get_input_stream());
+            //w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
 
         }
         hpi.finalize();
     }
     log.step("preprocess");
 
+    std::cerr << "dst_step3" << std::endl;
 
     for ( auto it = w_datas_pts.begin(); it != w_datas_pts.end(); it++ )
     {
@@ -691,10 +706,12 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
 
         for(auto & wpt : w_datas_pts[it->first])
         {
-            wpt.extract_ptsvect(wpt.xyz_name,wpt.format_points,false);
+	    wpt.dmap[wpt.xyz_name].extract_full_uint8_vect(wpt.format_points,false);
+            //wpt.extract_ptsvect(wpt.xyz_name,wpt.format_points,false);
             wpt.extract_egv(wpt.format_egv,false);
             wpt.extract_sigs(wpt.format_sigs,false);
-            wpt.extract_ptsvect(wpt.center_name,wpt.format_centers,false);
+	    wpt.dmap[wpt.center_name].extract_full_uint8_vect(wpt.format_centers,false);
+            //wpt.extract_ptsvect(wpt.center_name,wpt.format_centers,false);
         }
 
     }
@@ -758,7 +775,7 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
     if(!params.do_stream)
         oth.init_file_name(filename,".ply");
     oth.write_header(std::cout);
-    //    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
     std::cout << std::endl;
 
@@ -807,7 +824,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
             w_datas_tri[hid] = wasure_data<Traits>();
             bool do_clean_data = false;
             bool do_serialize = false;
-	    //            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
             w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
         }
         tri.finalize(sch);
@@ -942,7 +959,8 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
         datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
         datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(format_points);
         datas_out.dmap[datas_out.simplex_name].fill_full_uint8_vect(v_simplex);
-        datas_out.write_ply_stream(oth.get_output_stream(),'\n',true);
+	datas_out.write_ply_stream(oth.get_output_stream(),'\n',true);
+
         break;
     }
     default :             // Note the colon, not a semicolon
@@ -987,7 +1005,7 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
             w_datas_tri[hid] = wasure_data<Traits>();
             bool do_clean_data = false;
             bool do_serialize = false;
-	    //            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
             w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
         }
         hpi.finalize();
@@ -1177,7 +1195,7 @@ int extract_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
             w_datas_tri[hid] = wasure_data<Traits>();
             bool do_clean_data = false;
             bool do_serialize = false;
-	    //            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
             w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
 	    //            w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
             std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
@@ -1286,7 +1304,7 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
             w_datas_tri[hid] = wasure_data<Traits>();
             bool do_clean_data = false;
             bool do_serialize = false;
-	    //            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
             //w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
             //w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
             //w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
@@ -1377,7 +1395,7 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
     if(!params.do_stream)
         oth.init_file_name(filename,".ply");
     oth.write_header(std::cout);
-    //    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
     std::cerr << "done" << tid << std::endl;
     std::cout << std::endl;
@@ -1414,7 +1432,7 @@ int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
             w_datas_tri[hid] = wasure_data<Traits>();
             bool do_clean_data = false;
             bool do_serialize = false;
-	    //            read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
             w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
 
             std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
@@ -1453,7 +1471,7 @@ int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
     oth.write_header(std::cout);
 
 
-    //    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
     std::cout << std::endl;
 
@@ -1486,7 +1504,7 @@ int tri2geojson(Id tid,wasure_params & params, int nb_dat,ddt::logging_stream & 
             w_datas_tri[hid] = wasure_data<Traits>();
             bool do_clean_data = false;
             bool do_serialize = false;
-	    //            ddt::read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+	    ddt::read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
             w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
         }
         tri.finalize(sch);

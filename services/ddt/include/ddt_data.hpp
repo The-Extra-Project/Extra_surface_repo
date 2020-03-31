@@ -161,11 +161,8 @@ public :
       std::cerr << "uintsize" << uint8_vect.size() << std::endl;
       std::cerr << "szd" << szd << std::endl;
       std::cerr << "sb" << size_bytes() << std::endl;
-
-      
       if(szd > 0){
 	formated_data.resize(szd);
-
 	std::memcpy(formated_data.data(), &uint8_vect[0],size_bytes());
 	if(do_clean)
 	  uint8_vect.clear();
@@ -194,10 +191,13 @@ public :
       std::cerr << "szb:" << szb << std::endl;
       std::cerr << "nbe:" << nbe << std::endl;
       std::memcpy(formated_data.data(),uint8_vect.data(),szb);
+      std::cerr << "ok" << std::endl;
       if(do_clean){
 	uint8_vect.clear();
 	do_exist = false;
       }
+      std::cerr << "done" << std::endl;
+      
     }
 
 
@@ -244,6 +244,7 @@ public :
     dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
     dmap[simplex_name] = Data_ply(simplex_name,"face",D+1,D+1,tinyply::Type::INT32);
     dmap[nb_name] = Data_ply(nb_name,"face",D+1,D+1,tinyply::Type::INT32);
+    dmap[center_name] = Data_ply(center_name,"vertex",D,D,tinyply::Type::INVALID);
   }
 
 
@@ -260,6 +261,7 @@ public :
     flag_simplex_name = {"flag_s"};
     nb_name = {"nb_indices"};
     gid_name = {"gid"};
+    center_name = subvect({"x_origin","y_origin","z_origin","t_origin"},D);
   }
   
   ddt_data<Traits>(){
@@ -865,7 +867,8 @@ public :
       if(nbv > 0){
 	//	std::vector<Point> input_v;
 	std::cerr << "1" << std::endl;
-	extract_full_shpt_vect(name,formated_data,do_clean);
+	//extract_full_shpt_vect(name,formated_data,do_clean);
+	dmap[name].extract_full_uint8_vect(formated_data,true);
 	std::cerr << "2" << std::endl;
 	// double coords[Traits::D];
 	// for(int n = 0; n< input_v.size()/(D); n++)
@@ -901,7 +904,7 @@ public :
     flag_vertex_name,
     flag_simplex_name,
     gid_name,
-    simplex_name,nb_name;      
+    simplex_name,nb_name,center_name;      
 };
 
 #endif

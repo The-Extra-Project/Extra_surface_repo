@@ -219,7 +219,7 @@ params_scala("t0") = collection.mutable.Set(t0.toString)
 val res_dim = iq.run_pipe_fun_KValue(
   dim_cmd ++ List("--label", "dim"),
   kvrdd_points, "dim", do_dump = false).persist(slvl_glob)
-val kvrdd_dim = iq.get_kvrdd(res_dim,"p");
+val kvrdd_dim = iq.get_kvrdd(res_dim,"z");
 val kvrdd_simp = iq.get_kvrdd(res_dim,"x").reduceByKey((u,v) => u ::: v,rep_loop);
 
 

@@ -10,6 +10,8 @@
 namespace ddt
 {
 
+
+  
 template<typename DDTT,typename Scheduler >
 int read_ddt_full_stream(DDTT & ddt, std::istream & ifile, int nb_dat,ddt::logging_stream & log)
 {
@@ -30,6 +32,14 @@ int read_ddt_full_stream(DDTT & ddt, std::istream & ifile, int nb_dat,ddt::loggi
     return 0; // FIXME ?
 }
 
+
+
+  template<typename DDT,typename WD>
+  int read_ddt_stream(DDT & ddt, WD & wd,  std::istream & ifile, typename DDT::Id tid,bool do_serialize, bool do_clean_data, ddt::logging_stream & log)
+{
+    read_ddt_stream(ddt,ifile, tid,do_serialize,  do_clean_data, log);
+    wd.read_serialized_stream(ifile);
+}
 
 
 template<typename DDT>
@@ -58,6 +68,12 @@ int read_ddt_stream(DDT & ddt,  std::istream & ifile, typename DDT::Id tid,bool 
     return 0; // FIXME ?
 }
 
+  template<typename DDT,typename WD>
+std::ostream & write_ddt_stream(const DDT& ddt, const WD& wd , std::ostream & ofile, int tid,bool do_serialize,ddt::logging_stream & log)
+{
+  write_ddt_stream(ddt, ofile, tid,do_serialize, log);
+  wd.write_serialized_stream(ofile);
+}
 
 
 template<typename DDT>
