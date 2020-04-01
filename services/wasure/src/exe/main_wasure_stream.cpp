@@ -375,14 +375,11 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
         {
 	  //wpt.extract_ptsvect(w_data_full.xyz_name,w_data_full.format_points,false);
 	  std::cerr << "extract xyz" << std::endl;
-	  std::vector<Point>  format_points;
-	  wpt.dmap[w_data_full.xyz_name].extract_full_uint8_vect(w_data_full.format_points,false);
-
-	  // for(auto pp : w_data_full.format_points)
-	  //   std::cerr << "pp:" << pp << std::endl;
-	  //	  w_data_full.format_points.insert(w_data_full.format_points.end(),format_points.begin(),format_points.end());
+	  wpt.dmap[wpt.xyz_name].extract_full_uint8_vect(wpt.format_points,false);
+	  w_data_full.format_points.insert(w_data_full.format_points.end(),wpt.format_points.begin(),wpt.format_points.end());
 	  std::cerr << "extract centers" << std::endl;
-	  wpt.dmap[w_data_full.center_name].extract_full_uint8_vect(w_data_full.format_centers,false);
+	  wpt.dmap[wpt.center_name].extract_full_uint8_vect(wpt.format_centers,false);
+	  w_data_full.format_centers.insert(w_data_full.format_centers.end(),wpt.format_centers.begin(),wpt.format_centers.end());
 	  std::cerr << "extract sig" << std::endl;
 	  //wpt.dmap[w_data_full.sig_name].extract_full_uint8_vect(w_data_full.format_sigs,false);
 	  wpt.extract_sigs(w_data_full.format_sigs,false);
@@ -402,7 +399,8 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
     std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
     if(format_dst.size() == 0)
     {
-        int nbs = w_datas_tri[tid].nb_simplex_shpt_vect();
+        Tile_iterator  tile1  = tri.get_tile(tid);
+        int nbs = tile1->number_of_cells();//w_datas_tri[tid].nb_simplex_uint8_vect();
         for(int ss = 0; ss < nbs ; ss++)
         {
             format_dst.push_back(std::vector<double>({0.0,0.0,1.0}));
@@ -458,6 +456,7 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
         oth.init_file_name(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    std::cerr << "stream dumped" << std::endl;
     oth.finalize();
     std::cout << std::endl;
 
@@ -539,7 +538,7 @@ int dst_conflict(const Id tid,wasure_params & params,int nb_dat,ddt::logging_str
 
     std::cerr << "dst_step3" << std::endl;
     std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
-    int nbs = w_datas_tri[tid].nb_simplex_shpt_vect();
+    int nbs = w_datas_tri[tid].nb_simplex_uint8_vect();
     if(format_dst.size() == 0)
     {
         for(int ss = 0; ss < nbs ; ss++)
@@ -737,7 +736,7 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
     std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
     if(format_dst.size() == 0)
     {
-        int nbs = w_datas_tri[tid].nb_simplex_shpt_vect();
+        int nbs = w_datas_tri[tid].nb_simplex_uint8_vect();
         for(int ss = 0; ss < nbs ; ss++)
         {
             format_dst.push_back(std::vector<double>({0.0,0.0,1.0}));
@@ -1218,7 +1217,7 @@ int extract_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
             std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
             if(format_labs.size() == 0)
             {
-                int nbs = w_datas_tri[hid].nb_simplex_shpt_vect();
+                int nbs = w_datas_tri[hid].nb_simplex_uint8_vect();
                 for(int ss = 0; ss < nbs ; ss++)
                 {
                     format_labs.push_back(0);
@@ -1381,7 +1380,7 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
     }
 
     std::cerr << "start processing2" << std::endl;
-    int nbs = w_datas_tri[tid].nb_simplex_shpt_vect();
+    int nbs = w_datas_tri[tid].nb_simplex_uint8_vect();
     std::cerr << "start processing2b" << std::endl;
     std::vector<int>  & format_labs = w_datas_tri[tid].format_labs ;
     format_labs.resize(nbs);
@@ -1455,7 +1454,7 @@ int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
             std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
             if(format_labs.size() == 0)
             {
-                int nbs = w_datas_tri[hid].nb_simplex_shpt_vect();
+                int nbs = w_datas_tri[hid].nb_simplex_uint8_vect();
                 for(int ss = 0; ss < nbs ; ss++)
                 {
                     format_labs.push_back(0);

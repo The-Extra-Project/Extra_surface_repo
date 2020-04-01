@@ -481,6 +481,7 @@ public :
     for ( const auto &ee : dmap ) {
       if(ee.second.do_exist){
 	int nbe = dmap[ee.first].get_nbe_uint8_vect();
+	std::cerr << "nbe:" << nbe << std::endl;
 	auto vv = dmap[ee.first].uint8_vect;
 	ss << dmap[ee.first].vname.size() << " ";
 	for(auto nn : dmap[ee.first].vname){
@@ -489,7 +490,9 @@ public :
 	ss << ee.second.part << " ";
 	ss << ee.second.get_vsize() << " ";
 	ss << ((int) ee.second.type) << " ";
+	std::cerr << "start ser" << std::endl;
 	serialize_b64_vect(vv,ss);
+	std::cerr << "ser done" << std::endl;
 	ss << " ";
       }
     }

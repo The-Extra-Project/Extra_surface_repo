@@ -73,6 +73,7 @@ std::ostream & write_ddt_stream(const DDT& ddt, const WD& wd , std::ostream & of
 {
   write_ddt_stream(ddt, ofile, tid,do_serialize, log);
   wd.write_serialized_stream(ofile);
+  return ofile;
 }
 
 
