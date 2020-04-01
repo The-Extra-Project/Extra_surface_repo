@@ -265,7 +265,9 @@ int dim_fun(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
             }
         }
 
+	//w_datas.dmap[w_datas.egv_name].fill_full_uint8_vect(w_datas.format_egv);
         w_datas.fill_egv(w_datas.format_egv);
+	//w_datas.dmap[w_datas.sig_name].fill_full_uint8_vect(w_datas.format_sigs);
         w_datas.fill_sigs(w_datas.format_sigs);
 
 
@@ -359,8 +361,8 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
         hpi.finalize();
     }
     log.step("preprocess");
-
-
+    
+    std::cerr << "dst exrract pts dat" << std::endl;
     for ( auto it = w_datas_pts.begin(); it != w_datas_pts.end(); it++ )
     {
 
@@ -369,15 +371,30 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
         //   w_datas_pts[it->first].extract_egv(w_datas_pts[it->first].format_egv,false);
         //   w_datas_pts[it->first].extract_sigs(w_datas_pts[it->first].format_sigs,false);
 
-        for(auto & wpt : w_datas_pts[it->first])
+      for(auto & wpt : w_datas_pts[it->first])
         {
 	  //wpt.extract_ptsvect(w_data_full.xyz_name,w_data_full.format_points,false);
-	    wpt.dmap[w_data_full.xyz_name].extract_full_uint8_vect(w_data_full.format_points,false);
+	  std::cerr << "extract xyz" << std::endl;
+	  std::vector<Point>  format_points;
+	  wpt.dmap[w_data_full.xyz_name].extract_full_uint8_vect(w_data_full.format_points,false);
+
+	  // for(auto pp : w_data_full.format_points)
+	  //   std::cerr << "pp:" << pp << std::endl;
+	  //	  w_data_full.format_points.insert(w_data_full.format_points.end(),format_points.begin(),format_points.end());
+	  std::cerr << "extract centers" << std::endl;
+	  wpt.dmap[w_data_full.center_name].extract_full_uint8_vect(w_data_full.format_centers,false);
+	  std::cerr << "extract sig" << std::endl;
+	  //wpt.dmap[w_data_full.sig_name].extract_full_uint8_vect(w_data_full.format_sigs,false);
+	  wpt.extract_sigs(w_data_full.format_sigs,false);
+	  std::cerr << "extract egv" << std::endl;
+	  wpt.extract_egv(w_data_full.format_egv,false);
+	  //wpt.dmap[w_data_full.egv_name].extract_full_uint8_vect(w_data_full.format_egv,false);
+
+
+
+	  //wpt.extract_ptsvect(w_data_full.center_name,w_data_full.format_centers,false);
 	  //wpt.extract_ptsvect(w_data_full.xyz_name,w_data_full.format_points,false);
-            wpt.extract_egv(w_data_full.format_egv,false);
-            wpt.extract_sigs(w_data_full.format_sigs,false);
-            //wpt.extract_ptsvect(w_data_full.center_name,w_data_full.format_centers,false);
-	    wpt.dmap[w_data_full.center_name].extract_full_uint8_vect(w_data_full.format_centers,false);
+
         }
     }
 
@@ -1541,10 +1558,11 @@ int ply2geojson(Id tile_id,wasure_params & params,int nb_dat)
         wasure_data<Traits> w_datas;
         hpi.parse_header(std::cin);
 
-        if(hpi.get_lab() == "p")
+        if(hpi.get_lab() == "z")
         {
             std::cerr << "start read ply" << std::endl;
-            w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+            //w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+	    w_datas.read_serialized_stream(hpi.get_input_stream());
             std::cerr << "end read ply" << std::endl;
         }
         hpi.finalize();
@@ -1562,8 +1580,8 @@ int ply2geojson(Id tile_id,wasure_params & params,int nb_dat)
         oqh_2.write_header(std::cout);
         oqh_3.init_file_name(filename,"_nrm.geojson");
         oqh_3.write_header(std::cout);
-        w_datas.write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
-        w_datas.write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
+        //w_datas.write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
+        //w_datas.write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
         w_datas.write_geojson_norms(oqh_3.get_output_stream());
 
         oqh_1.finalize();

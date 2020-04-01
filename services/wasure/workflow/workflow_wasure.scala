@@ -240,7 +240,13 @@ val (graph_tri,log_tri,stats_tri)  = ddt_algo.compute_ddt(
 val graph_pts = Graph(kvrdd_dim.reduceByKey( (u,v) => u ::: v), graph_tri.edges, List(""));
 val stats_kvrdd = kvrdd_simplex_id(stats_tri,sc)
 val graph_stats = Graph(stats_kvrdd, graph_tri.edges, List(""));
-val input_dst = (graph_tri.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
+//val input_dst = (graph_tri.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
+val input_dst = (graph_tri.vertices).union(graph_pts.vertices).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
+
+val datastruct_identity_cmd =  set_params(params_ddt, List(("step","datastruct_identity"))).to_command_line
+val struct_inputs_id = iq.run_pipe_fun_KValue(
+  datastruct_identity_cmd ++ List("--label", "struct"),
+  graph_pts.vertices, "struct", do_dump = false)
 
 
 println("============= Simplex score computation ===============")

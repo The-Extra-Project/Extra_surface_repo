@@ -182,16 +182,31 @@ public :
       do_exist = true;
     }
 
+    
 
     template<typename DT>
     void extract_full_uint8_vect(std::vector<DT> & formated_data, bool do_clean = true){
       int nbe = get_nbe_uint8_vect();
       int szb = sizeof(uint8_t)*uint8_vect.size();
       formated_data.resize(nbe);
-      std::cerr << "szb:" << szb << std::endl;
-      std::cerr << "nbe:" << nbe << std::endl;
       std::memcpy(formated_data.data(),uint8_vect.data(),szb);
-      std::cerr << "ok" << std::endl;
+
+      if(do_clean){
+	uint8_vect.clear();
+	do_exist = false;
+      }
+      std::cerr << "done" << std::endl;
+      
+    }
+
+
+    template<typename DT>
+    void extract_raw_uint8_vect(std::vector<DT> & formated_data, bool do_clean = true){
+      int nbe = get_nbe_uint8_vect()*vsize;
+      int szb = sizeof(uint8_t)*uint8_vect.size();
+      formated_data.resize(nbe);
+      std::memcpy(formated_data.data(),uint8_vect.data(),szb);
+
       if(do_clean){
 	uint8_vect.clear();
 	do_exist = false;
@@ -244,7 +259,7 @@ public :
     dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
     dmap[simplex_name] = Data_ply(simplex_name,"face",D+1,D+1,tinyply::Type::INT32);
     dmap[nb_name] = Data_ply(nb_name,"face",D+1,D+1,tinyply::Type::INT32);
-    dmap[center_name] = Data_ply(center_name,"vertex",D,D,tinyply::Type::INVALID);
+    dmap[center_name] = Data_ply(center_name,"vertex",D,D,DATA_FLOAT_TYPE);
   }
 
 
@@ -490,11 +505,14 @@ public :
       int dim,vs,dn_size;
       tinyply::Type tt;
       ss >> dn_size;
+      std::cerr << "---" << std::endl;
       for(int i = 0; i < dn_size; i++){
 	std::string nnn;
 	ss >> nnn;
+	std::cerr << nnn << "-";
 	data_name.push_back(nnn);
       }
+      std::cerr << std::endl;
       ss >> tt_name;
       ss >> vs;
       int ttti;
