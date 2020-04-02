@@ -36,14 +36,31 @@ int read_ddt_full_stream(DDTT & ddt, std::istream & ifile, int nb_dat,ddt::loggi
 
   template<typename DDT,typename WD>
   int read_ddt_stream(DDT & ddt, WD & wd,  std::istream & ifile, typename DDT::Id tid,bool do_serialize, bool do_clean_data, ddt::logging_stream & log)
-{
-    read_ddt_stream(ddt,ifile, tid,do_serialize,  do_clean_data, log);
-    wd.read_serialized_stream(ifile);
-}
+  {
+    int dd;
+    ifile >> dd;
+    if(dd == 1)
+      wd.read_serialized_stream(ifile);
+    read_ddt_stream_core(ddt,ifile, tid,do_serialize,  do_clean_data, log);
 
+    return 0;
+  }
+
+  template<typename DDT>
+  int read_ddt_stream(DDT & ddt,  std::istream & ifile, typename DDT::Id tid,bool do_serialize, bool do_clean_data, ddt::logging_stream & log)
+  {
+    int dd;
+    ifile >> dd;
+    if(dd != 0)
+      std::cerr <<  "DD should be 0!!";
+    read_ddt_stream_core(ddt,ifile, tid,do_serialize,  do_clean_data, log);
+
+    return 0;
+  }
+  
 
 template<typename DDT>
-int read_ddt_stream(DDT & ddt,  std::istream & ifile, typename DDT::Id tid,bool do_serialize, bool do_clean_data, ddt::logging_stream & log)
+int read_ddt_stream_core(DDT & ddt,  std::istream & ifile, typename DDT::Id tid,bool do_serialize, bool do_clean_data, ddt::logging_stream & log)
 {
 
 
@@ -55,13 +72,11 @@ int read_ddt_stream(DDT & ddt,  std::istream & ifile, typename DDT::Id tid,bool 
     ttraits.deserialize_b64_cgal(ttri,ifile);
     deserialize_b64_vect(tile->tile_ids,ifile);
 	
-      std::string input;
-      std::getline(ifile, input);
-      std::stringstream ifile2(input);
-      ddt::read_map_stream(tile->points_sent_,ifile2,tile->traits());
-      ddt::read_json_stream<typename DDT::Tile_iterator, typename DDT::Id>(tile,ifile2);
-
-
+    std::string input;
+    std::getline(ifile, input);
+    std::stringstream ifile2(input);
+    ddt::read_map_stream(tile->points_sent_,ifile2,tile->traits());
+    ddt::read_json_stream<typename DDT::Tile_iterator, typename DDT::Id>(tile,ifile2);
 
     tile->set_id(tid);
     tile->finalize();
@@ -71,14 +86,25 @@ int read_ddt_stream(DDT & ddt,  std::istream & ifile, typename DDT::Id tid,bool 
   template<typename DDT,typename WD>
 std::ostream & write_ddt_stream(const DDT& ddt, const WD& wd , std::ostream & ofile, int tid,bool do_serialize,ddt::logging_stream & log)
 {
-  write_ddt_stream(ddt, ofile, tid,do_serialize, log);
+  ofile << " 1 ";
   wd.write_serialized_stream(ofile);
+  write_ddt_stream_core(ddt, ofile, tid,do_serialize, log);
   return ofile;
 }
 
 
-template<typename DDT>
+  template<typename DDT>
 std::ostream & write_ddt_stream(const DDT& ddt, std::ostream & ofile, int tid,bool do_serialize,ddt::logging_stream & log)
+{
+
+  ofile << " 0 ";
+  write_ddt_stream_core(ddt, ofile, tid,do_serialize, log);
+
+  return ofile;
+}
+  
+template<typename DDT>
+std::ostream & write_ddt_stream_core(const DDT& ddt, std::ostream & ofile, int tid,bool do_serialize,ddt::logging_stream & log)
 {
 
     //std::cout << "write tile [id:" << tid << "]" << std::endl;
