@@ -85,6 +85,7 @@ var param_list = parse_xml_datasets_2(env_xml)
 val df_par = sc.defaultParallelism;
 val params_scala = param_list(0) // We only process 1 set of parameter in this workflow
 var acc=0;
+    val defaultV = (List(""));
 for(params_scala <- param_list){
 
   // ===============================================
@@ -234,7 +235,10 @@ for(params_scala <- param_list){
     params_cpp = params_cpp,
     params_scala = params_scala
   );
-  val stats_cum = kvrdd_simplex_id(kvrdd_stats,sc)
+
+
+  val kvrdd_tri_gid = ddt_algo.update_global_ids(graph_tri.vertices,kvrdd_stats,iq, params_cpp,sc)
+  val graph_tri_gid = Graph(kvrdd_tri_gid, graph_tri.edges, defaultV)
 
   println("========= PLY extraction =============")
   if(dump_mode != "NONE"){
@@ -248,7 +252,7 @@ for(params_scala <- param_list){
 
 
   if(dim == 2 && dump_mode == "NONE"){
-    ddt_algo.extract_2D_voronoi(graph_tri, stats_cum,iq,params_cpp,params_scala);
+    ddt_algo.extract_2D_voronoi(graph_tri_gid, iq,params_cpp,params_scala);
   }
 
 

@@ -26,6 +26,7 @@ import org.apache.spark.HashPartitioner
 
 import iqlibc._;
 import iqlibu._;
+import algo_stats._;
 import iqlibc.IQlibCore._;
 import xml_parsing._;
 import bash_funcs._
@@ -71,6 +72,18 @@ object ddt_algo {
     params_scala("[time]" + "%03d".format(id) + "_" + label) = collection.mutable.Set(time_string)
   }
 
+
+
+  def update_global_ids(kvrdd_finalized_tri : RDD[KValue],kvrdd_stats : RDD[KValue],iq : IQlibSched , params_cpp : params_map, sc : SparkContext) : RDD[KValue] = {
+
+    val stats_cum = kvrdd_simplex_id(kvrdd_stats,sc);
+    val update_global_id_cmd =  set_params(params_cpp, List(("step","update_global_id"))).to_command_line
+    val res_tri_gid = iq.run_pipe_fun_KValue(
+      update_global_id_cmd,
+      (kvrdd_finalized_tri union stats_cum).reduceByKey(_ ::: _), "ext_gr", do_dump = false).filter(!_.isEmpty())
+    val kvrdd_gid_tri = iq.get_kvrdd(res_tri_gid)
+    return kvrdd_gid_tri;
+  }
 
   def compute_tiling_2(kvrdd_inputs : RDD[KValue],iq : IQlibSched,params_cpp : params_map,params_scala : params_map ) : RDD[KValue] = {
 
@@ -431,7 +444,6 @@ object ddt_algo {
 
     update_time(params_scala,"ddtdone");
 
-
     // Ploting section
     if(plot_lvl >=2 && dim_algo.toInt == 2){
       val rdd_json_merged_tri = iq.run_pipe_fun_KValue(
@@ -458,20 +470,20 @@ object ddt_algo {
 
 
   // Ok this is not optimal but it's working
-  def extract_2D_voronoi(graph_tri : TGraph, stats_cum : RDD[KValue],  iq : IQlibSched,params_cpp : params_map,params_scala : params_map){
+  def extract_2D_voronoi(graph_tri : TGraph,  iq : IQlibSched,params_cpp : params_map,params_scala : params_map){
 
     val update_global_id_cmd =  set_params(params_cpp, List(("step","update_global_id"))).to_command_line
     val extract_graph_local_cmd =  set_params(params_cpp, List(("step","extract_voronoi"),("area_processed","1"))).to_command_line
     val extract_graph_shared_cmd =  set_params(params_cpp, List(("step","extract_voronoi"),("area_processed","2"))).to_command_line
 
-    // Update global id of the voronoi function
-    val res_tri_gid = iq.run_pipe_fun_KValue(
-      update_global_id_cmd,
-      (graph_tri.vertices union stats_cum).reduceByKey(_ ::: _), "ext_gr", do_dump = false).filter(!_.isEmpty())
-    val kvrdd_gid_tri = iq.get_kvrdd(res_tri_gid)
+    // // Update global id of the voronoi function
+    // val res_tri_gid = iq.run_pipe_fun_KValue(
+    //   update_global_id_cmd,
+    //   (graph_tri.vertices union stats_cum).reduceByKey(_ ::: _), "ext_gr", do_dump = false).filter(!_.isEmpty())
+    val kvrdd_gid_tri = graph_tri.vertices //iq.get_kvrdd(res_tri_gid)
 
     // Build the full graph
-    val graph_full = Graph((kvrdd_gid_tri union stats_cum).reduceByKey(_ ::: _) , graph_tri.edges, List(""))
+    val graph_full = graph_tri //Graph((kvrdd_gid_tri union stats_cum).reduceByKey(_ ::: _) , graph_tri.edges, List(""))
     val input_vertex : RDD[KValue] =  graph_full.vertices
     val input_edges : RDD[KValue] =  graph_full.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr))
 

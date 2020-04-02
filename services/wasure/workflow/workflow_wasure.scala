@@ -238,10 +238,14 @@ val (graph_tri,log_tri,stats_tri)  = ddt_algo.compute_ddt(
 );
 
 
+val kvrdd_tri_gid = ddt_algo.update_global_ids(graph_tri.vertices,kvrdd_stats,iq, params_cpp,sc)
+val graph_tri_gid = Graph(kvrdd_tri_gid, graph_tri.edges, defaultV)
+
+
 val graph_pts = Graph(kvrdd_dim.reduceByKey( (u,v) => u ::: v), graph_tri.edges, List(""));
 val stats_kvrdd = kvrdd_simplex_id(stats_tri,sc)
 val graph_stats = Graph(stats_kvrdd, graph_tri.edges, List(""));
-val input_dst = (graph_tri.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
+val input_dst = (graph_tri_gid.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
 //val input_dst = (graph_tri.vertices).union(graph_pts.vertices).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
 
 val datastruct_identity_cmd =  set_params(params_ddt, List(("step","datastruct_identity"))).to_command_line
