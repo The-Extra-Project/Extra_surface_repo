@@ -165,6 +165,7 @@ params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
 
 // General c++ commands
 val ply2geojson_cmd =  set_params(params_ddt, List(("step","ply2geojson"))).to_command_line
+val tri2geojson_cmd =  set_params(params_ddt, List(("step","tri2geojson"))).to_command_line
 val ply2dataset_cmd =  set_params(params_ddt, List(("step","ply2dataset"))).to_command_line
 val extract_struct_cmd =  set_params(params_ddt, List(("step","extract_struct"))).to_command_line
 val dump_ply_binary_cmd =  set_params(params_ddt, List(("step","dump_ply_binary"),("output_dir", output_dir))).to_command_line
@@ -240,8 +241,8 @@ val (graph_tri,log_tri,stats_tri)  = ddt_algo.compute_ddt(
 val graph_pts = Graph(kvrdd_dim.reduceByKey( (u,v) => u ::: v), graph_tri.edges, List(""));
 val stats_kvrdd = kvrdd_simplex_id(stats_tri,sc)
 val graph_stats = Graph(stats_kvrdd, graph_tri.edges, List(""));
-//val input_dst = (graph_tri.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
-val input_dst = (graph_tri.vertices).union(graph_pts.vertices).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
+val input_dst = (graph_tri.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
+//val input_dst = (graph_tri.vertices).union(graph_pts.vertices).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
 
 val datastruct_identity_cmd =  set_params(params_ddt, List(("step","datastruct_identity"))).to_command_line
 val struct_inputs_id = iq.run_pipe_fun_KValue(
@@ -314,12 +315,12 @@ if(false){
 }
 
 // ====== Dump geojson ======
-if(plot_lvl > 0){
+if(true){
 
   dim match {
     case 2 => {
       val rdd_json_dst = iq.run_pipe_fun_KValue(
-        ply2geojson_cmd ++ List("--label", "dst","--style","tri_dst.qml"),
+        tri2geojson_cmd ++ List("--label", "dst","--style","tri_dst.qml"),
         kvrdd_dst, "dst", do_dump = false)
       rdd_json_dst.collect()
 

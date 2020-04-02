@@ -22,7 +22,7 @@ function run_algo_docker
 {
     echo ""
     echo "##  ------  ${FUNCNAME[1]}  ------" 
-    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c 1 -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
+    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c 4 -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
     echo ${CMD}
     if [ "$DO_RUN" = true ] ; then
 	eval ${CMD}
@@ -86,12 +86,12 @@ function run_2d_wasure
 
 
 # ========== Random ddt workflow =============
-run_all_tests
+#run_all_tests
 #run_2d_ddt_random
 #run_3d_ddt_random
 
 # ==== 2D surface reconstruction workflow ====
-#run_2d_wasure
+run_2d_wasure
 
 
 

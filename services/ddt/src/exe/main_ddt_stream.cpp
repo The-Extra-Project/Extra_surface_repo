@@ -830,7 +830,7 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
       {
 	std::cerr << "READ:" << hpi.get_lab() << std::endl;
 	bool do_clean_data = true;
-	read_ddt_stream(tri1,hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+	read_ddt_stream(tri1,w_datas,hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
 	auto  tile  = tri1.get_tile(tid);
 	tile->update_local_flag();
 	typename DDT::Traits::Delaunay_triangulation & ttri = tile->tri();

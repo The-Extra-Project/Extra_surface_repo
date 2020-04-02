@@ -450,7 +450,7 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
     std::cerr << "dst_step6" << std::endl;
     std::cout.clear();
     //  log.step("Write header");
-    ddt::stream_data_header oth("t","s",tid);
+    ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
     if(!params.do_stream)
         oth.init_file_name(filename,".ply");
@@ -786,7 +786,7 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
     std::cerr << "dst_step6" << std::endl;
     std::cout.clear();
     //  log.step("Write header");
-    ddt::stream_data_header oth("t","s",tid);
+    ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
     if(!params.do_stream)
         oth.init_file_name(filename,".ply");
