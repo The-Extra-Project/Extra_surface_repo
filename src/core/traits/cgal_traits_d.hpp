@@ -946,15 +946,24 @@ struct Cgal_traits_d
         std::map<Cell_const_handle, uint> cell_map;
         i = 0;
 
+	
+	int max_id = 0;
 
+	for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
+        {
+	  if(it->data().gid > max_id)
+	    max_id = it->data().gid;
+	}
+	max_id++;
         for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
         {
 
 
-            int ii = i;
+	  //int ii = i;
             //  if(!do_init_id)
-            // int ii =  it->data().id;
-
+            int ii =  it->data().gid;
+	    if(ii == 1)
+	      ii = max_id++;
             cell_map[it] = ii;
             ++i;
             for(int d = 0; d < D+1; d++)
@@ -1053,6 +1062,7 @@ struct Cgal_traits_d
 
         //std::cout << "number of cells to read.." << num_c << std::endl;
 
+	
         for(uint ii = 0; ii < num_c; ++ii)
         {
             Cell_handle ch = tri.new_full_cell();

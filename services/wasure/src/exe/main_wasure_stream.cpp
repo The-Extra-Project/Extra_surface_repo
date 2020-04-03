@@ -421,17 +421,17 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
             //            for(auto & wpt : w_datas_pts[it->first]){
             for(auto wpt = w_datas_pts[it->first].begin() ; wpt != w_datas_pts[it->first].end() ; wpt++)
             {
-                w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],*wpt,params);
+	      w_algo.compute_dst_with_center(tri,w_datas_tri[tid],*wpt,params,tid);
             }
         }
     }
     else   // Only On local pts
     {
-        w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],w_data_full,params);
+      w_algo.compute_dst_with_center(tri,w_datas_tri[tid],w_data_full,params,tid);
         // for(auto wpt = w_datas_pts[tid].begin() ; wpt != w_datas_pts[tid].end() ; wpt++){
-        // 	w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],*wpt,params);
+        // 	w_algo.compute_dst_with_center(tri,w_datas_tri[tid],*wpt,params);
         // }
-        //w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],*w_datas_pts[tid].begin(),params);
+        //w_algo.compute_dst_with_center(tri,w_datas_tri[tid],*w_datas_pts[tid].begin(),params);
     }
     //}0
 
@@ -575,7 +575,7 @@ int dst_conflict(const Id tid,wasure_params & params,int nb_dat,ddt::logging_str
                         format_dst_pts.push_back(std::vector<double>({0.0,0.0,1.0}));
                     }
                 }
-                w_algo.compute_dst_with_center(tri_tile,wd_tri,wpt,params);
+                w_algo.compute_dst_with_center(tri,wd_tri,wpt,params,tid);
                 for(int ss = 0; ss < nbs ; ss++)
                 {
                     double & vpe = format_dst_pts[ss][0];
@@ -757,7 +757,7 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
             //            for(auto & wpt : w_datas_pts[it->first]){
             for(auto wpt = w_datas_pts[it->first].begin() ; wpt != w_datas_pts[it->first].end() ; wpt++)
             {
-                w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],*wpt,params);
+	      w_algo.compute_dst_with_center(tri,w_datas_tri[tid],*wpt,params,tid);
             }
         }
     }
@@ -765,7 +765,7 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
     {
         for(auto wpt = w_datas_pts[tid].begin() ; wpt != w_datas_pts[tid].end() ; wpt++)
         {
-            w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],*wpt,params);
+	  w_algo.compute_dst_with_center(tri,w_datas_tri[tid],*wpt,params,tid);
         }
         //w_algo.compute_dst_with_center(tri_tile,w_datas_tri[tid],*w_datas_pts[tid].begin(),params);
     }

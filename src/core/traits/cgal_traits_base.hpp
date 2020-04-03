@@ -12,7 +12,7 @@ struct Data
   typedef I Id;
     typedef F Flag;
 
-  Data(Id i=0,Id gid=0, Flag f=0) : id(i),gid(i), flag(f) {}
+  Data(Id i=0,Id gid=-1, Flag f=0) : id(i),gid(i), flag(f) {}
 
     void write(std::ostream& os,bool is_ascii) const
     {

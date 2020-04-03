@@ -502,12 +502,6 @@ std::vector<double>  wasure_algo::Pick_3d(const Point & v0,const Point & v1,cons
 
 
 
-std::vector<double>   wasure_algo::Pick(Tile_cell_const_handle  ch, int D){
-  if(D == 3)
-    return Pick_3d(ch->vertex(0)->point(),ch->vertex(1)->point(),ch->vertex(2)->point(),ch->vertex(3)->point());
-  if(D == 2)
-    return Pick_2d(ch->vertex(0)->point(),ch->vertex(1)->point(),ch->vertex(2)->point());
-}
 
 void wasure_algo::init_sample(DT & tri,int nb_samples, int dim){
   // std::cout << "init samples ...." << std::endl;
@@ -677,31 +671,11 @@ wasure_algo::get_params_conflict_dst(const std::vector<double> & pts_scales,doub
 
 }
 
-std::vector<double>  wasure_algo::get_cell_barycenter(Cell_handle ch)
-{
-
-  std::vector<double> coords(D);
-  for(uint d = 0; d < D; d++)
-    coords[d] = 0;
-  for(auto vht = ch->vertices_begin() ;
-      vht != ch->vertices_end() ;
-      ++vht)
-    {
-      Vertex_handle v = *vht;
-      for(uint d = 0; d < D; d++)
-	{
-	  coords[d] += (v->point())[d];
-	}
-    }
-  for(uint d = 0; d < D; d++)
-    coords[d] /= ((double)D+1);
-  return coords;
-}
 
 
 
 void
-wasure_algo::compute_dst_tri(DT & tri, wasure_data<Traits>  & datas_tri, wasure_data<Traits>  & datas_pts, wasure_params & params){
+wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure_data<Traits>  & datas_pts, wasure_params & params){
   std::cerr << "    compute dst norm ..." << std::endl;
   std::vector<Point> & points_dst =  datas_pts.format_points;
   std::vector<std::vector<Point>> & norms = datas_pts.format_egv;
@@ -757,13 +731,13 @@ wasure_algo::compute_dst_tri(DT & tri, wasure_data<Traits>  & datas_tri, wasure_
   std::cerr << "    dst computation" << std::endl;
 
   int accid = 0;
-  for( auto cit = tri.full_cells_begin();
-       cit != tri.full_cells_end(); ++cit ){
+  for( auto cit = tri.cells_begin();
+       cit != tri.cells_end(); ++cit ){
     // Cell_handle ch = cit;
-    if( tri.is_infinite(cit) )
+    if( cit->is_infinite() )
       continue;
 
-    int cid = (accid++); //cit->data().gid;
+    int cid = cit->gid();
     if(cid == 5786){
 
     }
@@ -775,7 +749,7 @@ wasure_algo::compute_dst_tri(DT & tri, wasure_data<Traits>  & datas_tri, wasure_
     for(int x = 0; x < params.nb_samples; x++){
       //Point PtSample = traits.make_point((cit->data()).pts[x].begin());
       //      std::vector<double>  C =  get_cell_barycenter(cit) ;
-      std::vector<double>  C = (x == 0) ? get_cell_barycenter(cit) : Pick(cit,D);
+      std::vector<double>  C = (x == 0) ? get_cell_barycenter(cit->full_cell()) : Pick(cit->full_cell(),D);
       Point  PtSample = traits.make_point(C.begin());
 
       for(int d = 0; d < D; d++){
@@ -1212,15 +1186,17 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
 }
 
 
-void wasure_algo::center_dst(DT & tri, wasure_data<Traits>  & datas_tri,std::vector<Point> & center_pts){
+void wasure_algo::center_dst(DTW & ttri, wasure_data<Traits>  & datas_tri,std::vector<Point> & center_pts, Id tid){
 
+  auto & tri = ttri.get_tile(tid)->tri(); 
+  
   std::vector<std::vector<double>> & v_dst = datas_tri.format_dst;
   Cell_handle cloc =  Cell_handle();
   Cell_handle cloc_start =  Cell_handle();
   for(auto pit : center_pts){
     Cell_handle cloc = tri.locate(pit,cloc_start);
     cloc_start = cloc;
-    int cid = cloc->data().id;
+    int cid = cloc->data().gid;
     v_dst[cid][0] = 1;
     v_dst[cid][1] = 0;
     v_dst[cid][2] = 0;
@@ -1258,13 +1234,13 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
 }
 
 
-void wasure_algo::compute_dst_with_center(DT & tri, wasure_data<Traits>  & datas_tri, wasure_data<Traits>  & datas_pts, wasure_params & params){
+void wasure_algo::compute_dst_with_center(DTW & tri, wasure_data<Traits>  & datas_tri, wasure_data<Traits>  & datas_pts, wasure_params & params, Id tid){
 
   //std::vector<Point> & points_3d,std::vector<Point> & centers,std::vector<std::vector<Point>> & norms,std::vector<std::vector<double>> & scales, double rat_ray_sample, int dim){
 
   compute_dst_tri(tri,datas_tri,datas_pts,params);
   //  compute_dst_ray(tri,datas_tri,datas_pts,params);
-  center_dst(tri,datas_tri,datas_pts.format_centers);
+  center_dst(tri,datas_tri,datas_pts.format_centers,tid);
 } 
 
 
