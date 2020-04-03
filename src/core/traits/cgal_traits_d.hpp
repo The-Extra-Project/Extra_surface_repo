@@ -942,6 +942,10 @@ struct Cgal_traits_d
         }
         // write the number of cells
         n = tri.number_of_full_cells();
+	v_simplex.resize(n*(D+1));
+	v_flags.resize(n);
+	v_nb.resize(n*(D+1));
+	  
         // write the cells
         std::map<Cell_const_handle, uint> cell_map;
         i = 0;
@@ -960,36 +964,30 @@ struct Cgal_traits_d
 
 
 	  //int ii = i;
-            //  if(!do_init_id)
             int ii =  it->data().gid;
-	    if(ii == 1)
+	    if(ii == -1)
 	      ii = max_id++;
             cell_map[it] = ii;
-            ++i;
             for(int d = 0; d < D+1; d++)
             {
                 int vertex_id = vertex_map[it->vertex(d)] ;
-                v_simplex.push_back(vertex_id);
+                v_simplex[ii*(D+1)+d] = vertex_id;
 
                 // write the id
             }
-
-            v_flags.push_back(it->data().flag);
+            for(int j = 0; j < D+1; j++)
+            {
+                int nb_id = cell_map[it->neighbor(j)];
+                v_nb[ii*(D+1) +j] = nb_id;
+            }
+            v_flags[ii] = it->data().flag;
+	    ++i;
             //	      v_cid.push_back(ii);
 
         }
 
 
 
-        // write the neighbors of the cells
-        for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
-        {
-            for(int j = 0; j < D+1; j++)
-            {
-                int nb_id = cell_map[it->neighbor(j)];
-                v_nb.push_back(nb_id);
-            }
-        }
 
 
 	  data.dmap[data.xyz_name].fill_full_uint8_vect(v_xyz);

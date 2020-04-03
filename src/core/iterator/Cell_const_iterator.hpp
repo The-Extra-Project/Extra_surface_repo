@@ -186,6 +186,14 @@ public:
     }
 
 
+  Id lid() const
+    {
+        assert(tile_ != end_);
+        return tile_->lid(cell_);
+    }
+
+  
+
     Vertex_const_iterator vertex (const int i) const
     {
         assert(tile_ != end_);

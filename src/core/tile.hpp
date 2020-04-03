@@ -127,6 +127,7 @@ public:
     inline Id   gid  (Vertex_const_handle v) const {
       assert(!vertex_is_infinite(v)); return tile_ids[0] + traits_.gid  (v); }
     inline Id   gid  (Cell_const_handle c) const { assert(!cell_is_infinite(c)); return tile_ids[2] + traits_.gid  (c); }
+    inline Id   lid  (Cell_const_handle c) const { assert(!cell_is_infinite(c)); return  traits_.gid  (c); }
     inline Flag_V& flagv(Vertex_const_handle v) const { assert(!vertex_is_infinite(v)); return traits_.flag(v); }
     inline Flag_C& flagc(Cell_const_handle c) const {  return traits_.flag(c); }
     inline const Data_C& datac(Cell_const_handle c) const  {  return traits_.data(c); }

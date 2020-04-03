@@ -737,7 +737,8 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
     if( cit->is_infinite() )
       continue;
 
-    int cid = cit->gid();
+    int cid = cit->lid();
+    std::cerr << "cid:" << cid << " " << "vdst.size :" << v_dst.size() << std::endl;
     if(cid == 5786){
 
     }
@@ -1196,6 +1197,7 @@ void wasure_algo::center_dst(DTW & ttri, wasure_data<Traits>  & datas_tri,std::v
   for(auto pit : center_pts){
     Cell_handle cloc = tri.locate(pit,cloc_start);
     cloc_start = cloc;
+    // Quick and dity hack
     int cid = cloc->data().gid;
     v_dst[cid][0] = 1;
     v_dst[cid][1] = 0;
