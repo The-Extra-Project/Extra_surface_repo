@@ -638,7 +638,7 @@ int dst_conflict(const Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     std::cerr << "dst_step6" << std::endl;
     std::cout.clear();
     //  log.step("Write header");
-    ddt::stream_data_header oth("t","s",tid);
+    ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
     if(!params.do_stream)
         oth.init_file_name(filename,".ply");
@@ -1211,18 +1211,26 @@ int extract_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
             w_datas_tri[hid] = wasure_data<Traits>();
             bool do_clean_data = false;
             bool do_serialize = false;
+	    std::cerr << "read ddt stream" << std::endl;
 	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+	    std::cerr << "extract dst stream" << std::endl;
             w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
+	    std::cerr << "extract dst stream done" << std::endl;
 	    //            w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
             std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
+	    std::cerr << "format_lab it" << std::endl;
             if(format_labs.size() == 0)
             {
-                int nbs = w_datas_tri[hid].nb_simplex_uint8_vect();
+	      //	        int nbs = w_datas_tri[hid].nb_simplex_uint8_vect();
+		int nbs = w_datas_tri[hid].format_dst.size();
+		//int nbs = tri.number_of_cells();
+		std::cerr << "nbs:" << nbs << std::endl;
                 for(int ss = 0; ss < nbs ; ss++)
                 {
                     format_labs.push_back(0);
                 }
             }
+	    std::cerr << "format_lab it done" << std::endl;
         }
         if(hpi.get_lab() == "s")
         {
@@ -1254,7 +1262,7 @@ int extract_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
 
     log.step("write");
     std::cout.clear();
-    ddt::stream_data_header oth("t","s",tid),osh("s","s",tid);;
+    ddt::stream_data_header oth("t","z",tid),osh("s","s",tid);;
     //oth.write_header(std::cout);
     std::cerr << "seg_step6" << std::endl;
     //  int nbc = mrf->extract_factor_graph(1,tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid);
@@ -1321,9 +1329,8 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
             bool do_clean_data = false;
             bool do_serialize = false;
 	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
-            //w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
-            //w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
-            //w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
+            w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
+            w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
             // std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
             // if(format_labs.size() == 0){
             // 	int nbs = w_datas_tri[hid].nb_simplex_shpt_vect();
@@ -1373,14 +1380,15 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
             cit != tri.cells_end(); ++cit )
     {
         //	id_vect.push_back(cit->cell_data().id);
-        int lid = cit->cell_data().id;
+      int lid = cit->lid();
 	//        int gid = w_datas_tri[tid].format_gids[lid] ;
 	int gid = cit->gid();
         g2lmap[gid] = lid;
     }
 
     std::cerr << "start processing2" << std::endl;
-    int nbs = w_datas_tri[tid].nb_simplex_uint8_vect();
+    int nbs = tri.number_of_cells();
+    //int nbs = w_datas_tri[tid].nb_simplex_uint8_vect();
     std::cerr << "start processing2b" << std::endl;
     std::vector<int>  & format_labs = w_datas_tri[tid].format_labs ;
     format_labs.resize(nbs);
@@ -1394,6 +1402,7 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
         // 	if(g2lmap[it->first] > format_labs.size())
         // 	  std::cerr << "err !val:" << g2lmap[it->first] << std::endl;
         // 	//else
+      std::cerr << "labs:" << it->second << std::endl;
         format_labs[g2lmap[it->first]] = it->second;
         //}
     }
@@ -1406,7 +1415,7 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
     log.step("write");
     std::cout.clear();
     //  log.step("Write header");
-    ddt::stream_data_header oth("t","s",tid);
+    ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
     if(!params.do_stream)
         oth.init_file_name(filename,".ply");
@@ -1480,7 +1489,7 @@ int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
     log.step("write");
     std::cout.clear();
     //  log.step("Write header");
-    ddt::stream_data_header oth("t","s",tid);
+    ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
     if(!params.do_stream)
         oth.init_file_name(filename,".ply");

@@ -63,13 +63,16 @@ public :
         double nbe = 1;//((double)fch->data().dat[3]);
         if(nbe < 1) nbe = 1;
         double coef = volume/nbe;
-        int cell_id = fch->cell_data().id;
+        int cell_id = fch->lid();
         int tile_id = fch->tile()->id();
         double PIn = data_map[tile_id].format_dst[cell_id][0];
         double POut = data_map[tile_id].format_dst[cell_id][1];
         double PUnk = data_map[tile_id].format_dst[cell_id][2];
         double scoreCurr = fabs(pLabsIn[label] - PIn) + fabs(pLabsOut[label] - POut) + fabs(pLabsUnk[label] - PUnk);
 
+
+	std::cerr << "get_score_linear " << label << " " << scoreCurr << " " << PIn << " " << POut << " " << PUnk << std::endl;
+	
         return coef*scoreCurr;
 
     }

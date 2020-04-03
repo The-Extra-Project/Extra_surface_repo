@@ -738,7 +738,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
       continue;
 
     int cid = cit->lid();
-    std::cerr << "cid:" << cid << " " << "vdst.size :" << v_dst.size() << std::endl;
+    //    std::cerr << "cid:" << cid << " " << "vdst.size :" << v_dst.size() << std::endl;
     if(cid == 5786){
 
     }
@@ -842,7 +842,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   	vpu = pu1;	  
       }
     }
-    std::cerr << "  cid  "<< cid << " " << vpe << " " << vpo << " " << vpu <<  std::endl;
+    //std::cerr << "  cid  "<< cid << " " << vpe << " " << vpo << " " << vpu <<  std::endl;
 
     // NAN check
     if(vpe == vpe &&

@@ -410,7 +410,7 @@ public :
     {
         int D = Traits::D;
         std::vector<double> raw_dst;
-        ddt_data<Traits>::dmap[dst_name].extract_full_uint8_vect(raw_dst,false);
+        ddt_data<Traits>::dmap[dst_name].extract_raw_uint8_vect(raw_dst,false);
 
 
         std::vector<double> act_vdst;
@@ -480,7 +480,7 @@ public :
     {
         int D = Traits::D;
         std::vector<int> raw_labs;
-        ddt_data<Traits>::dmap[labseg_name].extract_full_uint8_vect(raw_labs,false);
+        ddt_data<Traits>::dmap[labseg_name].extract_raw_uint8_vect(raw_labs,false);
 
         uint num_s = ddt_data<Traits>::dmap[labseg_name].get_nbe_shpt_vect();
         for(int i = 0 ; i < raw_labs.size(); i++)

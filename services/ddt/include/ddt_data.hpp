@@ -196,7 +196,7 @@ public :
 	uint8_vect.clear();
 	do_exist = false;
       }
-      std::cerr << "done" << std::endl;
+      std::cerr << "extract full uint8 done" << std::endl;
       
     }
 
@@ -212,7 +212,7 @@ public :
 	uint8_vect.clear();
 	do_exist = false;
       }
-      std::cerr << "done" << std::endl;
+      std::cerr << "extract raw uint done" << std::endl;
       
     }
 

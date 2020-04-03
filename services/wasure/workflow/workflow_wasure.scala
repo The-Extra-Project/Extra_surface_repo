@@ -279,7 +279,7 @@ val ll = lambda_list.head
 val coef_mult = coef_mult_list.head
 // Loop over the differents parameters
 
-if(false){
+if(true){
   lambda_list.foreach{ ll =>
     coef_mult_list.foreach{ coef_mult =>
 
@@ -299,7 +299,7 @@ if(false){
 
       if (dim == 2)  {
         iq.run_pipe_fun_KValue(
-          ply2geojson_cmd ++ List("--label","sparkcuted_v2_ll_" + ll,"--style","tri_seg.qml"),
+          tri2geojson_cmd ++ List("--label","sparkcuted_v2_ll_" + ll,"--style","tri_seg.qml"),
           kvrdd_seg, "seg", do_dump = false).collect()
       }
 
@@ -320,7 +320,7 @@ if(false){
 }
 
 // ====== Dump geojson ======
-if(true){
+if(false){
 
   dim match {
     case 2 => {

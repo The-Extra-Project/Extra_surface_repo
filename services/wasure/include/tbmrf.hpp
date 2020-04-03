@@ -859,7 +859,8 @@ public :
             // if(tri->is_infinite(fch))
             //    continue;
             int tid = cit->tile()->id();
-            int lid = cit->cell_data().id;
+            //int lid = cit->cell_data().id;
+	    int lid = cit->lid();
             int gid = cit->gid();//data_map[tid].format_gids[lid];
 
             int lcurr = 0; //data_map[fch->tile()->id()].format_labs[cccid];
@@ -939,8 +940,8 @@ public :
 
                 Vertex_h_iterator vht;
 
-                int lidc = fch->cell_data().id;
-                int lidn = fchn->cell_data().id;
+                int lidc = fch->lid();//cell_data().id;
+                int lidn = fchn->lid();//cell_data().id;
 
                 int tidc = fch->tile()->id();
                 int tidn = fchn->tile()->id();
@@ -949,12 +950,15 @@ public :
                 int gidc = fch->gid();//data_map[tidc].format_gids[lidc];
                 int gidn = fchn->gid();//data_map[tidn].format_gids[lidn];
 
+		std::cerr << "lidc" << lidc << " lidn:" << lidn << std::endl;
+		std::cerr << "gidc" << gidc << " gidn:" << gidn << std::endl;
+		std::cerr << "lab.size : " << data_map[tidn].format_labs.size();
                 double surface = get_surface(tmp_fch,tmp_idx);
                 double coef = lambda*surface;
 
                 int ch1lab = data_map[tidc].format_labs[lidc];
                 int chnlab = data_map[tidn].format_labs[lidn];
-
+		std::cerr << "LAB OK"  << std::endl;
 
 
                 E[3] = get_score_quad(ch1lab,chnlab);
@@ -1108,7 +1112,7 @@ public :
             // if(tri->is_infinite(fch))
             //    continue;
             int tid = cit->tile()->id();
-            int lid = cit->cell_data().id;
+            int lid = cit->lid();//cell_data().id;
             int gid = cit->gid();
 
             int lcurr = 0; //data_map[fch->tile()->id()].format_labs[cccid];
@@ -1181,15 +1185,16 @@ public :
                 Vertex_h_iterator vht;
 
 
-                int lidc = fch->cell_data().id;
-                int lidn = fchn->cell_data().id;
+                int lidc = fch->lid();//>cell_data().id;
+                int lidn = fchn->lid();//cell_data().id;
 
                 int tidc = fch->tile()->id();
                 int tidn = fchn->tile()->id();
 
                 int gidc = fch->gid();//data_map[tidc].format_gids[lidc];
                 int gidn = fchn->gid();//data_map[tidn].format_gids[lidn];
-
+		std::cerr << "lidc" << lidc << " lidn:" << lidn << std::endl;
+		std::cerr << "gidc" << gidc << " gidn:" << gidn << std::endl;
                 double surface = get_surface(tmp_fch,tmp_idx);
                 double coef = lambda*surface;
 
@@ -1332,7 +1337,7 @@ public :
             // if(tri->is_infinite(fch))
             //    continue;
             int tid = cit->tile()->id();
-            int lid = cit->cell_data().id;
+            int lid = cit->lid();//cell_data().id;
             int gid = cit->gid(); //data_map[tid].format_gids[lid];
 
             int lcurr = 0; //data_map[fch->tile()->id()].format_labs[cccid];
@@ -1376,8 +1381,8 @@ public :
                 Vertex_h_iterator vht;
 
 
-                int lidc = fch->cell_data().id;
-                int lidn = fchn->cell_data().id;
+                int lidc = fch->lid();//cell_data().id;
+                int lidn = fchn->lid();//cell_data().id;
 
                 int tidc = fch->tile()->id();
                 int tidn = fchn->tile()->id();
