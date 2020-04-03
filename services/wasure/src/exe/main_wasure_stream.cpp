@@ -1496,6 +1496,7 @@ int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 }
 
 
+
 int tri2geojson(Id tid,wasure_params & params, int nb_dat,ddt::logging_stream & log)
 {
 

@@ -230,6 +230,7 @@ if(pscale > 1)
   input_ddt = kvrdd_simp;
 
 println("=========== Delauay triangulatin computation ==================")
+val defaultV = (List(""));
 val (graph_tri,log_tri,stats_tri)  = ddt_algo.compute_ddt(
   kvrdd_points = input_ddt,
   iq = iq,
@@ -238,7 +239,7 @@ val (graph_tri,log_tri,stats_tri)  = ddt_algo.compute_ddt(
 );
 
 
-val kvrdd_tri_gid = ddt_algo.update_global_ids(graph_tri.vertices,kvrdd_stats,iq, params_cpp,sc)
+val kvrdd_tri_gid = ddt_algo.update_global_ids(graph_tri.vertices,stats_tri,iq, params_ddt,sc)
 val graph_tri_gid = Graph(kvrdd_tri_gid, graph_tri.edges, defaultV)
 
 

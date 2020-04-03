@@ -142,7 +142,8 @@ public :
       if(szd > 0){
 	vv =  reinterpret_cast<DT &>(shpt_vect->buffer.get()[id*vnbb+i*tinyply::PropertyTable[type].stride]);
       }else{
-	std::memcpy(&vv,&uint8_vect[id*vnbb+i],tinyply::PropertyTable[type].stride);
+	//vv =  reinterpret_cast<DT &>(uint8_vect[id*vnbb+i*tinyply::PropertyTable[type].stride]);
+	std::memcpy(&vv,&uint8_vect[id*vnbb+i*tinyply::PropertyTable[type].stride],tinyply::PropertyTable[type].stride);
       }
     }
 
@@ -318,7 +319,7 @@ public :
 
   
   void write_geojson_tri(std::ostream & ofs_pts,std::ostream & ofs_spx, bool is_full = true){
-    //    ofs_spx << std::fixed << std::setprecision(12);
+    ofs_spx << std::fixed << std::setprecision(5);
     //std::cerr << "vcyz ==>" << std::endl;
     int D = Traits::D;
     std::vector<std::string> lab_color = {"\"red\"","\"green\"","\"blue\""};

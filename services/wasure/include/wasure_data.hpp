@@ -107,8 +107,8 @@ public :
                 ofs << "\"type\": \"Point\"," << std::endl;
                 ofs << "\"coordinates\": [";
                 for(int d=0; d<D-1; ++d)
-                    ofs << raw_centers[id_pts ][d] << ",";
-                ofs << raw_centers[id_pts][D-1] << "]" << std::endl;
+                    ofs << raw_centers[id ][d] << ",";
+                ofs << raw_centers[id][D-1] << "]" << std::endl;
                 ofs << "}," << std::endl;
                 ofs << "\"properties\": {" << std::endl;
                 // if(labs.size() > 0){
@@ -130,12 +130,12 @@ public :
                     ofs << "\"type\": \"LineString\"," << std::endl;
                     ofs << "\"coordinates\": [[";
                     for(int d=0; d<D-1; ++d)
-                        ofs << raw_centers[id_pts ][d] << ",";
-                    ofs << raw_centers[id_pts][D-1] << "]," << std::endl;
+                        ofs << raw_centers[id ][d] << ",";
+                    ofs << raw_centers[id][D-1] << "]," << std::endl;
                     ofs << "[";
                     for(int d=0; d<D-1; ++d)
-                        ofs << raw_points[id_pts][d] << ",";
-                    ofs << raw_points[id_pts][D-1] << "]]" << std::endl;
+                        ofs << raw_points[id][d] << ",";
+                    ofs << raw_points[id][D-1] << "]]" << std::endl;
                     ofs << "}," << std::endl;
                     ofs << "\"properties\": {" << std::endl;
                     if(raw_centers.size() > 0)
@@ -157,12 +157,12 @@ public :
                 ofs << "\"type\": \"LineString\"," << std::endl;
                 ofs << "\"coordinates\": [[";
                 for(int d=0; d<D-1; ++d)
-                    ofs << raw_points[id_pts ][d] << ",";
-                ofs << raw_points[id_pts][D-1] << "]," << std::endl;
+                    ofs << raw_points[id ][d] << ",";
+                ofs << raw_points[id][D-1] << "]," << std::endl;
                 ofs << "[";
                 for(int d=0; d<D-1; ++d)
-                    ofs << (raw_points[id_pts ][d] + (raw_sigs[id_sigs+ D-1]/3.0)*raw_egv[id_egv+D+d])  << ",";
-                ofs << (raw_points[id_pts][D-1] + (raw_sigs[id_sigs+ D-1]/3.0)*raw_egv[id_egv+D+D-1]) << "]]" << std::endl;
+                    ofs << (raw_points[id ][d] + (raw_sigs[id_sigs+ D-1]/3.0)*raw_egv[id_egv+D+d])  << ",";
+                ofs << (raw_points[id][D-1] + (raw_sigs[id_sigs+ D-1]/3.0)*raw_egv[id_egv+D+D-1]) << "]]" << std::endl;
                 ofs << "}," << std::endl;
                 ofs << "\"properties\": {" << std::endl;
                 if(raw_egv.size() > 0)

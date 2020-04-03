@@ -85,7 +85,7 @@ var param_list = parse_xml_datasets_2(env_xml)
 val df_par = sc.defaultParallelism;
 val params_scala = param_list(0) // We only process 1 set of parameter in this workflow
 var acc=0;
-    val defaultV = (List(""));
+val defaultV = (List(""));
 for(params_scala <- param_list){
 
   // ===============================================

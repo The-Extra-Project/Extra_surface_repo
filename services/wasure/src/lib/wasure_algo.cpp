@@ -755,13 +755,15 @@ wasure_algo::compute_dst_tri(DT & tri, wasure_data<Traits>  & datas_tri, wasure_
   // --------------------------------------
   bool do_debug = false;
   std::cerr << "    dst computation" << std::endl;
+
+  int accid = 0;
   for( auto cit = tri.full_cells_begin();
        cit != tri.full_cells_end(); ++cit ){
     // Cell_handle ch = cit;
     if( tri.is_infinite(cit) )
       continue;
 
-    int cid = cit->data().id;
+    int cid = (accid++); //cit->data().gid;
     if(cid == 5786){
 
     }
