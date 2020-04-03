@@ -882,8 +882,8 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
             Cell_const_iterator fchn = tmp_fchn->main();
             Vertex_h_iterator vht;
 
-            int cccid = fch->cell_data().id;
-            int cccidn = fchn->cell_data().id;
+            int cccid = fch->lid();
+            int cccidn = fchn->lid();
 
             int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
             int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];
