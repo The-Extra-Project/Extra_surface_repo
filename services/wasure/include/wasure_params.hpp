@@ -29,7 +29,7 @@ public :
 
 
 
-    std::string bbox_string,input_dir,output_dir,algo_step,slabel,mode;
+  std::string bbox_string,input_dir,output_dir,algo_step,slabel,mode,filename;
     std::ostream& operator<<(std::ostream& os)
     {
         std::default_random_engine er((unsigned int)time(0));
@@ -61,6 +61,7 @@ public :
             // /* These options set a flag. */
             {"step",  required_argument, 0, 's'},
             {"nbp",  required_argument, 0, 'n'},
+	    {"filename",  required_argument, 0, 'o'},
             {"graph_type",  required_argument, 0, 'i'},
             {"seed",  required_argument, 0, 'a'},
             {"input_dir",  required_argument, 0, 'r'},
@@ -87,7 +88,7 @@ public :
 
         int option_index = 0;
 
-        while ((cc = getopt_long(argc, argv, "s:a:c:k:n:i:d:u:m:t:f:j:l:b:p:r:w:gexh",long_options,&option_index)) != -1)
+        while ((cc = getopt_long(argc, argv, "s:a:c:k:n:i:d:u:m:o:t:f:j:l:b:p:r:w:gexh",long_options,&option_index)) != -1)
         {
             switch (cc)
             {
@@ -97,6 +98,9 @@ public :
                 break;
             case 'r':
                 input_dir = std::string(optarg);
+                break;
+	    case 'o':
+                filename = std::string(optarg);
                 break;
             case 'w':
                 output_dir = std::string(optarg);

@@ -487,13 +487,12 @@ public :
         DATA_TYPE E[4];
         for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
         {
-            std::cerr << " ~~~~~ start fit" << std::endl;
             if(fit->is_infinite())
             {
                 std::cerr << " ~~~~~ is infinit" << std::endl;
                 continue;
             }
-            std::cerr << " ~~~~~ not infinit" << std::endl;
+
             try
             {
 
@@ -502,7 +501,6 @@ public :
                 int tmp_idx = fit.index_of_covertex();
                 Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
 
-                std::cerr << " ~~~~~ test if is loaded" << std::endl;
                 if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
                         !tri.tile_is_loaded(tmp_fchn->main_id()))
                     continue;
@@ -527,7 +525,6 @@ public :
                 double surface = get_surface(fch,idx);
                 double coef = lambda*surface;
 
-                std::cerr << " ~~~~~ takes labs" << std::endl;
                 int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
                 int chnlab = data_map[fchn->tile()->id()].format_labs[cccidn];
 

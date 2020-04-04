@@ -464,6 +464,18 @@ public :
   }
 
 
+    void shpt2uint8() 
+  {
+    for ( const auto &ee : dmap ) {
+      if(ee.second.do_exist){
+	if(dmap[ee.first].get_nbe_uint8_vect() == 0 &&
+	   dmap[ee.first].get_nbe_shpt_vect() != 0){
+	  dmap[ee.first].shpt_vect2uint8_vect();
+	}
+      }
+    }
+  }
+
   void write_serialized_stream( std::ostream & ss) 
   {
     int nn = 0;

@@ -71,12 +71,60 @@ public :
         double scoreCurr = fabs(pLabsIn[label] - PIn) + fabs(pLabsOut[label] - POut) + fabs(pLabsUnk[label] - PUnk);
 
 
-	std::cerr << "get_score_linear " << label << " " << scoreCurr << " " << PIn << " " << POut << " " << PUnk << std::endl;
+	//std::cerr << "get_score_linear " << label << " " << scoreCurr << " " << PIn << " " << POut << " " << PUnk << std::endl;
 	
         return coef*scoreCurr;
 
     }
 
+
+    int extract_surface(int tid, std::vector<Facet_const_iterator> & lft, D_MAP & w_datas_tri){
+    for(auto fit = this->tri->facets_begin();  fit != this->tri->facets_end(); ++fit)
+    {
+        try
+        {
+            if(fit->main_id() != tid || fit->is_infinite())
+                continue;
+
+
+            Cell_const_iterator tmp_fch = fit.full_cell();
+            int tmp_idx = fit.index_of_covertex();
+            Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+
+
+
+            if(!this->tri->tile_is_loaded(tmp_fch->main_id()) ||
+                    !this->tri->tile_is_loaded(tmp_fchn->main_id()))
+                continue;
+
+
+            Cell_const_iterator fch = tmp_fch->main();
+            int id_cov = fit.index_of_covertex();
+            Cell_const_iterator fchn = tmp_fchn->main();
+            Vertex_h_iterator vht;
+
+            int cccid = fch->cell_data().id;
+            int cccidn = fchn->cell_data().id;
+
+            int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
+            int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];
+            if(
+                (ch1lab != chnlab) ||
+                (((fch->is_infinite() && !fchn->is_infinite()) ||
+                  (!fch->is_infinite() && fchn->is_infinite())) && ch1lab == mode )
+            )
+                lft.push_back(*fit);
+
+        }
+        catch (ddt::DDT_exeption& e)
+        {
+            std::cerr << "!! WARNING !!!" << std::endl;
+            std::cerr << "Exception catched : " << e.what() << std::endl;
+            continue;
+        }
+    }
+    return 0;
+  }
 
 
 
