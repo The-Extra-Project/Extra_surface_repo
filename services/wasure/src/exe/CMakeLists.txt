@@ -30,6 +30,21 @@ target_link_libraries(wasure-stream-exe
   )
 
 
+link_directories(${GLOBAL_BUILD_DIR})
+set(spark-wasure_SOURCES
+  main_wasure_local.cpp
+  )
+add_executable(wasure-local-exe ${spark-wasure_SOURCES})
+set_property(TARGET wasure-local-exe PROPERTY CXX_STANDARD 11)
+target_link_libraries(wasure-local-exe
+  # intern dependencies
+  ddt
+  tbmrf
+  ${WASURE_EXE_LIB_DEP}
+  ${HDFS_LIBRARIES}
+  ${DOUBLE_CONV_LIBRARIES}
+  )
+
  
 if(CMAKE_VERBOSITY GREATER 0)
 message(STATUS "Added target wasure (exe)")
