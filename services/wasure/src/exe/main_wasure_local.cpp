@@ -27,7 +27,7 @@ int main(int argc, char **argv)
   wasure_params params;
   params.parse(argc,argv);
 
-
+  Traits traits;
   int D = Traits::D;
   Id tid = 0;
 
@@ -114,7 +114,6 @@ int main(int argc, char **argv)
 
   
   // ===== Segmentation =====
-  //
   std::vector<int>  & format_labs = w_datas_tri[tid].format_labs ;
   format_labs.resize(nbs);
   for(int ii = 0; ii < nbs;ii++)
@@ -128,9 +127,28 @@ int main(int argc, char **argv)
   // Optimizing with alpha expansion
   mrf.alpha_exp(tri1,w_datas_tri);
 
+
+  w_datas_tri[tid].fill_labs(w_datas_tri[tid].format_labs);
+
+
   
   // ===== Surface extraction =====
   // Extract the surface from the simplex segmentation
+  if(D == 2){
+    traits.export_tri_to_data(tri_tile,w_datas_tri[tid]);    
+    ddt::stream_data_header oqh_1("p","s",tid),oqh_2("p","s",tid);
+    std::string filename(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_seg");
+    oqh_1.init_file_name(filename,"_pts.geojson");
+    oqh_1.write_header(std::cout);
+    oqh_2.init_file_name(filename,"_spx.geojson");
+    oqh_2.write_header(std::cout);
+    w_datas_tri[tid].write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
+    oqh_1.finalize();
+    oqh_2.finalize();
+    ddt::add_qgis_style(oqh_2.get_file_name(),"tri_seg.qml");
+    std::cout << std::endl;
+  }
+  
   std::vector<Facet_const_iterator> lft;
   mrf.extract_surface(tid,lft,w_datas_tri);
   std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_surface");

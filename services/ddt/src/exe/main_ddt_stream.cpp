@@ -825,7 +825,7 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
     ddt_data<Traits> w_datas;
     DDT tri1;
     Traits traits;
-        Id hid = hpi.get_id(0);
+    Id hid = hpi.get_id(0);
     if(hpi.get_lab() == "t" || hpi.get_lab() == "u" || hpi.get_lab() == "v")
       {
 	std::cerr << "READ:" << hpi.get_lab() << std::endl;
@@ -1026,7 +1026,7 @@ int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std
 	// if(tri->is_infinite(fch))
 	//    continue;
 	int tid = cit->tile()->id();
-	int lid = cit->cell_data().id;
+	int lid = cit->lid();
 	int gid = cit->gid();
 	int lcurr = 0;
 
@@ -1092,8 +1092,8 @@ int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std
 
 	  Vertex_h_iterator vht;
 
-	  int lidc = fch->cell_data().id;
-	  int lidn = fchn->cell_data().id;
+	  int lidc = fch->lid();
+	  int lidn = fchn->lid();
 
 	  int tidc = fch->tile()->id();
 	  int tidn = fchn->tile()->id();
@@ -1259,7 +1259,7 @@ int extract_simplex_soup(DDT & tri,FTC &filter,std::ostream & ofile, int main_ti
 	// if(tri->is_infinite(fch))
 	//    continue;
 	int tid = cit->tile()->id();
-	int lid = cit->cell_data().id;
+	int lid = cit->lid();;
 	int gid = cit->cell_data().gid;
 	int lcurr = 0; 
 
@@ -1324,14 +1324,16 @@ int extract_simplex_soup(DDT & tri,FTC &filter,std::ostream & ofile, int main_ti
 
 	  Vertex_h_iterator vht;
 
-	  int lidc = fch->cell_data().id;
-	  int lidn = fchn->cell_data().id;
+	  int lidc = fch->lid();;
+	  int lidn = fchn->lid();;
 
 	  int tidc = fch->tile()->id();
 	  int tidn = fchn->tile()->id();
 
-	  int gidc = fch->cell_data().gid;
-	  int gidn = fchn->cell_data().gid;
+	  int gidc = fch->gid();
+	  int gidn = fchn->gid();
+	  // int gidc = fch->cell_data().gid;
+	  // int gidn = fchn->cell_data().gid;
 
 
 

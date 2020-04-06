@@ -102,8 +102,8 @@ function run_2d_wasure
 #run_3d_ddt_random
 
 # ==== 2D surface reconstruction workflow ====
-#run_2d_wasure
-run_3d_croco
+run_2d_wasure
+#run_3d_croco
 
 
 
