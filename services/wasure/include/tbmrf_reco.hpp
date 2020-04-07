@@ -101,7 +101,7 @@ public :
             Cell_const_iterator fch = tmp_fch->main();
             int id_cov = fit.index_of_covertex();
             Cell_const_iterator fchn = tmp_fchn->main();
-            Vertex_h_iterator vht;
+	    //            Vertex_h_iterator vht;
 
             int cccid = fch->cell_data().id;
             int cccidn = fchn->cell_data().id;

@@ -62,7 +62,7 @@ typedef typename Traits::Vertex_handle                                    Vertex
 typedef typename DTW::Facet_const_iterator  Facet_const_iterator;
 typedef typename DTW::Vertex_const_iterator  Vertex_const_iterator;
 typedef typename DTW::Tile_cell_const_handle              Tile_cell_const_handle;
-typedef typename DTW::DT::Full_cell::Vertex_handle_iterator Vertex_h_iterator;
+//typedef typename Traits::Vertex_h_iterator Vertex_h_iterator;
 typedef typename DTW::Cell_const_iterator                 Cell_const_iterator;
 typedef typename DTW::Facet_const_iterator                Facet_const_iterator;
 

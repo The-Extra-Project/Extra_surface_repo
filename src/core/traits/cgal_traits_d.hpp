@@ -38,7 +38,9 @@ struct Cgal_traits_raw_d
     typedef typename Delaunay_triangulation::Full_cell_const_handle                   Cell_const_handle;
     typedef typename Delaunay_triangulation::Full_cell_iterator                       Cell_iterator;
     typedef typename Delaunay_triangulation::Full_cell_handle                         Cell_handle;
+  typedef typename Delaunay_triangulation::Full_cell::Vertex_handle_iterator Vertex_h_iterator;
 
+  
     typedef typename Delaunay_triangulation::Facet_iterator                 Facet_iterator;
     typedef Facet_iterator                   Facet_const_handle;
 
@@ -216,7 +218,7 @@ struct Cgal_traits_d
     typedef  CGAL::Unique_hash_map<Vertex_const_handle,bool> v_hmap_bool;
     typedef  CGAL::Unique_hash_map<Vertex_handle,uint> v_hmap_uint;
 
-
+  typedef typename Delaunay_triangulation::Full_cell::Vertex_handle_iterator Vertex_h_iterator;
 
     Delaunay_triangulation triangulation(int dimension) const
     {

@@ -1264,7 +1264,7 @@ void wasure_algo::extract_surface(DTW & tri, std::map<Id,wasure_data<Traits> >  
     Cell_const_iterator fch = fit.full_cell();
     int id_cov = fit.index_of_covertex();
     Cell_const_iterator fchn = fch->neighbor(id_cov);    
-    Vertex_h_iterator vht;
+    //Vertex_h_iterator vht;
 
     // if(fch->is_infinite() && fchn->is_infinite())
     //   continue;
@@ -1317,7 +1317,7 @@ void wasure_algo::extract_surface(DTW & tri, std::map<Id,wasure_data<Traits> >  
     Cell_const_iterator fch = fit.full_cell();
     int id_cov = fit.index_of_covertex();
     Cell_const_iterator fchn = fch->neighbor(id_cov);    
-    Vertex_h_iterator vht;
+    //    Vertex_h_iterator vht;
     int cccid = fch->cell_data().id;
     int cccidn = fchn->cell_data().id;
 

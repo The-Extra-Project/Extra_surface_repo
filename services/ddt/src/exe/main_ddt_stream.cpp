@@ -971,7 +971,7 @@ int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std
 
   typedef typename DDT::Cell_const_iterator                 Cell_const_iterator;
   typedef typename DDT::Vertex_const_iterator                 Vertex_const_iterator;
-  typedef typename DDT::DT::Full_cell::Vertex_handle_iterator Vertex_h_iterator;
+
     
   int chunk_size = 10;
   int sourceId = 0;
@@ -1037,14 +1037,19 @@ int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std
  
       
 	ofile << "s " <<   gid  << " ";
-	// for(int i = 0 ; i < dim;i++)
-	// 	ofile << cent[i]/(dim+1) << " ";
+	 // Circumcenter (good solution)
+	//#if defined(DDT_CGAL_TRAITS_D)
 	std::cerr << "get_circumcenter" << std::endl;
 	auto circumcenter = cit->tile()->circumcenter(cit->full_cell());
 	std::cerr << "get_circumcenter" << std::endl;
 	std::cerr << circumcenter << std::endl; 
 	for(int i = 0 ; i < dim;i++)
 	  ofile << circumcenter[i] << " ";
+// #else
+// 		// Gravuty cebnter
+// 	 for(int i = 0 ; i < dim;i++)
+// 	 	ofile << cent[i]/(dim+1) << " ";
+// #endif
 	// for(int i = 0 ; i < dim+1;i++)
 	// 	ofile << cit->vertex(i)->vertex_data().gid << " ";
 
@@ -1090,7 +1095,7 @@ int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std
 	  Cell_const_iterator fchn = tmp_fchn->main();
 
 
-	  Vertex_h_iterator vht;
+
 
 	  int lidc = fch->lid();
 	  int lidn = fchn->lid();
@@ -1209,7 +1214,7 @@ int extract_simplex_soup(DDT & tri,FTC &filter,std::ostream & ofile, int main_ti
   ofile << std::fixed << std::setprecision(15);
   typedef typename DDT::Cell_const_iterator                 Cell_const_iterator;
   typedef typename DDT::Vertex_const_iterator                 Vertex_const_iterator;
-  typedef typename DDT::DT::Full_cell::Vertex_handle_iterator Vertex_h_iterator;
+  //  typedef typename DDT::DT::Full_cell::Vertex_handle_iterator Vertex_h_iterator;
     
 
   int  N = tri.number_of_cells();
@@ -1321,8 +1326,6 @@ int extract_simplex_soup(DDT & tri,FTC &filter,std::ostream & ofile, int main_ti
 	  int idx = tmp_idx;
 	  Cell_const_iterator fchn = tmp_fchn->main();
 
-
-	  Vertex_h_iterator vht;
 
 	  int lidc = fch->lid();;
 	  int lidn = fchn->lid();;

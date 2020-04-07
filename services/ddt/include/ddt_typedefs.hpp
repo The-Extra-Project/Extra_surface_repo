@@ -47,7 +47,7 @@ typedef typename DDT::Tile_const_iterator  Tile_const_iterator ;
 typedef typename DDT::Tile_iterator  Tile_iterator ;
 
 typedef typename Traits::Point       Point;
-typedef typename Traits::Id          Id;
+//typedef typename Traits::Id          Id;
 typedef typename Traits::Point_id    Point_id;
 typedef typename Traits::Point_id_id Point_id_id;
 

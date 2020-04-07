@@ -97,6 +97,7 @@ for(params_scala <- param_list){
   val cur_output_dir = output_dir +"/"+ acc.toString + "_" + params_scala("name").head
   val dim = params_scala.get_param("dim", "2").toInt
   val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-D" + dim.toString)
+  //val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-" + dim.toString)
   val build_dir = global_build_dir + "/" + ddt_kernel_dir
   val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
   val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "MEMORY_AND_DISK_SER"))

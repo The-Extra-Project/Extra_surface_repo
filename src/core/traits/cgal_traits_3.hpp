@@ -14,27 +14,168 @@
 #include "cgal_traits_base.hpp"
 #include "Facet_const_iterator_3.hpp"
 #include <CGAL/Random.h>
+
+#include "../io/number_parser.hpp"
 namespace ddt
 {
 
-template<typename I, typename F,typename G = bool>
+
+struct Cgal_traits_3_Raw
+  {
+    enum { D = 3 };
+    typedef CGAL::Exact_predicates_inexact_constructions_kernel    K;
+    typedef CGAL::Delaunay_triangulation_3<K>                 Delaunay_triangulation;
+    typedef typename Delaunay_triangulation::Vertex_handle                            Vertex_handle_raw;
+    typedef typename Delaunay_triangulation::Cell_handle                            Cell_handle_raw;
+
+    typedef typename Delaunay_triangulation::Vertex_iterator                    Vertex_const_iterator;
+    typedef typename Delaunay_triangulation::Vertex_handle                            Vertex_const_handle;
+    typedef typename Delaunay_triangulation::Vertex_iterator                          Vertex_iterator;
+    typedef typename Delaunay_triangulation::Vertex_handle                            Vertex_handle;
+
+    typedef typename Delaunay_triangulation::Cell_iterator                 Cell_const_iterator;
+    typedef typename Delaunay_triangulation::Cell_handle                   Cell_const_handle;
+    typedef typename Delaunay_triangulation::Cell_iterator                       Cell_iterator;
+    typedef typename Delaunay_triangulation::Cell_handle                         Cell_handle;
+
+    typedef typename Delaunay_triangulation::Facet_iterator                 Facet_iterator;
+    typedef Facet_iterator                   Facet_const_handle;
+
+    typedef typename Delaunay_triangulation::Point                                    Point;
+    typedef std::pair<Cell_const_handle, int>                      Facet;
+
+    typedef typename CGAL::Unique_hash_map<Vertex_handle_raw, uint> v_hmap_uint;
+
+    
+        Delaunay_triangulation triangulation(int dimension) const
+    {
+
+        return Delaunay_triangulation();
+    }
+
+        inline size_t number_of_cells(const Delaunay_triangulation& dt) const
+    {
+        return dt.number_of_cells();
+
+    }
+    inline size_t number_of_vertices(const Delaunay_triangulation& dt) const
+    {
+        return dt.number_of_vertices();
+    }
+
+    inline Cell_const_iterator cells_begin(const Delaunay_triangulation& dt) const
+    {
+        return dt.cells_begin();
+    }
+    inline Cell_const_iterator cells_end(const Delaunay_triangulation& dt) const
+    {
+        return dt.cells_end();
+    }
+
+    inline Facet_iterator facets_begin(Delaunay_triangulation& dt)
+    {
+        return dt.facets_begin();
+    }
+    inline Facet_iterator facets_end( Delaunay_triangulation& dt)
+    {
+        return dt.facets_end();
+    }
+
+    inline Vertex_const_iterator vertices_begin(const Delaunay_triangulation& dt) const
+    {
+        return dt.vertices_begin();
+    }
+    inline Vertex_const_iterator vertices_end(const Delaunay_triangulation& dt) const
+    {
+        return dt.vertices_end();
+    }
+    inline Vertex_iterator vertices_begin(Delaunay_triangulation& dt) const
+    {
+        return dt.vertices_begin();
+    }
+    inline Vertex_iterator vertices_end(Delaunay_triangulation& dt) const
+    {
+        return dt.vertices_end();
+    }
+
+    inline int index_of_covertex(const Delaunay_triangulation& dt, Facet_const_handle f) const
+    {
+        return f->second;
+    }
+
+    inline Cell_const_handle full_cell(const Delaunay_triangulation& dt, Facet_const_handle f) const
+    {
+        return f->first;
+    }
+
+  inline Cell_const_iterator neighbor(const Delaunay_triangulation& dt, Cell_const_iterator c, int i) const
+    {
+        return c->neighbor(i);
+    }
+
+        inline Point circumcenter(const Delaunay_triangulation& dt, Cell_const_handle c) const
+    {
+      return  CGAL::circumcenter(c->vertex(0)->point(),
+				 c->vertex(1)->point(),
+				 c->vertex(2)->point(),
+				 c->vertex(3)->point());
+	//        return dt.dual(c);
+    }
+
+
+    template<typename PP>
+    double squared_dist(const PP & p1, const PP & p2, int dim) const
+    {
+        double acc = 0;
+        for(int d = 0; d < dim; d++)
+            acc += (p1[d] - p2[d])*(p1[d] - p2[d]);
+        return acc;
+    }
+
+    
+    template<int D>
+    bool is_inside(const Delaunay_triangulation& dt, const Bbox<D>& bbox, Cell_const_handle c) const
+    {
+        typename Delaunay_triangulation::Geom_traits::FT res = 0, delta;
+        auto point  = c->vertex(0)->point();
+        auto center = circumcenter(dt, c);
+        double dist = sqrt(squared_dist(point,center,D));
+        for(int d = 0; d < D; d++)
+        {
+            if(dist > fabs(center[d] - bbox.max(d)) || dist > fabs(center[d] - bbox.min(d)))
+                return false;
+        }
+        return true;
+    }
+
+
+    
+    
+  };
+
+
+  
+template<typename DV, typename DC,typename G = bool>
 struct Cgal_traits_3
 {
     enum { D = 3 };
-    typedef I                                                      Id;
-    typedef F                                                      Flag_V;
-    typedef G                                                      Flag_C;
-    typedef ddt::Data<Id, Flag_V>                                  Data_V;
-    typedef ddt::Data<Id, Flag_C>                                  Data_C;
+
+    typedef DV                                                     Data_V;
+    typedef DC                                                     Data_C;
+    typedef typename DV::Id                                             Id;
+    typedef typename DV::Flag                                        Flag_V;
+    typedef typename DC::Flag                                        Flag_C;
+
+
     typedef CGAL::Exact_predicates_inexact_constructions_kernel    K;
     typedef CGAL::Triangulation_vertex_base_with_info_3<Data_V, K>   Vb;
-#if CGAL_VERSION_NR >= CGAL_VERSION_NUMBER(4,13,0)
-    typedef CGAL::Delaunay_triangulation_cell_base_with_info_3<Data_C,K>            Cb;
-    typedef CGAL::Triangulation_data_structure_3<Vb,Cb>            TDS;
-#else
+// #if CGAL_VERSION_NR >= CGAL_VERSION_NUMBER(4,13,0)
+//     typedef CGAL::Delaunay_triangulation_cell_base_with_info_3<Data_C,K>            Cb;
+//     typedef CGAL::Triangulation_data_structure_3<Vb,Cb>            TDS;
+// #else
     typedef CGAL::Triangulation_cell_base_with_info_3<Data_C,K>            Cb;
     typedef CGAL::Triangulation_data_structure_3<Vb,Cb>               TDS;
-#endif
+  //#endif
     typedef typename K::Point_3                                    Point;
     typedef std::pair<Point,Id>                                    Point_id;
     typedef std::tuple<Point,Id,Id>                                Point_id_id;
@@ -58,6 +199,11 @@ struct Cgal_traits_3
     typedef CGAL::Delaunay_triangulation_3<K, TDS>                 Delaunay_triangulation;
     typedef CGAL::Random_points_in_sphere_3<Point>                 Random_points_in_ball;
 
+    typedef  CGAL::Unique_hash_map<Vertex_const_handle,bool> v_hmap_bool;
+    typedef  CGAL::Unique_hash_map<Vertex_handle,uint> v_hmap_uint;
+
+  //    typedef typename Delaunay_triangulation::Cell::All_vertices_iterator Vertex_h_iterator;
+  
     template<typename Iterator> static Point make_point(Iterator it)
     {
         Iterator x = it;
@@ -90,6 +236,17 @@ struct Cgal_traits_3
         return v->info().flag;
     }
 
+    inline Id    gid  (Vertex_const_handle v) const
+    {
+        return v->info().gid;
+    }
+
+      inline Id    gid  (Cell_const_handle v) const
+    {
+        return v->info().gid;
+    }
+
+  
     inline Flag_C& flag(Cell_const_handle c) const
     {
         return c->info().flag;
@@ -100,6 +257,7 @@ struct Cgal_traits_3
         return c->info();
     }
 
+  
     inline Data_V& data(Vertex_const_handle v)  const
     {
         return v->info();
@@ -399,7 +557,11 @@ struct Cgal_traits_3
 
     inline Point circumcenter(const Delaunay_triangulation& dt, Cell_const_handle c) const
     {
-        return dt.dual(c);
+            return  CGAL::circumcenter(c->vertex(0)->point(),
+				 c->vertex(1)->point(),
+				 c->vertex(2)->point(),
+				 c->vertex(3)->point());
+	    //        return dt.dual(c);
     }
 
     inline bool vertex_is_infinite(const Delaunay_triangulation& dt, Vertex_const_handle v) const
@@ -553,7 +715,7 @@ struct Cgal_traits_3
 
 
     template<typename DDT_DATA>
-    void export_tri_to_data(Delaunay_triangulation& tri,DDT_DATA & data,bool do_init_id,bool add_data)
+    void export_tri_to_data(Delaunay_triangulation& tri,DDT_DATA & data)
     {
         typedef typename DDT_DATA::Data_ply Data_ply;
         int D = data.D;
@@ -561,19 +723,21 @@ struct Cgal_traits_3
         data.dmap[data.xyz_name] = Data_ply(data.xyz_name,"vertex",D,D,data.get_float_type());
         data.dmap[data.simplex_name] = Data_ply(data.simplex_name,"face",D+1,D+1,data.get_int_type());
         data.dmap[data.nb_name] = Data_ply(data.nb_name,"face",D+1,D+1,data.get_int_type());
-        if(add_data)
-        {
-            data.dmap[data.vid_name] = Data_ply(data.vid_name,"vertex",1,1,data.get_int_type());
-            data.dmap[data.cid_name] = Data_ply(data.cid_name,"face",1,1,data.get_int_type());
-            data.dmap[data.flag_vertex_name] = Data_ply(data.flag_vertex_name,"vertex",1,1,data.get_int_type());
-            data.dmap[data.flag_simplex_name] = Data_ply(data.flag_simplex_name,"face",1,1,data.get_int_type());
-        }
+
+        data.dmap[data.vid_name] = Data_ply(data.vid_name,"vertex",1,1,data.get_int_type());
+        data.dmap[data.flag_vertex_name] = Data_ply(data.flag_vertex_name,"vertex",1,1,data.get_int_type());
+        data.dmap[data.flag_simplex_name] = Data_ply(data.flag_simplex_name,"face",1,1,data.get_int_type());
 
 
-        std::vector<double> v_xyz;
-        std::vector<int> v_simplex,v_nb,v_vid,v_cid,v_flagv,v_flags;
 
-        //    uint n = tri.number_of_vertices();
+	        std::vector<double> v_xyz;
+        std::vector<Id> v_simplex,v_nb;
+        std::vector<Id> v_vid;
+        //    std::vector<Id> v_cid;
+        std::vector<Flag_V> v_flagv;
+        std::vector<Flag_C> v_flags;
+
+        uint n = tri.number_of_vertices();
         std::map<Vertex_const_handle, uint> vertex_map;
 
         vertex_map[tri.infinite_vertex()] = 0;
@@ -585,30 +749,15 @@ struct Cgal_traits_3
         }
         uint i = 1;
 
-        // Infinite hack
-        // for(int d = 0; d < D; d++)
-        //   {
-        // 	v_xyz.push_back(0);
-        //   }
-        for(auto vit = tri.all_vertices_begin(); vit != tri.all_vertices_end(); ++vit)
+        for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
         {
             if(tri.is_infinite(vit))
             {
-                // vertex_map[vit] = 0;
-                // v_vid.push_back(0);
-                // v_flagv.push_back(0);
-                // for(int d = 0; d < D; d++)
-                //   {
-                // 	v_xyz.push_back(0.0);
-                //   }
-                // i++;
                 continue;
             }
 
 
             int ii = i;
-            // if(!do_init_id)
-            //   ii = vit->info().id;
 
 
             for(int d = 0; d < D; d++)
@@ -616,74 +765,73 @@ struct Cgal_traits_3
                 double pv = vit->point()[d];
                 v_xyz.push_back(pv);
             }
-            if(add_data)
-            {
-                v_vid.push_back(vit->info().id);
-                v_flagv.push_back(vit->info().flag);
-            }
+
+            v_vid.push_back(vit->info().id);
+            v_flagv.push_back(vit->info().flag);
 
             vertex_map[vit] = ii;
             i++;
         }
         // write the number of cells
-        //n = tri.number_of_faces();
+        n = tri.number_of_cells();
+	v_simplex.resize(n*(D+1));
+	v_flags.resize(n);
+	v_nb.resize(n*(D+1));
+	  
         // write the cells
         std::map<Cell_const_handle, uint> cell_map;
         i = 0;
-        for(auto it = tri.all_cells_begin(); it != tri.all_cells_end(); ++it)
+
+	
+	int max_id = 0;
+
+	for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
         {
-            // if(tri.is_infinite(it))
-            // 	continue;
+	  if(it->info().gid > max_id)
+	    max_id = it->info().gid;
+	}
+	max_id++;
+        for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
+        {
 
-            int ii = i;
-            if(!do_init_id)
-                int ii =  it->info().id;
 
+	  //int ii = i;
+            int ii =  it->info().gid;
+	    if(ii == -1)
+	      ii = max_id++;
             cell_map[it] = ii;
-            ++i;
             for(int d = 0; d < D+1; d++)
             {
                 int vertex_id = vertex_map[it->vertex(d)] ;
-                v_simplex.push_back(vertex_id);
+                v_simplex[ii*(D+1)+d] = vertex_id;
 
                 // write the id
             }
-            if(add_data)
-            {
-                v_flags.push_back(it->info().flag);
-                v_cid.push_back(ii);
-            }
-        }
-
-        // write the neighbors of the cells
-        for(auto it = tri.all_cells_begin(); it != tri.all_cells_end(); ++it)
-        {
             for(int j = 0; j < D+1; j++)
             {
                 int nb_id = cell_map[it->neighbor(j)];
-                v_nb.push_back(nb_id);
+                v_nb[ii*(D+1) +j] = nb_id;
             }
+            v_flags[ii] = it->info().flag;
+	    ++i;
+            //	      v_cid.push_back(ii);
+
         }
 
-        std::cerr << "[stats out] :";
 
-        data.dmap[data.xyz_name].fill_full_output(v_xyz);
-        data.dmap[data.simplex_name].fill_full_output(v_simplex);
-        data.dmap[data.nb_name].fill_full_output(v_nb);
-        if(add_data)
-        {
-            data.dmap[data.vid_name].fill_full_output(v_vid);
-            data.dmap[data.cid_name].fill_full_output(v_cid);
-            data.dmap[data.flag_vertex_name].fill_full_output(v_flagv);
-            data.dmap[data.flag_simplex_name].fill_full_output(v_flags);
-            data.dmap[data.vid_name].do_exist = true;
-            data.dmap[data.cid_name].do_exist = true;
-            data.dmap[data.flag_vertex_name].do_exist = true;
-            data.dmap[data.flag_simplex_name].do_exist = true;
-        }
-        data.dmap[data.xyz_name].do_exist = true;
-        data.dmap[data.simplex_name].do_exist = true;
-        data.dmap[data.nb_name].do_exist = true;
+
+
+
+	  data.dmap[data.xyz_name].fill_full_uint8_vect(v_xyz);
+	  data.dmap[data.simplex_name].fill_full_uint8_vect(v_simplex);
+	  data.dmap[data.nb_name].fill_full_uint8_vect(v_nb);
+
+	  data.dmap[data.vid_name].fill_full_uint8_vect(v_vid);
+	  data.dmap[data.flag_vertex_name].fill_full_uint8_vect(v_flagv);
+	  data.dmap[data.flag_simplex_name].fill_full_uint8_vect(v_flags);
+
+
+
 
     }
 
@@ -802,12 +950,288 @@ struct Cgal_traits_3
 
         tri.set_infinite_vertex(vertex_map[0]);
         CGAL_triangulation_assertion(tri.is_valid());
+    }
+
+
+
+      std::istream& deserialize_b64_cgal(Delaunay_triangulation& tri,std::istream&  ifile)
+    {
+
+        std::vector<double> v_double;
+        std::vector<int> v_int;
+        std::vector<int> v_char;
+
+        char cc;
+        uint ldim;
+        int num_c,num_v;
+        ifile >> ldim;
+        ifile >> num_v >> num_c;
+
+
+        int D = ldim;
+        tri.clear();
+
+
+	auto cit = tri.all_cells_begin();
+        Cell_handle inf_ch = cit;
+	tri.tds().delete_cell(cit);
+
+
+        // 5) read and create the vertices
+        deserialize_b64_vect<double>(v_double,ifile);
+        std::vector<Vertex_handle> vertex_map(num_v+1);
+        vertex_map[0] = tri.infinite_vertex();
+
+        for(uint i = 1; i <= num_v; ++i)
+        {
+            int ii = i;
+            std::vector<double> coords_v(D);
+            for(uint d = 0; d < D; d++)
+            {
+                coords_v[d] = v_double[ii*D +d];
+            }
+	    Point p(coords_v[0],coords_v[1],coords_v[2]);
+	    //Point p(D,coords_v.begin(),coords_v.end());
+            //Point p(coords_v[0],coords_v[1],coords_v[2]);
+	    vertex_map[ii] = tri.tds().create_vertex(p);
+        }
+
+        if(true)
+        {
+            deserialize_b64_vect(v_int,ifile);
+            for(uint i = 1; i <= num_v; ++i)
+            {
+                int ii = i;
+                vertex_map[ii]->info().id = v_int[ii];
+            }
+	    deserialize_b64_vect(v_int,ifile);
+            for(uint i = 1; i <= num_v; ++i)
+            {
+                int ii = i;
+                vertex_map[ii]->info().gid = v_int[ii];
+            }
+            deserialize_b64_vect(v_int,ifile);
+            for(uint i = 1; i <= num_v; ++i)
+            {
+                int ii = i;
+                vertex_map[ii]->info().flag = v_int[ii];
+            }
+        }
 
 
 
 
+        uint ik;
+        deserialize_b64_vect(v_int,ifile);
+	std::cerr << "deserialize cell done" << std::endl;
+	std::cerr << "num_c : " << v_int.size()/(D+1) << " " << num_c << std::endl;
+        num_c = v_int.size()/(D+1);
+        std::vector<Cell_handle> cell_map(num_c);
+        for(uint i = 0; i < num_c; ++i)
+        {
+            int ii = i;
+	    Cell_handle ch = tri.tds().create_face();
+            for (uint d = 0; d < D+1; d++)
+            {
+                ik = v_int[i*(D+1)+d];
+                ch->set_vertex(d, vertex_map[ik]);
+                vertex_map[ik]->set_cell(ch);
+            }
+            cell_map[ii] = ch;
+        }
+
+
+        if(true)
+        {
+            deserialize_b64_vect(v_char,ifile);
+            for(uint i = 0; i < num_c; ++i)
+            {
+                int ii = i;
+                cell_map[ii]->info().flag =  v_char[ii];
+            }
+	    deserialize_b64_vect(v_int,ifile);
+            for(uint i = 0; i < num_c; ++i)
+            {
+                int ii = i;
+                cell_map[ii]->info().gid =  v_int[ii];
+            }
+        }
+        else
+        {
+            for(uint i = 0; i < num_c; ++i)
+            {
+                int ii = i;
+                cell_map[ii]->info() =  0;
+            }
+        }
+
+
+
+        deserialize_b64_vect(v_int,ifile);
+        for(uint j = 0; j < num_c; ++j)
+        {
+            Cell_handle ch  = cell_map[j];
+            for(uint d = 0; d < D+1; d++)
+            {
+                ik = v_int[j*(D+1)+d];
+                ch->set_neighbor(d, cell_map[ik]);
+            }
+        }
+
+        // for(uint j = 0; j < num_c; ++j)
+        // {
+        //     Cell_handle s  = cell_map[j];
+        //     for( uint j = 0; j <= D; ++j )
+        //     {
+        //         if( -1 != s->mirror_index(j) )
+        //             continue;
+        //         Cell_handle n = s->neighbor(j);
+        //         int k = 0;
+        //         Cell_handle nn = n->neighbor(k);
+        //         while( s != nn )
+        //             nn = n->neighbor(++k);
+        //         s->set_mirror_index(j,k);
+        //         n->set_mirror_index(k,j);
+        //     }
+        // }
+
+	std::cerr << "valid test" << std::endl;
+	std::cerr << "IS VALID??!" << std::endl;
+	if(tri.is_valid())
+	  std::cerr << "ok it's valid" << std::endl;
+	else
+	  std::cerr << "WRONG NOT VALID" << std::endl;
+        assert(tri.is_valid());
+
+        return ifile;
 
     }
+
+
+    std::ostream & serialize_b64_cgal( const Delaunay_triangulation& tri,std::ostream & ofile) const
+    {
+
+      int D = 3;
+        int num_c = tri.number_of_cells();
+        uint num_v = tri.number_of_vertices();
+        ofile << D << " " << num_v << " " << num_c << " ";
+
+        std::vector<double> v_double;
+        std::vector<int> v_int;
+        std::vector<int> v_char;
+
+        CGAL::Unique_hash_map<Vertex_const_handle, uint> vertex_map;
+        vertex_map[tri.infinite_vertex()] = 0;
+
+
+        uint i = 1;
+
+        for(int d = 0; d < D; d++)
+            v_double.push_back(d*100);
+        for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
+        {
+            if(tri.is_infinite(vit))
+            {
+                continue;
+            }
+            int ii = i;
+            for(int d = 0; d < D; d++)
+            {
+                double pv = vit->point()[d];
+                v_double.push_back(pv);
+            }
+            vertex_map[vit] = ii;
+            i++;
+        }
+        serialize_b64_vect(v_double,ofile);
+
+        if(true)
+        {
+            v_int.push_back(0);
+            for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
+            {
+                if(tri.is_infinite(vit))
+                    continue;
+                v_int.push_back(vit->info().id);
+            }
+            serialize_b64_vect(v_int,ofile);
+	    v_int.push_back(0);
+            for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
+            {
+                if(tri.is_infinite(vit))
+                    continue;
+                v_int.push_back(vit->info().gid);
+            }
+            serialize_b64_vect(v_int,ofile);
+            v_int.push_back(0);
+            for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
+            {
+                if(tri.is_infinite(vit))
+                    continue;
+                v_int.push_back(vit->info().flag);
+            }
+            serialize_b64_vect(v_int,ofile);
+        }
+
+
+        CGAL::Unique_hash_map<Cell_const_handle, uint> cell_map;
+
+        i = 0;
+        for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
+        {
+            int ii = i;
+            if(false)
+            {
+                cell_map[it] = 0;
+                continue;
+            }
+
+            cell_map[it] = ii;
+            ++i;
+            for(int d = 0; d < D+1; d++)
+            {
+                int vertex_id = vertex_map[it->vertex(d)] ;
+                v_int.push_back(vertex_id);
+            }
+        }
+        serialize_b64_vect(v_int,ofile);
+
+
+        if(true)
+        {
+            for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
+            {
+                v_char.push_back(it->info().flag);
+
+            }
+            serialize_b64_vect(v_char,ofile);
+	    for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
+            {
+                v_int.push_back(it->info().gid);
+
+            }
+            serialize_b64_vect(v_int,ofile);
+        }
+
+
+
+        // write the neighbors of the cells
+        for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
+        {
+            if(false)
+                continue;
+            for(int j = 0; j < D+1; j++)
+            {
+                int nb_id = cell_map[it->neighbor(j)];
+                v_int.push_back(nb_id);
+            }
+        }
+        serialize_b64_vect(v_int,ofile);
+        return ofile;
+    }
+
+
+
 
 
 };

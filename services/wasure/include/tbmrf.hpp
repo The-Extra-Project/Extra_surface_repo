@@ -177,9 +177,9 @@ public :
     double get_volume(Cell_const_iterator & cci)
     {
         Tile_cell_const_handle fch = cci->full_cell();
-        Vertex_h_iterator vht;
+        
         std::list<Point> lp;
-        for(vht = fch->vertices_begin() ;
+        for(auto vht = fch->vertices_begin() ;
                 vht != fch->vertices_end() ;
                 ++vht)
         {
@@ -195,9 +195,9 @@ public :
     double get_surface(Cell_const_iterator & cci, int idx)
     {
         Tile_cell_const_handle fch = cci->full_cell();
-        Vertex_h_iterator vht;
+
         std::list<Point> lp;
-        for(vht = fch->vertices_begin() ;
+        for(auto vht = fch->vertices_begin() ;
                 vht != fch->vertices_end() ;
                 ++vht)
         {
@@ -510,7 +510,7 @@ public :
                 Cell_const_iterator fchn = tmp_fchn->main();
 
 
-                Vertex_h_iterator vht;
+
 
                 int c1Id = id_map[fch];
                 int cnId = id_map[fchn];
@@ -935,7 +935,7 @@ public :
                 Cell_const_iterator fchn = tmp_fchn->main();
 
 
-                Vertex_h_iterator vht;
+
 
                 int lidc = fch->lid();//cell_data().id;
                 int lidn = fchn->lid();//cell_data().id;
@@ -1179,7 +1179,7 @@ public :
                 Cell_const_iterator fchn = tmp_fchn->main();
 
 
-                Vertex_h_iterator vht;
+
 
 
                 int lidc = fch->lid();//>cell_data().id;
@@ -1375,7 +1375,7 @@ public :
                 Cell_const_iterator fchn = tmp_fchn->main();
 
 
-                Vertex_h_iterator vht;
+
 
 
                 int lidc = fch->lid();//cell_data().id;

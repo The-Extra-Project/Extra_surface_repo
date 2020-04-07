@@ -9,7 +9,7 @@ GLOBAL_OUTPUT_DIR="${HOME}/shared_spark/tests_outputs/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
-DEBUG_FLAG="-d"
+#DEBUG_FLAG="-d"
 DO_RUN=true
 
 
@@ -108,7 +108,7 @@ function run_img2ply
 
 
 # ========== Random ddt workflow =============
-#run_all_tests
+run_all_tests
 #run_2d_ddt_random
 #run_3d_ddt_random
 
@@ -117,7 +117,7 @@ function run_img2ply
 #run_img2ply
 run_2d_wasure
 # 3D
-#run_3d_croco
+run_3d_croco
 
 
 
