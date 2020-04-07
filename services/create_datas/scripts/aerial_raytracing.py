@@ -72,11 +72,12 @@ if __name__ == '__main__':
                                          "--x_origin",str(image_dat["posx"]*5000),
                                          "--y_origin",str(image_dat["posy"]*5000),
                                          "--name_ply_out",ply_filename,
+                                         "--nb_sample","10000",
                                          "--do_rand"])
 
                         # Georeferencement des images
                         if(do_geotif) : 
-                                src_ds = gdal.Open(lab_filename)
+                                src_ds = gdal.Open(ray_filename)
                                 format = "GTiff"
                                 driver = gdal.GetDriverByName(format)
                                 dst_ds = driver.CreateCopy(geo_filename, src_ds,0)

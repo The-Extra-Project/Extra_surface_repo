@@ -88,10 +88,21 @@ function run_3d_croco
 function run_2d_wasure
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/2d_austin/imgs/"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/2d_austin/imgs2/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_surface.xml"
     run_algo_docker
+}
+
+
+### Create 2D ply from images 
+function run_img2ply
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/create_datas/scripts/aerial_raytracing.py"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/2d_austin/imgs2/"
+    OUTPUT_DIR="${DDT_MAIN_DIR}/datas/2d_austin/imgs2/"
+    CMD="python3  $FILE_SCRIPT  --img_dir $INPUT_DIR  --output_dir $OUTPUT_DIR --bin_dir ${DDT_MAIN_DIR}/build/build-spark-Release-D2/bin/"
+    ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m " -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}" -l "${CMD}" -i "${NAME_IMG_BASE}"  -c "${CONTAINER_NAME_SHELL}"
 }
 
 
@@ -101,8 +112,11 @@ function run_2d_wasure
 #run_2d_ddt_random
 #run_3d_ddt_random
 
-# ==== 2D surface reconstruction workflow ====
+# ==== surface reconstruction workflow ====
+# 2D
+#run_img2ply
 run_2d_wasure
+# 3D
 #run_3d_croco
 
 

@@ -337,7 +337,7 @@ wasure_algo::compute_dim_with_simp(  std::vector<Point> & points, std::vector<st
   }
 
   
-  if(true){
+  if(pscale > 0){
     int K_T2 = K_T;
     for(int ii = 0; ii < nbp; ii++){
       Point p1 = points[ii];
@@ -393,6 +393,10 @@ wasure_algo::compute_dim_with_simp(  std::vector<Point> & points, std::vector<st
 	  }
 	}
       }
+    }
+  }else{
+    for(int ii = 0; ii < nbp; ii++){
+      simp.push_back(points[ii]);
     }
   }
   
