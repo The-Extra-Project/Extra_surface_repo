@@ -59,3 +59,8 @@ dump_mode
 - 1 => (simplex)
 - 2 => (facets)
 
+
+
+* graphframe belief propagation
+https://github.com/graphframes/graphframes/blob/master/python/graphframes/examples/belief_propagation.py
+https://github.com/graphframes/graphframes/blob/master/src/main/scala/org/graphframes/examples/BeliefPropagation.scala

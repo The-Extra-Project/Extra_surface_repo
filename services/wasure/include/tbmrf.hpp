@@ -472,7 +472,8 @@ public :
             //   continue;
 
             int cid = id_map[cit];
-            int cccid = cit->cell_data().id;
+	    //            int cccid = cit->cell_data().id;
+	    int cccid = cit->lid();
 
             int lcurr = data_map[fch->tile()->id()].format_labs[cccid];
             e0 = get_score_linear(fch,lcurr,data_map);
@@ -526,8 +527,10 @@ public :
                 // }
 
 
-                int cccid = fch->cell_data().id;
-                int cccidn = fchn->cell_data().id;
+                // int cccid = fch->cell_data().id;
+                // int cccidn = fchn->cell_data().id;
+		int cccid = fch->lid();
+                int cccidn = fchn->lid();
                 double surface = get_surface(fch,idx);
                 double coef = lambda*surface;
 
@@ -577,7 +580,8 @@ public :
             int cid = id_map[fch];
             if(g->what_segment(cid) == GraphType::SOURCE)
             {
-                int cccid = cit->cell_data().id;
+	      //int cccid = cit->cell_data().id;
+	      int cccid = cit->lid();
                 if( data_map.find(fch->tile()->id()) == data_map.end())
                     continue;
                 data_map[fch->tile()->id()].format_labs[cccid] = lalpha;

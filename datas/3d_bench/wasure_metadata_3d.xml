@@ -5,9 +5,9 @@
       <do_process>true</do_process>
       <datatype>files</datatype>
       <dim>3</dim>
-      <ndtree_depth>5</ndtree_depth>
+      <ndtree_depth>4</ndtree_depth>
       <bbox>-50x50:-50x50:-50x50</bbox>
-      <max_ppt>20000</max_ppt>  
+      <max_ppt>50000</max_ppt>  
 
       <pscale>2</pscale>
       <nb_samples>5</nb_samples>

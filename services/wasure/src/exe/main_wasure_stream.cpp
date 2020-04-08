@@ -1463,7 +1463,8 @@ int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
             std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
             if(format_labs.size() == 0)
             {
-                int nbs = w_datas_tri[hid].nb_simplex_uint8_vect();
+	      //int nbs = w_datas_tri[hid].nb_simplex_uint8_vect();
+		int nbs = w_datas_tri[hid].format_dst.size();
                 for(int ss = 0; ss < nbs ; ss++)
                 {
                     format_labs.push_back(0);
@@ -1476,11 +1477,14 @@ int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
         hpi.finalize();
     }
 
+    // ===== Init the id of each cell
+
 
     log.step("compute");
     std::cerr << "seg_step5" << std::endl;
     tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri,&w_datas_tri);
     mrf.lambda = params.lambda;
+    mrf.set_mode(0);
     mrf.alpha_exp(tri,w_datas_tri);
 
     log.step("finalize");

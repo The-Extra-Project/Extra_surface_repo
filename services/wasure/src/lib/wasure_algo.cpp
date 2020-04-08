@@ -760,7 +760,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
       std::vector<double>  C =  (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
       //std::vector<double>  C = (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
       Point  PtSample = traits.make_point(C.begin());
-      std::cerr << "samlple:" << PtSample << std::endl;
+
 
       for(int d = 0; d < D; d++){
 	  queryPt[d] = PtSample[d];
