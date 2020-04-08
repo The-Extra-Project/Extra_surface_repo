@@ -77,7 +77,7 @@ function run_2d_img_ddt
 function run_3d_croco
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_small/"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
@@ -115,9 +115,9 @@ function run_img2ply
 # ==== surface reconstruction workflow ====
 # 2D
 #run_img2ply
-run_2d_wasure
+#run_2d_wasure
 # 3D
-#run_3d_croco
+run_3d_croco
 
 
 

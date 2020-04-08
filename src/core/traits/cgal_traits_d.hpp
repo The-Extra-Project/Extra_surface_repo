@@ -7,6 +7,7 @@
 #include <CGAL/Triangulation_ds_vertex.h>
 #include <CGAL/point_generators_d.h>
 #include <CGAL/Cartesian_d.h>
+
 #include "cgal_traits_base.hpp"
 #include "Facet_const_iterator_d.hpp"
 #include <functional>

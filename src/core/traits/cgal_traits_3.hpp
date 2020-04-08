@@ -11,6 +11,18 @@
 #include <CGAL/Spatial_sort_traits_adapter_3.h>
 #include <CGAL/property_map.h>
 
+// #include <CGAL/Unique_hash_map.h>
+ #include <CGAL/Epick_d.h>
+// #include <CGAL/Delaunay_triangulation.h>
+
+
+// #include <CGAL/Triangulation_ds_vertex.h>
+// #include <CGAL/point_generators_d.h>
+// #include <CGAL/Cartesian_d.h>
+
+
+#include <limits>
+#include <functional>
 
 #include <math.h>
 
@@ -1001,10 +1013,8 @@ struct Cgal_traits_3
 
         int D = ldim;
         tri.clear();
-
-
+	tri.tds().set_dimension(D);
 	auto cit = tri.all_cells_begin();
-        Cell_handle inf_ch = cit;
 	tri.tds().delete_cell(cit);
 
 
