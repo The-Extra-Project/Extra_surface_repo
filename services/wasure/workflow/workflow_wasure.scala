@@ -275,7 +275,7 @@ val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).
 val it_list = List(30)
 var acc = 0;
 val max_it = 30;
-val coef_mult_list = List(10)
+val coef_mult_list = List(50)
 val ll = lambda_list.head
 val coef_mult = coef_mult_list.head
 // Loop over the differents parameters
@@ -327,7 +327,7 @@ if(true){
         val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
         val graph_seg = Graph(kvrdd_seg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
         val rdd_ply_surface = iq.run_pipe_fun_KValue(
-          ext_cmd ++ List("--label","ext_seg_" + acc +  "_ll_" + ll + "_it_" + fmt.format(coef_mult)),
+          ext_cmd ++ List("--label","ext_seg_" + acc +  "_ll_" + ll + "_ceof_" + fmt.format(coef_mult)),
           iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
         rdd_ply_surface.collect()
       }
