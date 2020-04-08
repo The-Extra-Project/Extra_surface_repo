@@ -399,7 +399,17 @@ struct Cgal_traits_d
 
 
 
+  void get_list_vertices(Cell_const_handle fch,std::list<Vertex_const_handle> & lp){
+        for(auto vht = fch->vertices_begin() ;
+                vht != fch->vertices_end() ;
+                ++vht)
+        {
+            Vertex_handle v = *vht;
+            lp.push_back(v);
 
+        }
+  }
+  
     template<int D>
     inline bool is_visible(const Delaunay_triangulation& dt, const Bbox<D>& bbox, Cell_const_handle c, int i) const
     {
@@ -583,12 +593,11 @@ struct Cgal_traits_d
 
 
 
-    Point get_cell_barycenter(Cell_const_handle ch)
+
+    std::vector<double> get_cell_barycenter(Cell_const_handle ch)
     {
         int D = ch->maximal_dimension();
-        std::vector<double> & coords = get_vect_barycenter(ch);
-        for(uint d = 0; d < D; d++)
-            coords[d] = 0;
+	std::vector<double>  coords(D,0.0);
         for(auto vht = ch->vertices_begin() ;
                 vht != ch->vertices_end() ;
                 ++vht)
@@ -601,7 +610,7 @@ struct Cgal_traits_d
         }
         for(uint d = 0; d < D; d++)
             coords[d] /= ((double)D+1);
-        return Point(D,coords.begin(),coords.end());
+        return  coords;
     }
 
 

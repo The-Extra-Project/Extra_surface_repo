@@ -5,6 +5,10 @@
 #include "wasure_algo.hpp"
 #include "input_params.hpp"
 
+
+
+
+
 int 
 wasure_algo::simplify(std::vector<Point> & points, std::vector<bool> & do_keep, double dist ){
   int D = Traits::D;  
@@ -753,9 +757,10 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
     //    std::cerr << "    id : " << vpe << " " << "vop:" << vpo <<  std::endl;
     for(int x = 0; x < params.nb_samples; x++){
       //Point PtSample = traits.make_point((cit->data()).pts[x].begin());
-      //      std::vector<double>  C =  get_cell_barycenter(cit) ;
-      std::vector<double>  C = (x == 0) ? get_cell_barycenter(cit->full_cell()) : Pick(cit->full_cell(),D);
+      std::vector<double>  C =  (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
+      //std::vector<double>  C = (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
       Point  PtSample = traits.make_point(C.begin());
+      std::cerr << "samlple:" << PtSample << std::endl;
 
       for(int d = 0; d < D; d++){
 	  queryPt[d] = PtSample[d];
@@ -934,6 +939,29 @@ wasure_algo::compute_dst_mass_beam(std::vector<double> & coefs, std::vector<doub
 }
 
 
+#ifdef DDT_CGAL_TRAITS_D
+
+std::vector<double> get_cell_barycenter(Cell_handle ch)
+    {
+        int D = ch->maximal_dimension();
+        std::vector<double> coords;// = get_vect_barycenter(ch);
+        for(uint d = 0; d < D; d++)
+            coords[d] = 0;
+        for(auto vht = ch->vertices_begin() ;
+                vht != ch->vertices_end() ;
+                ++vht)
+        {
+            Vertex_handle v = *vht;
+            for(uint d = 0; d < D; d++)
+            {
+                coords[d] += (v->point())[d];
+            }
+        }
+        for(uint d = 0; d < D; d++)
+            coords[d] /= ((double)D+1);
+        return coords;
+    }
+
 
 void
 wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasure_data<Traits>  & datas_tri, wasure_data<Traits>  & datas_pts, wasure_params & params, int cid, int dim){
@@ -985,6 +1013,7 @@ wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasur
 
 }
 
+#endif
 
 
 Cell_handle wasure_algo::walk_locate(DT & tri,
@@ -997,6 +1026,9 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
 				     )
 {
 
+
+#if defined(DDT_CGAL_TRAITS_D)
+  
   std::cerr << "start walk begin" << std::endl;
   typedef typename DT::Face Face;
   DT::Locate_type  loc_type;// type of result (full_cell, face, vertex)
@@ -1015,11 +1047,7 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
   std::vector<CGAL::Oriented_side>  orientations_(cur_dim+1);
 
   std::cerr << "start walk" << std::endl;
-  // for(int i = 0 ; i < start_cell->data().vpe.size(); i++){
-  //   start_cell->data().vpe[i] = 1;
-  //   start_cell->data().vpo[i] = 0;
-  //   start_cell->data().vpu[i] = 0;
-  // }
+
 
   if( cur_dim == -1 )
     {
@@ -1188,13 +1216,18 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
 	loc_type = DT::IN_FACE;
     }
   return s;
+
+
+  #else
+  return start_cell;
+#endif
 }
 
 
 void wasure_algo::center_dst(DTW & ttri, wasure_data<Traits>  & datas_tri,std::vector<Point> & center_pts, Id tid){
 
   auto & tri = ttri.get_tile(tid)->tri(); 
-  
+  auto  tile = ttri.get_tile(tid);
   std::vector<std::vector<double>> & v_dst = datas_tri.format_dst;
   Cell_handle cloc =  Cell_handle();
   Cell_handle cloc_start =  Cell_handle();
@@ -1202,7 +1235,7 @@ void wasure_algo::center_dst(DTW & ttri, wasure_data<Traits>  & datas_tri,std::v
     Cell_handle cloc = tri.locate(pit,cloc_start);
     cloc_start = cloc;
     // Quick and dity hack
-    int cid = cloc->data().gid;
+    int cid = tile->lid(cloc);
     v_dst[cid][0] = 1;
     v_dst[cid][1] = 0;
     v_dst[cid][2] = 0;

@@ -11,6 +11,9 @@
 #include <CGAL/Spatial_sort_traits_adapter_3.h>
 #include <CGAL/property_map.h>
 
+
+#include <math.h>
+
 #include "cgal_traits_base.hpp"
 #include "Facet_const_iterator_3.hpp"
 #include <CGAL/Random.h>
@@ -326,6 +329,34 @@ struct Cgal_traits_3
         return dt.clear();
     }
 
+
+  void get_list_vertices(Cell_const_handle fch,std::list<Vertex_const_handle> & lp){
+    	for(int dd = 0; dd < D+1; dd++)
+	  {	  
+            lp.push_back(fch->vertex(dd));
+        }
+  }
+
+  
+  std::vector<double> get_cell_barycenter(Cell_const_handle ch)
+    {
+
+      std::vector<double>  coords(D,0);
+	for(int dd = 0; dd < D+1; dd++)
+	  {
+            for(uint d = 0; d < D; d++)
+            {
+	      coords[d] += (ch->vertex(dd)->point())[d];
+            }
+        }
+        for(uint d = 0; d < D; d++)
+            coords[d] /= ((double)D+1);
+
+	//Point(D,coords.begin(),coords.end())
+        return coords;
+    }
+
+  
     template<class It> Vertex_handle insert_splay_one(Delaunay_triangulation& dt, Id id, It it, Vertex_handle hint,
             std::map<Id, std::vector<Vertex_const_handle>>& out) const
     {

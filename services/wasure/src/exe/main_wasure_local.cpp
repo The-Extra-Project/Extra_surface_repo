@@ -97,8 +97,9 @@ int main(int argc, char **argv)
   D_MAP w_datas_tri;
   w_datas_tri[tid] = wasure_data<Traits>();
   DT & tri_tile  = tri1.get_tile(tid)->triangulation();
+  auto tile = tri1.get_tile(tid);
   std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
-  int nbs = tri_tile.number_of_full_cells();
+  int nbs = tile->number_of_cells();
 
   // Init each simplex at "unknown"
   // 0 0 1 => 0% in, 0% out, 100% unknown

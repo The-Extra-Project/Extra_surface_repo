@@ -82,7 +82,7 @@ public :
 
 
     typedef typename DTW::Tile_cell_const_handle              Tile_cell_const_handle;
-    typedef typename DTW::DT::Full_cell::Vertex_handle_iterator Vertex_h_iterator;
+  //    typedef typename DTW::DT::Full_cell::Vertex_handle_iterator Vertex_h_iterator;
     typedef typename DTW::Cell_const_iterator                 Cell_const_iterator;
     typedef typename DTW::Facet_const_iterator                Facet_const_iterator;
     typedef typename DTW::Traits                              Traits;
@@ -179,11 +179,14 @@ public :
         Tile_cell_const_handle fch = cci->full_cell();
         
         std::list<Point> lp;
-        for(auto vht = fch->vertices_begin() ;
-                vht != fch->vertices_end() ;
-                ++vht)
-        {
-            Vertex_handle v = *vht;
+	std::list<Vertex_const_handle> lvh;
+	cci->get_list_vertices(lvh);
+        // for(auto vht = fch->vertices_begin() ;
+        //         vht != fch->vertices_end() ;
+        //         ++vht)
+        // {
+	  for(auto vht : lvh){
+            Vertex_const_handle v = vht;
             lp.push_back(v->point());
 
         }
@@ -197,11 +200,14 @@ public :
         Tile_cell_const_handle fch = cci->full_cell();
 
         std::list<Point> lp;
-        for(auto vht = fch->vertices_begin() ;
-                vht != fch->vertices_end() ;
-                ++vht)
-        {
-            Vertex_handle v = *vht;
+	std::list<Vertex_const_handle> lvh;
+	cci->get_list_vertices(lvh);
+	for(auto vht : lvh){
+        // for(auto vht = fch->vertices_begin() ;
+        //         vht != fch->vertices_end() ;
+        //         ++vht)
+        // {
+            Vertex_const_handle v = vht;
             if(fch->index(v) == idx)
                 continue;
             lp.push_back(v->point());

@@ -1789,7 +1789,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	    p = vp_in[count];
 	  else
 	    p = w_datas.get_pts(count);
-	  std::cerr << "ppp:" << p << std::endl;
+
 	  
 	  bool is_out = false;
 	  for(int d = 0; d < D; d++)

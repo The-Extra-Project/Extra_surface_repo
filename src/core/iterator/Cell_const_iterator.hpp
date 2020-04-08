@@ -16,6 +16,7 @@ public:
     typedef typename DDT::Id                        Id;
     typedef typename DDT::Tile_cell_const_handle    Tile_cell_const_handle;
     typedef typename DDT::Tile_cell_const_iterator  Tile_cell_const_iterator;
+    typedef typename DDT::Tile_vertex_const_handle  Tile_vertex_const_handle;
     typedef typename DDT::Tile_const_iterator       Tile_const_iterator;
     typedef typename DDT::Vertex_const_iterator     Vertex_const_iterator;
     typedef typename DDT::Facet_const_iterator      Facet_const_iterator;
@@ -259,7 +260,10 @@ public:
     bool is_inside() const { return tile_->cell_is_inside(cell_); }
 
   bool circumcircle() const { return tile_->cell_is_inside(cell_); }
+  std::vector<double> barycenter() const { return tile_->get_cell_barycenter(cell_); }
 
+  void get_list_vertices(std::list<Tile_vertex_const_handle> & ll) { return tile_->get_list_vertices(cell_,ll);}
+  
     bool is_valid()    const
     {
         return tile_ == end_ || cell_ != tile_->cells_end();

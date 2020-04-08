@@ -75,27 +75,27 @@ public :
     void extract_surface(DTW & tri,  std::map<Id,wasure_data<Traits> >  & datas_tri);
 
 
-  template<typename CH>
-std::vector<double>  wasure_algo::get_cell_barycenter(CH ch)
-{
+//   template<typename CH>
+// std::vector<double>  wasure_algo::get_cell_barycenter(CH ch)
+// {
 
-  std::vector<double> coords(D);
-  for(uint d = 0; d < D; d++)
-    coords[d] = 0;
-  for(auto vht = ch->vertices_begin() ;
-      vht != ch->vertices_end() ;
-      ++vht)
-    {
-      Vertex_handle v = *vht;
-      for(uint d = 0; d < D; d++)
-	{
-	  coords[d] += (v->point())[d];
-	}
-    }
-  for(uint d = 0; d < D; d++)
-    coords[d] /= ((double)D+1);
-  return coords;
-}
+//   std::vector<double> coords(D);
+//   for(uint d = 0; d < D; d++)
+//     coords[d] = 0;
+//   for(auto vht = ch->vertices_begin() ;
+//       vht != ch->vertices_end() ;
+//       ++vht)
+//     {
+//       Vertex_handle v = *vht;
+//       for(uint d = 0; d < D; d++)
+// 	{
+// 	  coords[d] += (v->point())[d];
+// 	}
+//     }
+//   for(uint d = 0; d < D; d++)
+//     coords[d] /= ((double)D+1);
+//   return coords;
+// }
 
 
   template<typename CH>

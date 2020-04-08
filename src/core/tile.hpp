@@ -73,6 +73,7 @@ public:
     inline int current_dimension() const { return traits_.current_dimension(dt_); }
 
 
+
   
     inline Cell_const_iterator cells_begin() const { return traits_.cells_begin(dt_); }
     inline Cell_const_iterator cells_end  () const { return traits_.cells_end  (dt_); }
@@ -115,6 +116,8 @@ public:
     }
 
 
+  inline void get_list_vertices(Cell_const_handle c,std::list<Vertex_const_handle> & ll) {return traits_.get_list_vertices  (c,ll);}
+  
     inline void flag(Cell_const_handle c,int f,bool val) const
     {
         Flag_C & fci = flagc(c);
@@ -165,6 +168,8 @@ public:
     inline bool vertex_is_infinite(Vertex_const_handle v) const { return traits_.vertex_is_infinite(dt_, v); }
     inline bool facet_is_infinite (Facet_const_handle  f) const { return traits_.facet_is_infinite (dt_, f); }
     inline bool cell_is_infinite  (Cell_const_handle   c) const { return traits_.cell_is_infinite  (dt_, c); }
+
+    inline std::vector<double > get_cell_barycenter(Cell_const_handle  c) const { return traits_.get_cell_barycenter  ( c); }
 
     // Facet functions
     inline int index_of_covertex(Facet_const_handle f) const { return traits_.index_of_covertex(dt_, f); }
