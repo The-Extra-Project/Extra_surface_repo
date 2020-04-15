@@ -874,8 +874,10 @@ public :
 	    int lcurr = data_map[tid].format_labs[lid];
             e0 = get_score_linear(fch,linit,data_map);
             e1 = get_score_linear(fch,lalpha,data_map);
-	    e2 = (lcurr == linit) ? e0 : 0;
-	    e3 = (lcurr == linit) ? 0: e1;
+	    e2 = e0;
+	    e3 = e1;
+	    // e2 = (lcurr == linit) ? e2 : e2*1000;
+	    // e3 = (lcurr == linit) ? e3: e3*1000;
             switch(gtype)
             {
             case 0 :
