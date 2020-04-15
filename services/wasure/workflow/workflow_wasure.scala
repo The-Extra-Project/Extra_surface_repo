@@ -275,7 +275,7 @@ val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).
 val it_list = List(30)
 var acc = 0;
 val max_it = 30;
-val coef_mult_list = List(50)
+val coef_mult_list = List(20)
 val ll = lambda_list.head
 val coef_mult = coef_mult_list.head
 // Loop over the differents parameters
@@ -287,7 +287,7 @@ if(true){
       params_wasure("lambda") = collection.mutable.Set(ll)
       params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)
 
-      if(false){
+      if(true){
         println("==== Segmentation with lambda:" + ll + " coef_mult:" + coef_mult +  "  ====")
         val ext_cmd_vertex =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","1"))).to_command_line
         val ext_cmd_edges =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","2"))).to_command_line
@@ -319,7 +319,7 @@ if(true){
         rdd_ply_surface.collect()
       }
 
-      if(true){
+      if(false){
         val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
         val res_seg = iq.run_pipe_fun_KValue(
           seg_cmd ++ List("--label", "dst"),
