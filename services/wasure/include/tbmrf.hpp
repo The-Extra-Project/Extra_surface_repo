@@ -957,15 +957,14 @@ public :
                 int gidc = fch->gid();//data_map[tidc].format_gids[lidc];
                 int gidn = fchn->gid();//data_map[tidn].format_gids[lidn];
 
-		std::cerr << "lidc" << lidc << " lidn:" << lidn << std::endl;
-		std::cerr << "gidc" << gidc << " gidn:" << gidn << std::endl;
-		std::cerr << "lab.size : " << data_map[tidn].format_labs.size();
+		// std::cerr << "lidc" << lidc << " lidn:" << lidn << std::endl;
+		// std::cerr << "gidc" << gidc << " gidn:" << gidn << std::endl;
+		// std::cerr << "lab.size : " << data_map[tidn].format_labs.size();
                 double surface = get_surface(tmp_fch,tmp_idx);
                 double coef = lambda*surface;
 
                 int ch1lab = data_map[tidc].format_labs[lidc];
                 int chnlab = data_map[tidn].format_labs[lidn];
-		std::cerr << "LAB OK"  << std::endl;
 
 
                 E[3] = get_score_quad(ch1lab,chnlab);
@@ -1200,8 +1199,8 @@ public :
 
                 int gidc = fch->gid();//data_map[tidc].format_gids[lidc];
                 int gidn = fchn->gid();//data_map[tidn].format_gids[lidn];
-		std::cerr << "lidc" << lidc << " lidn:" << lidn << std::endl;
-		std::cerr << "gidc" << gidc << " gidn:" << gidn << std::endl;
+		// std::cerr << "lidc" << lidc << " lidn:" << lidn << std::endl;
+		// std::cerr << "gidc" << gidc << " gidn:" << gidn << std::endl;
                 double surface = get_surface(tmp_fch,tmp_idx);
                 double coef = lambda*surface;
 
