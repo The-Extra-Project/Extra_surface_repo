@@ -1182,6 +1182,8 @@ int gc_on_stream(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
     return 1;
 }
 
+
+
 int extract_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 {
 
@@ -1260,6 +1262,12 @@ int extract_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
     }
     mrf->lambda = params.lambda;
 
+    bool do_pre_optimize=false;
+    if(do_pre_optimize){
+      mrf->alpha_exp(tri,w_datas_tri);
+    }
+    
+    
     log.step("write");
     std::cout.clear();
     ddt::stream_data_header oth("t","z",tid),osh("s","s",tid);;

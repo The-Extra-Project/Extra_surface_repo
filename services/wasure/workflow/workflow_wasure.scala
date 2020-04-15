@@ -275,7 +275,7 @@ val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).
 val it_list = List(30)
 var acc = 0;
 val max_it = 30;
-val coef_mult_list = List(20)
+val coef_mult_list = List(1,50)
 val ll = lambda_list.head
 val coef_mult = coef_mult_list.head
 // Loop over the differents parameters

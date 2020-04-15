@@ -838,7 +838,7 @@ public :
             NF++;
         }
 
-        double e0,e1;
+        double e0,e1,e2,e3;
 
         int acc = 0;
         //    std::map<int,int> id_map;
@@ -870,16 +870,18 @@ public :
 	    int lid = cit->lid();
             int gid = cit->gid();//data_map[tid].format_gids[lid];
 
-            int lcurr = 0; //data_map[fch->tile()->id()].format_labs[cccid];
-            e0 = get_score_linear(fch,lcurr,data_map);
+            int linit = 0;
+	    int lcurr = data_map[tid].format_labs[lid];
+            e0 = get_score_linear(fch,linit,data_map);
             e1 = get_score_linear(fch,lalpha,data_map);
-
+	    e2 = (lcurr == linit) ? e0 : 0;
+	    e3 = (lcurr == linit) ? 0: e1;
             switch(gtype)
             {
             case 0 :
             {
                 // Belief spark
-                ofile << "v " <<   gid  << " " << (e0 * MULT_2) << " " <<  (e1 * MULT_2) << " ";
+                ofile << "v " <<   gid  << " " << (e0 * MULT_2) << " " <<  (e1 * MULT_2) << " " <<  (e2 * MULT_2) << " " <<  (e3 * MULT_2) ;
                 if(++acc % chunk_size == 0) ofile << std::endl;
                 break;       // and exits the switch
             }
