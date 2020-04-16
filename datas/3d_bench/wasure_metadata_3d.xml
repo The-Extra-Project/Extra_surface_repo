@@ -13,7 +13,8 @@
       <nb_samples>5</nb_samples>
      
       <lambda>1</lambda>
-      <StorageLevel>MEMORY_AND_DISK</StorageLevel>
+      <!-- <StorageLevel>MEMORY_AND_DISK</StorageLevel> -->
+      <StorageLevel>DISK_ONLY</StorageLevel> 
       <!-- Meta paramexters -->
       <do_process>true</do_process>
       <do_expand>false</do_expand>
