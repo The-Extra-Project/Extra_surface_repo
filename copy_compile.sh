@@ -8,7 +8,7 @@ scp -r laurent@caraffa.ddns.net:/home/laurent/code/spark-ddt/build/build-spark-R
 scp -r laurent@caraffa.ddns.net:/home/laurent/code/spark-ddt/build/build-spark-Release-3/{bin,lib,*.so} /home/lcaraffa/code/spark-ddt/build/build-spark-Release-3/
 scp -r laurent@caraffa.ddns.net:/home/laurent/code/spark-ddt/build/build-spark-Release-D2/{bin,lib,*.so} /home/lcaraffa/code/spark-ddt/build/build-spark-Release-D2/
 scp -r laurent@caraffa.ddns.net:/home/laurent/code/spark-ddt/build/build-spark-Release-2/{bin,lib,*.so} /home/lcaraffa/code/spark-ddt/build/build-spark-Release-2/
-scp -r laurent@caraffa.ddns.net:/home/laurent/code/spark-ddt/datas/ /home/lcaraffa/code/spark-ddt/
+#scp -r laurent@caraffa.ddns.net:/home/laurent/code/spark-ddt/datas/ /home/lcaraffa/code/spark-ddt/
 
 KERNEL=build-spark-Release-D2
 KERNEL=build-spark-Release-2
@@ -22,4 +22,4 @@ cp -rf /home/lcaraffa/lib/* /home/lcaraffa/tmp/
 hadoop fs -rm -r /user/lcaraffa/tmp/
 hadoop fs -put -f /home/lcaraffa/tmp/ /user/lcaraffa/
 hadoop fs -rm -r /user/lcaraffa/datas_xml/*
-hadoop fs -put -f /home/lcaraffa/code/spark-ddt/datas/* /user/lcaraffa/datas_xml/
+#hadoop fs -put -f /home/lcaraffa/code/spark-ddt/datas/* /user/lcaraffa/datas_xml/

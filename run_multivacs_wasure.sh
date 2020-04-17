@@ -1,0 +1,77 @@
+#!/bin/bash
+
+export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
+source ${DDT_MAIN_DIR}/algo-env.sh
+GLOBAL_OUTPUT_DIR="${HOME}/shared_spark/tests_outputs/"
+BUILDS_DIR="${DDT_MAIN_DIR}/build/"
+
+mkdir -p ${GLOBAL_OUTPUT_DIR}
+#DEBUG_FLAG="-d"
+DO_RUN=true
+
+
+function export_default_parallelism
+{
+    echo "$ff:$1"
+    VV=$(cat $1 | grep nbp  | grep -o -E '[0-9]+'| head -n 1 | sed -e 's/^0\+//')
+    PPT=$(cat $1 | grep max_ppt  | grep -o -E '[0-9]+'| head -n 1 | sed -e 's/^0\+//')    
+    export DEFAULT_PARALLELISM=$((2*(VV/PPT)))
+    echo "$VV, $PPT, $DEFAULT_PARALLELISM"
+}
+
+
+function run_algo_multivac
+{
+    echo ""
+    echo "##  ------  ${FUNCNAME[1]}  ------"
+    echo "##  "
+    echo "spark-shell -i ${FILE_SCRIPT}"
+    echo "	--master yarn --deploy-mode client "
+    echo "	--jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar "
+    echo "	--executor-cores ${MULTIVAC_EXECUTOR_CORE} "
+    echo "	--executor-memory ${MULTIVAC_EXECUTOR_MEMORY} "
+    echo "	--driver-memory ${MULTIVAC_DRIVER_MEMORY} "
+    echo "	--num-executors ${MULTIVAC_NUM_EXECUTORS} "
+    echo "	--conf spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}"
+    echo "	--conf spark.default.parallelism=${DEFAULT_PARALLELISM}"
+    echo "	--conf spark.serializer=org.apache.spark.serializer.KryoSerializer"  
+    echo "	--conf spark.dynamicAllocation.enabled=false "
+    echo "	--conf spark.cleaner.periodicGC.interval=2min "
+    echo "	--conf spark.memory.fraction=0.2 "
+    echo "	--conf spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
+
+    
+    spark-shell -i \ #${FILE_SCRIPT} \
+		--master yarn --deploy-mode client \
+		--jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar \
+		--executor-cores ${MULTIVAC_EXECUTOR_CORE} \
+		--executor-memory ${MULTIVAC_EXECUTOR_MEMORY} \
+		--driver-memory ${MULTIVAC_DRIVER_MEMORY} \
+		--num-executors ${MULTIVAC_NUM_EXECUTORS} \
+		--conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}" \
+		--conf "spark.serializer=org.apache.spark.serializer.KryoSerializer"  \
+		--conf "spark.dynamicAllocation.enabled=false" \
+		--conf "spark.cleaner.periodicGC.interval=2min" \
+		--conf "spark.memory.fraction=0.2" \
+		--conf "spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
+
+		#--conf "spark.default.parallelism=${DEFAULT_PARALLELISM}" \
+                #--conf "yarn.nodemanager.pmem-check-enabled=false" \
+		#--conf "yarn.nodemanager.vmem-pmem-ratio=5"  
+}
+
+export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/"
+export HDFS_FILES_DIR="hdfs:/user/lcaraffa/tmp/"
+
+function run_multivac_church
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/ddt-spark/workflow/workflow_ddt_multivacs.scala"
+    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/"
+    export PARAM_PATH="hdfs:/user/lcaraffa/datas/church/wasure_metadata_3d.xml"    
+    run_algo_multivac
+}
+run_multivac_church
+
+
+
+

@@ -355,6 +355,7 @@ object params_parser {
     val ser2datastruct_cmd =  set_params(params_cpp, List(("step","serialized2datastruct"))).to_command_line
     var kvrdd_points: RDD[KValue] = sc.parallelize(List((0L,List(""))));
     var kvrdd_inputs: RDD[KValue] = sc.parallelize(List((0L,List(""))));
+    var kvrdd_inputs_struct  : RDD[KValue] = sc.parallelize(List((0L,List(""))));
     println("")
     println("======== GENERATE DATA =============")
     println("datatype : " + datatype)
@@ -397,36 +398,54 @@ object params_parser {
           x => ((x.toString endsWith ".ply") && ((ss_reg).findFirstIn(x.toString).isDefined)))
         kvrdd_inputs = iq.get_kvrdd(sc.parallelize(ply_input.map(
           fname => "p 1 " + ("([0-9]+)".r).findAllIn(fname.toString).toArray.last + " f " + fname.toString)),"p")
+
+        val struct_inputs = iq.run_pipe_fun_KValue(
+          ser2datastruct_cmd ++ List("--label", "struct"),
+          kvrdd_inputs, "struct", do_dump = false)
+        kvrdd_inputs_struct = iq.get_kvrdd(struct_inputs)
       }
       case "filestream" => {
-                println("")
+        println("")
         println("======== LOAD DATA filestream =============")
         val ss_reg = regexp_filter.r
-        val nb_ply = fs.listStatus(new Path(input_dir)).map(x => fs.listStatus(x.getPath)).reduce(_ ++ _).map(_.getPath).filter(
-          x => ((x.toString endsWith ".ply")) && ((ss_reg).findFirstIn(x.toString).isDefined)
+        val nb_file = fs.listStatus(new Path(input_dir)).map(x => fs.listStatus(x.getPath)).reduce(_ ++ _).map(_.getPath).filter(
+          x => ((x.toString endsWith ".stream")) && ((ss_reg).findFirstIn(x.toString).isDefined)
         ).size
-        // val nb_ply = fs.listStatus(new Path(input_dir)).map(_.getPath).filter(
-        //   x => ((x.toString endsWith ".ply"))
-        // ).size
 
-        if(regexp_filter == ""){
-          kvrdd_inputs = sc.textFile(input_dir + "*/*.ply").zipWithIndex.map(
+        val ply_input = fs.listStatus(new Path(input_dir)).map(x => fs.listStatus(x.getPath)).reduce(_ ++ _).map(_.getPath).filter(
+          x => ((x.toString endsWith ".stream")) && ((ss_reg).findFirstIn(x.toString).isDefined)
+        )
+
+        kvrdd_inputs_struct = sc.textFile(input_dir + "*/*.stream").zipWithIndex.map(
           e => (e._2.toLong,List("g 1 " + e._2.toString + " s " +  e._1.toString))
-          ).repartition(nb_ply/10+1).setName("KVRDD_INPUT")
-        }else{
-          kvrdd_inputs = sc.textFile(input_dir + regexp_filter + "/*.ply").zipWithIndex.map(
-          e => (e._2.toLong,List("g 1 " + e._2.toString + " s " +  e._1.toString))
-          ).repartition(nb_ply/10+1).setName("KVRDD_INPUT")
-        }
+          ).repartition(nb_file/10+1).setName("KVRDD_INPUT")
 
       }
+      // case "filestream" => {
+      //   println("")
+      //   println("======== LOAD DATA filestream =============")
+      //   val ss_reg = regexp_filter.r
+      //   val nb_ply = fs.listStatus(new Path(input_dir)).map(x => fs.listStatus(x.getPath)).reduce(_ ++ _).map(_.getPath).filter(
+      //     x => ((x.toString endsWith ".ply")) && ((ss_reg).findFirstIn(x.toString).isDefined)
+      //   ).size
+      //   // val nb_ply = fs.listStatus(new Path(input_dir)).map(_.getPath).filter(
+      //   //   x => ((x.toString endsWith ".ply"))
+      //   // ).size
+
+      //   if(regexp_filter == ""){
+      //     kvrdd_inputs = sc.textFile(input_dir + "*/*.ply").zipWithIndex.map(
+      //     e => (e._2.toLong,List("g 1 " + e._2.toString + " s " +  e._1.toString))
+      //     ).repartition(nb_ply/10+1).setName("KVRDD_INPUT")
+      //   }else{
+      //     kvrdd_inputs = sc.textFile(input_dir + regexp_filter + "/*.ply").zipWithIndex.map(
+      //     e => (e._2.toLong,List("g 1 " + e._2.toString + " s " +  e._1.toString))
+      //     ).repartition(nb_ply/10+1).setName("KVRDD_INPUT")
+      //   }
+      // }
 
     }
 
-    val struct_inputs = iq.run_pipe_fun_KValue(
-      ser2datastruct_cmd ++ List("--label", "struct"),
-      kvrdd_inputs, "struct", do_dump = false)
-    val kvrdd_inputs_struct = iq.get_kvrdd(struct_inputs)
+
 
     // if(plot_lvl >=3 && dim == 2){
     //   val rdd_json_tri_simp = iq.run_pipe_fun_KValue(

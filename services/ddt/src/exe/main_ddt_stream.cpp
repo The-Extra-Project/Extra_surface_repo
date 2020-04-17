@@ -1487,6 +1487,8 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
 	std::cerr << "hid" << hid << std::endl;
 	std::string stream_lab = datas_map[hid].stream_lab;
 	ddt::stream_data_header ozh(stream_lab,"z",hid);
+	std::string filename(params.output_dir + "/pts_" + params.slabel +"_id_"+ std::to_string(hid) + "_" + std::to_string(tid));
+	//ozh.init_file_name(filename,".stream");
 	ozh.write_header(std::cout);
 	datas_map[hid].write_serialized_stream(ozh.get_output_stream());
 	ozh.finalize();  

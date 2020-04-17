@@ -14,7 +14,7 @@ function run_algo_multivac
 {
     echo ""
     echo "##  ------  ${FUNCNAME[1]}  ------"
-    spark-shell -i  ${FILE_SCRIPT} \
+    spark-shell -i  \ #${FILE_SCRIPT} \
 		--master yarn --deploy-mode client \
 		--jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar \
 		--executor-cores ${MULTIVAC_EXECUTOR_CORE} \
@@ -48,11 +48,22 @@ function run_mutlivac_stereopolis
     run_algo_multivac
 }
 
+function run_multivac_church
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
+    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/"
+    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/stereopolis/"
+    export HDFS_FILES_DIR="hdfs:/user/lcaraffa/tmp/"
+    export PARAM_PATH="hdfs:/user/lcaraffa/datas/church/wasure_metadat_3d.xml"    
+    run_algo_multivac
+}
+
 
 #run_mutlivac_random
 
-run_mutlivac_stereopolis
+# run_mutlivac_stereopolis
 
+run_multivac_church
 
 
 

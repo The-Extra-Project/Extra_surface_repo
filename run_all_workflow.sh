@@ -128,8 +128,8 @@ function run_img2ply
 #run_img2ply
 #run_2d_wasure
 # 3D
-#run_3d_croco
-run_3d_church
+run_3d_croco
+#run_3d_church
 
 
 
