@@ -915,8 +915,8 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
 
     if(D == 2)
         oth.init_file_name(ply_name,".geojson");
-    else
-        oth.init_file_name(ply_name,".ply");
+    // else
+    //     oth.init_file_name(ply_name,".ply");
 
     oth.write_header(std::cout);
 
@@ -975,8 +975,8 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
         datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
         datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(format_points);
         datas_out.dmap[datas_out.simplex_name].fill_full_uint8_vect(v_simplex);
-	datas_out.write_ply_stream(oth.get_output_stream(),'\n',true);
-
+	datas_out.write_ply_stream(oth.get_output_stream(),';',true);
+		
         break;
     }
     default :             // Note the colon, not a semicolon
@@ -1330,6 +1330,8 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
         ddt::stream_data_header hpi;
         hpi.parse_header(std::cin);
         Id hid = hpi.get_id(0);
+	std::cerr << "=== loop dat : " << hpi.get_lab() << std::endl;
+	
         if(hpi.get_lab() == "t")
         {
             std::cerr << "read tri " << tid <<  std::endl;
@@ -1390,8 +1392,8 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
         //	id_vect.push_back(cit->cell_data().id);
       int lid = cit->lid();
 	//        int gid = w_datas_tri[tid].format_gids[lid] ;
-	int gid = cit->gid();
-        g2lmap[gid] = lid;
+      int gid = cit->gid();
+      g2lmap[gid] = lid;
     }
 
     std::cerr << "start processing2" << std::endl;
@@ -1410,7 +1412,7 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
         // 	if(g2lmap[it->first] > format_labs.size())
         // 	  std::cerr << "err !val:" << g2lmap[it->first] << std::endl;
         // 	//else
-      std::cerr << "labs:" << it->second << std::endl;
+
         format_labs[g2lmap[it->first]] = it->second;
         //}
     }
@@ -1678,6 +1680,7 @@ int main(int argc, char **argv)
         std::cerr << "     [MAIN_DDT_STREAM_LOG] tile_id : " << tile_id <<  std::endl;
         std::cerr << "     [MAIN_DDT_STREAM_LOG] step    : " << params.algo_step << std::endl;
         std::cerr << "     [MAIN_DDT_STREAM_LOG] acc     : " << acc++ << std::endl;
+	std::cerr << "     [MAIN_DDT_STREAM_LOG] nb dat  : " << nb_dat << std::endl;
         std::cerr << " ======================================================= " << std::endl;
         try
         {

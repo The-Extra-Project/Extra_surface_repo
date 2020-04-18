@@ -293,7 +293,7 @@ if(true){
           val ext_cmd_vertex =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","1"))).to_command_line
           val ext_cmd_edges =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","2"))).to_command_line
 
-          val graph_bp = Graph(graph_dst.vertices union graph_stats.vertices, graph_tri.edges, List(""))
+          val graph_bp = Graph((graph_dst.vertices union graph_stats.vertices).reduceByKey(_ ::: _ ), graph_tri.edges, List(""))
           val epsilon = 0.001;
           val kvrdd_seg = compute_belief_prop_v2(
             graph_bp,
