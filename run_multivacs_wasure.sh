@@ -40,8 +40,8 @@ function run_algo_multivac
     echo "	--conf spark.memory.fraction=0.2 "
     echo "	--conf spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
 
-    
-    spark-shell -i \ #${FILE_SCRIPT} \
+#    spark-shell -i  ${FILE_SCRIPT} \
+    spark-shell -i  \
 		--master yarn --deploy-mode client \
 		--jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar \
 		--executor-cores ${MULTIVAC_EXECUTOR_CORE} \
@@ -60,14 +60,14 @@ function run_algo_multivac
 		#--conf "yarn.nodemanager.vmem-pmem-ratio=5"  
 }
 
-export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/"
+export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church_stream/"
 export HDFS_FILES_DIR="hdfs:/user/lcaraffa/tmp/"
 
 function run_multivac_church
 {
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/ddt-spark/workflow/workflow_ddt_multivacs.scala"
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
     export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/"
-    export PARAM_PATH="hdfs:/user/lcaraffa/datas/church/wasure_metadata_3d.xml"    
+    export PARAM_PATH="hdfs:/user/lcaraffa/datas/church_stream/wasure_metadata_3d.xml"    
     run_algo_multivac
 }
 run_multivac_church

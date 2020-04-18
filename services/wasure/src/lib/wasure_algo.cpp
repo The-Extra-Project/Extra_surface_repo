@@ -381,6 +381,8 @@ wasure_algo::compute_dim_with_simp(  std::vector<Point> & points, std::vector<st
 	simp.push_back(traits.make_point(coords_new_pts));
 	//	simp.push_back(p1);
 	  //kdTree->annkSearch(queryPt,K_T2, nnIdx,dists,eps);
+
+	// Adding extra points
 	if(((double) rand() / (RAND_MAX)) > 0.9){
 	  double coords_extra_pts[Traits::D];
 	  bool is_in_bbox = true;

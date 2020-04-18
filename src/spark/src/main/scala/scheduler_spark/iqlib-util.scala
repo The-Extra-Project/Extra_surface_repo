@@ -334,7 +334,7 @@ object params_parser {
 
   def format_data(
     params_scala : params_map,
-    params_cpp : params_map,
+    params_ddt : params_map,
     global_build_dir : String,
     ddt_main_dir : String,
     input_dir : String,
@@ -351,8 +351,8 @@ object params_parser {
     val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
     var rep_value = df_par.toLong;
 
-    val generate_points_cmd =  set_params(params_cpp,  List(("step","generate_points_" + datatype))).to_command_line
-    val ser2datastruct_cmd =  set_params(params_cpp, List(("step","serialized2datastruct"))).to_command_line
+    val generate_points_cmd =  set_params(params_ddt,  List(("step","generate_points_" + datatype))).to_command_line
+    val ser2datastruct_cmd =  set_params(params_ddt, List(("step","serialized2datastruct"))).to_command_line
     var kvrdd_points: RDD[KValue] = sc.parallelize(List((0L,List(""))));
     var kvrdd_inputs: RDD[KValue] = sc.parallelize(List((0L,List(""))));
     var kvrdd_inputs_struct  : RDD[KValue] = sc.parallelize(List((0L,List(""))));
@@ -416,8 +416,8 @@ object params_parser {
           x => ((x.toString endsWith ".stream")) && ((ss_reg).findFirstIn(x.toString).isDefined)
         )
 
-        kvrdd_inputs_struct = sc.textFile(input_dir + "*/*.stream").zipWithIndex.map(
-          e => (e._2.toLong,List("g 1 " + e._2.toString + " s " +  e._1.toString))
+        kvrdd_inputs_struct = sc.textFile(input_dir + "*.stream").zipWithIndex.map(
+          e => (e._2.toLong,List("z 1 " + e._2.toString + " z " +  e._1.toString))
           ).repartition(nb_file/10+1).setName("KVRDD_INPUT")
 
       }
