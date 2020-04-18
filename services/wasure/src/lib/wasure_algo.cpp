@@ -355,6 +355,7 @@ wasure_algo::compute_dim_with_simp(  std::vector<Point> & points, std::vector<st
 	  coords_new_pts[d] = 0;
       double ww_acc = 0;
       int k;
+
       for(k = 0; k < K_T2; k++){
 	if(entropy_vect[ii] > entropy_vect[nnIdx[k]]){
 	  is_min = false;
@@ -375,10 +376,14 @@ wasure_algo::compute_dim_with_simp(  std::vector<Point> & points, std::vector<st
       
       
       if(is_min){
+	bool is_in_bbox = true;
 	for(int d = 0; d < D;d++){
+	  if(coords_new_pts[d] > bbox_max[d] || coords_new_pts[d] < bbox_min[d])
+	    is_in_bbox = false;
 	  coords_new_pts[d] /= ww_acc;
 	}
-	simp.push_back(traits.make_point(coords_new_pts));
+	if(is_in_bbox)
+	  simp.push_back(traits.make_point(coords_new_pts));
 	//	simp.push_back(p1);
 	  //kdTree->annkSearch(queryPt,K_T2, nnIdx,dists,eps);
 

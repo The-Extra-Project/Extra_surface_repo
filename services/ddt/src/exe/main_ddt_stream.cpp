@@ -429,14 +429,14 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
 
   log.step("read");
   int D = Traits::D;
-  std::map<int,std::vector<int>> tile_ids;;
+  std::map<Id,std::vector<int>> tile_ids;;
 
   for(int i = 0; i < nb_dat; i++)
     {
       ddt::stream_data_header hpi;
       hpi.parse_header(std::cin);
       Id hid = hpi.get_id(0);
-      auto tile  = tri.get_tile(tid);
+
       if(hpi.get_lab() == "t")
         {
 	  bool do_clean_data = true;
@@ -446,22 +446,31 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
         }
       if(hpi.get_lab() == "s")
         {
-	  std::cerr << "tile ids loal:" << hid << std::endl;
+	  std::cerr << "[parse id] Start : " << hid << std::endl;
 	  std::vector<int> vv(3);
 	  for(int d = 0; d < 3; d++)
             {
 	      hpi.get_input_stream() >> vv[d];
-	      tile->tile_ids[d] = vv[d];
             }
 	  tile_ids[hid] = vv;
-	  
+	  std::cerr << "[parse id] Done : " << hid << std::endl;
         }
       hpi.finalize();
 
     }
 
-  tri.init_local_id();
+  for(auto tt : tile_ids){
+    std::vector<int> & vv  = tile_ids[tt.first];
+    auto tile  = tri.get_tile(tt.first);
+    for(int d = 0; d < 3; d++)
+      {
+	tile->tile_ids[d] = vv[d];
+      }
+  }
 
+  std::cerr << "[local id] Start" << std::endl;
+  tri.init_local_id();
+  std::cerr << "[local id] Done" << std::endl;
   std::cout.clear();
   ddt::stream_data_header oth("t","s",tid);
   oth.serialize(true);
