@@ -278,7 +278,7 @@ val coef_mult_list = List(20)
 val ll = lambda_list.head
 val coef_mult = coef_mult_list.head
 // Loop over the differents parameters
-
+val max_it = it_list.head
 if(true){
   it_list.foreach{ max_it =>
     lambda_list.foreach{ ll =>
@@ -307,17 +307,26 @@ if(true){
           //     kvrdd_seg, "seg", do_dump = false).collect()
           // }
 
-          val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
-            ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge" + ext_name),
-            graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false)
-          val rdd_ply_surface_vertex = iq.run_pipe_fun_KValue(
-            ext_cmd_vertex ++ List("--label","ext_spark_ll_v2_tile" + ext_name),
-            graph_seg.vertices, "seg", do_dump = false)
+          // val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
+          //   ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge" + ext_name),
+          //   graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false)
+          // val rdd_ply_surface_vertex = iq.run_pipe_fun_KValue(
+          //   ext_cmd_vertex ++ List("--label","ext_spark_ll_v2_tile" + ext_name),
+          //   graph_seg.vertices, "seg", do_dump = false)
 
           val rdd_ply_surface = iq.run_pipe_fun_KValue(
             ext_cmd ++ List("--label","ext_spark"  +  ext_name),
             iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
-          rdd_ply_surface.collect()
+          ddt_algo.saveAsPly(rdd_ply_surface,output_dir + "/rdd_ply_finalized_last_2",plot_lvl)
+          if(true){
+            fs.listStatus(new Path(output_dir)).filter(
+              dd => (dd.isDirectory)).map(
+              ss => fs.listStatus(ss.getPath)).reduce(_ ++ _).filter(
+              xx => (xx.getPath.toString contains "part-")).map(
+              ff => fs.rename(ff.getPath, new Path(ff.getPath.toString + ".ply"))
+            )
+          }
+
         }
 
         if(false){
@@ -331,6 +340,7 @@ if(true){
             ext_cmd ++ List("--label","ext_seg" + ext_name),
             iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
           rdd_ply_surface.collect()
+          ddt_algo.saveAsPly(rdd_ply_surface,output_dir + "/rdd_ply_finalized_last",plot_lvl)
         }
 
         acc = acc + 1;

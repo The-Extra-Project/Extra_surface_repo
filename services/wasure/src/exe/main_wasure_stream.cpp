@@ -911,14 +911,15 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
     std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_surface");
     std::cout.clear();
 
-    ddt::stream_data_header oth("p","f",tid);
-
-    if(D == 2)
-        oth.init_file_name(ply_name,".geojson");
+    ddt::stream_data_header oth("p","z",tid);
+    if(D == 2){
+      oth.init_file_name(ply_name,".geojson");
+      oth.write_header(std::cout);
+    }
     // else
     //     oth.init_file_name(ply_name,".ply");
 
-    oth.write_header(std::cout);
+
 
 
     switch (D)
@@ -975,8 +976,9 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
         datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
         datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(format_points);
         datas_out.dmap[datas_out.simplex_name].fill_full_uint8_vect(v_simplex);
-	datas_out.write_ply_stream(oth.get_output_stream(),';',true);
-		
+	datas_out.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
+	
+	
         break;
     }
     default :             // Note the colon, not a semicolon
@@ -1717,6 +1719,7 @@ int main(int argc, char **argv)
                     rv = extract_surface(tile_id,params,nb_dat,log);
                 else
                     rv = extract_surface_area(tile_id,params,nb_dat,log);
+		do_dump_log = false;
             }
             else if(params.algo_step == std::string("extract_graph"))
             {

@@ -66,7 +66,7 @@ export HDFS_FILES_DIR="hdfs:/user/lcaraffa/tmp/"
 function run_multivac_church
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
-    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/"
+    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church/"
     export PARAM_PATH="hdfs:/user/lcaraffa/datas/church_stream/wasure_metadata_3d.xml"    
     run_algo_multivac
 }
