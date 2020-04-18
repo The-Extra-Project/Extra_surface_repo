@@ -95,6 +95,10 @@ for(params_scala <- param_list){
   if( params_scala.exists(List("dim","bbox")) &&
     (params_scala.get_param("do_process", "false").toBoolean)){
 
+    val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
+    val datestring = dateFormatter.format(Calendar.getInstance().getTime());
+    val cur_output_dir ={output_dir  + iq.applicationId + "_" + datestring + "_"+ params_scala("name").head }
+    fs.mkdirs(new Path(cur_output_dir),new FsPermission("777"))
 
         // ============  Init data ===========
     var kvrdd_points: RDD[KValue] = iqsc.parallelize(List((0L,List(""))));
@@ -130,7 +134,7 @@ for(params_scala <- param_list){
       ddt_main_dir,
       input_dir,
       df_par,
-      output_dir,
+      cur_output_dir,
       iqsc,
         iq
     )
@@ -152,7 +156,8 @@ for(params_scala <- param_list){
 
     val nb_leaf = params_scala("nb_leaf").head.toInt;
     val dump_mode = params_scala("dump_mode").head.toInt;
-    val cur_output_dir = params_scala("output_dir").head;
+
+
     val rep_merge =   nb_leaf;
     var rep_loop = nb_leaf;
     val nb_executor = sc.getConf.getInt("spark.executor.instances", -1)
@@ -172,7 +177,7 @@ for(params_scala <- param_list){
 
 
     if(dump_mode > 0 && false){
-      fs.listStatus(new Path(cur_output_dir)).filter(
+      fs.listStatus(new Path(cur_cur_output_dir)).filter(
         dd => (dd.isDirectory)).map(
         ss => fs.listStatus(ss.getPath)).reduce(_ ++ _).filter(
         xx => (xx.getPath.toString contains "part-")).map(
@@ -195,8 +200,8 @@ for(params_scala <- param_list){
     val kvrdd_stats = iqsc.parallelize(List(
       (0L,List("l 1 0 s tot_scala4:" + scala_time))
     )) //union iq.get_kvrdd(raw_inputs, "l",txt="pts")
-      dump_stats(kvrdd_stats,cur_output_dir + ".stats.csv" ,sc);
-    dump_json(params_scala,cur_output_dir + ".params.json",sc);
+      dump_stats(kvrdd_stats,cur_cur_output_dir + ".stats.csv" ,sc);
+    dump_json(params_scala,cur_cur_output_dir + ".params.json",sc);
     System.exit(0)
   }
 }
