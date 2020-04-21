@@ -16,7 +16,7 @@
 #include "tbmrf_conflict.hpp"
 #include "io_ddt_stream.hpp"
 #include "graph_cut.hpp"
-
+#include "ddt_spark_utils.hpp"
 
 
 typedef std::map<Id,wasure_data<Traits> > D_MAP;
@@ -89,82 +89,116 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
     wasure_algo w_algo;
     int D = Traits::D;
     int max_ppt = 200000;
-    std::map<Id,ddt_data<Traits> > tile_map;
+    std::map<Id,wasure_data<Traits> > datas_map;
+    std::map<Id,std::string > fname_map;
+
     for(int i = 0; i < nb_dat; i++)
     {
         ddt::stream_data_header hpi;
-        wasure_data<Traits> w_datas;
+	//        wasure_data<Traits> w_datas;
         hpi.parse_header(std::cin);
+	Id hid = hpi.get_id(0);
         if(hpi.get_lab() == "p")
         {
-            w_datas.read_ply_stream(hpi.get_input_stream());
+            datas_map[hid].read_ply_stream(hpi.get_input_stream());
         }
         if(hpi.get_lab() == "g")
         {
-            w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+            datas_map[hid].read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
         }
 
         hpi.finalize();
+
         std::cerr << "hpi finalized" << std::endl;
-        int count = w_datas.nb_pts_shpt_vect();
+        int count = datas_map[hid].nb_pts_shpt_vect();
         std::vector<bool> do_keep(count,false);
-        std::vector<float> v_xyz;
-        w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(v_xyz,false);
-        for(int jj = 0; jj < count; jj++)
-        {
-            double coords[Traits::D];
-            for(int d = 0; d < D; d++)
-                coords[d] = (double)v_xyz[jj*D+d];
-            w_datas.format_points.push_back(traits.make_point(coords));
-        }
+	fname_map[hid] = get_bname(hpi.get_file_name());
 
+	
+	if(datas_map[hid].dmap[datas_map[hid].xyz_name].type == tinyply::Type::FLOAT64){
+	  datas_map[hid].dmap[datas_map[hid].xyz_name].shpt_vect2uint8_vect();
+	}else{
+	  std::vector<float> v_fxyz;
+	  datas_map[hid].dmap[datas_map[hid].xyz_name].extract_full_shpt_vect(v_fxyz,false);
+	  std::vector<double> doubleVec(v_fxyz.begin(),v_fxyz.end());
 
+	  datas_map[hid].dmap[datas_map[hid].xyz_name].type = tinyply::Type::FLOAT64;
+	  datas_map[hid].dmap[datas_map[hid].xyz_name].fill_full_uint8_vect(doubleVec);
+	}
 
+	
+	if(!datas_map[hid].dmap[datas_map[hid].center_name].do_exist){
+	  std::cerr << "NO CENTER : " << fname_map[hid] << std::endl;
+	  datas_map[hid].dmap[datas_map[hid].center_name] = ddt_data<Traits>::Data_ply(datas_map[hid].center_name,"vertex",D,D,DATA_FLOAT_TYPE);
+	  std::vector<double> v_xyz;
+	  std::vector<double> v_center;
+	  datas_map[hid].dmap[datas_map[hid].xyz_name].extract_raw_uint8_vect(v_xyz,false);
+	  std::cerr << "extract done " << std::endl;
+	  for(int jj = 0; jj < v_xyz.size()/D; jj++)
+	    {
+	      double alt = 100;
+	      double vx = v_xyz[jj*D];
+	      double vy = v_xyz[jj*D+1];
+	      double vz = v_xyz[jj*D+2];
+	      v_center.push_back(vx-alt*0.1);
+	      v_center.push_back(vy+alt*0.1);
+	      v_center.push_back(vz+alt);
+	    }
+	  std::cerr << "loop done" << std::endl;
+	  datas_map[hid].dmap[datas_map[hid].center_name].fill_full_uint8_vect(v_center);
+	  std::cerr << "fill done" << std::endl;
+	  
+	}
 
-        w_algo.simplify(w_datas.format_points,do_keep,0.02);
-        std::cerr << "start tiling" << std::endl;
-        int curr_tid = 0;
-        int nb_keep = 0;
-        for(int ii = 0; ii < count ; ii++)
-        {
-            if(do_keep[ii])
-            {
-                Id id = Id(nb_keep/max_ppt);
-                auto it = tile_map.find(id);
-                if(it==tile_map.end())
-                {
-                    tile_map[id] = ddt_data<Traits>(w_datas.dmap);
-                }
-                tile_map[id].copy_attribute(w_datas,ii,std::string("x"));
-                tile_map[id].copy_attribute(w_datas,ii,std::string("x_origin"));
-                nb_keep++;
-            }
+	std::cerr << "yo" << std::endl;
+	for ( const auto &ee : datas_map[hid].dmap ) {
+	  if(ee.second.do_exist){
+	    if((! datas_map[hid].dmap[ee.first].has_label("x")) &&
+	       (! datas_map[hid].dmap[ee.first].has_label("x_center"))){
+	      datas_map[hid].dmap[ee.first].do_exist = false;
+	    }
+	  }
+	}
+	std::cerr << "yo2" << std::endl;	
+        // w_algo.simplify(w_datas.format_points,do_keep,0.02);
+        // std::cerr << "start tiling" << std::endl;
+        // int curr_tid = 0;
+        // int nb_keep = 0;
+        // for(int ii = 0; ii < count ; ii++)
+        // {
+        //     if(do_keep[ii])
+        //     {
+        //         Id id = Id(nb_keep/max_ppt);
+        //         auto it = datas_map.find(id);
+        //         if(it==datas_map.end())
+        //         {
+        //             datas_map[id] = ddt_data<Traits>(w_datas.dmap);
+        //         }
+        //         datas_map[id].copy_attribute(w_datas,ii,std::string("x"));
+        //         datas_map[id].copy_attribute(w_datas,ii,std::string("x_origin"));
+        //         nb_keep++;
+        //     }
 
-        }
+        // }
     }
     std::cout.clear();
     std::cerr << "count finalized" << std::endl;
 
 
-    for ( const auto &myPair : tile_map )
+    for ( const auto &myPair : datas_map )
     {
         Id id = myPair.first;
-        int nb_out = tile_map[id].nb_pts_uint8_vect();
+        int nb_out = datas_map[id].nb_pts_uint8_vect();
 
-        ddt::stream_data_header oqh("p","s",id),och("c","s",id);
-        std::string filename(params.output_dir + "/" + params.slabel + "_id_" + std::to_string(tid) + "_" + std::to_string(id));
+        ddt::stream_data_header oqh("p","f",id);
+        std::string filename(params.output_dir + "/" + fname_map[id]);
+	std::cerr << "filename : " << filename << std::endl;
         //    if(!params.do_stream)
-        oqh.init_file_name(filename,".ply");
+        oqh.init_file_name(filename,".stream");
         oqh.write_header(std::cout);
 
-	tile_map[id].write_serialized_stream(oqh.get_output_stream());
-        //tile_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR,false);
-        //    tile_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
+	datas_map[id].write_serialized_stream(oqh.get_output_stream());
         oqh.finalize();
-        std::cout << std::endl;
-        och.write_header(std::cout);
-        och.get_output_stream() << nb_out;
-        och.finalize();
         std::cout << std::endl;
     }
     return 0;

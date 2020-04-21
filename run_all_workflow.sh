@@ -5,7 +5,7 @@
 
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
 source ${DDT_MAIN_DIR}/algo-env.sh
-GLOBAL_OUTPUT_DIR="${HOME}/shared_spark/tests_outputs/"
+GLOBAL_OUTPUT_DIR="${HOME}/shared_spark/outputs/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
@@ -117,6 +117,16 @@ function run_img2ply
 }
 
 
+# format data
+function preprocess_data
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
+    INPUT_DIR="${HOME}/shared_spark/inputs/toulouse/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    run_algo_docker
+}
+
 
 # ========== Random ddt workflow =============
 #run_all_tests
@@ -124,12 +134,17 @@ function run_img2ply
 #run_3d_ddt_random
 
 # ==== surface reconstruction workflow ====
-# 2D
+### 2D
 #run_img2ply
 #run_2d_wasure
-# 3D
-run_3d_croco
+
+### 3D
+#run_3d_croco
 #run_3d_church
+
+### Cloud
+preprocess_data
+
 
 
 

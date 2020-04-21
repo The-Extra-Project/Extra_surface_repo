@@ -717,7 +717,7 @@ public :
 	}
 	file.read(ss);
 
-	std::cerr << "read tri done" << std::endl;
+
       }
 
     catch (const std::exception & e)
