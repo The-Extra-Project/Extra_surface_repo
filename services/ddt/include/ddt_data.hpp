@@ -87,18 +87,18 @@ public :
       return false;
     }
 
-    void print_elems(){
+    void print_elems(std::ostream & ss){
       int acc=0;
       std::cout << "==============" << std::endl;
       for(auto ee : vname){
-	std::cout << ee << "\t";
+	ss << ee << "\t";
       }
-      std::cout << std::endl;
-      for(int i = 0; i < uint8_vect.size(); i++){
-	std::cout << uint8_vect[i] << "\t";
-	if(i % vsize == vsize-1)
-	  std::cout << std::endl;
-      }
+      ss << std::endl;
+      // for(int i = 0; i < uint8_vect.size(); i++){
+      // 	ss << uint8_vect[i] << "\t";
+      // 	if(i % vsize == vsize-1)
+      // 	  ss << std::endl;
+      // }
     }
 
     int get_vsize() const {

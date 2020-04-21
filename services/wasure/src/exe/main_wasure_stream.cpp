@@ -153,8 +153,10 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	std::cerr << "yo" << std::endl;
 	for ( const auto &ee : datas_map[hid].dmap ) {
 	  if(ee.second.do_exist){
+	    std::cerr << fname_map[hid] << std::endl;
+	    ee.second.print_elems(std::cerr);
 	    if((! datas_map[hid].dmap[ee.first].has_label("x")) &&
-	       (! datas_map[hid].dmap[ee.first].has_label("x_center"))){
+	       (! datas_map[hid].dmap[ee.first].has_label("x_origin"))){
 	      datas_map[hid].dmap[ee.first].do_exist = false;
 	    }
 	  }

@@ -60,18 +60,39 @@ function run_algo_multivac
 		#--conf "yarn.nodemanager.vmem-pmem-ratio=5"  
 }
 
-export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church_stream/"
+
 export HDFS_FILES_DIR="hdfs:/user/lcaraffa/tmp/"
 
 function run_multivac_church
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
+    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church_stream/"
     export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church/"
     export PARAM_PATH="hdfs:/user/lcaraffa/datas/church_stream/wasure_metadata_3d.xml"    
     run_algo_multivac
 }
-run_multivac_church
 
+function run_multivac_aerial
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
+    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/aerial_stream/"
+    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/aerial/"
+    export PARAM_PATH="hdfs:/user/lcaraffa/datas/aerial_stream/wasure_metadata_3d.xml"    
+    run_algo_multivac
+}
+
+function run_multivac_croco
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
+    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/croco/"
+    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/croco/"
+    export PARAM_PATH="hdfs:/user/lcaraffa/datas/croco/wasure_metadata_3d.xml"    
+    run_algo_multivac
+}
+
+#run_multivac_church
+run_multivac_aerial
+#run_multivac_croco
 
 
 
