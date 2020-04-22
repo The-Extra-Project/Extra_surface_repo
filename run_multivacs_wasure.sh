@@ -81,6 +81,16 @@ function run_multivac_aerial
     run_algo_multivac
 }
 
+function run_multivac_full
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
+    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/toulouse/"
+    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/toulouse/"
+    export PARAM_PATH="${INPUT_DATA_DIR}/wasure_metadata_3d.xml"    
+    run_algo_multivac
+}
+
+
 function run_multivac_croco
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
@@ -91,7 +101,8 @@ function run_multivac_croco
 }
 
 #run_multivac_church
-run_multivac_aerial
+#run_multivac_aerial
+run_multivac_full
 #run_multivac_croco
 
 

@@ -909,8 +909,11 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
 
 
             if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
-                    !tri.tile_is_loaded(tmp_fchn->main_id()))
+	       !tri.tile_is_loaded(tmp_fchn->main_id())){
+	      std::cerr << "ERROR tile not loaded" << std::endl;
                 continue;
+	    }
+
 
 
             Cell_const_iterator fch = tmp_fch->main();
