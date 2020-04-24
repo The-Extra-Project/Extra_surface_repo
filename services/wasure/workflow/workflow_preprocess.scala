@@ -217,6 +217,11 @@ val struct_inputs = iq.run_pipe_fun_KValue(
   kvrdd_inputs
     , "struct", do_dump = false)
 struct_inputs.collect
+// val struct_inputs = iq.run_pipe_fun_KValue(
+//   preprocess_cmd ++ List("--label", "struct"),
+//   kvrdd_inputs.filter( x => x._2.head contains "140904P1_000028")
+//     , "struct", do_dump = false)
+// struct_inputs.collect
 // find ./tmp/ -name "*.ply" -exec sed -i 's/scalar_//gI' {} \;
 
 

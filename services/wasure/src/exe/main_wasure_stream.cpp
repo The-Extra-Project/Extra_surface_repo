@@ -134,15 +134,33 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	  std::vector<double> v_center;
 	  datas_map[hid].dmap[datas_map[hid].xyz_name].extract_raw_uint8_vect(v_xyz,false);
 	  std::cerr << "extract done " << std::endl;
+
+	  std::vector<float> v_angle,s_flag;
+	  
+	  datas_map[hid].dmap[std::vector<std::string>({"ScanAngleRank"})].extract_full_shpt_vect(v_angle,false);
+	  datas_map[hid].dmap[std::vector<std::string>({"ScanDirectionFlag"})].extract_full_shpt_vect(s_flag,false);
+
+	  // 45 y , -45x
+	  // -19 == 26 (-33n
+	  double dr = 0.3925;
 	  for(int jj = 0; jj < v_xyz.size()/D; jj++)
 	    {
-	      double alt = 100;
+	      //	      double aa = (s_flag[jj] == 0) ? dr : dr + 3.14/2.0;
+	      double aa =  dr;
+	      double angle = v_angle[jj]*3.14/180.0;
 	      double vx = v_xyz[jj*D];
 	      double vy = v_xyz[jj*D+1];
 	      double vz = v_xyz[jj*D+2];
-	      v_center.push_back(vx-alt*0.1);
-	      v_center.push_back(vy+alt*0.1);
-	      v_center.push_back(vz+alt);
+
+	      double lx = sin(-angle);
+	      double ly = 0;
+	      double lz = cos(-angle);
+	      double dist = 50;
+	      v_center.push_back(vx + dist*lx*cos(aa));
+	      v_center.push_back(vy + dist*lx*sin(aa));
+	      v_center.push_back(vz + dist*lz);
+	      //v_center.push_back(alt*0.1 + 0.52*);
+
 	    }
 	  std::cerr << "loop done" << std::endl;
 	  datas_map[hid].dmap[datas_map[hid].center_name].fill_full_uint8_vect(v_center);
@@ -195,14 +213,171 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
         ddt::stream_data_header oqh("p","f",id);
         std::string filename(params.output_dir + "/" + fname_map[id]);
 	std::cerr << "filename : " << filename << std::endl;
-        //    if(!params.do_stream)
+
+
         oqh.init_file_name(filename,".stream");
+	//oqh.init_file_name(filename,".ply");
         oqh.write_header(std::cout);
 
+	//datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n',true);
 	datas_map[id].write_serialized_stream(oqh.get_output_stream());
         oqh.finalize();
         std::cout << std::endl;
     }
+    return 0;
+}
+
+
+int dim_simp(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+    std::cout.setstate(std::ios_base::failbit);
+    std::cerr << "into fun simp" << std::endl;
+    wasure_algo w_algo;
+    int D = Traits::D;
+    Traits  traits;
+    D_MAP w_datas_map;
+
+
+    wasure_data<Traits>  w_datas_full;
+    std::vector<Point> p_simp_full;    
+    for(int i = 0; i < nb_dat; i++)
+    {
+
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+	
+        Id hid = hpi.get_id(0);
+        log.step("read");
+        if(hpi.get_lab() == "z" )
+	  {
+	  // if(hpi.is_serialized()){
+	  //   std::vector<Point> rvp;
+	  //   ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
+	  //   for(auto pp : rvp)
+	  //     {
+          //       vp.emplace_back(std::make_pair(pp,tid));
+	  //     }
+	    w_datas_map[hid] = wasure_data<Traits>();
+            std::cerr << "start read ply" << std::endl;
+	    w_datas_map[hid].read_serialized_stream(hpi.get_input_stream());
+            //w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+            std::cerr << "end read ply" << std::endl;
+	  }
+
+	std::cerr << "reading end" << std::endl;
+	wasure_data<Traits> & w_datas = w_datas_map[hid];
+        //}
+        hpi.finalize();
+        std::cerr << "finalize" << std::endl;
+
+        log.step("compute");
+        // w_datas.extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
+        // w_datas.extract_ptsvect(w_datas.center_name,w_datas.format_centers,false);
+	w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(w_datas.format_points,false);
+	std::cerr << "xyz ok" << std::endl;
+	w_datas.dmap[w_datas.center_name].extract_full_uint8_vect(w_datas.format_centers,false);
+	std::cerr << "center ok" << std::endl;
+	std::vector<Point> p_simp;    
+        if(params.pscale >= 0)
+        {
+            w_algo.compute_dim_with_simp(w_datas.format_points,
+                                         w_datas.format_egv,
+                                         w_datas.format_sigs,
+                                         p_simp,
+                                         params.pscale);
+        }
+        else
+        {
+            w_algo.compute_dim(w_datas.format_points,
+                               w_datas.format_egv,
+                               w_datas.format_sigs);
+        }
+
+
+        if(w_datas.format_centers.size() == 0)
+        {
+            double coords[Traits::D];
+            for(auto pp : w_datas.format_points)
+            {
+                for(int d = 0; d < D; d++)
+                {
+                    if(d < D-1)
+                        coords[d] = pp[d];
+                    else
+                        coords[d] = pp[d] + 30;
+                }
+                w_datas.format_centers.push_back(traits.make_point(coords));
+            }
+        }
+
+	
+        w_algo.flip_dim_ori(w_datas.format_points,
+                            w_datas.format_egv,
+                            w_datas.format_centers);
+
+        std::cerr << i << "~~ ==" << w_datas.format_points.size() << " " << w_datas.format_points.size() << std::endl;
+        std::cerr << i << "~~ ==" << w_datas.format_egv.size() << " " << w_datas.format_sigs.size() << std::endl;
+        std::cerr << i << "~~ ==" << w_datas.format_centers.size() << " " << w_datas.format_centers.size() << std::endl;
+	w_datas_full.format_points.insert(w_datas_full.format_points.end(),w_datas.format_points.begin(),w_datas.format_points.end());
+	w_datas_full.format_egv.insert(w_datas_full.format_egv.end(),w_datas.format_egv.begin(),w_datas.format_egv.end());
+	w_datas_full.format_sigs.insert(w_datas_full.format_sigs.end(),w_datas.format_sigs.begin(),w_datas.format_sigs.end());
+	p_simp_full.insert(p_simp_full.end(),p_simp.begin(),p_simp.end());
+	std::cerr << "inserted" << std::endl;
+        if(tid == 0)
+        {
+            for(int ii = 0; ii < 30; ii++)
+            {
+                std::cerr << "==O>" << w_datas.format_points[ii][0] << " " << w_datas.format_egv[ii][0][0] << std::endl;
+            }
+        }
+
+    }
+    std::cerr << "start tessel" << std::endl;
+    w_algo.tessel(w_datas_full.format_points,
+		  p_simp_full,
+		  w_datas_full.format_egv,
+		  w_datas_full.format_sigs,tid);
+    
+    for ( auto it = w_datas_map.begin(); it != w_datas_map.end(); it++ )
+    {
+
+      wasure_data<Traits> & w_datas = w_datas_map[it->first];
+	//w_datas.dmap[w_datas.egv_name].fill_full_uint8_vect(w_datas.format_egv);
+        w_datas.fill_egv(w_datas.format_egv);
+	//w_datas.dmap[w_datas.sig_name].fill_full_uint8_vect(w_datas.format_sigs);
+        w_datas.fill_sigs(w_datas.format_sigs);
+
+
+        std::cerr << "dim done tile : "<< tid << std::endl;
+        std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_dim");
+        std::cout.clear();
+
+
+        log.step("write");
+        ddt::stream_data_header oth("z","s",tid);
+        if(!params.do_stream)
+            oth.init_file_name(ply_name,".ply");
+        oth.write_header(std::cout);
+	w_datas.write_serialized_stream(oth.get_output_stream());
+        //w_datas.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
+        oth.finalize();
+        std::cout << std::endl;
+    }
+    if(p_simp_full.size() > 0)
+        {
+            ddt::stream_data_header oxh("x","s",tid);
+            ddt_data<Traits> datas_out;
+            datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+            datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(p_simp_full);
+
+            // if(!params.do_stream)
+            //     oxh.init_file_name(ply_name,".ply");
+            oxh.write_header(std::cout);
+            datas_out.write_serialized_stream(oxh.get_output_stream());
+            oxh.finalize();
+            std::cout << std::endl;
+        }
+
     return 0;
 }
 
@@ -1731,7 +1906,7 @@ int main(int argc, char **argv)
             }
             else if(params.algo_step == std::string("dim"))
             {
-                rv = dim_fun(tile_id,params,nb_dat,log);
+                rv = dim_simp(tile_id,params,nb_dat,log);
             }
             else if(params.algo_step == std::string("simplify"))
             {

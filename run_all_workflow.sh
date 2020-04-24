@@ -87,7 +87,7 @@ function run_3d_croco
 function run_3d_daratech
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${HOME}/shared_spark/inputs/daratech_good/"
+    INPUT_DIR="${HOME}/shared_spark/inputs/daratech_small/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
@@ -153,10 +153,10 @@ function preprocess_data
 ### 3D
 #run_3d_croco
 #run_3d_church
-run_3d_daratech
+#run_3d_daratech
 
 ### Cloud
-#preprocess_data
+preprocess_data
 
 
 

@@ -10,7 +10,7 @@
 
 int 
 wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
-		    std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales){
+		    std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales, Id tid){
 
 
       
@@ -22,9 +22,29 @@ wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
   typedef typename DT_raw::Vertex_handle                            Vertex_const_handle;
   DT_raw  tri = traits.triangulation(D) ;
   tri.insert(vps.begin(),vps.end());
+
+  
+  double bbox_min[Traits::D];
+  double bbox_max[Traits::D];
+  for(int d = 0; d < D; d++){
+    bbox_min[d] = 100000;
+    bbox_max[d] = -100000;
+  }
+  for(auto p1 : points){
+    for(int d = 0; d < D; d++){
+      if(p1[d] < bbox_min[d])
+	bbox_min[d] = p1[d];
+      if(p1[d] > bbox_max[d])
+	bbox_max[d] = p1[d];
+    }
+  }
+  
   vps.clear();
-  for(int it = 0; it < 10; it++){
-    std::cout << "tessel:" << it << std::endl;
+
+
+  int max_it = 10;
+  for(int it = 0; it < max_it; it++){
+    std::cerr << "tessel:" << it << std::endl;
     CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> vertex_map;
 
     for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
@@ -32,17 +52,17 @@ wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
 	continue;
       vertex_map[vv] = std::vector<double>(D+1,0);
     }
-    std::cout << "accumulate" << std::endl;
+    std::cerr << "accumulate" << std::endl;
     for(int ii = 0; ii < points.size();ii++){
       Point pp = points[ii];
-      double ss = exp(-scales[ii][D-1]);
+      double ss = exp(-(scales[ii][D-1]*scales[ii][D-1])/0.1);
       auto vv = tri.nearest_vertex(pp);
       for(int d = 0; d < D; d++)
 	vertex_map[vv][d] += ss*pp[d];
       vertex_map[vv][D]+=ss;
     }
 
-    std::cout << "move" << std::endl;
+    std::cerr << "move" << std::endl;
     for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
       if(tri.is_infinite(vv))
 	continue;
@@ -54,22 +74,49 @@ wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
 	vp[d]=vp[d]/vp[D];
       }
       auto pp = Point(vp[0],vp[1],vp[2]);
-      //std::cout << "move:" << vv->point() << " -> " << pp << "(" << vp[D] << ")"<<std::endl;
-      tri.move(vv,pp);
+      //std::cerr << "move:" << vv->point() << " -> " << pp << "(" << vp[D] << ")"<<std::endl;
+      bool do_insert = true;
+      for(int d = 0; d < D; d++)
+	if(pp[d] > bbox_max[d] || pp[d] < bbox_min[d])
+	  do_insert = false;
+      if(do_insert)
+	tri.move(vv,pp);
     }
 
-    std::cout << "dump" << std::endl;
+
+    
+    std::cerr << "dump" << std::endl;
     std::ofstream myfile;
-    std::string filename("/tmp/tessel_" + std::to_string(it) + ".xyz");
+    std::string filename("/home/laurent/shared_spark/tmp/tessel_" + std::to_string(tid) + "_" + std::to_string(it) + ".ply");
     myfile.open (filename);
-    for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
-      myfile << vv->point() << std::endl;
+      myfile << "ply" <<  std::endl;
+  myfile << "format ascii 1.0" << std::endl;
+  myfile << "comment author: Greg Turk" << std::endl;
+  myfile << "comment object: another cube" << std::endl;
+  myfile << "element vertex "  << tri.number_of_vertices()  << std::endl;
+  myfile << "property float x" << std::endl;
+  myfile << "property float y" << std::endl;
+  myfile << "property float z" << std::endl;
+  myfile << "property uchar red                   { start of vertex color }" << std::endl;
+  myfile << "property uchar green" << std::endl;
+  myfile << "property uchar blue" << std::endl;
+  myfile << "end_header" << std::endl;
+
+  double ccol = ((double)it)/((double)max_it);
+  for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
+    if(!tri.is_infinite(vv))
+      myfile << vv->point() << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << std::endl;
     }
     myfile.close();
   }
 
   for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
-    vps.push_back(vv->point());
+    bool do_insert = true;
+    for(int d = 0; d < D; d++)
+      if(vv->point()[d] > bbox_max[d] || vv->point()[d] < bbox_min[d])
+	do_insert = false;
+    if(do_insert)
+      vps.push_back(vv->point());
   }
   
   return 0;
