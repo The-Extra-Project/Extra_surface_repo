@@ -85,12 +85,12 @@ object ddt_algo {
     return kvrdd_gid_tri;
   }
 
-  def compute_tiling_2(kvrdd_inputs : RDD[KValue],iq : IQlibSched,params_cpp : params_map,params_scala : params_map ) : RDD[KValue] = {
+  def compute_tiling_2(kvrdd_inputs : RDD[KValue],iq : IQlibSched,params_ddt : params_map,params_scala : params_map ) : RDD[KValue] = {
 
     val plot_lvl = params_scala("plot_lvl").head.toInt;
-    val tile_cmd =  set_params(params_cpp, List(("step","tile_ply"))).to_command_line
-    val dump_ply_binary_cmd =  set_params(params_cpp, List(("step","dump_ply_binary"))).to_command_line
-    val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
+    val tile_cmd =  set_params(params_ddt, List(("step","tile_ply"))).to_command_line
+    val dump_ply_binary_cmd =  set_params(params_ddt, List(("step","dump_ply_binary"))).to_command_line
+    val tri2geojson_cmd =  set_params(params_ddt, List(("step","tri2geojson"))).to_command_line
     val max_ppt = params_scala("max_ppt").head.toInt;
     val ndtree_depth = params_scala("ndtree_depth").head.toInt;
     val output_dir = params_scala("output_dir").head;

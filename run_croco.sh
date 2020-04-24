@@ -2,6 +2,8 @@
 
 # ./build//build-spark-Release-D2/bin/wasure-local-exe --output_dir /home/laurent/shared_spark/tests_outputs/run_2d_wasure/ --input_dir ./datas/2d_austin/imgs2/ --dim 2 --bbox 0000x10000:0000x10000  --pscale 20 --nb_samples 5 --mode surface --lambda 0 --step full_stack --seed 18696 --label full_stack --filename ./datas/2d_austin/imgs2/austin2_res.ply
 
-./build//build-spark-Release-3/bin/wasure-local-exe --output_dir /home/laurent/shared_spark/tests_outputs/run_3d_croco/ --input_dir ./datas/3d_bench_small --dim 3 --bbox 0000x10000:0000x10000  --pscale 20 --nb_samples 5 --mode surface --lambda 1 --step full_stack --seed 18696 --label full_stack --filename ./datas/3d_bench/croco.ply 
+ ./build//build-spark-Release-3/bin/wasure-local-exe --output_dir /home/laurent/shared_spark/tests_outputs/run_3d_croco/ --input_dir ./datas/3d_bench_small --dim 3 --bbox 0000x10000:0000x10000  --pscale 20 --nb_samples 5 --mode surface --lambda 1 --step full_stack --seed 18696 --label full_stack --filename ./datas/3d_bench/croco.ply
+
+#./build//build-spark-Release-3/bin/wasure-local-exe --output_dir /home/laurent/shared_spark/tests_outputs/run_3d_croco/ --input_dir ./datas/3d_bench_small --dim 3 --bbox 0000x10000:0000x10000  --pscale 1 --nb_samples 5 --mode surface --lambda 0.2 --step full_stack --seed 18696 --label full_stack --filename /home/laurent/shared_spark/inputs/daratech_good/daratech_14.ply 
 
 

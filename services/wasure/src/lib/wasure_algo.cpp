@@ -4,7 +4,76 @@
 
 #include "wasure_algo.hpp"
 #include "input_params.hpp"
+#include <algorithm>
+#include <random>
+#include "wasure_typedefs.hpp"
 
+int 
+wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
+		    std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales){
+
+
+      
+  int D = Traits::D;
+  ddt::Traits_raw traits;
+
+
+
+  typedef typename DT_raw::Vertex_handle                            Vertex_const_handle;
+  DT_raw  tri = traits.triangulation(D) ;
+  tri.insert(vps.begin(),vps.end());
+  vps.clear();
+  for(int it = 0; it < 10; it++){
+    std::cout << "tessel:" << it << std::endl;
+    CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> vertex_map;
+
+    for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
+      if(tri.is_infinite(vv))
+	continue;
+      vertex_map[vv] = std::vector<double>(D+1,0);
+    }
+    std::cout << "accumulate" << std::endl;
+    for(int ii = 0; ii < points.size();ii++){
+      Point pp = points[ii];
+      double ss = exp(-scales[ii][D-1]);
+      auto vv = tri.nearest_vertex(pp);
+      for(int d = 0; d < D; d++)
+	vertex_map[vv][d] += ss*pp[d];
+      vertex_map[vv][D]+=ss;
+    }
+
+    std::cout << "move" << std::endl;
+    for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
+      if(tri.is_infinite(vv))
+	continue;
+
+      auto vp = vertex_map[vv];
+      if(vp[D] == 0)
+	continue;
+      for(int d = 0; d < D; d++){
+	vp[d]=vp[d]/vp[D];
+      }
+      auto pp = Point(vp[0],vp[1],vp[2]);
+      //std::cout << "move:" << vv->point() << " -> " << pp << "(" << vp[D] << ")"<<std::endl;
+      tri.move(vv,pp);
+    }
+
+    std::cout << "dump" << std::endl;
+    std::ofstream myfile;
+    std::string filename("/tmp/tessel_" + std::to_string(it) + ".xyz");
+    myfile.open (filename);
+    for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
+      myfile << vv->point() << std::endl;
+    }
+    myfile.close();
+  }
+
+  for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
+    vps.push_back(vv->point());
+  }
+  
+  return 0;
+}
 
 
 

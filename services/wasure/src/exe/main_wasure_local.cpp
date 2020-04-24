@@ -37,6 +37,7 @@ int main(int argc, char **argv)
   std::ifstream myfile;
   myfile.open(params.filename);
   w_datas_pts.read_ply_stream(myfile);
+  myfile.close();
   w_datas_pts.shpt2uint8();
   int count = w_datas_pts.nb_pts_uint8_vect();
   std::cerr << "nbp inputs:" << count << std::endl;
@@ -55,6 +56,9 @@ int main(int argc, char **argv)
   // format_egv -> the egein values
   // p_simp => a sub sampling of the input point cloud
   wasure_algo w_algo;
+
+
+  std::cout << "Start dim" << std::endl;
   std::vector<Point> p_simp;
   w_algo.compute_dim_with_simp(w_datas_pts.format_points,
 			       w_datas_pts.format_egv,
@@ -67,13 +71,21 @@ int main(int argc, char **argv)
 		      w_datas_pts.format_egv,
 		      w_datas_pts.format_centers);
 
- 
+
+  std::cout << "Start tessel" << std::endl;
+  w_algo.tessel(w_datas_pts.format_points,
+		p_simp,
+		w_datas_pts.format_egv,
+		w_datas_pts.format_sigs);
+  
 
   // ====== Delaunay triangulation
   std::vector<Point_id>  vp;
   DTW tri1;
   tri1.init(tid);
   Tile_iterator tci = tri1.get_tile(tid);
+
+     //  for(auto pp : w_datas_pts.format_points)
   for(auto pp : p_simp)
     {
       vp.emplace_back(std::make_pair(pp,tid));

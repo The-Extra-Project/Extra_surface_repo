@@ -45,6 +45,22 @@ target_link_libraries(wasure-local-exe
   ${DOUBLE_CONV_LIBRARIES}
   )
 
+link_directories(${GLOBAL_BUILD_DIR})
+set(spark-wasure_SOURCES
+  main_polyfit.cpp
+  )
+add_executable(polyfit-exe ${spark-wasure_SOURCES})
+set_property(TARGET polyfit-exe PROPERTY CXX_STANDARD 11)
+target_link_libraries(polyfit-exe
+  # intern dependencies
+  ddt
+  tbmrf
+  ${WASURE_EXE_LIB_DEP}
+  ${HDFS_LIBRARIES}
+  ${DOUBLE_CONV_LIBRARIES}
+  )
+
+
  
 if(CMAKE_VERBOSITY GREATER 0)
 message(STATUS "Added target wasure (exe)")
