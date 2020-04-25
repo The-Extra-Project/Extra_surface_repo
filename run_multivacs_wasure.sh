@@ -103,7 +103,7 @@ function run_multivac_croco
 #run_multivac_church
 run_multivac_aerial
 #run_multivac_full
-#run_multivac_croco
+st#run_multivac_croco
 
 
 

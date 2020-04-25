@@ -114,7 +114,16 @@ val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(10
 val wasure_mode = params_scala.get_param("mode", "surface")
 val pscale = params_scala.get_param("pscale", "0").toFloat
 val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
+val rat_ray_sample = params_scala.get_param("rat_ray_sample", "0").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt
+
+
+val fmt = new java.text.DecimalFormat("##0.##############")
+val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
+val datestring = dateFormatter.format(Calendar.getInstance().getTime());
+val cur_output_dir ={output_dir  + sc.applicationId + "_" + datestring + "_"+ params_scala("name").head }
+fs.mkdirs(new Path(cur_output_dir),new FsPermission("777"))
+
 
 // Set the iq library on
 val iq = new IQlibSched(slvl_glob,slvl_loop)
@@ -127,7 +136,7 @@ val params_ddt =  set_params(params_new,List(
   ("bbox",params_scala("bbox").head),
   ("ech_input","1"),
   ("input_dir",input_dir),
-  ("output_dir",output_dir),
+  ("output_dir",cur_output_dir),
   ("min_ppt",params_scala("min_ppt").head),
   ("seed",algo_seed)
 ))
@@ -138,25 +147,26 @@ val params_wasure =  set_params(params_new,List(
   ("bbox",params_scala("bbox").head),
   ("lambda",params_scala("lambda").head),
   ("pscale",params_scala("pscale").head),
+  ("rat_ray_sample",params_scala("rat_ray_sample").head),
   ("nb_samples",params_scala("nb_samples").head),
   ("mode",params_scala("mode").head),
   ("input_dir",input_dir),
-  ("output_dir",output_dir),
+  ("output_dir",cur_output_dir),
   ("seed",algo_seed)
 ))
 
 val fmt = new java.text.DecimalFormat("##0.##############")
 val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
 
-fs.mkdirs(new Path( output_dir),new FsPermission("777"))
+
 val nbt_side = math.pow(2,ndtree_depth)
 val tot_nbt = scala.math.pow(nbt_side,dim).toInt;
 val nbp_per_tile = nbp/tot_nbt;
 val rep_value = ((if((tot_nbt) < sc.defaultParallelism) sc.defaultParallelism else  (tot_nbt).toInt))
 var nb_leaf = tot_nbt;
 
-params_ddt("output_dir") = collection.mutable.Set(output_dir)
-params_scala("output_dir") = collection.mutable.Set(output_dir)
+params_ddt("output_dir") = collection.mutable.Set(cur_output_dir)
+params_scala("output_dir") = collection.mutable.Set(cur_output_dir)
 params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)
 params_ddt("nbt_side") =  collection.mutable.Set(nbt_side.toString)
 
@@ -169,7 +179,7 @@ val ply2geojson_cmd =  set_params(params_ddt, List(("step","ply2geojson"))).to_c
 val tri2geojson_cmd =  set_params(params_ddt, List(("step","tri2geojson"))).to_command_line
 val ply2dataset_cmd =  set_params(params_ddt, List(("step","ply2dataset"))).to_command_line
 val extract_struct_cmd =  set_params(params_ddt, List(("step","extract_struct"))).to_command_line
-val dump_ply_binary_cmd =  set_params(params_ddt, List(("step","dump_ply_binary"),("output_dir", output_dir))).to_command_line
+val dump_ply_binary_cmd =  set_params(params_ddt, List(("step","dump_ply_binary"),("output_dir", cur_output_dir))).to_command_line
 val id_cmd = List(build_dir + "/bin/identity-exe");
 
 // Wausre surface reconstruction commands
@@ -272,7 +282,7 @@ val input_seg_bp =  graph_dst;
 
 println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
-val it_list = List(20,30)
+val it_list = List(20)
 var acc = 0;
 val coef_mult_list = List(20)
 val ll = lambda_list.head
@@ -317,9 +327,9 @@ if(true){
           val rdd_ply_surface = iq.run_pipe_fun_KValue(
             ext_cmd ++ List("--label","ext_spark"  +  ext_name),
             iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
-          ddt_algo.saveAsPly(rdd_ply_surface,output_dir + "/rdd_ply_finalized_last_2",plot_lvl)
+          ddt_algo.saveAsPly(rdd_ply_surface,cur_output_dir + "/ply" + ext_name,plot_lvl)
           if(true){
-            fs.listStatus(new Path(output_dir)).filter(
+            fs.listStatus(new Path(cur_output_dir)).filter(
               dd => (dd.isDirectory)).map(
               ss => fs.listStatus(ss.getPath)).reduce(_ ++ _).filter(
               xx => (xx.getPath.toString contains "part-")).map(
@@ -340,7 +350,7 @@ if(true){
             ext_cmd ++ List("--label","ext_seg" + ext_name),
             iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
           rdd_ply_surface.collect()
-          ddt_algo.saveAsPly(rdd_ply_surface,output_dir + "/rdd_ply_finalized_last",plot_lvl)
+          ddt_algo.saveAsPly(rdd_ply_surface,cur_output_dir + "/rdd_ply_finalized_last",plot_lvl)
         }
 
         acc = acc + 1;
@@ -374,7 +384,7 @@ if(false){
       //   kvrdd_dst, "dst", do_dump = false)
       // rdd_graph.collect()
       // val exp = export_graph(iq.get_kvrdd(rdd_graph.filter(!_.isEmpty) ,"b"), graph_tri)
-      // val pw = new PrintWriter(new File(output_dir +"/graph.geojson" ))
+      // val pw = new PrintWriter(new File(cur_output_dirx +"/graph.geojson" ))
       // pw.write(exp)
       // pw.close
 

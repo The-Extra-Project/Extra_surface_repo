@@ -15,7 +15,7 @@ class wasure_params
 {
 public :
     wasure_params() : verbose_flag(0),nbp(0),log_level(2),show_ghost(false),do_stream(true),area_processed(0),coef_mult(1),
-        input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),slabel(std::string("")),mode("surface"),rat_ray_sample(0),pscale(1),nb_samples(1),lambda(1),nb_labs(2),graph_type(0),skip_app_header(false)
+        input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),slabel(std::string("")),mode("surface"),rat_ray_sample(1),pscale(1),nb_samples(1),lambda(1),nb_labs(2),graph_type(0),skip_app_header(false)
     {
 
 

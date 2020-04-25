@@ -215,12 +215,12 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	std::cerr << "filename : " << filename << std::endl;
 
 
-        oqh.init_file_name(filename,".stream");
-	//oqh.init_file_name(filename,".ply");
+        //oqh.init_file_name(filename,".stream");
+	oqh.init_file_name(filename,".ply");
         oqh.write_header(std::cout);
 
-	//datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n',true);
-	datas_map[id].write_serialized_stream(oqh.get_output_stream());
+	datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n',true);
+	//datas_map[id].write_serialized_stream(oqh.get_output_stream());
         oqh.finalize();
         std::cout << std::endl;
     }

@@ -1057,37 +1057,45 @@ wasure_algo::compute_dst_mass_beam(std::vector<double> & coefs, std::vector<doub
   v_e1 = v_e1*coef_conf;
   v_o1 = v_o1*coef_conf;
 
+  if(v_u1 != 1)
+    std::cerr << " massbeam" << v_e1 << " " << v_o1 << " " << v_u1 << std::endl;
+  
   regularize(v_e1,v_o1,v_u1);
   // std::cerr << std::endl;
 }
 
 
-#ifdef DDT_CGAL_TRAITS_D
+//#ifdef DDT_CGAL_TRAITS_D
 
-std::vector<double> get_cell_barycenter(Cell_handle ch)
-    {
-        int D = ch->maximal_dimension();
-        std::vector<double> coords;// = get_vect_barycenter(ch);
-        for(uint d = 0; d < D; d++)
-            coords[d] = 0;
-        for(auto vht = ch->vertices_begin() ;
-                vht != ch->vertices_end() ;
-                ++vht)
-        {
-            Vertex_handle v = *vht;
-            for(uint d = 0; d < D; d++)
-            {
-                coords[d] += (v->point())[d];
-            }
-        }
-        for(uint d = 0; d < D; d++)
-            coords[d] /= ((double)D+1);
-        return coords;
-    }
+// std::vector<double> get_cell_barycenter_new(Cell_handle ch,int D)
+//     {
+//         std::vector<double> coords;// = get_vect_barycenter(ch);
+//         for(uint d = 0; d < D; d++)
+//             coords[d] = 0;
+//         for(auto vht = ch->vertices_begin() ;
+//                 vht != ch->vertices_end() ;
+//                 ++vht)
+//         {
+//             Vertex_handle v = *vht;
+//             for(uint d = 0; d < D; d++)
+//             {
+//                 coords[d] += (v->point())[d];
+//             }
+//         }
+//         for(uint d = 0; d < D; d++)
+//             coords[d] /= ((double)D+1);
+//         return coords;
+//     }
 
+//#endif
 
 void
-wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasure_data<Traits>  & datas_tri, wasure_data<Traits>  & datas_pts, wasure_params & params, int cid, int dim){
+wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasure_data<Traits>  & datas_tri, wasure_data<Traits>  & datas_pts, wasure_params & params, int rid, int dim){
+  Id cid = traits.gid(ch);
+
+  if(cid < 0 || cid > datas_pts.format_egv.size())
+    return;
+  
   std::vector<Point> & pts_norm = datas_pts.format_egv[cid];
   std::vector<double> & pts_scale = datas_pts.format_sigs[cid];
   std::vector<std::vector<double>> & v_dst = datas_tri.format_dst;
@@ -1096,10 +1104,10 @@ wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasur
   // std::vector<double> & vpe = (ch->data()).vpe;
   // std::vector<double> & vpo = (ch->data()).vpo;
   // std::vector<double> & vpu = (ch->data()).vpu;
+  Traits  traits;
 
-  
   for(int x = 0; x < params.nb_samples; x++){
-    std::vector<double>  C = (x == 0) ? get_cell_barycenter(ch) : Pick(ch,D);
+    std::vector<double>  C = (x == 0) ? traits.get_cell_barycenter(ch) : Pick(ch,D);
     Point  PtSample = traits.make_point(C.begin());
     double pe1,po1,pu1,pe2,po2,pu2;
 
@@ -1136,7 +1144,7 @@ wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasur
 
 }
 
-#endif
+
 
 
 Cell_handle wasure_algo::walk_locate(DT & tri,
@@ -1339,11 +1347,92 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
 	loc_type = DT::IN_FACE;
     }
   return s;
-
-
-  #else
-  return start_cell;
 #endif
+
+  
+#if defined(DDT_CGAL_TRAITS_3)
+
+  int n_of_turns = 10000;
+  if(tri.dimension() < 3)
+    return start_cell;
+
+  Cell_handle start = tri.locate(Ptcenter,start_cell);
+
+  start_cell = start;
+  
+  // Make sure we continue from here with a finite cell.
+  if(start == Cell_handle())
+    start = tri.infinite_cell();
+
+
+
+  int ind_inf;
+  if(start->has_vertex(tri.infinite_vertex(), ind_inf))
+    start = start->neighbor(ind_inf);
+
+  CGAL_triangulation_precondition(start != Cell_handle());
+  CGAL_triangulation_precondition(! start->has_vertex(infinite));
+
+  // We implement the remembering visibility walk.
+  // In this phase, no need to be stochastic
+
+  // Remembers the previous cell to avoid useless orientation tests.
+  Cell_handle previous = Cell_handle();
+  Cell_handle c = start;
+
+
+  // Now treat the cell c.
+try_next_cell:
+  n_of_turns--;
+
+  if(!c->has_vertex(tri.infinite_vertex()))
+    sample_cell(c,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
+  
+  // We know that the 4 vertices of c are positively oriented.
+  // So, in order to test if p is seen outside from one of c's facets,
+  // we just replace the corresponding point by p in the orientation
+  // test.  We do this using the array below.
+  const Point* pts[4] = { &(c->vertex(0)->point()),
+                          &(c->vertex(1)->point()),
+                          &(c->vertex(2)->point()),
+                          &(c->vertex(3)->point()) };
+
+  // (non-stochastic) visibility walk
+  for(int i=0; i != 4; ++i)
+  {
+    Cell_handle next = c->neighbor(i);
+    if(previous == next) continue;
+
+    // We temporarily put p at i's place in pts.
+    const Point* backup = pts[i];
+    pts[i] = &Pt3d;
+    if(tri.inexact_orientation(*pts[0], *pts[1], *pts[2], *pts[3]) != CGAL::NEGATIVE)
+    {
+      pts[i] = backup;
+      continue;
+    }
+
+    if(next->has_vertex(tri.infinite_vertex()))
+    {
+      // We are outside the convex hull.
+      return start_cell;
+    }
+
+
+    // for(int ii = 0; ii <= cur_dim; ii++){
+    //   Cell_handle s_nbr = s->neighbor(ii);
+    //   if(!tri.is_infinite(s_nbr))
+    // 	sample_cell(s_nbr,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
+    
+    previous = c;
+    c = next;
+
+
+    if(n_of_turns) goto try_next_cell;
+  }
+
+#endif
+  return start_cell;  
 }
 
 
@@ -1376,6 +1465,8 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
   std::vector<std::vector<Point>> & norms = datas_pts.format_egv;
   std::vector<std::vector<double>> & scales = datas_pts.format_sigs;
   double rat_ray_sample = params.rat_ray_sample;
+  if(rat_ray_sample == 0)
+    return;
   int D = Traits::D;  
 
 
@@ -1388,9 +1479,9 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
     if(acc++ % ((int)(1.0/(rat_ray_sample)))  == 0){
       Point & Pt3d = points[n];
       Point & Ptcenter = centers[n];
-      std::cerr << n << " -- pt:" << Pt3d << " -- center:" << Ptcenter << std::endl;
+      //std::cerr << n << " -- pt:" << Pt3d << " -- center:" << Ptcenter << std::endl;
       //Cell_handle loc = walk_locate(tri,Pt,Ptcenter,norms[n],scales[n],acc++);
-      Cell_handle loc = walk_locate(tri,Pt3d,Ptcenter,datas_tri,datas_pts,params,n,start_walk);
+      walk_locate(tri,Pt3d,Ptcenter,datas_tri,datas_pts,params,n,start_walk);
     }
   }
 }
@@ -1401,7 +1492,8 @@ void wasure_algo::compute_dst_with_center(DTW & tri, wasure_data<Traits>  & data
   //std::vector<Point> & points_3d,std::vector<Point> & centers,std::vector<std::vector<Point>> & norms,std::vector<std::vector<double>> & scales, double rat_ray_sample, int dim){
 
   compute_dst_tri(tri,datas_tri,datas_pts,params);
-  //  compute_dst_ray(tri,datas_tri,datas_pts,params);
+  DT & tri_tile  = tri.get_tile(tid)->triangulation();
+  compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
   center_dst(tri,datas_tri,datas_pts.format_centers,tid);
 } 
 

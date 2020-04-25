@@ -181,9 +181,6 @@ val params_wasure =  set_params(params_new,List(
 
 val fmt = new java.text.DecimalFormat("##0.##############")
 val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
-
-
-val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
 val datestring = dateFormatter.format(Calendar.getInstance().getTime());
 val cur_output_dir ={output_dir  + sc.applicationId + "_" + datestring + "_"+ params_scala("name").head }
 fs.mkdirs(new Path(cur_output_dir),new FsPermission("777"))
