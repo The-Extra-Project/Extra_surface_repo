@@ -47,6 +47,7 @@ int main(int argc, char **argv)
   // Extract the unformated data into formated vector format_points and format_centers
   w_datas_pts.dmap[w_datas_pts.xyz_name].extract_full_uint8_vect(w_datas_pts.format_points);
   w_datas_pts.dmap[w_datas_pts.center_name].extract_full_uint8_vect(w_datas_pts.format_centers);
+  w_datas_pts.dmap[w_datas_pts.glob_scale_name].extract_full_uint8_vect(w_datas_pts.format_glob_scale);
 
 
   // ===== Dimensionality =====
@@ -164,6 +165,9 @@ int main(int argc, char **argv)
   
   std::vector<Facet_const_iterator> lft;
   mrf.extract_surface(tid,lft,w_datas_tri);
+
+
+
   std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_surface");
   ddt::stream_data_header oth("p","f",tid);
 

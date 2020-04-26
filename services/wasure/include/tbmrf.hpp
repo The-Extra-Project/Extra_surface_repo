@@ -987,12 +987,16 @@ public :
                 {
                     // Belief spark
                     ofile << "e " << gidc << " " << gidn  << " ";
-                    for(int i = 0 ; i < 4; i++)
-                    {
-                        ofile << MULT_2*E[i]*coef;
-                        if(i <3)
-                            ofile << " ";
-                    }
+		    ofile << MULT_2*E[0]*coef << " ";
+		    ofile << MULT_2*E[1]*coef << " ";
+		    ofile << MULT_2*E[2]*coef << " ";
+		    ofile << MULT_2*E[3]*coef;
+                    // for(int i = 0 ; i < 4; i++)
+                    // {
+		    //   ofile << MULT_2*E[i]*coef;
+                    //     if(i <3)
+                    //         ofile << " ";
+                    // }
                     if(++acc % chunk_size == 0) ofile << std::endl;
                     break;
                 }

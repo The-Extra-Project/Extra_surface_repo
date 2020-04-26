@@ -114,7 +114,7 @@ val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(10
 val wasure_mode = params_scala.get_param("mode", "surface")
 val pscale = params_scala.get_param("pscale", "0").toFloat
 val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
-val rat_ray_sample = params_scala.get_param("rat_ray_sample", "0").toFloat
+val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt
 
 
@@ -141,6 +141,21 @@ val params_ddt =  set_params(params_new,List(
   ("seed",algo_seed)
 ))
 
+// val params_wasure =  set_params(params_new,List(
+//   ("exec_path", build_dir + "/bin/wasure-stream-exe"),
+//   ("dim",params_scala("dim").head),
+//   ("bbox",params_scala("bbox").head),
+//   ("lambda",params_scala("lambda").head),
+//   ("pscale",params_scala("pscale").head),
+//   ("rat_ray_sample",params_scala("rat_ray_sample").head),
+//   ("nb_samples",params_scala("nb_samples").head),
+//   ("mode",params_scala("mode").head),
+//   ("input_dir",input_dir),
+//   ("output_dir",cur_output_dir),
+//   ("seed",algo_seed)
+// ))
+
+
 val params_wasure =  set_params(params_new,List(
   ("exec_path", build_dir + "/bin/wasure-stream-exe"),
   ("dim",params_scala("dim").head),
@@ -154,6 +169,7 @@ val params_wasure =  set_params(params_new,List(
   ("output_dir",cur_output_dir),
   ("seed",algo_seed)
 ))
+
 
 val fmt = new java.text.DecimalFormat("##0.##############")
 val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
@@ -190,7 +206,6 @@ val fill_graph_cmd =  set_params(params_wasure, List(("step","fill_graph"))).to_
 val ext_cmd =  set_params(params_wasure, List(("step","extract_surface"))).to_command_line
 val tri2geojson_wasure_cmd =  set_params(params_wasure, List(("step","tri2geojson"))).to_command_line
 val wasure_ply2geojson_cmd =  set_params(params_wasure, List(("step","ply2geojson"))).to_command_line
-
 
 
 // =================================================
@@ -284,7 +299,7 @@ println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 val it_list = List(20)
 var acc = 0;
-val coef_mult_list = List(20)
+val coef_mult_list = List(1)
 val ll = lambda_list.head
 val coef_mult = coef_mult_list.head
 // Loop over the differents parameters
@@ -296,7 +311,8 @@ if(true){
 
         params_wasure("lambda") = collection.mutable.Set(ll)
         params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)
-        val ext_name = "_" + acc + "_ll_" + ll + "_cm_" + fmt.format(coef_mult) + "_it_" + fmt.format(max_it);
+        val datestring = dateFormatter.format(Calendar.getInstance().getTime());
+        val ext_name = "_" + acc + "_ll_" + ll + "_cm_" + fmt.format(coef_mult) + "_it_" + fmt.format(max_it) + "_" +  datestring;
 
         if(true){
           println("==== Segmentation with lambda:" + ll + " coef_mult:" + coef_mult +  "  ====")
@@ -327,12 +343,13 @@ if(true){
           val rdd_ply_surface = iq.run_pipe_fun_KValue(
             ext_cmd ++ List("--label","ext_spark"  +  ext_name),
             iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
-          ddt_algo.saveAsPly(rdd_ply_surface,cur_output_dir + "/ply" + ext_name,plot_lvl)
+          val ply_dir = cur_output_dir + "/ply" + ext_name
+          ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl)
           if(true){
             fs.listStatus(new Path(cur_output_dir)).filter(
               dd => (dd.isDirectory)).map(
               ss => fs.listStatus(ss.getPath)).reduce(_ ++ _).filter(
-              xx => (xx.getPath.toString contains "part-")).map(
+              xx => ((xx.getPath.toString contains "part-") && !(xx.getPath.toString contains ".ply"))).map(
               ff => fs.rename(ff.getPath, new Path(ff.getPath.toString + ".ply"))
             )
           }

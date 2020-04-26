@@ -320,9 +320,9 @@ val graph_dst = Graph(iq.get_kvrdd(res_dst,"t"), graph_tri_gid.edges, List("")).
 
 println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
-val lambda_list = List("1","10","20","5")
+val lambda_list = List("1","0.5","2")
 val it_list = List(30)
-val coef_mult_list = List(20)
+val coef_mult_list = List(1)
 
 val coef_mult = coef_mult_list.head
 val ll = lambda_list.head
@@ -372,7 +372,7 @@ if(true){
             fs.listStatus(new Path(cur_output_dir)).filter(
               dd => (dd.isDirectory)).map(
               ss => fs.listStatus(ss.getPath)).reduce(_ ++ _).filter(
-              xx => (xx.getPath.toString contains "part-")).map(
+              xx => ((xx.getPath.toString contains "part-") && !(xx.getPath.toString contains ".ply"))).map(
               ff => fs.rename(ff.getPath, new Path(ff.getPath.toString + ".ply"))
             )
           }

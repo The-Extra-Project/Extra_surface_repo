@@ -51,7 +51,7 @@ public :
     void init_sample(DT & tri,int nb_samples, int dim);
     double compute_angle_rad(const Point  & a, const Point & b, const Point & c, int dim );
 
-    void compute_dst_mass_norm(std::vector<double> coefs, std::vector<double> scales, double coef_conf, double pdfs, double & v_e1, double & v_o1, double & v_u1);
+    void compute_dst_mass_norm(std::vector<double> coefs, std::vector<double> scales, double coef_conf, double pdfs_e,double pdfs_o, double & v_e1, double & v_o1, double & v_u1);
 
     void  get_params_surface_dst(const std::vector<double> & pts_scales,double glob_scale,double min_scale, double & pdf_smooth,double & coef_conf, int D);
     void  get_params_conflict_dst(const std::vector<double> & pts_scales,double glob_scale,double min_scale, double & pdf_smooth,double & coef_conf, int D);
@@ -63,7 +63,7 @@ public :
     void dump_dst_in_img(  wasure_data<Traits>  & datas, wasure_params & params,std::string & name_img);
 
     Cell_handle walk_locate(DT & tri,
-                            Point & Pt3d,  Point & Ptcenter,
+                            Point & Pt3d,  Point & Ptcenter, Point & Ptcenter_mir,
                             wasure_data<Traits>  & datas,wasure_data<Traits>  & datas_pts, wasure_params & params,
                             int idr,
                             Cell_handle & start_cell
