@@ -127,27 +127,30 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	}
 
 
-	if(true){
-	  count = datas_map[hid].nb_pts_uint8_vect();
-	  datas_map[hid].dmap[datas_map[hid].glob_scale_name] = ddt_data<Traits>::Data_ply(datas_map[hid].glob_scale_name,"vertex",1,1,DATA_FLOAT_TYPE);
-	  std::vector<double> glob_scale(count,50);
-	  datas_map[hid].dmap[datas_map[hid].glob_scale_name].fill_full_uint8_vect(glob_scale);
-	}
+	// if(true){
+	//   count = datas_map[hid].nb_pts_uint8_vect();
+	//   datas_map[hid].dmap[datas_map[hid].glob_scale_name] = ddt_data<Traits>::Data_ply(datas_map[hid].glob_scale_name,"vertex",1,1,DATA_FLOAT_TYPE);
+	//   std::vector<double> glob_scale(count,50);
+	//   datas_map[hid].dmap[datas_map[hid].glob_scale_name].fill_full_uint8_vect(glob_scale);
+	// }
 
 	if(!datas_map[hid].dmap[datas_map[hid].center_name].do_exist){
 	  std::cerr << "NO CENTER : " << fname_map[hid] << std::endl;
 	  datas_map[hid].dmap[datas_map[hid].center_name] = ddt_data<Traits>::Data_ply(datas_map[hid].center_name,"vertex",D,D,DATA_FLOAT_TYPE);
+	  datas_map[hid].dmap[datas_map[hid].flags_name] = ddt_data<Traits>::Data_ply(datas_map[hid].flags_name,"vertex",1,1,tinyply::Type::INT8);
 
 	  std::vector<double> v_xyz;
 	  std::vector<double> v_center;
+	  std::vector<char> v_flags;
 
 	  datas_map[hid].dmap[datas_map[hid].xyz_name].extract_raw_uint8_vect(v_xyz,false);
 	  std::cerr << "extract done " << std::endl;
 
-	  std::vector<float> v_angle,s_flag;
+	  std::vector<float> v_angle,s_flag,num_r;
 	  
 	  datas_map[hid].dmap[std::vector<std::string>({"ScanAngleRank"})].extract_full_shpt_vect(v_angle,false);
 	  datas_map[hid].dmap[std::vector<std::string>({"ScanDirectionFlag"})].extract_full_shpt_vect(s_flag,false);
+	  datas_map[hid].dmap[std::vector<std::string>({"NumberOfReturns"})].extract_full_shpt_vect(num_r,false);
 
 	  // 45 y , -45x
 	  // -19 == 26 (-33n
@@ -168,15 +171,26 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	      v_center.push_back(vx + dist*lx*cos(aa));
 	      v_center.push_back(vy + dist*lx*sin(aa));
 	      v_center.push_back(vz + dist*lz);
+	      int flag = 1;
+	      if(num_r[jj] > 1)
+		flag = -1;
+	      v_flags.push_back(flag);
+	      
 	      //	      glob_scale.push_back(10);
 	      //v_center.push_back(alt*0.1 + 0.52*);
 
 	    }
 	  std::cerr << "loop done" << std::endl;
 	  datas_map[hid].dmap[datas_map[hid].center_name].fill_full_uint8_vect(v_center);
+	  datas_map[hid].dmap[datas_map[hid].flags_name].fill_full_uint8_vect(v_flags);
 
 	  std::cerr << "fill done" << std::endl;
 	  
+	}else{
+	  int count = datas_map[hid].nb_pts_uint8_vect();
+	  std::vector<char> v_flags(count,0);
+	  datas_map[hid].dmap[datas_map[hid].flags_name] = ddt_data<Traits>::Data_ply(datas_map[hid].flags_name,"vertex",1,1,tinyply::Type::INT8);
+	  datas_map[hid].dmap[datas_map[hid].flags_name].fill_full_uint8_vect(v_flags);
 	}
 
 	std::cerr << "yo" << std::endl;
@@ -185,7 +199,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	    std::cerr << fname_map[hid] << std::endl;
 	    ee.second.print_elems(std::cerr);
 	    if((! datas_map[hid].dmap[ee.first].has_label("x")) &&
-	       (! datas_map[hid].dmap[ee.first].has_label("glob_scale")) &&
+	       (! datas_map[hid].dmap[ee.first].has_label("flags")) &&
 	       (! datas_map[hid].dmap[ee.first].has_label("x_origin"))){
 	      datas_map[hid].dmap[ee.first].do_exist = false;
 	    }
@@ -227,7 +241,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	std::cerr << "filename : " << filename << std::endl;
 
 
-	if(false){
+	if(true){
 	  oqh.init_file_name(filename,".stream");
 	  oqh.write_header(std::cout);
 	  datas_map[id].write_serialized_stream(oqh.get_output_stream());
@@ -607,9 +621,9 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
 	  std::cerr << "extract centers" << std::endl;
 	  wpt.dmap[wpt.center_name].extract_full_uint8_vect(wpt.format_centers,false);
 	  w_data_full.format_centers.insert(w_data_full.format_centers.end(),wpt.format_centers.begin(),wpt.format_centers.end());
-	  std::cerr << "extract glob_scales" << std::endl;
-	  wpt.dmap[wpt.glob_scale_name].extract_full_uint8_vect(wpt.format_glob_scale,false);
-	  w_data_full.format_glob_scale.insert(w_data_full.format_glob_scale.end(),wpt.format_glob_scale.begin(),wpt.format_glob_scale.end());
+	  std::cerr << "extract flagss" << std::endl;
+	  wpt.dmap[wpt.flags_name].extract_full_uint8_vect(wpt.format_flags,false);
+	  w_data_full.format_flags.insert(w_data_full.format_flags.end(),wpt.format_flags.begin(),wpt.format_flags.end());
 	  std::cerr << "extract sig" << std::endl;
 	  //wpt.dmap[w_data_full.sig_name].extract_full_uint8_vect(w_data_full.format_sigs,false);
 	  wpt.extract_sigs(w_data_full.format_sigs,false);
@@ -1051,6 +1065,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
 {
 
     std::vector<Facet_const_iterator> lft;
+    std::vector<bool> lbool;
     std::cout.setstate(std::ios_base::failbit);
     DTW tri;
     Scheduler sch(1);
@@ -1124,8 +1139,19 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
                 (ch1lab != chnlab) ||
                 (((fch->is_infinite() && !fchn->is_infinite()) ||
                   (!fch->is_infinite() && fchn->is_infinite())) && ch1lab == mode )
-            )
+	       ){
                 lft.push_back(*fit);
+		
+		const Point& a = fch->vertex((id_cov+1)&3)->point();
+		const Point& b = fch->vertex((id_cov+2)&3)->point();
+		const Point& c = fch->vertex((id_cov+3)&3)->point();
+		const Point& d = fch->vertex((id_cov)&3)->point();
+
+		bool bl =
+		  (CGAL::orientation(a,b,c,d) == 1 && chnlab == 0) ||
+		  (CGAL::orientation(a,b,c,d) == -1 && chnlab == 1);
+		lbool.push_back(bl);
+	    }
 
         }
         catch (ddt::DDT_exeption& e)
@@ -1135,6 +1161,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
             continue;
         }
     }
+
 
 
 
@@ -1189,18 +1216,35 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
             }
         }
 
+	acc=0;
         for(auto fit = lft.begin(); fit != lft.end(); ++fit)
         {
             Cell_const_iterator fch = fit->full_cell();
             int id_cov = fit->index_of_covertex();
-            for(int i = 0; i < D+1; ++i)
-            {
-                if(i != id_cov)
-                {
-                    Vertex_const_iterator v = fch->vertex(i);
-                    v_simplex.push_back(vertex_map[v]);
-                }
-            }
+
+	    
+	    Id ida = (id_cov+1)&3;
+	    Id idb = (id_cov+2)&3;
+	    Id idc = (id_cov+3)&3;
+
+	    v_simplex.push_back(vertex_map[fch->vertex(ida)]);
+	    if(!lbool[acc]){
+	      v_simplex.push_back(vertex_map[fch->vertex(idb)]);
+	      v_simplex.push_back(vertex_map[fch->vertex(idc)]);
+	    }else{
+	      v_simplex.push_back(vertex_map[fch->vertex(idc)]);
+	      v_simplex.push_back(vertex_map[fch->vertex(idb)]);
+	    }
+	    
+            // for(int i = 0; i < D+1; ++i)
+            // {
+            //     if(i != id_cov)
+            //     {
+            //         Vertex_const_iterator v = fch->vertex(i);
+            //         v_simplex.push_back(vertex_map[fch->vertex(0)]);
+            //     }
+            // }
+	    acc++;
         }
 
         std::cerr << format_points.size() << std::endl;

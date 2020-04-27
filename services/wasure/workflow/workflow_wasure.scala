@@ -252,7 +252,7 @@ val kvrdd_simp = iq.get_kvrdd(res_dim,"x").reduceByKey((u,v) => u ::: v,rep_loop
 
 var input_ddt = kvrdd_points;
 // If we have a simplified point cloud, do the delaunay triangulation of the simplfied point cloud
-if(pscale > 1)
+if(pscale > 0)
   input_ddt = kvrdd_simp;
 
 println("=========== Delauay triangulatin computation ==================")
@@ -267,9 +267,12 @@ val (graph_tri,log_tri,stats_tri)  = ddt_algo.compute_ddt(
 
 val kvrdd_tri_gid = ddt_algo.update_global_ids(graph_tri.vertices,stats_tri,iq, params_ddt,sc)
 val graph_tri_gid = Graph(kvrdd_tri_gid, graph_tri.edges, defaultV)
-
+graph_tri_gid.vertices.setName("graph_tri_gid");
+graph_tri_gid.edges.setName("graph_tri_gid");
 
 val graph_pts = Graph(kvrdd_dim.reduceByKey( (u,v) => u ::: v), graph_tri.edges, List(""));
+graph_pts.vertices.setName("graph_pts");
+graph_pts.edges.setName("graph_pts");
 val stats_kvrdd = kvrdd_simplex_id(stats_tri,sc)
 val graph_stats = Graph(stats_kvrdd, graph_tri.edges, List(""));
 val input_dst = (graph_tri_gid.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
@@ -284,12 +287,19 @@ val struct_inputs_id = iq.run_pipe_fun_KValue(
 println("============= Simplex score computation ===============")
 val res_dst = iq.run_pipe_fun_KValue(
   dst_cmd ++ List("--label", "dst"),
-  input_dst, "dst", do_dump = false).persist(slvl_glob)
+  input_dst, "dst", do_dump = false).persist(slvl_glob).setName("res_dst");
 res_dst.count
+input_dst.unpersist()
 kvrdd_points.unpersist();
+
+
+graph_pts.vertices.unpersist();
+graph_tri_gid.vertices.unpersist();
 graph_tri.vertices.unpersist();
 val kvrdd_dst = iq.get_kvrdd(res_dst,"t");
 val graph_dst = Graph(kvrdd_dst, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
+graph_dst.vertices.setName("graph_dst");
+graph_dst.edges.setName("graph_dst");
 val input_seg =  iq.aggregate_value_clique(graph_dst, 1);
 val input_seg_bp =  graph_dst;
 
@@ -299,7 +309,7 @@ println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 val it_list = List(20)
 var acc = 0;
-val coef_mult_list = List(1)
+val coef_mult_list = List(1,0.5,1.5,0.2,1.8)
 val ll = lambda_list.head
 val coef_mult = coef_mult_list.head
 // Loop over the differents parameters
@@ -320,13 +330,16 @@ if(true){
           val ext_cmd_edges =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","2"))).to_command_line
 
           val graph_bp = Graph((graph_dst.vertices union graph_stats.vertices).reduceByKey(_ ::: _ ), graph_tri.edges, List(""))
+          graph_bp.vertices.setName("graph_bp");
+          graph_bp.edges.setName("graph_bp");
           val epsilon = 0.001;
           val kvrdd_seg = compute_belief_prop_v2(
             graph_bp,
             max_it,epsilon,
             stats_tri, params_wasure, iq, sc,rep_merge);
           val graph_seg = Graph(kvrdd_seg, graph_dst.edges, List(""));
-
+          graph_seg.vertices.setName("graph_seg");
+          graph_seg.edges.setName("graph_seg");
           // if (dim == 2)  {
           //   iq.run_pipe_fun_KValue(
           //     tri2geojson_cmd ++ List("--label","sparkcuted_v2_ll_" + ll,"--style","tri_seg.qml"),

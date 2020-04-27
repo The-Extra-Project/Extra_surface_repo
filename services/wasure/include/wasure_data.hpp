@@ -44,6 +44,7 @@ public :
         labseg_name = {"seg"};
         gid_name = {"gid"};
 	glob_scale_name = {"glob_scale"};
+	flags_name = {"flags"};
         center_name = ddt_data<Traits>::subvect({"x_origin","y_origin","z_origin","t_origin"},D);
         switch(D)
         {
@@ -503,12 +504,13 @@ public :
     std::vector<std::vector<double>>  format_sigs ;
     std::vector<std::vector<double>>  format_dst ;
     std::vector<int>  format_labs ;
+    std::vector<char>  format_flags ;
     std::vector<double>  format_glob_scale ;
 
 
     std::vector<int> tile_ids;
 
-  std::vector<std::string> egv_name,sig_name,labseg_name,gid_name,center_name,dst_name,glob_scale_name;
+  std::vector<std::string> egv_name,sig_name,labseg_name,gid_name,center_name,dst_name,glob_scale_name,flags_name;
 
 };
 

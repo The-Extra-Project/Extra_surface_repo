@@ -47,7 +47,7 @@ int main(int argc, char **argv)
   // Extract the unformated data into formated vector format_points and format_centers
   w_datas_pts.dmap[w_datas_pts.xyz_name].extract_full_uint8_vect(w_datas_pts.format_points);
   w_datas_pts.dmap[w_datas_pts.center_name].extract_full_uint8_vect(w_datas_pts.format_centers);
-  w_datas_pts.dmap[w_datas_pts.glob_scale_name].extract_full_uint8_vect(w_datas_pts.format_glob_scale);
+  w_datas_pts.dmap[w_datas_pts.flags_name].extract_full_uint8_vect(w_datas_pts.format_flags);
 
 
   // ===== Dimensionality =====
@@ -164,6 +164,7 @@ int main(int argc, char **argv)
   }
   
   std::vector<Facet_const_iterator> lft;
+  std::vector<bool> lbool;
   mrf.extract_surface(tid,lft,w_datas_tri);
 
 
@@ -214,14 +215,44 @@ int main(int argc, char **argv)
 	  {
             Cell_const_iterator fch = fit->full_cell();
             int id_cov = fit->index_of_covertex();
-            for(int i = 0; i < D+1; ++i)
-	      {
-                if(i != id_cov)
-		  {
-                    Vertex_const_iterator v = fch->vertex(i);
-                    v_simplex.push_back(vertex_map[v]);
-		  }
-	      }
+
+            int cccid = fch->cell_data().id;
+            int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
+	    
+	    const Point& a = fch->vertex((id_cov+1)&3)->point();
+	    const Point& b = fch->vertex((id_cov+2)&3)->point();
+	    const Point& c = fch->vertex((id_cov+3)&3)->point();
+	    const Point& d = fch->vertex((id_cov)&3)->point();
+
+
+	    
+	    bool bl =
+	      (CGAL::orientation(a,b,c,d) == 1 && ch1lab == 0) ||
+	      (CGAL::orientation(a,b,c,d) == -1 && ch1lab == 1);
+
+	    Id ida = (id_cov+1)&3;
+	    Id idb = (id_cov+2)&3;
+	    Id idc = (id_cov+3)&3;
+
+	    
+	    v_simplex.push_back(vertex_map[fch->vertex(ida)]);
+	    if(!bl){
+	      v_simplex.push_back(vertex_map[fch->vertex(idb)]);
+	      v_simplex.push_back(vertex_map[fch->vertex(idc)]);
+	    }else{
+	      v_simplex.push_back(vertex_map[fch->vertex(idc)]);
+	      v_simplex.push_back(vertex_map[fch->vertex(idb)]);
+	    }
+
+	    
+            // for(int i = 0; i < D+1; ++i)
+	    //   {
+            //     if(i != id_cov)
+	    // 	  {
+            //         Vertex_const_iterator v = fch->vertex(i);
+            //         v_simplex.push_back(vertex_map[v]);
+	    // 	  }
+	    //   }
 	  }
 
 

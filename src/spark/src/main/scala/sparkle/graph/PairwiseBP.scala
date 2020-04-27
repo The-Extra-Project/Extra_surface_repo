@@ -47,6 +47,8 @@ object PairwiseBP   {
       val t0 = System.nanoTime()
 
       newGraph = Graph(cur_v,cur_e)
+      newGraph.vertices.setName("NG_BP__" + iter);
+      newGraph.edges.setName("NG_BP__" + iter);
       prevGraph = newGraph
       graphWithNewMessages = newGraph.mapTriplets{ edge =>
         val tmpForwardMessage = edge.srcAttr.belief.decompose(edge.attr.reverseMessage)
@@ -56,6 +58,10 @@ object PairwiseBP   {
         val newReverseMessage = factor.compose(tmpReverseMessage, 1).marginalize(0)
         PEdge(factor, newForwardMessage, newReverseMessage)
       }.cache()
+
+      graphWithNewMessages.vertices.setName("NewMess_BP__" + iter);
+      graphWithNewMessages.edges.setName("NewMess_BP__" + iter);
+
       graphWithNewMessages.edges.foreachPartition( x => {})
       val newAggMessages = graphWithNewMessages.aggregateMessages[Variable](
         triplet => {
@@ -69,6 +75,8 @@ object PairwiseBP   {
         val maxDiff = newBelief.maxDiff(vertex.belief)
         PVertex(newBelief, vertex.prior, maxDiff < eps)
       }.cache()
+
+
       newGraph.edges.foreachPartition(x => {})
 
 
@@ -83,9 +91,9 @@ object PairwiseBP   {
       if(iter > 0){
         old_v.unpersist()
         old_e.unpersist()
-        old_v = cur_v;
-        old_e = cur_e;
       }
+      old_v = cur_v;
+      old_e = cur_e;
 
       converged = numConverged == numVertices
       prevGraph.vertices.unpersist(false)

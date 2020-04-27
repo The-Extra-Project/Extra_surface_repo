@@ -247,6 +247,7 @@ kvrdd_points = ddt_algo.compute_tiling_2(kvrdd_inputs,iq,params_ddt,params_scala
 nb_leaf = params_scala("nb_leaf").head.toInt;
 
 val rep_merge = ((if((nb_leaf) < spark_core_max) spark_core_max else  nb_leaf));
+val rep_belief = rep_merge*3
 var rep_loop = nb_leaf;
 
 if(ndtree_depth == 8)
@@ -262,13 +263,15 @@ params_scala("t0") = collection.mutable.Set(t0.toString)
 val res_dim = iq.run_pipe_fun_KValue(
   dim_cmd ++ List("--label", "dim"),
   kvrdd_points, "dim", do_dump = false).persist(slvl_glob)
+res_dim.count
+kvrdd_points.unpersist())
 val kvrdd_dim = iq.get_kvrdd(res_dim,"z");
 val kvrdd_simp = iq.get_kvrdd(res_dim,"x").reduceByKey((u,v) => u ::: v,rep_loop);
 
 
 var input_ddt = kvrdd_points;
 // If we have a simplified point cloud, do the delaunay triangulation of the simplfied point cloud
-if(pscale > 1)
+if(pscale > 0)
   input_ddt = kvrdd_simp;
 
 println("=========== Delauay triangulatin computation ==================")
@@ -308,11 +311,11 @@ val struct_inputs_id = iq.run_pipe_fun_KValue(
 println("============= Simplex score computation ===============")
 val res_dst = iq.run_pipe_fun_KValue(
   dst_cmd ++ List("--label", "dst"),
-  input_dst, "dst", do_dump = false).persist(slvl_glob)
+  input_dst, "dst", do_dump = false).persist(slvl_glob).setName("res_dst");
 res_dst.count
 kvrdd_points.unpersist();
 val graph_dst = Graph(iq.get_kvrdd(res_dst,"t"), graph_tri_gid.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
-
+graph_dst.vertices.setName("GRAPH_DST_VERTICES");
 // val input_seg =  iq.aggregate_value_clique(graph_dst, 1);
 // val input_seg_bp =  graph_dst;
 
@@ -348,7 +351,7 @@ if(true){
           val kvrdd_seg = compute_belief_prop_v2(
             graph_bp,
             max_it,epsilon,
-            stats_tri, params_wasure, iq, sc,rep_merge);
+            stats_tri, params_wasure, iq, sc,rep_belief);
           val graph_seg = Graph(kvrdd_seg, graph_dst.edges, List(""));
 
           // if (dim == 2)  {

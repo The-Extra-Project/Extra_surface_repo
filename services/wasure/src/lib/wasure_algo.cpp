@@ -84,7 +84,7 @@ wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
     }
 
 
-    
+    if(false){
     std::cerr << "dump" << std::endl;
     std::ofstream myfile;
     std::string filename("/home/laurent/shared_spark/tmp/tessel_" + std::to_string(tid) + "_" + std::to_string(it) + ".ply");
@@ -108,8 +108,9 @@ wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
       myfile << vv->point() << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << std::endl;
     }
     myfile.close();
-  }
+    }
 
+  }
   for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
     bool do_insert = true;
     for(int d = 0; d < D; d++)
@@ -523,11 +524,13 @@ wasure_algo::compute_dim_with_simp(  std::vector<Point> & points, std::vector<st
     }
   }else{
     int acc = 0;
+    if(nbp*pscale < K_T)
+      pscale = ((double)K_T)/((double)nbp);
     for(int ii = 0; ii < nbp; ii++){
       if(acc++ % ((int)(1.0/(pscale)))  == 0){
-      simp.push_back(points[ii]);
+	simp.push_back(points[ii]);
+      }	
     }
-  }
   }
   std::cerr << "done!" << std::endl;
   delete kdTree;
@@ -814,7 +817,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   std::vector<Point> & points_dst =  datas_pts.format_points;
   std::vector<std::vector<Point>> & norms = datas_pts.format_egv;
   std::vector<std::vector<double>> & scales = datas_pts.format_sigs;
-  std::vector<double> & format_glob_scale = datas_pts.format_glob_scale;
+  std::vector<char> & format_flags = datas_pts.format_flags;
   std::vector<Point> & centers = datas_pts.format_centers;
   std::vector<std::vector<double>> & v_dst = datas_tri.format_dst;
 
@@ -990,10 +993,12 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 	std::cerr << std::endl;
       }
 
+      if(((int)format_flags[idx]) < 0)
+	continue;
 	
   	double pdf_smooth = -1;
   	double coef_conf = -1;
-	double gbl_scale = -1; //(format_glob_scale.size() > 0)  ? format_glob_scale[idx] : -1;
+	double gbl_scale = -1; 
 	//	std::cerr << "glob scale:" << gbl_scale << std::endl;
 	if(params.mode == std::string("surface")){
 	  get_params_surface_dst(pts_scales,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
@@ -1537,6 +1542,7 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
   std::vector<Point> & centers = datas_pts.format_centers;
   std::vector<std::vector<Point>> & norms = datas_pts.format_egv;
   std::vector<std::vector<double>> & scales = datas_pts.format_sigs;
+  std::vector<char> & format_flags = datas_pts.format_flags;
   double rat_ray_sample = params.rat_ray_sample;
   if(rat_ray_sample == 0)
     return;
@@ -1558,7 +1564,13 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
       Point Ptcenter_mir = traits.make_point(coords);
       //std::cerr << n << " -- pt:" << Pt3d << " -- center:" << Ptcenter << std::endl;
       //Cell_handle loc = walk_locate(tri,Pt,Ptcenter,norms[n],scales[n],acc++);
-      walk_locate(tri,Pt3d,Ptcenter,Ptcenter_mir,datas_tri,datas_pts,params,n,start_walk);
+      if(((int)format_flags[n]) ==0){
+	continue;
+	walk_locate(tri,Pt3d,Ptcenter,Pt3d,datas_tri,datas_pts,params,n,start_walk);
+      }else{
+	walk_locate(tri,Pt3d,Ptcenter,Ptcenter_mir,datas_tri,datas_pts,params,n,start_walk);
+      }
+
     }
   }
 }
