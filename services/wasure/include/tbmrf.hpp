@@ -194,7 +194,12 @@ public :
     }
 
 
+  double get_coef_facet(){
 
+
+  }
+
+  
     double get_surface(Cell_const_iterator & cci, int idx)
     {
         Tile_cell_const_handle fch = cci->full_cell();
@@ -476,10 +481,11 @@ public :
 	    int cccid = cit->lid();
 
             int lcurr = data_map[fch->tile()->id()].format_labs[cccid];
+
             e0 = get_score_linear(fch,lcurr,data_map);
             e1 = get_score_linear(fch,lalpha,data_map);
-            //      std::cerr << "lcurr:" << lcurr << " lalpha:" << lalpha << std::endl;
-            //      std::cerr << "e0   :" << e0    << "     e1:" << e1 << std::endl;
+	    // std::cerr << "lcurr:" << lcurr << " lalpha:" << lalpha << std::endl;
+	    // std::cerr << "e0   :" << e0    << "     e1:" << e1 << std::endl;
             //    if(1 == lcurr)
             // if(tri.is_infinite(fch)){
             //   e0 = 0;

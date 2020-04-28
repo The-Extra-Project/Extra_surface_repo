@@ -43,6 +43,8 @@ public :
     //void dump_points(std::vector<Point> & points, std::string namefile, int D);
 
 
+
+  
     double get_score_linear(Cell_const_iterator fch,int label,D_MAP & data_map)
     {
 
@@ -51,14 +53,17 @@ public :
         volume = tbmrf<DTW,D_MAP>::get_volume(fch);
         if(fch->is_infinite())
         {
-            if(mode == 2 && pLabsOut[label] > 0.5)
-                return 10;
-            else
-                return 0;
             if(mode == 1 && pLabsOut[label] > 0.5)
+                return 10;
+            else
+                return 0;
+	    
+            if(mode == 0 && pLabsOut[label] > 0.5)
                 return 0;
             else
                 return 10;
+
+	    return 0;
         }
         double nbe = 1;//((double)fch->data().dat[3]);
         if(nbe < 1) nbe = 1;
@@ -71,7 +76,7 @@ public :
         double scoreCurr = fabs(pLabsIn[label] - PIn) + fabs(pLabsOut[label] - POut) + fabs(pLabsUnk[label] - PUnk);
 
 
-	std::cerr << "get_score_linear: coef:" << coef << " lab:" << label << " score:" << scoreCurr << " pin:" << PIn << " pout:" << POut << " punk:" << PUnk << std::endl;
+	//	std::cerr << "get_score_linear: coef:" << coef << " lab:" << label << " score:" << scoreCurr << " pin:" << PIn << " pout:" << POut << " punk:" << PUnk << std::endl;
 	
         return coef*scoreCurr;
 
@@ -113,7 +118,7 @@ public :
                 (((fch->is_infinite() && !fchn->is_infinite()) ||
                   (!fch->is_infinite() && fchn->is_infinite())) && ch1lab == mode )
             )
-                lft.push_back(*fit);
+	      lft.push_back(*fit);
 
         }
         catch (ddt::DDT_exeption& e)

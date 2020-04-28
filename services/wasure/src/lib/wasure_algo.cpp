@@ -8,6 +8,16 @@
 #include <random>
 #include "wasure_typedefs.hpp"
 
+
+// void insert_np(DT_raw  & tri, Point & pp, double * bbox_min, double * bbox_max, int D){
+//   bool do_insert = true;
+//   for(int d = 0; d < D; d++)
+//     if(pp[d] > bbox_max[d] || pp[d] < bbox_min[d])
+//       do_insert = false;
+//   if(do_insert)
+//     tri.insert(pp);
+// }
+
 int 
 wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
 		    std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales, Id tid){
@@ -43,22 +53,27 @@ wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
 
 
   int max_it = 10;
+  std::vector<Point> extra_pts;
   for(int it = 0; it < max_it; it++){
     std::cerr << "tessel:" << it << std::endl;
     CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> vertex_map;
+    CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> norm_map;
 
     for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
       if(tri.is_infinite(vv))
 	continue;
       vertex_map[vv] = std::vector<double>(D+1,0);
+      norm_map[vv] = std::vector<double>(D,0);
     }
     std::cerr << "accumulate" << std::endl;
     for(int ii = 0; ii < points.size();ii++){
       Point pp = points[ii];
       double ss = exp(-(scales[ii][D-1]*scales[ii][D-1])/0.1);
       auto vv = tri.nearest_vertex(pp);
-      for(int d = 0; d < D; d++)
+      for(int d = 0; d < D; d++){
 	vertex_map[vv][d] += ss*pp[d];
+	norm_map[vv][d] += ss*norms[ii][D-1][d];
+      }
       vertex_map[vv][D]+=ss;
     }
 
@@ -68,49 +83,69 @@ wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
 	continue;
 
       auto vp = vertex_map[vv];
+      auto vn = norm_map[vv];
       if(vp[D] == 0)
 	continue;
       for(int d = 0; d < D; d++){
 	vp[d]=vp[d]/vp[D];
+	vn[d]=vn[d]/vp[D];
       }
       auto pp = Point(vp[0],vp[1],vp[2]);
       //std::cerr << "move:" << vv->point() << " -> " << pp << "(" << vp[D] << ")"<<std::endl;
+
       bool do_insert = true;
       for(int d = 0; d < D; d++)
 	if(pp[d] > bbox_max[d] || pp[d] < bbox_min[d])
 	  do_insert = false;
-      if(do_insert)
+      if(do_insert){
 	tri.move(vv,pp);
-    }
+      }
+
+       if(((double) rand() / (RAND_MAX)) > 0.5 && it == max_it-1){
+	 auto pp2 = Point(vp[0]-vn[0],vp[1]-vn[1],vp[2]-vn[2]);
+ 	std::cerr << "insert new " << pp2 <<  std::endl;
+	//	extra_pts.push_back(pp2);
+	 std::cerr << "insert done " <<  std::endl;
+       }
+      // if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1){
+      // 	auto pp2 = Point(vp[0]-vn[0],vp[1]-vn[1],vp[2]-vn[2]);
+      // 	std::cerr << "insert new " << pp2 <<  std::endl;
+      // 	insert_np(tri,pp2,bbox_min,bbox_max,D);
+      // 	std::cerr << "insert done " <<  std::endl;
+      // }
+    }   
+    
 
 
-    if(false){
-    std::cerr << "dump" << std::endl;
-    std::ofstream myfile;
-    std::string filename("/home/laurent/shared_spark/tmp/tessel_" + std::to_string(tid) + "_" + std::to_string(it) + ".ply");
-    myfile.open (filename);
+    if(true){
+      std::cerr << "dump" << std::endl;
+      std::ofstream myfile;
+      std::string filename("/home/laurent/shared_spark/tmp/tessel_" + std::to_string(tid) + "_" + std::to_string(it) + ".ply");
+      myfile.open (filename);
       myfile << "ply" <<  std::endl;
-  myfile << "format ascii 1.0" << std::endl;
-  myfile << "comment author: Greg Turk" << std::endl;
-  myfile << "comment object: another cube" << std::endl;
-  myfile << "element vertex "  << tri.number_of_vertices()  << std::endl;
-  myfile << "property float x" << std::endl;
-  myfile << "property float y" << std::endl;
-  myfile << "property float z" << std::endl;
-  myfile << "property uchar red                   { start of vertex color }" << std::endl;
-  myfile << "property uchar green" << std::endl;
-  myfile << "property uchar blue" << std::endl;
-  myfile << "end_header" << std::endl;
+      myfile << "format ascii 1.0" << std::endl;
+      myfile << "comment author: Greg Turk" << std::endl;
+      myfile << "comment object: another cube" << std::endl;
+      myfile << "element vertex "  << tri.number_of_vertices()  << std::endl;
+      myfile << "property float x" << std::endl;
+      myfile << "property float y" << std::endl;
+      myfile << "property float z" << std::endl;
+      myfile << "property uchar red                   { start of vertex color }" << std::endl;
+      myfile << "property uchar green" << std::endl;
+      myfile << "property uchar blue" << std::endl;
+      myfile << "end_header" << std::endl;
 
-  double ccol = ((double)it)/((double)max_it);
-  for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
-    if(!tri.is_infinite(vv))
-      myfile << vv->point() << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << std::endl;
-    }
-    myfile.close();
+      double ccol = ((double)it)/((double)max_it);
+      for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
+	if(!tri.is_infinite(vv))
+	  myfile << vv->point() << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << std::endl;
+      }
+      myfile.close();
     }
 
   }
+    std::cerr << "filter out bbox" << std::endl;
+    
   for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
     bool do_insert = true;
     for(int d = 0; d < D; d++)
@@ -119,9 +154,19 @@ wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
     if(do_insert)
       vps.push_back(vv->point());
   }
+  for(auto pp : extra_pts){
+    bool do_insert = true;
+    for(int d = 0; d < D; d++)
+      if(pp[d] > bbox_max[d] || pp[d] < bbox_min[d])
+	do_insert = false;
+    if(do_insert)
+      vps.push_back(pp);
+
+
+  }
   
   return 0;
-}
+  }
 
 
 
@@ -741,8 +786,6 @@ void wasure_algo::compute_dst_mass_norm(std::vector<double> coefs, std::vector<d
     }else{
       // v_e1 = v_e1*exp(-fabs(coefs[d]/(scales[d]*3)));
       // v_o1 = v_o1*exp(-fabs(coefs[d]/(scales[d]*3)));
-      // v_e1 = v_e1*score_pdf(coefs[d],scales[d]/9);
-      // v_o1 = v_o1*score_pdf(coefs[d],scales[d]/9);
       v_e1 = v_e1*score_pdf(coefs[d],scales[d]/9);
       v_o1 = v_o1*score_pdf(coefs[d],scales[d]/9);
     }
@@ -875,7 +918,9 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 
   
 
-  
+
+
+  int debug_acc=0;  
   int accid = 0;
   for( auto cit = tri.cells_begin();
        cit != tri.cells_end(); ++cit ){
@@ -884,9 +929,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
       continue;
 
     int cid = cit->lid();
-    if(cid == 5786){
 
-    }
     double  vpe = v_dst[cid][0];
     double  vpo = v_dst[cid][1];
     double  vpu = v_dst[cid][2];
@@ -894,78 +937,106 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 
     //Find close ray
 
-      // std::vector<int> ray_id;
+    // std::vector<int> ray_id;
 
-      // std::vector<double> C =   cit->barycenter();
-      // Point  PtSample = traits.make_point(C.begin());
-      // for(int id = 0;  id < points_dst.size();id++){
-      // 	Point & Pt3d = points_dst[id];
-      // 	Point & PtCenter = centers[id];
-      // 	double angle = compute_angle_rad(PtSample,Pt3d,PtCenter,D);
-      // 	if(angle < 0.01){
-      // 	  ray_id.push_back(id);
-      // 	}
-      // }
+    // std::vector<double> C =   cit->barycenter();
+    // Point  PtSample = traits.make_point(C.begin());
+    // for(int id = 0;  id < points_dst.size();id++){
+    // 	Point & Pt3d = points_dst[id];
+    // 	Point & PtCenter = centers[id];
+    // 	double angle = compute_angle_rad(PtSample,Pt3d,PtCenter,D);
+    // 	if(angle < 0.01){
+    // 	  ray_id.push_back(id);
+    // 	}
+    // }
     
 
 
-   
-
-      //    std::cerr << "    id : " << vpe << " " << "vop:" << vpo <<  std::endl;
-      for(int x = 0; x < params.nb_samples; x++){
-	//Point PtSample = traits.make_point((cit->data()).pts[x].begin());
-	std::vector<double>  C =  (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
-	//std::vector<double>  C = (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
-	Point  PtSample = traits.make_point(C.begin());
+    //    std::cerr << "    id : " << vpe << " " << "vop:" << vpo <<  std::endl;
+    for(int x = 0; x < params.nb_samples; x++){
+      //Point PtSample = traits.make_point((cit->data()).pts[x].begin());
+      std::vector<double>  C =  (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
+      //std::vector<double>  C = (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
+      Point  PtSample = traits.make_point(C.begin());
 
 
-	// // ================= RAY DST =======================
-	// //std::cerr << "NBRAY:" << ray_id.size() << std::endl;
-	// for(auto rid : ray_id){
-	//   double pe1,po1,pu1,pe2,po2,pu2;
-	//   Point & Pt3d = points_dst[rid];
-	//   Point & PtCenter = centers[rid];
-	//   std::vector<Point> & pts_norm = datas_pts.format_egv[rid];
-	//   std::vector<double> & pts_scale = datas_pts.format_sigs[rid];
-	//   pe1 = vpe;
-	//   po1 = vpe;
-	//   pu1 = vpe;	  
-	//   std::vector<double> center_coefs = compute_base_coef<Point>(Pt3d,PtCenter,pts_norm,D);
-	//   std::vector<double> pts_coefs = compute_base_coef<Point>(Pt3d,PtSample,pts_norm,D);
-	//   double angle = compute_angle_rad(PtSample,Pt3d,PtCenter,D);
+      if(C[0] > -10.97 && C[0] < -8.05 &&
+	 C[1] > -7.23 && C[1] < 2.71 &&
+	 C[2] > -7.33 && C[2] < -4.39){
+	do_debug = false;
+	debug_acc++;
+      }
+      else
+	do_debug = false;
 
-	//   double pdf_smooth = -1;
-	//   double coef_conf = -1;
-	//   double gbl_scale = -1;// (format_glob_scale.size() > 0)  ? format_glob_scale[rid] : -1;
-	//   get_params_surface_dst(pts_scale,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
+      // // ================= RAY DST =======================
+      // //std::cerr << "NBRAY:" << ray_id.size() << std::endl;
+      // for(auto rid : ray_id){
+      //   double pe1,po1,pu1,pe2,po2,pu2;
+      //   Point & Pt3d = points_dst[rid];
+      //   Point & PtCenter = centers[rid];
+      //   std::vector<Point> & pts_norm = datas_pts.format_egv[rid];
+      //   std::vector<double> & pts_scale = datas_pts.format_sigs[rid];
+      //   pe1 = vpe;
+      //   po1 = vpe;
+      //   pu1 = vpe;	  
+      //   std::vector<double> center_coefs = compute_base_coef<Point>(Pt3d,PtCenter,pts_norm,D);
+      //   std::vector<double> pts_coefs = compute_base_coef<Point>(Pt3d,PtSample,pts_norm,D);
+      //   double angle = compute_angle_rad(PtSample,Pt3d,PtCenter,D);
 
-	//   compute_dst_mass_beam(pts_coefs,pts_scale,angle,ANGLE_SCALE,coef_conf,pe2,po2,pu2);
-	//   ds_score(pe1,po1,pu1,pe2,po2,pu2,pe1,po1,pu1);
-	//   regularize(pe1,po1,pu1);
-	//   // NAN check
-	//   if(pe1 == pe1 &&
-	//      po1 == po1 &&
-	//      pu1 == pu1){
-	//     vpe = pe1;
-	//     vpo = po1 ;
-	//     vpu = pu1 ;
-	//   }	
-	// }
+      //   double pdf_smooth = -1;
+      //   double coef_conf = -1;
+      //   double gbl_scale = -1;// (format_glob_scale.size() > 0)  ? format_glob_scale[rid] : -1;
+      //   get_params_surface_dst(pts_scale,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
+
+      //   compute_dst_mass_beam(pts_coefs,pts_scale,angle,ANGLE_SCALE,coef_conf,pe2,po2,pu2);
+      //   ds_score(pe1,po1,pu1,pe2,po2,pu2,pe1,po1,pu1);
+      //   regularize(pe1,po1,pu1);
+      //   // NAN check
+      //   if(pe1 == pe1 &&
+      //      po1 == po1 &&
+      //      pu1 == pu1){
+      //     vpe = pe1;
+      //     vpo = po1 ;
+      //     vpu = pu1 ;
+      //   }	
+      // }
       
     
       
       // ================= NORM DST =======================
       for(int d = 0; d < D; d++){
-	  queryPt[d] = PtSample[d];
+	queryPt[d] = PtSample[d];
       }
 
+      std::ofstream myfile;
+      if(do_debug){
 
-      if(cid == 5786 && do_debug){
+	std::string filename("/home/laurent/shared_spark/tmp/bary_" + std::to_string(debug_acc) + ".ply");
+      
+	myfile.open (filename);
+	myfile << "ply" <<  std::endl;
+	myfile << "format ascii 1.0" << std::endl;
+	myfile << "element vertex "  << std::to_string(K_T + 1)  << std::endl;
+	myfile << "property float x" << std::endl;
+	myfile << "property float y" << std::endl;
+	myfile << "property float z" << std::endl;
+	myfile << "property float nx" << std::endl;
+	myfile << "property float ny" << std::endl;
+	myfile << "property float nz" << std::endl;
+	myfile << "property uchar red                   { start of vertex color }" << std::endl;
+	myfile << "property uchar green" << std::endl;
+	myfile << "property uchar blue" << std::endl;
+	myfile << "end_header" << std::endl;
+
+      
+
 	std::cerr << "=============" <<  std::endl;
+	std::cerr << "debug acc " << debug_acc <<  std::endl;
 	std::cerr << "id : " << cid <<  std::endl;
 	std::cerr << "bary  :";
 	for(int d = 0; d < D; d++){
-	  std::cerr << PtSample[d] << " ";
+	  std::cerr << C[d] << " ";
 	}
 	std::cerr << std::endl;
       }
@@ -979,28 +1050,31 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   	std::vector<Point> pts_norms = norms[idx];
   	std::vector<double> pts_scales = scales[idx];
 
-      if(cid == 5786 && do_debug){
-	std::cerr << "----------- " << std::endl;
-	std::cerr << "   kidx : " << idx << std::endl;
-	std::cerr << "   pt3D  :";
-	for(int d = 0; d < D; d++){
-	  std::cerr << Pt3d[d] << " ";
+	if(do_debug){
+	  std::cerr << "----------- " << std::endl;
+	  std::cerr << "   kidx : " << idx << std::endl;
+	  std::cerr << "   pt3D  :";
+	  for(int d = 0; d < D; d++){
+	    std::cerr << Pt3d[d] << " ";
+	    myfile << Pt3d[d] << " ";
+	  }
+	  std::cerr << std::endl;
+	  std::cerr << "   Norm  :";
+	  for(int d = 0; d < D; d++){
+	    std::cerr << pts_norms[D-1][d] << " ";
+	    myfile << pts_norms[D-1][d] << " ";
+	  }
+	  myfile << " 0 0 0 " << std::endl;
+	  std::cerr << std::endl;
+	  std::cerr << "   scale  :";
+	  for(int d = 0; d < D; d++){
+	    std::cerr << pts_scales[d] << " ";
+	  }
+	  std::cerr << std::endl;
 	}
-	std::cerr << std::endl;
-	std::cerr << "   Norm  :";
-	for(int d = 0; d < D; d++){
-	  std::cerr << pts_norms[0][d] << " ";
-	}
-	std::cerr << std::endl;
-	std::cerr << "   scale  :";
-	for(int d = 0; d < D; d++){
-	  std::cerr << pts_scales[d] << " ";
-	}
-	std::cerr << std::endl;
-      }
 
-      if(((int)format_flags[idx]) < 0)
-	continue;
+	if(((int)format_flags[idx]) < 0)
+	  continue;
 	
   	double pdf_smooth = -1;
   	double coef_conf = -1;
@@ -1029,7 +1103,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   	ds_score(pe1,po1,pu1,pe2,po2,pu2,pe1,po1,pu1);
   	regularize(pe1,po1,pu1);
 
-	if(cid == 5786 && do_debug){
+	if(do_debug){
 	  for(int d = 0; d < D; d++){
 	    std::cerr << Pt3d[d] << " ";
 	  }
@@ -1038,6 +1112,13 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 	  std::cerr << "  pe1  "<< k << " " << pe1 << " " << po1 << " " << pu1 <<  std::endl;
 	  std::cerr << "  new  "<< k << " " << vpe << " " << vpo << " " << vpu <<  std::endl;
 	  std::cerr << " " << std::endl;
+
+	  for(int d = 0; d < D; d++){
+	    std::cerr << C[d] << " ";
+	    myfile << C[d] << " ";
+	  }
+	  myfile << " 0 0 0 " << ((int)(pe1*255)) << " " << ((int)(po1*255)) << " " << ((int)(pu1*255)) << std::endl;
+	  
 	}
 
 	
@@ -1045,6 +1126,9 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   	vpo = po1;
   	vpu = pu1;	  
       }
+
+      if(do_debug)
+	myfile.close();
 
       
     }
@@ -1054,9 +1138,9 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
     if(vpe == vpe &&
        vpo == vpo &&
        vpu == vpu){
-    v_dst[cid][0] = vpe;
-    v_dst[cid][1] = vpo ;
-    v_dst[cid][2] = vpu ;
+      v_dst[cid][0] = vpe;
+      v_dst[cid][1] = vpo ;
+      v_dst[cid][2] = vpu ;
     }else{
       // v_dst[cid][0] = v_dst[cid][1] = 0;
       // v_dst[cid][2] = 1;
@@ -1531,9 +1615,20 @@ void wasure_algo::center_dst(DTW & ttri, wasure_data<Traits>  & datas_tri,std::v
     cloc_start = cloc;
     // Quick and dity hack
     int cid = tile->lid(cloc);
-    v_dst[cid][0] = 1;
-    v_dst[cid][1] = 0;
-    v_dst[cid][2] = 0;
+
+    double pe1,po1,pu1,pe2,po2,pu2;
+    pe1 = v_dst[cid][0];
+    po1 = v_dst[cid][1];
+    pu1 = v_dst[cid][2];
+    pe2 = 0.05;
+    po2 = 0;
+    pu2 = 0.95;
+    ds_score(pe1,po1,pu1,pe2,po2,pu2,pe1,po1,pu1);
+    regularize(pe1,po1,pu1);
+    
+    v_dst[cid][0] = pe1;
+    v_dst[cid][1] = po1;
+    v_dst[cid][2] = pu1;
   }
 
 }
@@ -1571,12 +1666,10 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
       //std::cerr << n << " -- pt:" << Pt3d << " -- center:" << Ptcenter << std::endl;
       //Cell_handle loc = walk_locate(tri,Pt,Ptcenter,norms[n],scales[n],acc++);
       if(((int)format_flags[n]) ==0){
-	continue;
 	walk_locate(tri,Pt3d,Ptcenter,Pt3d,datas_tri,datas_pts,params,n,start_walk);
-      }else{
+      }else if(((int)format_flags[n]) ==1){
 	walk_locate(tri,Pt3d,Ptcenter,Ptcenter_mir,datas_tri,datas_pts,params,n,start_walk);
       }
-
     }
   }
 }
@@ -1588,8 +1681,8 @@ void wasure_algo::compute_dst_with_center(DTW & tri, wasure_data<Traits>  & data
 
   compute_dst_tri(tri,datas_tri,datas_pts,params);
   DT & tri_tile  = tri.get_tile(tid)->triangulation();
-  compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
-  center_dst(tri,datas_tri,datas_pts.format_centers,tid);
+   compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
+   center_dst(tri,datas_tri,datas_pts.format_centers,tid);
 } 
 
 

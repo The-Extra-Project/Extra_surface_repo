@@ -52,6 +52,17 @@ int main(int argc, char **argv)
     w_datas_pts.dmap[w_datas_pts.flags_name].extract_full_uint8_vect(w_datas_pts.format_flags);
   else
     w_datas_pts.format_flags.resize(count,0);
+
+ 
+
+  // std::string filename("/home/laurent/shared_spark/tmp/centrs.xyz");
+  // myfile.open(filename);
+  // for(auto cc : w_datas_pts.format_centers){
+  //   std::cerr << cc << std::endl;
+  // }
+  // myfile.close();
+
+  
   // ===== Dimensionality =====
   // Compute the dimensionality of each points and simplify the input point cloud
   // The result is stored into
@@ -135,12 +146,11 @@ int main(int argc, char **argv)
   // ===== Segmentation =====
   std::vector<int>  & format_labs = w_datas_tri[tid].format_labs ;
   format_labs.resize(nbs);
-  for(int ii = 0; ii < nbs;ii++)
-    format_labs[ii] = 0;
   tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri1,&w_datas_tri);
 
 
-  std::vector<double> lambda_list({0,0.01,0.05,0.1,0.5,1});
+  std::vector<double> lambda_list({0,0.001,0.01,0.05,0.1,0.5,1,2,10,20});
+  //std::vector<double> lambda_list({0});
   // Mode 0 => outdoor scene
   // Mode 1 => indoor scene
   mrf.set_mode(0);
@@ -149,6 +159,8 @@ int main(int argc, char **argv)
   for(auto ll : lambda_list){
     mrf.lambda = ll;
     // Optimizing with alpha expansion
+    for(int ii = 0; ii < nbs;ii++)
+      format_labs[ii] = 0;
     mrf.alpha_exp(tri1,w_datas_tri);
 
 
@@ -227,7 +239,7 @@ int main(int argc, char **argv)
 	      Cell_const_iterator fch = fit->full_cell();
 	      int id_cov = fit->index_of_covertex();
 
-	      int cccid = fch->cell_data().id;
+	      int cccid = fch->lid();
 	      int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
 	    
 	      const Point& a = fch->vertex((id_cov+1)&3)->point();
