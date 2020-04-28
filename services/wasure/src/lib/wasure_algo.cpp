@@ -524,13 +524,16 @@ wasure_algo::compute_dim_with_simp(  std::vector<Point> & points, std::vector<st
     }
   }else{
     int acc = 0;
-    if(nbp*pscale < K_T)
-      pscale = ((double)K_T)/((double)nbp);
     for(int ii = 0; ii < nbp; ii++){
       if(acc++ % ((int)(1.0/(pscale)))  == 0){
 	simp.push_back(points[ii]);
       }	
     }
+    if(simp.size() < 50){
+      simp.clear();
+      simp.insert(simp.end(),points.begin(),points.end());
+    }
+      
   }
   std::cerr << "done!" << std::endl;
   delete kdTree;
@@ -890,63 +893,66 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 
 
     //Find close ray
-    std::vector<int> ray_id;
-    if(false){
-      std::vector<double> C =   cit->barycenter();
-      Point  PtSample = traits.make_point(C.begin());
-      for(int id = 0;  id < points_dst.size();id++){
-	Point & Pt3d = points_dst[id];
-	Point & PtCenter = centers[id];
-	double angle = compute_angle_rad(PtSample,Pt3d,PtCenter,D);
-	if(angle < 0.01){
-	  ray_id.push_back(id);
-	}
-      }
-    }
 
+      // std::vector<int> ray_id;
+
+      // std::vector<double> C =   cit->barycenter();
+      // Point  PtSample = traits.make_point(C.begin());
+      // for(int id = 0;  id < points_dst.size();id++){
+      // 	Point & Pt3d = points_dst[id];
+      // 	Point & PtCenter = centers[id];
+      // 	double angle = compute_angle_rad(PtSample,Pt3d,PtCenter,D);
+      // 	if(angle < 0.01){
+      // 	  ray_id.push_back(id);
+      // 	}
+      // }
     
 
-    //    std::cerr << "    id : " << vpe << " " << "vop:" << vpo <<  std::endl;
-    for(int x = 0; x < params.nb_samples; x++){
-      //Point PtSample = traits.make_point((cit->data()).pts[x].begin());
-      std::vector<double>  C =  (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
-      //std::vector<double>  C = (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
-      Point  PtSample = traits.make_point(C.begin());
+
+   
+
+      //    std::cerr << "    id : " << vpe << " " << "vop:" << vpo <<  std::endl;
+      for(int x = 0; x < params.nb_samples; x++){
+	//Point PtSample = traits.make_point((cit->data()).pts[x].begin());
+	std::vector<double>  C =  (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
+	//std::vector<double>  C = (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
+	Point  PtSample = traits.make_point(C.begin());
 
 
-      // ================= RAY DST =======================
-      //std::cerr << "NBRAY:" << ray_id.size() << std::endl;
-      for(auto rid : ray_id){
-	double pe1,po1,pu1,pe2,po2,pu2;
-	Point & Pt3d = points_dst[rid];
-	Point & PtCenter = centers[rid];
-	std::vector<Point> & pts_norm = datas_pts.format_egv[rid];
-	std::vector<double> & pts_scale = datas_pts.format_sigs[rid];
-	pe1 = vpe;
-	po1 = vpe;
-	pu1 = vpe;	  
-	std::vector<double> center_coefs = compute_base_coef<Point>(Pt3d,PtCenter,pts_norm,D);
-	std::vector<double> pts_coefs = compute_base_coef<Point>(Pt3d,PtSample,pts_norm,D);
-	double angle = compute_angle_rad(PtSample,Pt3d,PtCenter,D);
+	// // ================= RAY DST =======================
+	// //std::cerr << "NBRAY:" << ray_id.size() << std::endl;
+	// for(auto rid : ray_id){
+	//   double pe1,po1,pu1,pe2,po2,pu2;
+	//   Point & Pt3d = points_dst[rid];
+	//   Point & PtCenter = centers[rid];
+	//   std::vector<Point> & pts_norm = datas_pts.format_egv[rid];
+	//   std::vector<double> & pts_scale = datas_pts.format_sigs[rid];
+	//   pe1 = vpe;
+	//   po1 = vpe;
+	//   pu1 = vpe;	  
+	//   std::vector<double> center_coefs = compute_base_coef<Point>(Pt3d,PtCenter,pts_norm,D);
+	//   std::vector<double> pts_coefs = compute_base_coef<Point>(Pt3d,PtSample,pts_norm,D);
+	//   double angle = compute_angle_rad(PtSample,Pt3d,PtCenter,D);
 
-	double pdf_smooth = -1;
-	double coef_conf = -1;
-	double gbl_scale = -1;// (format_glob_scale.size() > 0)  ? format_glob_scale[rid] : -1;
-	get_params_surface_dst(pts_scale,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
+	//   double pdf_smooth = -1;
+	//   double coef_conf = -1;
+	//   double gbl_scale = -1;// (format_glob_scale.size() > 0)  ? format_glob_scale[rid] : -1;
+	//   get_params_surface_dst(pts_scale,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
 
-	compute_dst_mass_beam(pts_coefs,pts_scale,angle,ANGLE_SCALE,coef_conf,pe2,po2,pu2);
-	ds_score(pe1,po1,pu1,pe2,po2,pu2,pe1,po1,pu1);
-	regularize(pe1,po1,pu1);
-	// NAN check
-	if(pe1 == pe1 &&
-	   po1 == po1 &&
-	   pu1 == pu1){
-	  vpe = pe1;
-	  vpo = po1 ;
-	  vpu = pu1 ;
-	}	
-      }
-
+	//   compute_dst_mass_beam(pts_coefs,pts_scale,angle,ANGLE_SCALE,coef_conf,pe2,po2,pu2);
+	//   ds_score(pe1,po1,pu1,pe2,po2,pu2,pe1,po1,pu1);
+	//   regularize(pe1,po1,pu1);
+	//   // NAN check
+	//   if(pe1 == pe1 &&
+	//      po1 == po1 &&
+	//      pu1 == pu1){
+	//     vpe = pe1;
+	//     vpo = po1 ;
+	//     vpu = pu1 ;
+	//   }	
+	// }
+      
+    
       
       // ================= NORM DST =======================
       for(int d = 0; d < D; d++){

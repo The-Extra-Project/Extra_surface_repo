@@ -241,7 +241,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	std::cerr << "filename : " << filename << std::endl;
 
 
-	if(true){
+	if(false){
 	  oqh.init_file_name(filename,".stream");
 	  oqh.write_header(std::cout);
 	  datas_map[id].write_serialized_stream(oqh.get_output_stream());

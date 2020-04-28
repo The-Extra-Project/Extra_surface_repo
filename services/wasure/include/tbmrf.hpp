@@ -185,9 +185,9 @@ public :
         //         vht != fch->vertices_end() ;
         //         ++vht)
         // {
-	  for(auto vht : lvh){
-            Vertex_const_handle v = vht;
-            lp.push_back(v->point());
+	for(auto vht : lvh){
+	  Vertex_const_handle v = vht;
+	  lp.push_back(v->point());
 
         }
         return n_volume(lp,D);
@@ -496,7 +496,7 @@ public :
         {
             if(fit->is_infinite())
             {
-                std::cerr << " ~~~~~ is infinit" << std::endl;
+	      //                std::cerr << " ~~~~~ is infinit" << std::endl;
                 continue;
             }
 

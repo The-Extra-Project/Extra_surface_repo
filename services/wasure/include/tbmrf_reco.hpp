@@ -71,7 +71,7 @@ public :
         double scoreCurr = fabs(pLabsIn[label] - PIn) + fabs(pLabsOut[label] - POut) + fabs(pLabsUnk[label] - PUnk);
 
 
-	//std::cerr << "get_score_linear " << label << " " << scoreCurr << " " << PIn << " " << POut << " " << PUnk << std::endl;
+	std::cerr << "get_score_linear: coef:" << coef << " lab:" << label << " score:" << scoreCurr << " pin:" << PIn << " pout:" << POut << " punk:" << PUnk << std::endl;
 	
         return coef*scoreCurr;
 
@@ -103,8 +103,8 @@ public :
             Cell_const_iterator fchn = tmp_fchn->main();
 	    //            Vertex_h_iterator vht;
 
-            int cccid = fch->cell_data().id;
-            int cccidn = fchn->cell_data().id;
+            int cccid = fch->lid();
+            int cccidn = fchn->lid();
 
             int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
             int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];

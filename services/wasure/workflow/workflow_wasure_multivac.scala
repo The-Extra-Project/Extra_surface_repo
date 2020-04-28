@@ -264,7 +264,7 @@ val res_dim = iq.run_pipe_fun_KValue(
   dim_cmd ++ List("--label", "dim"),
   kvrdd_points, "dim", do_dump = false).persist(slvl_glob)
 res_dim.count
-kvrdd_points.unpersist())
+kvrdd_points.unpersist()
 val kvrdd_dim = iq.get_kvrdd(res_dim,"z");
 val kvrdd_simp = iq.get_kvrdd(res_dim,"x").reduceByKey((u,v) => u ::: v,rep_loop);
 
@@ -313,7 +313,15 @@ val res_dst = iq.run_pipe_fun_KValue(
   dst_cmd ++ List("--label", "dst"),
   input_dst, "dst", do_dump = false).persist(slvl_glob).setName("res_dst");
 res_dst.count
+res_dim.unpersist()
+input_dst.unpersist()
 kvrdd_points.unpersist();
+
+
+graph_pts.vertices.unpersist();
+graph_tri_gid.vertices.unpersist();
+graph_tri.vertices.unpersist();
+
 val graph_dst = Graph(iq.get_kvrdd(res_dst,"t"), graph_tri_gid.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
 graph_dst.vertices.setName("GRAPH_DST_VERTICES");
 // val input_seg =  iq.aggregate_value_clique(graph_dst, 1);

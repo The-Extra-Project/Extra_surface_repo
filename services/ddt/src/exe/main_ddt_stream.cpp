@@ -25,7 +25,8 @@ int send_neighbors(Id tid,algo_params & params, std::map<Id, std::vector<Point_i
 	  std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid) + "_nid" + std::to_string(nb_tid));
 	  //hto.init_file_name(filename,".pts");
 	  hto.write_header(std::cout);
-	  ddt::write_points_id_source_serialized<Point_id_id,Point>(svh,hto.get_output_stream(),D);
+	  if(!svh.empty())
+	    ddt::write_points_id_source_serialized<Point_id_id,Point>(svh,hto.get_output_stream(),D);
 	  hto.finalize();
 	  std::cout << std::endl;
         }
@@ -263,6 +264,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 	  Point_id_id pis = std::make_tuple(vv->point(),tid,tid);
 	  vvp_finalized.emplace_back(pis);
         }
+      if(vvp_finalized.size() > 0){
       ddt::stream_data_header orh("r","s",tid);
       orh.write_header(std::cout);
       log.step("[write]write_finalized_pts");
@@ -270,6 +272,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
       ddt::write_points_id_source_stream<Point_id_id,Point>(vvp_finalized,orh.get_output_stream(),D);
       orh.finalize();
       std::cout << std::endl;
+      }
     }
 
   ddt::stream_data_header oqh("q","s",tid);

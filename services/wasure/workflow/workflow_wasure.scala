@@ -289,6 +289,7 @@ val res_dst = iq.run_pipe_fun_KValue(
   dst_cmd ++ List("--label", "dst"),
   input_dst, "dst", do_dump = false).persist(slvl_glob).setName("res_dst");
 res_dst.count
+res_dim.unpersist()
 input_dst.unpersist()
 kvrdd_points.unpersist();
 
