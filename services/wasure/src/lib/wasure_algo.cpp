@@ -18,20 +18,81 @@
 //     tri.insert(pp);
 // }
 
+void tessel_adapt(std::vector<Point> points,std::vector<std::vector<Point>> & norms,std::vector<std::vector<double>> & scales, int maxit, double target_err, int D, int tid){
+  std::vector<int> lidx(points.size());
+  std::iota(lidx.begin(), lidx.end(), 0);
+  int nb_inserted = 0;
+  random_shuffle(std::begin(lidx), std::end(lidx));
+
+  int D = Traits::D;
+  ddt::Traits_raw traits;
+  
+  //  typedef typename DT_raw::Vertex_handle                            Vertex_const_handle;
+  typedef DT_raw::Cell_handle    Cell_handle;
+  typedef DT_raw::Vertex_handle  Vertex_handle;
+  typedef DT_raw::Locate_type    Locate_type;
+  typedef DT_raw::Point          Point;
+  DT_raw  tri = traits.triangulation(D) ;
+  tri.insert(vps.begin(),vps.end());
+  
+  
+  for(int i = 0; i < points.size(); i++){
+    int pidx = lidx[i];
+    Point p1 = points[pidx];
+
+    std::vector<Point> & pts_norm = norms[pidx];
+    std::vector<double> & pts_scale = scales[pidx];
+
+    Locate_type lt;
+    int li, lj;
+    // DTW::Face f(D-1);
+    // Facet ft;
+
+    // DTW::Locate_type lt;
+    
+    auto loc = tri.locate(p1,lt, li, lj);
+    if(lt != DTW::CELL){
+      tri.insert(p1,loc);
+      nb_inserted++;
+      continue;
+    }
+
+    bool do_insert = true;
+    for(auto vht = loc->vertices_begin() ;
+	vht != loc->vertices_end() ;
+	++vht){
+      Point pii = (*vht)->point();
+      std::vector<double> pii_coefs = compute_base_coef<Point>(p1,pii,pts_norm,D);
+      bool is_close_enough = true;
+      for(int d = 0; d < D; d++){
+	if(fabs(pii_coefs[d]) > pts_scale[d]*target_err){
+	  is_close_enough = false;
+	  break;
+	}
+      }
+      if(is_close_enough){
+	do_insert = false;
+	break;
+      }
+    }
+    if(do_insert){
+      tri.insert(p1,loc);
+      nb_inserted++;
+    }
+  }
+  tessel(tri,points,norms,scales,maxit,D);
+  //std::cout << "nb inserted :" << nb_inserted << "/" << l1.size() << std::endl;
+}
+
+
 int 
-wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
-		    std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales, Id tid){
+wasure_algo::tessel(DT_raw  & tri,
+		    std::vector<Point> & points,
+		    std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales, int max_it, Id tid){
 
 
       
-  int D = Traits::D;
-  ddt::Traits_raw traits;
 
-
-
-  typedef typename DT_raw::Vertex_handle                            Vertex_const_handle;
-  DT_raw  tri = traits.triangulation(D) ;
-  tri.insert(vps.begin(),vps.end());
 
   
   double bbox_min[Traits::D];
@@ -51,8 +112,6 @@ wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
   
   vps.clear();
 
-
-  int max_it = 10;
   std::vector<Point> extra_pts;
   for(int it = 0; it < max_it; it++){
     std::cerr << "tessel:" << it << std::endl;
@@ -101,7 +160,7 @@ wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
 	tri.move(vv,pp);
       }
 
-       if(((double) rand() / (RAND_MAX)) > 0.1 && it == max_it-1){
+       if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1){
 	 auto pp2 = Point(vp[0]-vn[0],vp[1]-vn[1],vp[2]-vn[2]);
  	std::cerr << "insert new " << pp2 <<  std::endl;
 	extra_pts.push_back(pp2);
@@ -569,6 +628,8 @@ wasure_algo::compute_dim_with_simp(  std::vector<Point> & points, std::vector<st
     }
   }else{
     int acc = 0;
+    if(nbp*pscale < 10)
+      pscale = 10/nbp;
     for(int ii = 0; ii < nbp; ii++){
       if(acc++ % ((int)(1.0/(pscale)))  == 0){
 	simp.push_back(points[ii]);
@@ -831,8 +892,8 @@ wasure_algo::get_params_surface_dst(const std::vector<double> & pts_scales,doubl
   double mins = *std::min_element(pts_scales.begin(),pts_scales.end());
   double maxs = *std::max_element(pts_scales.begin(),pts_scales.end());
   double rat = (mins/maxs);
-  coef_conf = exp(-(rat*rat)/0.01);
-  //  coef_conf = exp(-(rat*rat)/0.002);
+  //coef_conf = exp(-(rat*rat)/0.01);
+  coef_conf = exp(-(rat*rat)/0.002);
   //coef_conf = 1;//MIN(min_scale/data_scale,1);//*get_conf_volume(pts_scales,D);
 
 }

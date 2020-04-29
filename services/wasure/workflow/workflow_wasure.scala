@@ -276,6 +276,9 @@ graph_pts.edges.setName("graph_pts");
 val stats_kvrdd = kvrdd_simplex_id(stats_tri,sc)
 val graph_stats = Graph(stats_kvrdd, graph_tri.edges, List(""));
 val input_dst = (graph_tri_gid.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
+input_dst.persist(slvl_glob);
+graph_tri.vertices.unpersist()
+graph_tri.edges.unpersist()
 //val input_dst = (graph_tri.vertices).union(graph_pts.vertices).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
 
 val datastruct_identity_cmd =  set_params(params_ddt, List(("step","datastruct_identity"))).to_command_line
@@ -301,8 +304,6 @@ val kvrdd_dst = iq.get_kvrdd(res_dst,"t");
 val graph_dst = Graph(kvrdd_dst, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
 graph_dst.vertices.setName("graph_dst");
 graph_dst.edges.setName("graph_dst");
-val input_seg =  iq.aggregate_value_clique(graph_dst, 1);
-val input_seg_bp =  graph_dst;
 
 
 
@@ -310,7 +311,7 @@ println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 val it_list = List(20)
 var acc = 0;
-val coef_mult_list = List(1,0.5,1.5,0.2,1.8)
+val coef_mult_list = List(1)
 val ll = lambda_list.head
 val coef_mult = coef_mult_list.head
 // Loop over the differents parameters
@@ -367,23 +368,20 @@ if(true){
               ff => fs.rename(ff.getPath, new Path(ff.getPath.toString + ".ply"))
             )
           }
-
         }
-
-        if(false){
-          val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
-          val res_seg = iq.run_pipe_fun_KValue(
-            seg_cmd ++ List("--label", "dst"),
-            input_seg, "dst", do_dump = false).persist(slvl_glob)
-          val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
-          val graph_seg = Graph(kvrdd_seg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
-          val rdd_ply_surface = iq.run_pipe_fun_KValue(
-            ext_cmd ++ List("--label","ext_seg" + ext_name),
-            iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
-          rdd_ply_surface.collect()
-          ddt_algo.saveAsPly(rdd_ply_surface,cur_output_dir + "/rdd_ply_finalized_last",plot_lvl)
-        }
-
+        // if(false){
+        //   val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
+        //   val res_seg = iq.run_pipe_fun_KValue(
+        //     seg_cmd ++ List("--label", "dst"),
+        //     input_seg, "dst", do_dump = false).persist(slvl_glob)
+        //   val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
+        //   val graph_seg = Graph(kvrdd_seg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
+        //   val rdd_ply_surface = iq.run_pipe_fun_KValue(
+        //     ext_cmd ++ List("--label","ext_seg" + ext_name),
+        //     iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
+        //   rdd_ply_surface.collect()
+        //   ddt_algo.saveAsPly(rdd_ply_surface,cur_output_dir + "/rdd_ply_finalized_last",plot_lvl)
+        // }
         acc = acc + 1;
       }
     }

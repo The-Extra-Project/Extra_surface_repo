@@ -465,6 +465,8 @@ object ddt_algo {
     }
 
     val final_graph = Graph(kvrdd_finalized_tri, kvrdd_finalized_edges, defaultV)
+    final_graph.vertices.setName("graph_pts");
+    final_graph.edges.setName("graph_pts");
     return (final_graph,kvrdd_log_list,kvrdd_stats)
   }
 

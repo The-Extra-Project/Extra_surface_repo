@@ -80,8 +80,6 @@ object algo_iqlibbp {
     val res_belief_str = belief_2_kvrdd(beliefs,summed_id);
       res_belief_str.persist(iq.get_storage_level()).setName("res_belief_str")
       res_belief_str.count()
-      beliefs.vertices.unpersist(false)
-      beliefs.edges.unpersist(false)
 
     val input_extract_graph = (input_vertex).union(res_belief_str).reduceByKey(_ ::: _,nb_part)
 
@@ -90,6 +88,7 @@ object algo_iqlibbp {
       input_extract_graph, "ext_gr", do_dump = false)
 
       res_seg_mf.persist(iq.get_storage_level()).setName("res_seg_mf");
+      res_seg_mf.count()
       res_belief_str.unpersist();
       input_vertex.unpersist();
 
@@ -158,7 +157,11 @@ object algo_iqlibbp {
       Edge(srcId, dstId, factor)
     }
 
+    edgeRDD.setName("INPUT_BG")
+    vertexRDD.setName("INPUT_BG")
+
     val tmpGraph = Graph(vertexRDD, edgeRDD)
+
     // fixing the dimensions of factor based on vertexes
 
     val graph = tmpGraph.mapTriplets { triplet =>
@@ -167,10 +170,14 @@ object algo_iqlibbp {
       PEdge(Factor(Array(srcSize, dstSize), triplet.attr), Variable.fill(srcSize)(0.0), Variable.fill(dstSize)(0.0))
     }.partitionBy(EdgePartition1D,nb_part)
 
+    graph.vertices.setName("INPUT_BG_2")
+    graph.edges.setName("INPUT_BG_2")
+
     println(" belief prop : start belief")
     //val beliefs = PairwiseBP(graph, maxIterations, epsilon,iq.get_storage_level())
     val beliefs = PairwiseBP(graph, maxIterations, epsilon)
-
+    graph.unpersist()
+    graph.unpersist()
     return beliefs
   }
 
