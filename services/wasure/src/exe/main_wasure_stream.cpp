@@ -378,10 +378,10 @@ int dim_simp(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 
     }
     std::cerr << "start tessel" << std::endl;
-    w_algo.tessel(w_datas_full.format_points,
-		  p_simp_full,
-		  w_datas_full.format_egv,
-		  w_datas_full.format_sigs,tid);
+    // w_algo.tessel(w_datas_full.format_points,
+    // 		  p_simp_full,
+    // 		  w_datas_full.format_egv,
+    // 		  w_datas_full.format_sigs,tid);
     
     for ( auto it = w_datas_map.begin(); it != w_datas_map.end(); it++ )
     {

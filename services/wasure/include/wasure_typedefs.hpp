@@ -31,6 +31,7 @@ typedef int FlagC;
 typedef ddt::Data<Id,FlagV>                                  Data_V;
 typedef ddt::Data<Id,FlagC>                                     Data_C;
 typedef ddt::Traits<Data_V,Data_C> Traits;
+typedef ddt::Traits_raw Traits_raw;
 
 
 typedef ddt::Tile<Traits> Tile;

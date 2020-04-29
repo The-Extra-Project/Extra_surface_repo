@@ -88,10 +88,12 @@ int main(int argc, char **argv)
 
 
   std::cout << "Start tessel" << std::endl;
-  w_algo.tessel(w_datas_pts.format_points,
-		p_simp,
-		w_datas_pts.format_egv,
-		w_datas_pts.format_sigs);
+  w_algo.tessel_adapt(w_datas_pts.format_points,
+		      p_simp,
+		      w_datas_pts.format_egv,
+		      w_datas_pts.format_sigs,
+		      20,3,D,tid
+		      );
   
 
   // ====== Delaunay triangulation

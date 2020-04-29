@@ -18,22 +18,89 @@
 //     tri.insert(pp);
 // }
 
-void tessel_adapt(std::vector<Point> points,std::vector<std::vector<Point>> & norms,std::vector<std::vector<double>> & scales, int maxit, double target_err, int D, int tid){
+// void wasure_algo::tessel_adapt(std::vector<Point> & points,std::vector<Point> & vps,std::vector<std::vector<Point>> & norms,std::vector<std::vector<double>> & scales, int maxit, double target_err, int D, int tid){
+//   std::vector<int> lidx(points.size());
+//   std::iota(lidx.begin(), lidx.end(), 0);
+//   int nb_inserted = 0;
+//   random_shuffle(std::begin(lidx), std::end(lidx));
+
+
+  
+//   //  typedef typename DT_raw::Vertex_handle                            Vertex_const_handle;
+//   typedef DT_raw::Cell_handle    Cell_handle;
+//   typedef DT_raw::Vertex_handle  Vertex_handle;
+//   typedef DT_raw::Locate_type    Locate_type;
+//   typedef DT_raw::Point          Point;
+//   DT_raw  tri = traits_raw.triangulation(D) ;
+
+  
+  
+//   for(int i = 0; i < points.size(); i++){
+//     int pidx = lidx[i];
+//     Point p1 = points[pidx];
+
+//     std::vector<Point> & pts_norm = norms[pidx];
+//     std::vector<double> & pts_scale = scales[pidx];
+
+//     Locate_type lt;
+//     int li, lj;
+//     // DTW::Face f(D-1);
+//     // Facet ft;
+
+//     // DTW::Locate_type lt;
+    
+//     auto loc = tri.locate(p1,lt, li, lj);
+//     if(lt != DT_raw::CELL){
+//       tri.insert(p1,loc);
+//       nb_inserted++;
+//       continue;
+//     }
+
+//     bool do_insert = true;
+//     // for(auto vht = loc->vertices_begin() ;
+//     // 	vht != loc->vertices_end() ;
+//     // 	++vht){
+//     for(uint dd = 0; dd < D; dd++)
+//       {
+// 	Point & pii = loc->vertex(dd)->point();
+// 	std::vector<double> pii_coefs = compute_base_coef<Point>(p1,pii,pts_norm,D);
+// 	int is_close_enough = 0;
+// 	for(int d = 0; d < D; d++){
+// 	  if(fabs(pii_coefs[d]) < pts_scale[d]*target_err){
+// 	    is_close_enough++;
+// 	    break;
+// 	  }
+// 	}
+// 	if(is_close_enough ){
+// 	  do_insert = false;
+// 	  break;
+// 	}
+//       }
+//     if(do_insert){
+//       tri.insert(p1,loc);
+//       nb_inserted++;
+//     }
+//   }
+//   tessel(tri,points,vps,norms,scales,maxit,D);
+//   //std::cout << "nb inserted :" << nb_inserted << "/" << l1.size() << std::endl;
+// }
+
+
+void wasure_algo::tessel_adapt(std::vector<Point> & points,std::vector<Point> & vps,std::vector<std::vector<Point>> & norms,std::vector<std::vector<double>> & scales, int maxit, double target_err, int D, int tid){
   std::vector<int> lidx(points.size());
   std::iota(lidx.begin(), lidx.end(), 0);
   int nb_inserted = 0;
   random_shuffle(std::begin(lidx), std::end(lidx));
 
-  int D = Traits::D;
-  ddt::Traits_raw traits;
+
   
   //  typedef typename DT_raw::Vertex_handle                            Vertex_const_handle;
   typedef DT_raw::Cell_handle    Cell_handle;
   typedef DT_raw::Vertex_handle  Vertex_handle;
   typedef DT_raw::Locate_type    Locate_type;
   typedef DT_raw::Point          Point;
-  DT_raw  tri = traits.triangulation(D) ;
-  tri.insert(vps.begin(),vps.end());
+  DT_raw  tri = traits_raw.triangulation(D) ;
+
   
   
   for(int i = 0; i < points.size(); i++){
@@ -51,50 +118,48 @@ void tessel_adapt(std::vector<Point> points,std::vector<std::vector<Point>> & no
     // DTW::Locate_type lt;
     
     auto loc = tri.locate(p1,lt, li, lj);
-    if(lt != DTW::CELL){
+    if(lt != DT_raw::CELL){
       tri.insert(p1,loc);
       nb_inserted++;
       continue;
     }
 
     bool do_insert = true;
-    for(auto vht = loc->vertices_begin() ;
-	vht != loc->vertices_end() ;
-	++vht){
-      Point pii = (*vht)->point();
-      std::vector<double> pii_coefs = compute_base_coef<Point>(p1,pii,pts_norm,D);
-      bool is_close_enough = true;
-      for(int d = 0; d < D; d++){
-	if(fabs(pii_coefs[d]) > pts_scale[d]*target_err){
-	  is_close_enough = false;
+    // for(auto vht = loc->vertices_begin() ;
+    // 	vht != loc->vertices_end() ;
+    // 	++vht){
+    for(uint dd = 0; dd < D+1; dd++)
+      {
+	Point & pii = loc->vertex(dd)->point();
+	std::vector<double> pii_coefs = compute_base_coef<Point>(p1,pii,pts_norm,D);
+	int is_close_enough = 0;
+	for(int d = 0; d < D; d++){
+	  if(fabs(pii_coefs[d]) < pts_scale[d]*target_err){
+	    is_close_enough++;
+	    break;
+	  }
+	}
+	if(is_close_enough > 0  ){
+	  do_insert = false;
 	  break;
 	}
       }
-      if(is_close_enough){
-	do_insert = false;
-	break;
-      }
-    }
     if(do_insert){
       tri.insert(p1,loc);
       nb_inserted++;
     }
   }
-  tessel(tri,points,norms,scales,maxit,D);
+  tessel(tri,points,vps,norms,scales,maxit,D);
   //std::cout << "nb inserted :" << nb_inserted << "/" << l1.size() << std::endl;
 }
 
 
 int 
 wasure_algo::tessel(DT_raw  & tri,
-		    std::vector<Point> & points,
+		    std::vector<Point> & points,  std::vector<Point> & vps,
 		    std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales, int max_it, Id tid){
 
-
-      
-
-
-  
+ typedef typename DT_raw::Vertex_handle                            Vertex_const_handle;  
   double bbox_min[Traits::D];
   double bbox_max[Traits::D];
   for(int d = 0; d < D; d++){
@@ -118,7 +183,7 @@ wasure_algo::tessel(DT_raw  & tri,
     CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> vertex_map;
     CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> norm_map;
 
-    for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
+    for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv){
       if(tri.is_infinite(vv))
 	continue;
       vertex_map[vv] = std::vector<double>(D+1,0);
@@ -137,7 +202,7 @@ wasure_algo::tessel(DT_raw  & tri,
     }
 
     std::cerr << "move" << std::endl;
-    for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
+    for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv){
       if(tri.is_infinite(vv))
 	continue;
 
@@ -195,7 +260,7 @@ wasure_algo::tessel(DT_raw  & tri,
       myfile << "end_header" << std::endl;
 
       double ccol = ((double)it)/((double)max_it);
-      for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
+      for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv){
 	if(!tri.is_infinite(vv))
 	  myfile << vv->point() << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << std::endl;
       }
@@ -205,7 +270,7 @@ wasure_algo::tessel(DT_raw  & tri,
   }
     std::cerr << "filter out bbox" << std::endl;
     
-  for(auto vv = traits.vertices_begin(tri); vv != traits.vertices_end(tri) ; ++vv){
+  for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv){
     bool do_insert = true;
     for(int d = 0; d < D; d++)
       if(vv->point()[d] > bbox_max[d] || vv->point()[d] < bbox_min[d])
@@ -892,8 +957,8 @@ wasure_algo::get_params_surface_dst(const std::vector<double> & pts_scales,doubl
   double mins = *std::min_element(pts_scales.begin(),pts_scales.end());
   double maxs = *std::max_element(pts_scales.begin(),pts_scales.end());
   double rat = (mins/maxs);
-  //coef_conf = exp(-(rat*rat)/0.01);
-  coef_conf = exp(-(rat*rat)/0.002);
+  coef_conf = exp(-(rat*rat)/0.01);
+  //coef_conf = exp(-(rat*rat)/0.002);
   //coef_conf = 1;//MIN(min_scale/data_scale,1);//*get_conf_volume(pts_scales,D);
 
 }
@@ -910,7 +975,9 @@ wasure_algo::get_params_conflict_dst(const std::vector<double> & pts_scales,doub
   double mins = *std::min_element(pts_scales.begin(),pts_scales.end());
   double maxs = *std::max_element(pts_scales.begin(),pts_scales.end());
   double rat = (mins/maxs);
-  coef_conf = exp(-(rat*rat)/0.01);
+
+  coef_conf = exp(-(rat/0.01)*(rat/0.01));
+  //  coef_conf = exp(-(rat*rat)/0.01);
   //coef_conf = 1;//MIN(min_scale/data_scale,1);//*get_conf_volume(pts_scales,D);
 
 }
@@ -1262,16 +1329,15 @@ wasure_algo::compute_dst_mass_beam(std::vector<double> & coefs, std::vector<doub
   double sig = scales[D-1];
   double c3 = coefs[D-1];
   double nscale = scales[D-1];
+  double score = fabs((angle/angle_scale)*(angle/angle_scale));
   if(c3 > 0){
     v_o1 =  0;
     v_e1 = 1-0.5*score_pdf(fabs(c3),sig);
-    double score = fabs((angle/angle_scale)*(angle/angle_scale));
     v_e1 = v_e1*exp(-score);
 
   }else{
     v_o1 = 1-0.5*score_pdf(fabs(c3),sig);
     v_e1 =  0;
-    double score = fabs((angle/angle_scale)*(angle/angle_scale));
     v_o1 = v_e1*exp(-score);
   }
   v_u1 = 1-v_e1-v_o1;

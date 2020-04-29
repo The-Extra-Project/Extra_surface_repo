@@ -24,8 +24,10 @@ public :
     int  compute_dim(  std::vector<Point> & points, std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales);
     int  compute_dim_with_simp(  std::vector<Point> & points, std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales,std::vector<Point> & simp, double pscale);
     int simplify(std::vector<Point> & points, std::vector<bool> & do_keep, double dist );
-  int tessel(std::vector<Point> & points,  std::vector<Point> & vps,
-	     std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales, Id tid=0);
+
+  void tessel_adapt(std::vector<Point> & points,std::vector<Point> & vps,std::vector<std::vector<Point>> & norms,std::vector<std::vector<double>> & scales, int maxit, double target_err, int D, int tid);
+  int  tessel(DT_raw  & tri, std::vector<Point> & points, std::vector<Point> & vps,  std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales, int max_it, Id tid);
+
     void flip_dim_ori( std::vector<Point> & points, std::vector<std::vector<Point> > & norms, std::vector<Point> &  ori);
     void flip_dim( std::vector<Point> & points, std::vector<std::vector<Point> > & norms, Point p1);
 
@@ -109,8 +111,9 @@ public :
 }
 
   
-    Traits  traits  ;
-    int D = Traits::D;
+  Traits  traits  ;
+  Traits_raw  traits_raw  ;
+  int D = Traits::D;
 
 };
 

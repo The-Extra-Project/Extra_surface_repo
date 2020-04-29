@@ -104,6 +104,14 @@ struct Cgal_traits_3_Raw
     {
         return dt.vertices_end();
     }
+    // inline Vertex_iterator vertices_begin_nc(Delaunay_triangulation& dt) 
+    // {
+    //     return dt.vertices_begin();
+    // }
+    // inline Vertex_const_iterator vertices_end_nc(Delaunay_triangulation& dt) 
+    // {
+    //     return dt.vertices_end();
+    // }
     inline Vertex_iterator vertices_begin(Delaunay_triangulation& dt) const
     {
         return dt.vertices_begin();
