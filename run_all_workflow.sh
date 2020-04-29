@@ -144,7 +144,7 @@ function preprocess_data
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
     #INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
     #INPUT_DIR="${HOME}/shared_spark/inputs/aerial_crop/"
-    INPUT_DIR="${HOME}/shared_spark/inputs/church_crop/"
+    INPUT_DIR="${HOME}/shared_spark/inputs/toulouse/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker

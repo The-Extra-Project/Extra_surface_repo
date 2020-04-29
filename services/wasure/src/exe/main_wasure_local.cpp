@@ -35,10 +35,10 @@ int main(int argc, char **argv)
 
   // ==== Parsing the data
   wasure_data<Traits> w_datas_pts;
-  std::ifstream myfile;
-  myfile.open(params.filename);
-  w_datas_pts.read_ply_stream(myfile);
-  myfile.close();
+  std::ifstream ifile;
+  ifile.open(params.filename);
+  w_datas_pts.read_ply_stream(ifile);
+  ifile.close();
   w_datas_pts.shpt2uint8();
   int count = w_datas_pts.nb_pts_uint8_vect();
   std::cerr << "nbp inputs:" << count << std::endl;
@@ -55,12 +55,13 @@ int main(int argc, char **argv)
 
  
 
-  // std::string filename("/home/laurent/shared_spark/tmp/centrs.xyz");
-  // myfile.open(filename);
-  // for(auto cc : w_datas_pts.format_centers){
-  //   std::cerr << cc << std::endl;
-  // }
-  // myfile.close();
+  std::string filename("/home/laurent/shared_spark/tmp/centrs.xyz");
+  std::ofstream ofile;
+  ofile.open(filename);
+  for(auto cc : w_datas_pts.format_centers){
+    ofile << cc << std::endl;
+  }
+  ofile.close();
 
   
   // ===== Dimensionality =====

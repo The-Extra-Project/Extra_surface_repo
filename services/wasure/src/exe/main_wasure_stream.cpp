@@ -191,6 +191,18 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	  std::vector<char> v_flags(count,0);
 	  datas_map[hid].dmap[datas_map[hid].flags_name] = ddt_data<Traits>::Data_ply(datas_map[hid].flags_name,"vertex",1,1,tinyply::Type::INT8);
 	  datas_map[hid].dmap[datas_map[hid].flags_name].fill_full_uint8_vect(v_flags);
+
+	  if(datas_map[hid].dmap[datas_map[hid].center_name].type == tinyply::Type::FLOAT64){
+	  datas_map[hid].dmap[datas_map[hid].center_name].shpt_vect2uint8_vect();
+	}else{
+	  std::vector<float> v_fcenters;
+	  datas_map[hid].dmap[datas_map[hid].center_name].extract_full_shpt_vect(v_fcenters,false);
+	  std::vector<double> doubleVec(v_fcenters.begin(),v_fcenters.end());
+
+	  datas_map[hid].dmap[datas_map[hid].center_name].type = tinyply::Type::FLOAT64;
+	  datas_map[hid].dmap[datas_map[hid].center_name].fill_full_uint8_vect(doubleVec);
+	}
+
 	}
 
 	std::cerr << "yo" << std::endl;
@@ -226,7 +238,10 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
         //     }
 
         // }
+
     }
+
+
     std::cout.clear();
     std::cerr << "count finalized" << std::endl;
 
@@ -241,7 +256,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	std::cerr << "filename : " << filename << std::endl;
 
 
-	if(false){
+	if(true){
 	  oqh.init_file_name(filename,".stream");
 	  oqh.write_header(std::cout);
 	  datas_map[id].write_serialized_stream(oqh.get_output_stream());
@@ -249,7 +264,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	}else{
 	  oqh.init_file_name(filename,".ply");
 	  oqh.write_header(std::cout);
-	  datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n',true);
+	  datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n',false);
 	}
         oqh.finalize();
         std::cout << std::endl;

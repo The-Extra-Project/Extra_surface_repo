@@ -101,10 +101,10 @@ wasure_algo::tessel(std::vector<Point> & points,  std::vector<Point> & vps,
 	tri.move(vv,pp);
       }
 
-       if(((double) rand() / (RAND_MAX)) > 0.5 && it == max_it-1){
+       if(((double) rand() / (RAND_MAX)) > 0.1 && it == max_it-1){
 	 auto pp2 = Point(vp[0]-vn[0],vp[1]-vn[1],vp[2]-vn[2]);
  	std::cerr << "insert new " << pp2 <<  std::endl;
-	//	extra_pts.push_back(pp2);
+	extra_pts.push_back(pp2);
 	 std::cerr << "insert done " <<  std::endl;
        }
       // if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1){
@@ -1681,8 +1681,8 @@ void wasure_algo::compute_dst_with_center(DTW & tri, wasure_data<Traits>  & data
 
   compute_dst_tri(tri,datas_tri,datas_pts,params);
   DT & tri_tile  = tri.get_tile(tid)->triangulation();
-   compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
-   center_dst(tri,datas_tri,datas_pts.format_centers,tid);
+  compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
+  center_dst(tri,datas_tri,datas_pts.format_centers,tid);
 } 
 
 

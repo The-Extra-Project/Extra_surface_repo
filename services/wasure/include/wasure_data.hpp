@@ -408,6 +408,27 @@ public :
     }
 
 
+
+  // void float2double(std::vector<std::string> & data_name) 
+  // {
+
+  //   if(ddt_data<Traits>::dmap[data_name].get_nbe_uint8_vect() == 0 &&
+  //      ddt_data<Traits>::dmap[data_name].get_nbe_shpt_vect() != 0){
+  //     ddt_data<Traits>::dmap[data_name].shpt_vect2uint8_vect();
+  //   }
+  //   if(ddt_data<Traits>::dmap[data_name].type == tinyply::Type::FLOAT32){
+  //     std::vector<float> v_float;
+  //     ddt_data<Traits>::dmap[data_name].extract_full_uint8_vect(v_float,true);
+  //     std::vector<double> doubleVec(v_float.begin(),v_float.end());
+  //     ddt_data<Traits>::dmap[data_name].type = tinyply::Type::FLOAT64;
+  //     ddt_data<Traits>::dmap[data_name].fill_full_uint8_vect(doubleVec);
+  //   }
+      
+  // }
+  
+
+  
+
     void extract_dst( std::vector<std::vector<double>>  & format_dst,bool do_clear = true)
     {
         int D = Traits::D;
