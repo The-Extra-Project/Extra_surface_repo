@@ -137,11 +137,11 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	if(!datas_map[hid].dmap[datas_map[hid].center_name].do_exist){
 	  std::cerr << "NO CENTER : " << fname_map[hid] << std::endl;
 	  datas_map[hid].dmap[datas_map[hid].center_name] = ddt_data<Traits>::Data_ply(datas_map[hid].center_name,"vertex",D,D,DATA_FLOAT_TYPE);
-	  datas_map[hid].dmap[datas_map[hid].flags_name] = ddt_data<Traits>::Data_ply(datas_map[hid].flags_name,"vertex",1,1,tinyply::Type::INT8);
+	  datas_map[hid].dmap[datas_map[hid].flags_name] = ddt_data<Traits>::Data_ply(datas_map[hid].flags_name,"vertex",1,1,tinyply::Type::INT32);
 
 	  std::vector<double> v_xyz;
 	  std::vector<double> v_center;
-	  std::vector<char> v_flags;
+	  std::vector<int> v_flags;
 
 	  datas_map[hid].dmap[datas_map[hid].xyz_name].extract_raw_uint8_vect(v_xyz,false);
 	  std::cerr << "extract done " << std::endl;
@@ -188,20 +188,20 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	  
 	}else{
 	  int count = datas_map[hid].nb_pts_uint8_vect();
-	  std::vector<char> v_flags(count,0);
-	  datas_map[hid].dmap[datas_map[hid].flags_name] = ddt_data<Traits>::Data_ply(datas_map[hid].flags_name,"vertex",1,1,tinyply::Type::INT8);
+	  std::vector<int> v_flags(count,0);
+	  datas_map[hid].dmap[datas_map[hid].flags_name] = ddt_data<Traits>::Data_ply(datas_map[hid].flags_name,"vertex",1,1,tinyply::Type::INT32);
 	  datas_map[hid].dmap[datas_map[hid].flags_name].fill_full_uint8_vect(v_flags);
 
 	  if(datas_map[hid].dmap[datas_map[hid].center_name].type == tinyply::Type::FLOAT64){
-	  datas_map[hid].dmap[datas_map[hid].center_name].shpt_vect2uint8_vect();
-	}else{
-	  std::vector<float> v_fcenters;
-	  datas_map[hid].dmap[datas_map[hid].center_name].extract_full_shpt_vect(v_fcenters,false);
-	  std::vector<double> doubleVec(v_fcenters.begin(),v_fcenters.end());
+	    datas_map[hid].dmap[datas_map[hid].center_name].shpt_vect2uint8_vect();
+	  }else{
+	    std::vector<float> v_fcenters;
+	    datas_map[hid].dmap[datas_map[hid].center_name].extract_full_shpt_vect(v_fcenters,false);
+	    std::vector<double> doubleVec(v_fcenters.begin(),v_fcenters.end());
 
-	  datas_map[hid].dmap[datas_map[hid].center_name].type = tinyply::Type::FLOAT64;
-	  datas_map[hid].dmap[datas_map[hid].center_name].fill_full_uint8_vect(doubleVec);
-	}
+	    datas_map[hid].dmap[datas_map[hid].center_name].type = tinyply::Type::FLOAT64;
+	    datas_map[hid].dmap[datas_map[hid].center_name].fill_full_uint8_vect(doubleVec);
+	  }
 
 	}
 
@@ -251,23 +251,27 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
         Id id = myPair.first;
         int nb_out = datas_map[id].nb_pts_uint8_vect();
 
-        ddt::stream_data_header oqh("p","f",id);
-        std::string filename(params.output_dir + "/" + fname_map[id]);
-	std::cerr << "filename : " << filename << std::endl;
 
 
-	if(false){
+	if(true){
+	  ddt::stream_data_header oqh("p","f",id);
+	  std::string filename(params.output_dir + "/" + fname_map[id]);
 	  oqh.init_file_name(filename,".stream");
 	  oqh.write_header(std::cout);
 	  datas_map[id].write_serialized_stream(oqh.get_output_stream());
-
-	}else{
+	  oqh.finalize();
+	  std::cout << std::endl;
+	}
+	if(true){
+	  ddt::stream_data_header oqh("p","f",id);
+	  std::string filename(params.output_dir + "/" + fname_map[id]);
 	  oqh.init_file_name(filename,".ply");
 	  oqh.write_header(std::cout);
-	  datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n',false);
+	  datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n',true);
+	  oqh.finalize();
+	  std::cout << std::endl;
 	}
-        oqh.finalize();
-        std::cout << std::endl;
+
     }
     return 0;
 }
@@ -378,6 +382,13 @@ int dim_simp(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 
     }
     std::cerr << "start tessel" << std::endl;
+      w_algo.tessel_adapt(w_datas_full.format_points,
+		      p_simp_full,
+		      w_datas_full.format_egv,
+		      w_datas_full.format_sigs,
+		      20,1,D,tid
+		      );
+
     // w_algo.tessel(w_datas_full.format_points,
     // 		  p_simp_full,
     // 		  w_datas_full.format_egv,

@@ -525,7 +525,7 @@ public :
     std::vector<std::vector<double>>  format_sigs ;
     std::vector<std::vector<double>>  format_dst ;
     std::vector<int>  format_labs ;
-    std::vector<char>  format_flags ;
+    std::vector<int>  format_flags ;
     std::vector<double>  format_glob_scale ;
 
 

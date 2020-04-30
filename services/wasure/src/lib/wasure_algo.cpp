@@ -149,7 +149,7 @@ void wasure_algo::tessel_adapt(std::vector<Point> & points,std::vector<Point> & 
       nb_inserted++;
     }
   }
-  tessel(tri,points,vps,norms,scales,maxit,D);
+  tessel(tri,points,vps,norms,scales,maxit,tid);
   //std::cout << "nb inserted :" << nb_inserted << "/" << l1.size() << std::endl;
 }
 
@@ -182,22 +182,26 @@ wasure_algo::tessel(DT_raw  & tri,
     std::cerr << "tessel:" << it << std::endl;
     CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> vertex_map;
     CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> norm_map;
+    CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> scale_map;
 
     for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv){
       if(tri.is_infinite(vv))
 	continue;
       vertex_map[vv] = std::vector<double>(D+1,0);
       norm_map[vv] = std::vector<double>(D,0);
+      scale_map[vv] = std::vector<double>(D,0);
     }
     std::cerr << "accumulate" << std::endl;
     for(int ii = 0; ii < points.size();ii++){
       Point pp = points[ii];
-      double ss = exp(-(scales[ii][D-1]*scales[ii][D-1])/0.1);
+      double ss = 1;//exp(-(scales[ii][D-1]*scales[ii][D-1])/0.1);
       auto vv = tri.nearest_vertex(pp);
       for(int d = 0; d < D; d++){
 	vertex_map[vv][d] += ss*pp[d];
 	norm_map[vv][d] += ss*norms[ii][D-1][d];
+	scale_map[vv][d] += ss*scales[ii][d];
       }
+
       vertex_map[vv][D]+=ss;
     }
 
@@ -208,11 +212,13 @@ wasure_algo::tessel(DT_raw  & tri,
 
       auto vp = vertex_map[vv];
       auto vn = norm_map[vv];
+      auto vs = norm_map[vv];
       if(vp[D] == 0)
 	continue;
       for(int d = 0; d < D; d++){
 	vp[d]=vp[d]/vp[D];
 	vn[d]=vn[d]/vp[D];
+	vs[d]=vs[d]/vp[D];
       }
       auto pp = Point(vp[0],vp[1],vp[2]);
       //std::cerr << "move:" << vv->point() << " -> " << pp << "(" << vp[D] << ")"<<std::endl;
@@ -226,7 +232,7 @@ wasure_algo::tessel(DT_raw  & tri,
       }
 
        if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1){
-	 auto pp2 = Point(vp[0]-vn[0],vp[1]-vn[1],vp[2]-vn[2]);
+	 auto pp2 = Point(vp[0]-vn[0]*vs[0]*3,vp[1]-vn[1]*vs[1]*3,vp[2]-vn[2]*vs[2]*3);
  	std::cerr << "insert new " << pp2 <<  std::endl;
 	extra_pts.push_back(pp2);
 	 std::cerr << "insert done " <<  std::endl;
@@ -244,13 +250,13 @@ wasure_algo::tessel(DT_raw  & tri,
     if(true){
       std::cerr << "dump" << std::endl;
       std::ofstream myfile;
-      std::string filename("/home/laurent/shared_spark/tmp/tessel_" + std::to_string(tid) + "_" + std::to_string(it) + ".ply");
+      std::string filename("/home/laurent/shared_spark/tmp/tessel_" + std::to_string(it) + "_" + std::to_string(tid) + ".ply");
       myfile.open (filename);
       myfile << "ply" <<  std::endl;
       myfile << "format ascii 1.0" << std::endl;
       myfile << "comment author: Greg Turk" << std::endl;
       myfile << "comment object: another cube" << std::endl;
-      myfile << "element vertex "  << tri.number_of_vertices()  << std::endl;
+      myfile << "element vertex "  << tri.number_of_vertices() + extra_pts.size() << std::endl;
       myfile << "property float x" << std::endl;
       myfile << "property float y" << std::endl;
       myfile << "property float z" << std::endl;
@@ -263,6 +269,9 @@ wasure_algo::tessel(DT_raw  & tri,
       for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv){
 	if(!tri.is_infinite(vv))
 	  myfile << vv->point() << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << std::endl;
+      }
+      for(auto pp : extra_pts){
+	  myfile << pp << " " << ((int)(0)) << " " << ((int)(255)) << " " << ((int)(0)) << std::endl;
       }
       myfile.close();
     }
@@ -278,15 +287,14 @@ wasure_algo::tessel(DT_raw  & tri,
     if(do_insert)
       vps.push_back(vv->point());
   }
+  
   for(auto pp : extra_pts){
     bool do_insert = true;
     for(int d = 0; d < D; d++)
       if(pp[d] > bbox_max[d] || pp[d] < bbox_min[d])
-	do_insert = false;
+  	do_insert = false;
     if(do_insert)
       vps.push_back(pp);
-
-
   }
   
   return 0;
@@ -692,18 +700,18 @@ wasure_algo::compute_dim_with_simp(  std::vector<Point> & points, std::vector<st
       }
     }
   }else{
-    int acc = 0;
-    if(nbp*pscale < 10)
-      pscale = 10/nbp;
-    for(int ii = 0; ii < nbp; ii++){
-      if(acc++ % ((int)(1.0/(pscale)))  == 0){
-	simp.push_back(points[ii]);
-      }	
-    }
-    if(simp.size() < 50){
-      simp.clear();
-      simp.insert(simp.end(),points.begin(),points.end());
-    }
+    // int acc = 0;
+    // if(nbp*pscale < 10)
+    //   pscale = 10/nbp;
+    // for(int ii = 0; ii < nbp; ii++){
+    //   if(acc++ % ((int)(1.0/(pscale)))  == 0){
+    // 	simp.push_back(points[ii]);
+    //   }	
+    // }
+    // if(simp.size() < 50){
+    //   simp.clear();
+    //   simp.insert(simp.end(),points.begin(),points.end());
+    // }
       
   }
   std::cerr << "done!" << std::endl;
@@ -951,7 +959,7 @@ wasure_algo::get_params_surface_dst(const std::vector<double> & pts_scales,doubl
 
   }else{
     //double data_scale = *std::max_element(pts_scales.begin(),pts_scales.end());
-    pdf_smooth = data_scale;
+    pdf_smooth = 3*data_scale;
   }
   //  coef_conf = 1- (*std::min_element(pts_scales.begin(),pts_scales.end()))/(*std::max_element(pts_scales.begin(),pts_scales.end()));
   double mins = *std::min_element(pts_scales.begin(),pts_scales.end());
@@ -976,7 +984,7 @@ wasure_algo::get_params_conflict_dst(const std::vector<double> & pts_scales,doub
   double maxs = *std::max_element(pts_scales.begin(),pts_scales.end());
   double rat = (mins/maxs);
 
-  coef_conf = exp(-(rat/0.01)*(rat/0.01));
+  //  coef_conf = exp(-(rat/0.01)*(rat/0.01));
   //  coef_conf = exp(-(rat*rat)/0.01);
   //coef_conf = 1;//MIN(min_scale/data_scale,1);//*get_conf_volume(pts_scales,D);
 
@@ -991,7 +999,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   std::vector<Point> & points_dst =  datas_pts.format_points;
   std::vector<std::vector<Point>> & norms = datas_pts.format_egv;
   std::vector<std::vector<double>> & scales = datas_pts.format_sigs;
-  std::vector<char> & format_flags = datas_pts.format_flags;
+  std::vector<int> & format_flags = datas_pts.format_flags;
   std::vector<Point> & centers = datas_pts.format_centers;
   std::vector<std::vector<double>> & v_dst = datas_tri.format_dst;
 
@@ -1211,6 +1219,10 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 	if(params.mode == std::string("surface")){
 	  get_params_surface_dst(pts_scales,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
 	  std::vector<double> pts_coefs = compute_base_coef(Pt3d,PtSample,pts_norms,D);
+
+	  if(((int)format_flags[idx]) > 0)
+	    coef_conf = coef_conf*0.1;
+	  
 	  compute_dst_mass_norm(pts_coefs,pts_scales,coef_conf,pdf_smooth,pdf_smooth,pe2, po2,pu2);
 	}else if(params.mode == std::string("conflict")){
 	  // get_params_surface_dst(pts_scales,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
@@ -1385,7 +1397,7 @@ wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasur
   std::vector<Point> & pts_norm = datas_pts.format_egv[rid];
   std::vector<double> & pts_scale = datas_pts.format_sigs[rid];
   std::vector<std::vector<double>> & v_dst = datas_tri.format_dst;
-
+  std::vector<int> & format_flags = datas_pts.format_flags;
   // if(cid < 0 || cid > v_dst.size())
   //   return;
 
@@ -1415,6 +1427,10 @@ wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasur
     double gbl_scale = -1;//(datas.glob_scale.size() > 0)  ? datas.glob_scale[cid] : -1;
     get_params_surface_dst(pts_scale,gbl_scale,params.min_scale,pdf_smooth,coef_conf,dim);
 
+    if(((int)format_flags[rid]) > 0)
+      coef_conf = coef_conf*0.1;
+	  
+    
     compute_dst_mass_beam(pts_coefs,pts_scale,angle,ANGLE_SCALE,coef_conf,pe2,po2,pu2);
     ds_score(pe1,po1,pu1,pe2,po2,pu2,pe1,po1,pu1);
     regularize(pe1,po1,pu1);
@@ -1770,7 +1786,7 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
   std::vector<Point> & centers = datas_pts.format_centers;
   std::vector<std::vector<Point>> & norms = datas_pts.format_egv;
   std::vector<std::vector<double>> & scales = datas_pts.format_sigs;
-  std::vector<char> & format_flags = datas_pts.format_flags;
+  std::vector<int> & format_flags = datas_pts.format_flags;
   double rat_ray_sample = params.rat_ray_sample;
   if(rat_ray_sample == 0)
     return;
