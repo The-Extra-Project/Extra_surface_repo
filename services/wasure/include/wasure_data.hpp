@@ -29,9 +29,11 @@ public :
         int D = Traits::D;
         ddt_data<Traits>::dmap[center_name] = typename ddt_data<Traits>::Data_ply(center_name,"vertex",D,D,DATA_FLOAT_TYPE);
         ddt_data<Traits>::dmap[egv_name] = typename ddt_data<Traits>::Data_ply(egv_name,"vertex",D*D,D*D,DATA_FLOAT_TYPE);
+	ddt_data<Traits>::dmap[flags_name] = typename ddt_data<Traits>::Data_ply(flags_name,"vertex",1,1,tinyply::Type::INT32);
         ddt_data<Traits>::dmap[dst_name] = typename ddt_data<Traits>::Data_ply(dst_name,"face",3,3,DATA_FLOAT_TYPE);
         ddt_data<Traits>::dmap[labseg_name] = typename ddt_data<Traits>::Data_ply(labseg_name,"face",1,1,tinyply::Type::INT32);
         ddt_data<Traits>::dmap[gid_name] = typename ddt_data<Traits>::Data_ply(gid_name,"face",1,1,tinyply::Type::INT32);
+       
         ddt_data<Traits>::dmap[sig_name] = typename ddt_data<Traits>::Data_ply(sig_name,"vertex",D,D,DATA_FLOAT_TYPE);
     }
 

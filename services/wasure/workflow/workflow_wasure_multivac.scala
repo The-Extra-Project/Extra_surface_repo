@@ -331,7 +331,7 @@ graph_dst.vertices.setName("GRAPH_DST_VERTICES");
 
 println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
-val lambda_list = List("1")
+val lambda_list = List("1","4")
 val it_list = List(20)
 val coef_mult_list = List(1)
 

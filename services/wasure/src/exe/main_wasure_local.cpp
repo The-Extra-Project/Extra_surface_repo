@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 		      p_simp,
 		      w_datas_pts.format_egv,
 		      w_datas_pts.format_sigs,
-		      20,3,D,tid
+		      20,1,D,tid
 		      );
   
 

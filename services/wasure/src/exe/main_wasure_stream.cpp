@@ -284,7 +284,7 @@ int dim_simp(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
     wasure_algo w_algo;
     int D = Traits::D;
     Traits  traits;
-    D_MAP w_datas_map;
+    D_LMAP w_datas_map;
 
 
     wasure_data<Traits>  w_datas_full;
@@ -306,15 +306,15 @@ int dim_simp(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 	  //     {
           //       vp.emplace_back(std::make_pair(pp,tid));
 	  //     }
-	    w_datas_map[hid] = wasure_data<Traits>();
+	    w_datas_map[hid].push_back(wasure_data<Traits>());
             std::cerr << "start read ply" << std::endl;
-	    w_datas_map[hid].read_serialized_stream(hpi.get_input_stream());
+	    w_datas_map[hid].back().read_serialized_stream(hpi.get_input_stream());
             //w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
             std::cerr << "end read ply" << std::endl;
 	  }
 
 	std::cerr << "reading end" << std::endl;
-	wasure_data<Traits> & w_datas = w_datas_map[hid];
+	wasure_data<Traits> & w_datas = w_datas_map[hid].back();
         //}
         hpi.finalize();
         std::cerr << "finalize" << std::endl;
@@ -325,6 +325,14 @@ int dim_simp(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 	w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(w_datas.format_points,false);
 	std::cerr << "xyz ok" << std::endl;
 	w_datas.dmap[w_datas.center_name].extract_full_uint8_vect(w_datas.format_centers,false);
+
+	std::cerr << "flags" << std::endl;
+	w_datas.dmap[w_datas.flags_name].extract_full_uint8_vect(w_datas.format_flags,false);
+
+	// for(auto ff : w_datas.format_flags)
+	//   std::cerr << "flags:" << ff << std::endl;
+	// exit(10);
+	
 	std::cerr << "center ok" << std::endl;
 	std::vector<Point> p_simp;    
         if(params.pscale >= 0)
@@ -394,31 +402,35 @@ int dim_simp(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
     // 		  w_datas_full.format_egv,
     // 		  w_datas_full.format_sigs,tid);
     
-    for ( auto it = w_datas_map.begin(); it != w_datas_map.end(); it++ )
-    {
+      for ( auto it = w_datas_map.begin(); it != w_datas_map.end(); it++ )
+	{
+	  for(auto & w_datas : w_datas_map[it->first])
+	    {
+      
 
-      wasure_data<Traits> & w_datas = w_datas_map[it->first];
-	//w_datas.dmap[w_datas.egv_name].fill_full_uint8_vect(w_datas.format_egv);
-        w_datas.fill_egv(w_datas.format_egv);
-	//w_datas.dmap[w_datas.sig_name].fill_full_uint8_vect(w_datas.format_sigs);
-        w_datas.fill_sigs(w_datas.format_sigs);
-
-
-        std::cerr << "dim done tile : "<< tid << std::endl;
-        std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_dim");
-        std::cout.clear();
+	      //w_datas.dmap[w_datas.egv_name].fill_full_uint8_vect(w_datas.format_egv);
+	      w_datas.fill_egv(w_datas.format_egv);
+	      //w_datas.dmap[w_datas.sig_name].fill_full_uint8_vect(w_datas.format_sigs);
+	      w_datas.fill_sigs(w_datas.format_sigs);
 
 
-        log.step("write");
-        ddt::stream_data_header oth("z","s",tid);
-        if(!params.do_stream)
-            oth.init_file_name(ply_name,".ply");
-        oth.write_header(std::cout);
-	w_datas.write_serialized_stream(oth.get_output_stream());
-        //w_datas.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
-        oth.finalize();
-        std::cout << std::endl;
-    }
+	      std::cerr << "dim done tile : "<< tid << std::endl;
+	      std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_dim");
+	      std::cout.clear();
+
+
+	      log.step("write");
+	      ddt::stream_data_header oth("z","s",tid);
+	      if(!params.do_stream)
+		oth.init_file_name(ply_name,".ply");
+	      oth.write_header(std::cout);
+	      w_datas.write_serialized_stream(oth.get_output_stream());
+	      //w_datas.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
+	      oth.finalize();
+	      std::cout << std::endl;
+	    }
+	}
+
     if(p_simp_full.size() > 0)
         {
             ddt::stream_data_header oxh("x","s",tid);
@@ -665,6 +677,16 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
         }
     }
 
+    int accll = 0;
+    for(auto pp : w_data_full.format_flags){
+      std::cerr << "formatflag :"<< pp <<  std::endl;
+      if(accll++ > 100)
+	break;
+      // 	exit(1);
+    }
+
+    
+    
     std::cerr << "dst_step3" << std::endl;
     std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
     if(format_dst.size() == 0)

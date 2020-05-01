@@ -246,8 +246,8 @@ wasure_algo::tessel(DT_raw  & tri,
     }   
     
 
-
-    if(true){
+    bool do_debug = false;
+    if(do_debug){
       std::cerr << "dump" << std::endl;
       std::ofstream myfile;
       std::string filename("/home/laurent/shared_spark/tmp/tessel_" + std::to_string(it) + "_" + std::to_string(tid) + ".ply");
@@ -422,7 +422,7 @@ wasure_algo::compute_dim(  std::vector<Point> & points, std::vector<std::vector<
 
   int nbp = points.size();
   double eps = 0;
-  int K_T = 50;
+  int K_T = 100;
   if(K_T > points.size() -1)
     K_T = points.size() - 1;
   //std::cerr << "step1" << std::endl;
@@ -1096,9 +1096,9 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
       Point  PtSample = traits.make_point(C.begin());
 
 
-      if(C[0] > -10.97 && C[0] < -8.05 &&
-	 C[1] > -7.23 && C[1] < 2.71 &&
-	 C[2] > -7.33 && C[2] < -4.39){
+      if(C[0] > 4100 && C[0] < 4102 &&
+	 C[1] > 4987 && C[1] < 4988 &&
+	 C[2] > 150.22 && C[2] < 150.8){
 	do_debug = false;
 	debug_acc++;
       }
@@ -1220,9 +1220,9 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 	  get_params_surface_dst(pts_scales,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
 	  std::vector<double> pts_coefs = compute_base_coef(Pt3d,PtSample,pts_norms,D);
 
-	  if(((int)format_flags[idx]) > 0)
-	    coef_conf = coef_conf*0.1;
-	  
+	  if(((int)format_flags[idx]) > 0){
+	    coef_conf = coef_conf*0.2;
+	  }
 	  compute_dst_mass_norm(pts_coefs,pts_scales,coef_conf,pdf_smooth,pdf_smooth,pe2, po2,pu2);
 	}else if(params.mode == std::string("conflict")){
 	  // get_params_surface_dst(pts_scales,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
@@ -1428,7 +1428,7 @@ wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasur
     get_params_surface_dst(pts_scale,gbl_scale,params.min_scale,pdf_smooth,coef_conf,dim);
 
     if(((int)format_flags[rid]) > 0)
-      coef_conf = coef_conf*0.1;
+      coef_conf = coef_conf*0.2;
 	  
     
     compute_dst_mass_beam(pts_coefs,pts_scale,angle,ANGLE_SCALE,coef_conf,pe2,po2,pu2);
