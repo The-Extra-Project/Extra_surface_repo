@@ -66,9 +66,9 @@ export HDFS_FILES_DIR="hdfs:/user/lcaraffa/tmp/"
 function run_multivac_church
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
-    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church_stream/"
+    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/stream_bbox1/"
     export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church/"
-    export PARAM_PATH="hdfs:/user/lcaraffa/datas/church_stream/wasure_metadata_3d.xml"    
+    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"    
     run_algo_multivac
 }
 
@@ -77,7 +77,7 @@ function run_multivac_aerial
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
     export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/aerial_stream/"
     export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/aerial/"
-    export PARAM_PATH="hdfs:/user/lcaraffa/datas/aerial_stream/wasure_metadata_3d.xml"    
+    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"    
     run_algo_multivac
 }
 
@@ -100,9 +100,9 @@ function run_multivac_croco
     run_algo_multivac
 }
 
-#run_multivac_church
+run_multivac_church
 #run_multivac_aerial
-run_multivac_full
+#run_multivac_full
 #run_multivac_croco
 
 

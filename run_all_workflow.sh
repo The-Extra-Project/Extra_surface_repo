@@ -98,7 +98,17 @@ function run_3d_aerial
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     #INPUT_DIR="${HOME}/shared_spark/inputs/aerial_small/"
-    INPUT_DIR="${HOME}/shared_spark/inputs/church_crop/stream_bbox1/"
+    INPUT_DIR="${HOME}/shared_spark/inputs/church/stream_bbox1/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    run_algo_docker
+}
+
+### 3D Surface reconstruction 
+function run_3d_toulouse
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+    INPUT_DIR="${HOME}/shared_spark/inputs/toulouse_pp/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
@@ -108,7 +118,7 @@ function run_3d_aerial
 function run_3d_church
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${HOME}/shared_spark/inputs/church_small/"
+    INPUT_DIR="${HOME}/shared_spark/inputs/church/stream_bbox1/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
@@ -146,7 +156,7 @@ function preprocess_data
     #INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
     #INPUT_DIR="${HOME}/shared_spark/inputs/aerial_crop/"
     #INPUT_DIR="${HOME}/shared_spark/inputs/toulouse/"    
-    INPUT_DIR="${HOME}/shared_spark/inputs/church_crop/cloudcompaire/"
+    INPUT_DIR="${HOME}/shared_spark/inputs/church/cloudcompaire/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
@@ -165,8 +175,9 @@ function preprocess_data
 
 ### 3D
 #run_3d_croco
-#run_3d_church
-run_3d_aerial
+run_3d_church
+#run_3d_aerial
+#run_3d_toulouse
 #run_3d_daratech
 
 ### Cloud
