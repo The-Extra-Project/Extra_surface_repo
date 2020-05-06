@@ -156,11 +156,10 @@ int main(int argc, char **argv)
   
     std::cout << "Start dim" << std::endl;
 
-    w_algo.compute_dim_with_simp(wdp.format_points,
+    w_algo.compute_dim(wdp.format_points,
 				 wdp.format_egv,
 				 wdp.format_sigs,
-				 wds.format_points,
-				 params.pscale);
+				 wds.format_points);
 
     // Flip the normal according to the optical center
     w_algo.flip_dim_ori(wdp.format_points,
