@@ -406,7 +406,7 @@ int dim_simp(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 		      p_simp_full,
 		      w_datas_full.format_egv,
 		      w_datas_full.format_sigs,
-		      20,0.3,D,tid
+		      20,params.pscale,D,tid
 		      );
 
     // w_algo.tessel(w_datas_full.format_points,

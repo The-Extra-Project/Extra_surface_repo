@@ -112,7 +112,7 @@ val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(10
 
 // Surface reconstruction prarams
 val wasure_mode = params_scala.get_param("mode", "surface")
-val pscale = params_scala.get_param("pscale", "0").toFloat
+val pscale = params_scala.get_param("pscale", "1").toFloat
 val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
 val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt

@@ -66,7 +66,6 @@ public :
 	    return 0;
         }
         double nbe = 1;//((double)fch->data().dat[3]);
-        if(nbe < 1) nbe = 1;
         double coef = volume/nbe;
         int cell_id = fch->lid();
         int tile_id = fch->tile()->id();

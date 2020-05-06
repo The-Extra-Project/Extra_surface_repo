@@ -21,6 +21,46 @@
 typedef std::map<Id,wasure_data<Traits> > D_MAP;
 typedef std::map<Id,std::list<wasure_data<Traits>> > D_LMAP;
 
+
+std::string time_in_HH_MM_SS_MMM()
+{
+    using namespace std::chrono;
+
+    // get current time
+    auto now = system_clock::now();
+
+    // get number of milliseconds for the current second
+    // (remainder after division into seconds)
+    auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+
+    // convert to std::time_t in order to convert to std::tm (broken time)
+    auto timer = system_clock::to_time_t(now);
+
+    // convert to broken time
+    std::tm bt = *std::localtime(&timer);
+
+    std::ostringstream oss;
+
+    oss << std::put_time(&bt, "%d-%m-%Y-%H-%M-%S"); // HH:MM:SS
+    oss << '.' << std::setfill('0') << std::setw(3) << ms.count();
+
+    return oss.str();
+}
+
+void init_local_ids( DTW & tri1){
+  int acc = 0;
+  for(auto iit = tri1.cells_begin(); iit != tri1.cells_end(); ++iit)
+    {
+      const Data_C & cd = iit->cell_data();
+      Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
+      cd_quickndirty.id = acc;
+      cd_quickndirty.gid = acc++;
+    }
+
+
+}
+
+
 int main(int argc, char **argv)
 {
   std::cerr << "START" << std::endl;
@@ -31,34 +71,52 @@ int main(int argc, char **argv)
   Traits traits;
   int D = Traits::D;
   Id tid = 0;
-
+  ddt::logging_stream log(std::to_string(tid) + "_" + params.algo_step, params.log_level);
 
   // ==== Parsing the data
-  wasure_data<Traits> w_datas_pts;
+  wasure_data<Traits> wdp;
+  wasure_data<Traits> wds;
   std::ifstream ifile;
+
+
+  if(!boost::filesystem::exists(params.filename)){
+    std::cerr << params.filename << " does not exist"  << std::endl;
+    return 1;
+  }
   ifile.open(params.filename);
-  w_datas_pts.read_ply_stream(ifile);
+  wdp.read_ply_stream(ifile);
   ifile.close();
-  w_datas_pts.shpt2uint8();
-  int count = w_datas_pts.nb_pts_uint8_vect();
+  wdp.shpt2uint8();
+  int count = wdp.nb_pts_uint8_vect();
   std::cerr << "nbp inputs:" << count << std::endl;
 
   
   // ===== Data extraction =====
   // Extract the unformated data into formated vector format_points and format_centers
-  w_datas_pts.dmap[w_datas_pts.xyz_name].extract_full_uint8_vect(w_datas_pts.format_points);
-  w_datas_pts.dmap[w_datas_pts.center_name].extract_full_uint8_vect(w_datas_pts.format_centers);
-  if(w_datas_pts.dmap[w_datas_pts.flags_name].do_exist)
-    w_datas_pts.dmap[w_datas_pts.flags_name].extract_full_uint8_vect(w_datas_pts.format_flags);
+  wdp.dmap[wdp.xyz_name].extract_full_uint8_vect(wdp.format_points);
+  wdp.dmap[wdp.center_name].extract_full_uint8_vect(wdp.format_centers);
+  if(wdp.dmap[wdp.flags_name].do_exist)
+    wdp.dmap[wdp.flags_name].extract_full_uint8_vect(wdp.format_flags);
   else
-    w_datas_pts.format_flags.resize(count,0);
+    wdp.format_flags.resize(count,0);
 
  
 
-  std::string filename("/home/laurent/shared_spark/tmp/centrs.xyz");
+  std::string filename_cen(params.output_dir + "/centrs.xyz");
+  std::string filename_dim(params.output_dir + "/dim.ply");
+  std::string filename_tes(params.output_dir + "/tessel.ply");
+  std::string filename_dst(params.output_dir + "/dst.ply");
+  std::string filename_tri(params.output_dir + "/tri.stream");
+
+
+  if(boost::filesystem::exists(filename_cen))
+    std::cerr << filename_cen << " exists!" << std::endl;
+  else
+    std::cerr << filename_cen << " not exists" << std::endl;
+  
   std::ofstream ofile;
-  ofile.open(filename);
-  for(auto cc : w_datas_pts.format_centers){
+  ofile.open(filename_cen);
+  for(auto cc : wdp.format_centers){
     ofile << cc << std::endl;
   }
   ofile.close();
@@ -69,80 +127,136 @@ int main(int argc, char **argv)
   // The result is stored into
   // format_egv -> the egein vector
   // format_egv -> the egein values
-  // p_simp => a sub sampling of the input point cloud
+  // wds.format_points => a sub sampling of the input point cloud
   wasure_algo w_algo;
 
 
-  std::cout << "Start dim" << std::endl;
-  std::vector<Point> p_simp;
-  w_algo.compute_dim_with_simp(w_datas_pts.format_points,
-			       w_datas_pts.format_egv,
-			       w_datas_pts.format_sigs,
-			       p_simp,
-			       params.pscale);
+  if(boost::filesystem::exists(filename_dim) &&
+     boost::filesystem::exists(filename_tes) 
+     ){
+    ifile.open(filename_dim);
+    wdp.read_ply_stream(ifile);
+    wdp.shpt2uint8();
+    ifile.close();
 
-  // Flip the normal according to the optical center
-  w_algo.flip_dim_ori(w_datas_pts.format_points,
-		      w_datas_pts.format_egv,
-		      w_datas_pts.format_centers);
+     
+    ifile.open(filename_tes);
+    wds.read_ply_stream(ifile);
+    wds.shpt2uint8();
+    ifile.close();
 
+    wdp.dmap[wdp.xyz_name].extract_full_uint8_vect(wdp.format_points);
+    wdp.extract_sigs(wdp.format_sigs);
+    wdp.extract_egv(wdp.format_egv);
 
-  std::cout << "Start tessel" << std::endl;
-  w_algo.tessel_adapt(w_datas_pts.format_points,
-		      p_simp,
-		      w_datas_pts.format_egv,
-		      w_datas_pts.format_sigs,
-		      20,1,D,tid
-		      );
+    wds.dmap[wdp.xyz_name].extract_full_uint8_vect(wds.format_points);
+    // ofile.open(filename_tes);
+    // wdp.read_ply_stream(ofile);    
+  }else{
   
+    std::cout << "Start dim" << std::endl;
+
+    w_algo.compute_dim_with_simp(wdp.format_points,
+				 wdp.format_egv,
+				 wdp.format_sigs,
+				 wds.format_points,
+				 params.pscale);
+
+    // Flip the normal according to the optical center
+    w_algo.flip_dim_ori(wdp.format_points,
+			wdp.format_egv,
+			wdp.format_centers);
+
+
+    std::cout << "Start tessel" << std::endl;
+    w_algo.tessel_adapt(wdp.format_points,
+			wds.format_points,
+			wdp.format_egv,
+			wdp.format_sigs,
+			20,params.pscale,D,tid
+			);
+
+    wdp.fill_egv(wdp.format_egv,false);
+    wdp.fill_sigs(wdp.format_sigs,false);
+    wdp.dmap[wdp.xyz_name].fill_full_uint8_vect(wdp.format_points,false);
+    wds.dmap[wds.xyz_name].fill_full_uint8_vect(wds.format_points,false);
+  
+    ofile.open(filename_dim);
+    wdp.write_ply_stream(ofile,'\n',true);
+    ofile.close();
+    ofile.open(filename_tes);
+    wds.write_ply_stream(ofile,'\n',true);
+    ofile.close();
+  
+  }
 
   // ====== Delaunay triangulation
-  std::vector<Point_id>  vp;
+
   DTW tri1;
-  tri1.init(tid);
-  Tile_iterator tci = tri1.get_tile(tid);
-
-  //  for(auto pp : w_datas_pts.format_points)
-  for(auto pp : p_simp)
-    {
-      vp.emplace_back(std::make_pair(pp,tid));
-    }
-  int nbi1 = tci->insert(vp,false);
-  std::cerr << "number of points insteted" << nbi1 << std::endl;
-  int acc = 0;
-  tri1.finalize(sch);
-
-  // ===== Init the id of each cell
-  for(auto iit = tri1.cells_begin(); iit != tri1.cells_end(); ++iit)
-    {
-      const Data_C & cd = iit->cell_data();
-      Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
-      cd_quickndirty.id = acc;
-      cd_quickndirty.gid = acc++;
-    }
-    
-    
-  // ==== DST ====
-  // Do the dempster shafer theory for each simplex
   D_MAP w_datas_tri;
   w_datas_tri[tid] = wasure_data<Traits>();
-  DT & tri_tile  = tri1.get_tile(tid)->triangulation();
-  auto tile = tri1.get_tile(tid);
-  std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
-  int nbs = tile->number_of_cells();
+  tri1.init(tid);
+  int nbs;
+  if(boost::filesystem::exists(filename_tri)){
+    ifile.open(filename_tri);
+    bool do_clean_data = false;
+    bool do_serialize = false;
+    read_ddt_stream(tri1,w_datas_tri[tid],ifile,tid,do_serialize,do_clean_data,log);
+    w_datas_tri[tid].extract_dst(w_datas_tri[tid].format_dst,false);
+    auto tile = tri1.get_tile(tid);
+    nbs = tile->number_of_cells();
+    init_local_ids(tri1);
+    std::cerr << "nbs:" << nbs << std::endl;
+  }else{  
+    std::vector<Point_id>  vp;
 
-  // Init each simplex at "unknown"
-  // 0 0 1 => 0% in, 0% out, 100% unknown
-  if(format_dst.size() == 0)
-    {
-      for(int ss = 0; ss < nbs ; ss++)
-	{
-	  format_dst.push_back(std::vector<double>({0.0,0.0,1.0}));
-	}
-    }
-  // Compute the dst 
-  w_algo.compute_dst_with_center(tri1,w_datas_tri[tid],w_datas_pts,params,tid);
+    Tile_iterator tci = tri1.get_tile(tid);
 
+    //  for(auto pp : wdp.format_points)
+    for(auto pp : wds.format_points)
+      {
+	vp.emplace_back(std::make_pair(pp,tid));
+      }
+    int nbi1 = tci->insert(vp,false);
+    std::cerr << "number of points insteted" << nbi1 << std::endl;
+
+    tri1.finalize(sch);
+
+    
+    
+    // ==== DST ====
+    // Do the dempster shafer theory for each simplex
+    DT & tri_tile  = tri1.get_tile(tid)->triangulation();
+    auto tile = tri1.get_tile(tid);
+    std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
+    nbs = tile->number_of_cells();
+
+    // Init each simplex at "unknown"
+    // 0 0 1 => 0% in, 0% out, 100% unknown
+    if(format_dst.size() == 0)
+      {
+	for(int ss = 0; ss < nbs ; ss++)
+	  {
+	    format_dst.push_back(std::vector<double>({0.0,0.0,1.0}));
+	  }
+      }
+
+    
+      // ===== Init the id of each cell
+  int acc = 0;
+  init_local_ids(tri1);
+
+    // Compute the dst
+  
+    w_algo.compute_dst_with_center(tri1,w_datas_tri[tid],wdp,params,tid);
+
+    w_datas_tri[tid].fill_dst(w_datas_tri[tid].format_dst,false);    
+    std::ofstream ofile;
+
+    ofile.open(filename_tri);    
+    ddt::write_ddt_stream(tri1, w_datas_tri[tid], ofile,tid,false,log);
+    ofile.close();
+  }
 
 
   
@@ -152,7 +266,7 @@ int main(int argc, char **argv)
   tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri1,&w_datas_tri);
 
 
-  std::vector<double> lambda_list({0,0.001,0.01,0.05,0.1,0.5,1,2,10,20});
+  std::vector<double> lambda_list({0,1,1.3,1.5,2,4,10});
   //std::vector<double> lambda_list({0});
   // Mode 0 => outdoor scene
   // Mode 1 => indoor scene
@@ -174,6 +288,7 @@ int main(int argc, char **argv)
     // ===== Surface extraction =====
     // Extract the surface from the simplex segmentation
     if(D == 2){
+      DT & tri_tile  = tri1.get_tile(tid)->triangulation();
       traits.export_tri_to_data(tri_tile,w_datas_tri[tid]);    
       ddt::stream_data_header oqh_1("p","s",tid),oqh_2("p","s",tid);
       std::string filename(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_seg");
@@ -193,8 +308,8 @@ int main(int argc, char **argv)
     mrf.extract_surface(tid,lft,w_datas_tri);
 
 
-
-    std::string ply_name(params.output_dir +  "/" + params.slabel + "_ll_" + std::to_string(ll) + "_surface");
+    std::string string_name = time_in_HH_MM_SS_MMM();
+    std::string ply_name(params.output_dir +  "/" + params.slabel + "_" + string_name + "_ll_" + std::to_string(ll) + "_surface");
     ddt::stream_data_header oth("p","f",tid);
 
     if(D == 2)

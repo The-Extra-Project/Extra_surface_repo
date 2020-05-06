@@ -156,7 +156,8 @@ function preprocess_data
     #INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
     #INPUT_DIR="${HOME}/shared_spark/inputs/aerial_crop/"
     #INPUT_DIR="${HOME}/shared_spark/inputs/toulouse/"    
-    INPUT_DIR="${HOME}/shared_spark/inputs/church/cloudcompaire/"
+    #INPUT_DIR="${HOME}/shared_spark/inputs/church/cloudcompaire/"
+    INPUT_DIR="/home/laurent/shared_spark/inputs/church/preprocessed_vsmall_merged/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
@@ -175,13 +176,13 @@ function preprocess_data
 
 ### 3D
 #run_3d_croco
-run_3d_church
+#run_3d_church
 #run_3d_aerial
 #run_3d_toulouse
 #run_3d_daratech
 
 ### Cloud
-#preprocess_data
+preprocess_data
 
 
 
