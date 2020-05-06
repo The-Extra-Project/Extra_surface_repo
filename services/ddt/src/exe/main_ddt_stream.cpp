@@ -1729,7 +1729,7 @@ int generate_points_normal(Id tid,algo_params & params,ddt::logging_stream & log
 
   // ddt::stream_data_header oqh("g","s",tid);
   // std::string filename(params.output_dir + "/tile_" + params.slabel +"_id_"+ std::to_string(tid) + "_" + std::to_string(tid));
-  // if(!params.do_stream)
+  // if(params.dump_ply)
   //   oqh.init_file_name(filename,".ply");
   // oqh.write_header(std::cout);
   // datas_out.write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
@@ -1849,11 +1849,13 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
       //datas_map[hid].dmap[datas_map[hid].xyz_name] = ddt_data<Traits>::Data_ply(datas_map[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
       //      ddt_data<Traits> & w_datas = datas_map[hid];
       ddt_data<Traits>  w_datas;// = ddt_data<Traits>::Data_ply(datas_map[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-      // if(hpi.get_lab() == "p")
-      // 	{
-      // 	  w_datas.read_ply_stream(hpi.get_input_stream());
-      // 	  count = w_datas.nb_pts_shpt_vect();
-      // 	}
+      if(hpi.get_lab() == "p")
+      	{
+      	  w_datas.read_ply_stream(hpi.get_input_stream());
+      	  count = w_datas.nb_pts_shpt_vect();
+	  w_datas.dmap[w_datas.xyz_name].extract_full_shpt_vect(vp_in,false);
+	  w_datas.shpt2uint8();
+      	}
       // if(hpi.get_lab() == "g")
       // 	{
       // 	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
@@ -1966,12 +1968,17 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	    continue;
 	  }
 
-	ddt::stream_data_header oqh("z","s",id),och("c","s",id);
+	ddt::stream_data_header oqh("z","z",id),och("c","z",id);
 	std::string filename(params.output_dir + "/tile_" + params.slabel +"_id_"+ std::to_string(tid) + "_" + std::to_string(id));
-
+	if(params.dump_ply)
+	   oqh.init_file_name(filename,".ply");
 	oqh.write_header(std::cout);
-	datas_map[id].write_serialized_stream(oqh.get_output_stream());
-	//	datas_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
+
+	if(params.dump_ply)
+	  datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n');
+	else
+	  datas_map[id].write_serialized_stream(oqh.get_output_stream());
+
 	oqh.finalize();
 	std::cout << std::endl;
 	och.write_header(std::cout);

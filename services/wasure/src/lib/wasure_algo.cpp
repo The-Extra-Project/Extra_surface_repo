@@ -1010,7 +1010,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   //           KD-tree creation
   // --------------------------------------
   int nbp = points_dst.size();
-  int K_T = 100;
+  int K_T = 30;
   if(K_T >= nbp)
     K_T = nbp-1;
   double eps = 0;
@@ -1824,7 +1824,7 @@ void wasure_algo::compute_dst_with_center(DTW & tri, wasure_data<Traits>  & data
 
   compute_dst_tri(tri,datas_tri,datas_pts,params);
   DT & tri_tile  = tri.get_tile(tid)->triangulation();
-  compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
+  //compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
   center_dst(tri,datas_tri,datas_pts.format_centers,tid);
 } 
 

@@ -50,7 +50,7 @@ public :
 
         double volume = 100;
         //  if(!tri->is_infinite(fch))
-        volume = tbmrf<DTW,D_MAP>::get_volume(fch);
+        volume = 1;//tbmrf<DTW,D_MAP>::get_volume(fch);
         if(fch->is_infinite())
         {
             if(mode == 1 && pLabsOut[label] > 0.5)

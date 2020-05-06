@@ -141,20 +141,6 @@ val params_ddt =  set_params(params_new,List(
   ("seed",algo_seed)
 ))
 
-// val params_wasure =  set_params(params_new,List(
-//   ("exec_path", build_dir + "/bin/wasure-stream-exe"),
-//   ("dim",params_scala("dim").head),
-//   ("bbox",params_scala("bbox").head),
-//   ("lambda",params_scala("lambda").head),
-//   ("pscale",params_scala("pscale").head),
-//   ("rat_ray_sample",params_scala("rat_ray_sample").head),
-//   ("nb_samples",params_scala("nb_samples").head),
-//   ("mode",params_scala("mode").head),
-//   ("input_dir",input_dir),
-//   ("output_dir",cur_output_dir),
-//   ("seed",algo_seed)
-// ))
-
 
 val params_wasure =  set_params(params_new,List(
   ("exec_path", build_dir + "/bin/wasure-stream-exe"),
@@ -170,6 +156,11 @@ val params_wasure =  set_params(params_new,List(
   ("seed",algo_seed)
 ))
 
+
+if(false){
+  params_ddt("dump_ply") = collection.mutable.Set("")
+  params_wasure("dump_ply") = collection.mutable.Set("")
+}
 
 val fmt = new java.text.DecimalFormat("##0.##############")
 val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
@@ -309,7 +300,7 @@ graph_dst.edges.setName("graph_dst");
 
 println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
-val lambda_list = List("2","4","10")
+val lambda_list = List("1","2","4","10")
 val it_list = List(20)
 var acc = 0;
 val coef_mult_list = List(1)

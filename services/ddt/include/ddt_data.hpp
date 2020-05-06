@@ -464,7 +464,7 @@ public :
   }
 
 
-    void shpt2uint8() 
+  void shpt2uint8() 
   {
     for ( const auto &ee : dmap ) {
       if(ee.second.do_exist){

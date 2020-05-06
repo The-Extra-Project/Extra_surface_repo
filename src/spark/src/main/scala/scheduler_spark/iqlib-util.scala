@@ -399,10 +399,10 @@ object params_parser {
         kvrdd_inputs = iq.get_kvrdd(sc.parallelize(ply_input.map(
           fname => "p 1 " + ("([0-9]+)".r).findAllIn(fname.toString).toArray.last + " f " + fname.toString)),"p")
 
-        val struct_inputs = iq.run_pipe_fun_KValue(
-          ser2datastruct_cmd ++ List("--label", "struct"),
-          kvrdd_inputs, "struct", do_dump = false)
-        kvrdd_inputs_struct = iq.get_kvrdd(struct_inputs)
+        // val struct_inputs = iq.run_pipe_fun_KValue(
+        //   ser2datastruct_cmd ++ List("--label", "struct"),
+        //   kvrdd_inputs, "struct", do_dump = false)
+        kvrdd_inputs_struct = kvrdd_inputs//iq.get_kvrdd(struct_inputs)
       }
       case "filestream" => {
         println("")

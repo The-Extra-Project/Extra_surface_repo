@@ -14,7 +14,7 @@
 class wasure_params
 {
 public :
-    wasure_params() : verbose_flag(0),nbp(0),log_level(2),show_ghost(false),do_stream(true),area_processed(0),coef_mult(1),
+    wasure_params() : verbose_flag(0),nbp(0),log_level(2),show_ghost(false),dump_ply(false),area_processed(0),coef_mult(1),
         input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),slabel(std::string("")),mode("surface"),rat_ray_sample(0.5),pscale(1),nb_samples(1),lambda(1),nb_labs(2),graph_type(0),skip_app_header(false)
     {
 
@@ -22,7 +22,7 @@ public :
 
     };
     int verbose_flag,seed,nbp,log_level,id_padding,graph_type,area_processed;
-    bool show_ghost,skip_app_header,do_stream,process_only_shared;
+    bool show_ghost,skip_app_header,dump_ply,process_only_shared;
     double lambda,terr,rat_ray_sample,rat_extra_pts,min_scale,pscale,coef_mult;
     int nb_samples,max_it,nb_labs,nb_threads;
     int center_type,tile_id;
@@ -79,7 +79,7 @@ public :
             {"pscale", required_argument,0, 'f'},
             {"show_ghost", no_argument,0, 'g'},
             {"skip_app_header", no_argument,0, 'e'},
-            {"do_stream", no_argument,0, 'x'},
+            {"dump_ply", no_argument,0, 'x'},
             {"verbose", no_argument, &verbose_flag, 1},
             {"help",  no_argument, 0, 'h'},
             {0, 0, 0, 0}
@@ -156,7 +156,7 @@ public :
                 skip_app_header=true;
                 break;
             case 'x':
-                do_stream=true;
+                dump_ply=true;
                 break;
             case 'h':
                 break;

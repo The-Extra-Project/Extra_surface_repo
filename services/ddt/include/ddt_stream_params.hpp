@@ -14,11 +14,11 @@
 class algo_params
 {
 public :
-  algo_params() : nbt_side(1),extract_ply_dim(-1),verbose_flag(0),nbp(0),log_level(2),ech_input(1),min_ppt(0),plot_lvl(0),max_ppt(200000),show_ghost(false),finalize_tri(false),extract_edg_nbrs(false),extract_tri_crown(false),io_mode(0),area_processed(0),dump_mode("NONE"),do_send_empty_edges(false),do_simple_output(false),input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),
+  algo_params() : nbt_side(1),dump_ply(false),verbose_flag(0),nbp(0),log_level(2),ech_input(1),min_ppt(0),plot_lvl(0),max_ppt(200000),show_ghost(false),finalize_tri(false),extract_edg_nbrs(false),extract_tri_crown(false),io_mode(0),area_processed(0),dump_mode("NONE"),do_send_empty_edges(false),do_simple_output(false),input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),
         style(std::string("tri1.qml")),slabel(std::string("")) {};
     double ech_input;
-  int nbt_side,verbose_flag,io_mode,seed,nbp,log_level,min_ppt,max_ppt,plot_lvl,extract_ply_dim,area_processed;
-    bool show_ghost,do_simple_output,extract_edg_nbrs,extract_tri_crown,do_send_empty_edges,finalize_tri;
+  int nbt_side,verbose_flag,io_mode,seed,nbp,log_level,min_ppt,max_ppt,plot_lvl,area_processed;
+  bool show_ghost,do_simple_output,extract_edg_nbrs,extract_tri_crown,do_send_empty_edges,finalize_tri,dump_ply;
   std::string bbox_string,input_dir,output_dir,algo_step,slabel,style,dump_mode;
     std::ostream& operator<<(std::ostream& os)
     {
@@ -58,7 +58,6 @@ public :
             {"label",  required_argument, 0, 'l'},
             {"bbox",  required_argument, 0, 'b'},
 	    {"area_processed",  required_argument, 0, 'q'},
-            {"extract_ply_dim",  required_argument, 0, 'd'},
             {"nbt_side",  required_argument, 0, 't'},
             {"min_ppt",  required_argument, 0, 'p'},
             {"max_ppt",  required_argument, 0, 'k'},
@@ -68,6 +67,7 @@ public :
             {"io_mode", required_argument,0, 'x'},
             {"show_ghost", no_argument,0, 'g'},
             {"send_empty_edges", no_argument,0, 'i'},
+	    {"dump_ply",  no_argument, 0, 'd'},
             {"extract_edg_nbrs", no_argument,0, 'e'},
             {"extract_tri_crown", no_argument,0, 'c'},
             {"finalize_tri", no_argument,0, 'm'},
@@ -80,7 +80,7 @@ public :
 
         int option_index = 0;
 
-        while ((cc = getopt_long(argc, argv, "s:a:n:u:t:l:b:z:j:p:q:k:y:r:w:m:x:giecfh",long_options,&option_index)) != -1)
+        while ((cc = getopt_long(argc, argv, "s:a:n:u:t:l:b:z:j:p:q:k:y:r:w:m:x:gidecfh",long_options,&option_index)) != -1)
         {
             switch (cc)
             {
@@ -112,8 +112,8 @@ public :
                 min_ppt = atoi(optarg);
                 break;
 	    case 'd':
-                extract_ply_dim = atoi(optarg);
-                break;
+	      dump_ply = true;
+	      break;
             case 'k':
                 max_ppt = atoi(optarg);
                 break;
