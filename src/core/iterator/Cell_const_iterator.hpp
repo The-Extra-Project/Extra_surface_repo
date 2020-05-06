@@ -248,6 +248,8 @@ public:
         return Cell_const_iterator(begin_, end_, end_);
     }
 
+
+  
     Tile_const_iterator    tile()      const { return tile_; }
     Tile_cell_const_handle full_cell() const { return cell_; }
 

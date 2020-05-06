@@ -959,15 +959,16 @@ wasure_algo::get_params_surface_dst(const std::vector<double> & pts_scales,doubl
 
   }else{
     //double data_scale = *std::max_element(pts_scales.begin(),pts_scales.end());
-    pdf_smooth = 3*data_scale;
+    pdf_smooth = data_scale;
   }
   //  coef_conf = 1- (*std::min_element(pts_scales.begin(),pts_scales.end()))/(*std::max_element(pts_scales.begin(),pts_scales.end()));
   double mins = *std::min_element(pts_scales.begin(),pts_scales.end());
   double maxs = *std::max_element(pts_scales.begin(),pts_scales.end());
   double rat = (mins/maxs);
-  coef_conf = exp(-(rat*rat)/0.01);
+  coef_conf = 1;
+  //coef_conf = exp(-(rat*rat)/0.01);
   //coef_conf = exp(-(rat*rat)/0.002);
-  //coef_conf = 1;//MIN(min_scale/data_scale,1);//*get_conf_volume(pts_scales,D);
+  coef_conf = MAX(min_scale/data_scale,0.000001);//*get_conf_volume(pts_scales,D);
 
 }
 
@@ -986,7 +987,7 @@ wasure_algo::get_params_conflict_dst(const std::vector<double> & pts_scales,doub
 
   //  coef_conf = exp(-(rat/0.01)*(rat/0.01));
   //  coef_conf = exp(-(rat*rat)/0.01);
-  //coef_conf = 1;//MIN(min_scale/data_scale,1);//*get_conf_volume(pts_scales,D);
+  coef_conf = 1;//MIN(min_scale/data_scale,1);//*get_conf_volume(pts_scales,D);
 
 }
 
@@ -1044,6 +1045,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   }
   std::sort(v_scale.begin(), v_scale.end());
   params.min_scale = get_min_scale(v_scale);
+  std::cerr << "min_scale:" << params.min_scale << std::endl;
   double loc_scale = get_median_scale(v_scale);
   // ---------------------------------------
   //           DST computation
@@ -1089,6 +1091,9 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 
 
     //    std::cerr << "    id : " << vpe << " " << "vop:" << vpo <<  std::endl;
+    double pe_acc=0;
+    double po_acc=0;
+    double pu_acc=0;
     for(int x = 0; x < params.nb_samples; x++){
       //Point PtSample = traits.make_point((cit->data()).pts[x].begin());
       std::vector<double>  C =  (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
@@ -1178,6 +1183,8 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
       }
       
       kdTree->annkSearch(queryPt,K_T, nnIdx,dists,eps);
+      vpe = vpo = 0;
+      vpu = 1;
       for(int k = 0; k < K_T; k++){
        
   	double pe1,po1,pu1,pe2,po2,pu2;
@@ -1261,12 +1268,14 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 	  
 	}
 
-	
-  	vpe = pe1;
-  	vpo = po1;
-  	vpu = pu1;	  
+      vpe = pe1;
+      vpo = po1;
+      vpu = pu1;	         
       }
 
+      pe_acc += vpe;
+      po_acc += vpo;
+      pu_acc += vpu;	  
       if(do_debug)
 	myfile.close();
 
@@ -1278,9 +1287,9 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
     if(vpe == vpe &&
        vpo == vpo &&
        vpu == vpu){
-      v_dst[cid][0] = vpe;
-      v_dst[cid][1] = vpo ;
-      v_dst[cid][2] = vpu ;
+      v_dst[cid][0] = pe_acc/params.nb_samples;
+      v_dst[cid][1] = po_acc/params.nb_samples;
+      v_dst[cid][2] = pu_acc/params.nb_samples ;
     }else{
       // v_dst[cid][0] = v_dst[cid][1] = 0;
       // v_dst[cid][2] = 1;

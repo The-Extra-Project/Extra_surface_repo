@@ -74,9 +74,9 @@ compute_pts_proj(const T_PTS & A, const T_PTS & C, const T_PTS & v1, int D)
 }
 
 
-template<typename T_PTS>
+template<typename T_PTS,typename T_VECT>
 double
-compute_coef_proj(const T_PTS & A, const T_PTS & C, const T_PTS & v1, int D)
+compute_coef_proj(const T_PTS & A, const T_PTS & C, const T_VECT & v1, int D)
 {
     double acc1 =0;
     double acc2 =0;

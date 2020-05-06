@@ -158,8 +158,7 @@ int main(int argc, char **argv)
 
     w_algo.compute_dim(wdp.format_points,
 				 wdp.format_egv,
-				 wdp.format_sigs,
-				 wds.format_points);
+				 wdp.format_sigs);
 
     // Flip the normal according to the optical center
     w_algo.flip_dim_ori(wdp.format_points,
@@ -265,12 +264,12 @@ int main(int argc, char **argv)
   tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri1,&w_datas_tri);
 
 
-  std::vector<double> lambda_list({0,1,1.3,1.5,2,4,10});
+  //std::vector<double> lambda_list({0.1,0.2,0.4,0.8,1,1.5,2,3});
+  std::vector<double> lambda_list({0.000001,0.000002,0.000005,0.00001,0.0001,0.001,0.01});
   //std::vector<double> lambda_list({0});
   // Mode 0 => outdoor scene
   // Mode 1 => indoor scene
   mrf.set_mode(0);
-
 
   for(auto ll : lambda_list){
     mrf.lambda = ll;
