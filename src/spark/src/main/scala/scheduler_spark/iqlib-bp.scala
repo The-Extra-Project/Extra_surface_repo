@@ -145,15 +145,15 @@ object algo_iqlibbp {
     val vertexRDD: RDD[(Long, PVertex)] = nodes_cpp.map { line =>
       val fields = line.split(' ')
       val id = fields(0).toLong
-      val prior = Variable(fields.slice(1,3).map(_.toDouble))
-      val belief = Variable(fields.slice(3,5).map(_.toDouble)) // Variable(prior.cloneValues) // Variable(fields.tail.slice(3,5).map(_.toDouble)) //
+      val prior = Variable(fields.slice(1,3).map(x =>  x.toDouble))
+      val belief = Variable(fields.slice(3,5).map(x => x.toDouble)) // Variable(prior.cloneValues) // Variable(fields.tail.slice(3,5).map(_.toDouble)) //
       (id, PVertex(belief, prior))
     }
     val edgeRDD = edges_cpp.map { line =>
       val fields = line.split(' ')
       val srcId = fields(0).toLong
       val dstId = fields(1).toLong
-      val factor = fields.tail.tail.map(x => -x.toDouble)
+      val factor = fields.tail.tail.map(x => x.toDouble)
       Edge(srcId, dstId, factor)
     }
 

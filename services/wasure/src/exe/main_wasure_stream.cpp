@@ -347,20 +347,20 @@ int dim_simp(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 	
 	std::cerr << "center ok" << std::endl;
 	std::vector<Point> p_simp;    
-        if(params.pscale >= 0)
-        {
-            w_algo.compute_dim_with_simp(w_datas.format_points,
-                                         w_datas.format_egv,
-                                         w_datas.format_sigs,
-                                         p_simp,
-                                         params.pscale);
-        }
-        else
-        {
+        // if(params.pscale >= 0)
+        // {
+        //     w_algo.compute_dim_with_simp(w_datas.format_points,
+        //                                  w_datas.format_egv,
+        //                                  w_datas.format_sigs,
+        //                                  p_simp,
+        //                                  params.pscale);
+        // }
+        // else
+        // {
             w_algo.compute_dim(w_datas.format_points,
                                w_datas.format_egv,
                                w_datas.format_sigs);
-        }
+	    //}
 
 
         if(w_datas.format_centers.size() == 0)
@@ -520,20 +520,20 @@ int dim_fun(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 	w_datas.dmap[w_datas.center_name].extract_full_uint8_vect(w_datas.format_centers,false);
 	std::cerr << "center ok" << std::endl;
         std::vector<Point> p_simp;
-        if(params.pscale >= 0)
-        {
-            w_algo.compute_dim_with_simp(w_datas.format_points,
-                                         w_datas.format_egv,
-                                         w_datas.format_sigs,
-                                         p_simp,
-                                         params.pscale);
-        }
-        else
-        {
+        // if(params.pscale >= 0)
+        // {
+        //     w_algo.compute_dim_with_simp(w_datas.format_points,
+        //                                  w_datas.format_egv,
+        //                                  w_datas.format_sigs,
+        //                                  p_simp,
+        //                                  params.pscale);
+        // }
+        // else
+        // {
             w_algo.compute_dim(w_datas.format_points,
                                w_datas.format_egv,
                                w_datas.format_sigs);
-        }
+	    //}
 
 
         if(w_datas.format_centers.size() == 0)

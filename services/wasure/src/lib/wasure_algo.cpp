@@ -510,7 +510,6 @@ wasure_algo::compute_dim(  std::vector<Point> & points, std::vector<std::vector<
       }
 	
     }else{
-      std::cerr << "entropy:" << entropy << std::endl;
       norms.push_back(pts_norms);
       scales.push_back(coords_scale);
     }
@@ -874,6 +873,9 @@ void wasure_algo::finalize_sample(DT & tri, int nb_samples){
 
 double get_min_scale(std::vector<double> &v)
 {
+  for( auto tt : v)
+    std::cerr << tt << " ";
+  std::cerr << std::endl;
   size_t n = v.size() / 10;
   return v[n];
 }
@@ -968,8 +970,10 @@ wasure_algo::get_params_surface_dst(const std::vector<double> & pts_scales,doubl
   coef_conf = 1;
   //coef_conf = exp(-(rat*rat)/0.01);
   //coef_conf = exp(-(rat*rat)/0.002);
-  coef_conf = MAX(min_scale/data_scale,0.000001);//*get_conf_volume(pts_scales,D);
+  if(min_scale > 0)
+    coef_conf = MIN(MAX(min_scale/data_scale,0.000001),1);//*get_conf_volume(pts_scales,D);
 
+ 
 }
 
 
@@ -1044,9 +1048,13 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
     v_scale[i] = scales[i][D-1];
   }
   std::sort(v_scale.begin(), v_scale.end());
-  params.min_scale = get_min_scale(v_scale);
+
+  if(params.adaptative_scale)
+    params.min_scale = get_min_scale(v_scale);
+  else
+    params.min_scale = -1;
   std::cerr << "min_scale:" << params.min_scale << std::endl;
-  double loc_scale = get_median_scale(v_scale);
+
   // ---------------------------------------
   //           DST computation
   // --------------------------------------

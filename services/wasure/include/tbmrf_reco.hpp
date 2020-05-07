@@ -51,10 +51,14 @@ public :
         double volume = 1;
 	if(!fch->is_infinite()){
 	  volume =  log(1+tbmrf<DTW,D_MAP>::get_volume(fch));
+	  
 	}
 	int D = Traits::D;
         if(fch->is_infinite())
+
         {
+	  //std::cout << "retrun inf!!" << std::endl;
+	  	  return 0;
 	  int id_cov;
 	  for(int d = 0; d < D+1;d++){
 	    if(fch->vertex(d)->is_infinite())

@@ -806,6 +806,10 @@ public :
     // }
 
 
+  void regularize(double & v, double max_coef){
+    v = -MIN(max_coef,v);
+  }
+  
     int extract_stream_graph_v2(int lalpha,DTW & tri,D_MAP & data_map, std::map<int,std::vector<int>> & tile_ids,std::ostream & ofile, int main_tile_id, int gtype, int area_processed, double coef_mult)
     {
         ofile << std::fixed << std::setprecision(15);
@@ -817,6 +821,8 @@ public :
         int  N = tri.number_of_cells();
         int NF = 0;
 
+	double max_coef = 1000;
+	
         std::cerr << "COEF_MULT" << MULT_2 << " LAMBDA:" << lambda << std::endl;
         switch(gtype)
         {
@@ -882,6 +888,11 @@ public :
             e1 = get_score_linear(fch,lalpha,data_map);
 	    e2 = e0;
 	    e3 = e1;
+
+	    // regularize(e0,max_coef);
+	    // regularize(e1,max_coef);
+	    // regularize(e2,max_coef);
+	    // regularize(e3,max_coef);
 	    // e2 = (lcurr == linit) ? e2 : e2*1000;
 	    // e3 = (lcurr == linit) ? e3: e3*1000;
             switch(gtype)
@@ -919,6 +930,7 @@ public :
 
         std::cerr << "score facet " << std::endl;
         DATA_TYPE E[4];
+
         for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
         {
             if(fit->is_infinite())
@@ -955,8 +967,6 @@ public :
                 Cell_const_iterator fchn = tmp_fchn->main();
 
 
-
-
                 int lidc = fch->lid();//cell_data().id;
                 int lidn = fchn->lid();//cell_data().id;
 
@@ -987,16 +997,25 @@ public :
                 // Quadratic term should be positif
                 double E_quad = -E[0] + E[1] + E[2] - E[3];
 
+
+
+
+		
                 switch(gtype)
                 {
                 case 0 :
                 {
+		  for(int i = 0 ; i < 4;i++)
+		    E[i] = E[i]*coef;
+		  // for(int i = 0 ; i < 4;i++)
+		  //   regularize(E[i],max_coef);
+
                     // Belief spark
                     ofile << "e " << gidc << " " << gidn  << " ";
-		    ofile << MULT_2*E[0]*coef << " ";
-		    ofile << MULT_2*E[1]*coef << " ";
-		    ofile << MULT_2*E[2]*coef << " ";
-		    ofile << MULT_2*E[3]*coef;
+		    ofile << -MULT_2*E[0] << " ";
+		    ofile << -MULT_2*E[1] << " ";
+		    ofile << -MULT_2*E[2] << " ";
+		    ofile << -MULT_2*E[3];
                     // for(int i = 0 ; i < 4; i++)
                     // {
 		    //   ofile << MULT_2*E[i]*coef;

@@ -300,7 +300,7 @@ graph_dst.edges.setName("graph_dst");
 
 println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
-val lambda_list = List("1","2","4","10")
+val lambda_list = List("1","5","0.1","10")
 val it_list = List(20)
 var acc = 0;
 val coef_mult_list = List(1)
