@@ -21,5 +21,3 @@ cp -rf /home/lcaraffa/lib/* /home/lcaraffa/tmp/
 
 hadoop fs -rm -r /user/lcaraffa/tmp/
 hadoop fs -put -f /home/lcaraffa/tmp/ /user/lcaraffa/
-hadoop fs -rm -r /user/lcaraffa/datas_xml/*
-#hadoop fs -put -f /home/lcaraffa/code/spark-ddt/datas/* /user/lcaraffa/datas_xml/

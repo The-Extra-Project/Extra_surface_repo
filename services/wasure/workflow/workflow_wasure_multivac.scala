@@ -339,9 +339,12 @@ val lambda_list = List("1","4")
 val it_list = List(20)
 val coef_mult_list = List(1)
 
-val coef_mult = coef_mult_list.head
-val ll = lambda_list.head
-val max_it = it_list.head
+val lambda_list = List("0.000002","0.000004")
+val coef_mult_list = List(10000000)
+
+// val coef_mult = coef_mult_list.head
+// val ll = lambda_list.head
+// val max_it = it_list.head
 // Loop over the differents parameters
 var acc = 0;
 if(true){

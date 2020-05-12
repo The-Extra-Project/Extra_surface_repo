@@ -51,17 +51,17 @@ function run_mutlivac_stereopolis
 function run_multivac_church
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
-    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/"
-    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/stereopolis/"
+    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/preprocessed_small/"
+    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/preprocessed_small/"
     export HDFS_FILES_DIR="hdfs:/user/lcaraffa/tmp/"
-    export PARAM_PATH="hdfs:/user/lcaraffa/datas/church/wasure_metadat_3d.xml"    
+    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"    
     run_algo_multivac
 }
 
 
 #run_mutlivac_random
 
-# run_mutlivac_stereopolis
+#run_mutlivac_stereopolis
 
 run_multivac_church
 
