@@ -1215,9 +1215,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
             int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
             int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];
             if(
-                (ch1lab != chnlab) ||
-                (((fch->is_infinite() && !fchn->is_infinite()) ||
-                  (!fch->is_infinite() && fchn->is_infinite())) && ch1lab == mode )
+                (ch1lab != chnlab)
 	       ){
                 lft.push_back(*fit);
 		
@@ -1229,7 +1227,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
 		bool bl =
 		  (CGAL::orientation(a,b,c,d) == 1 && chnlab == 0) ||
 		  (CGAL::orientation(a,b,c,d) == -1 && chnlab == 1);
-		lbool.push_back(bl);
+		lbool.push_back(!bl);
 	    }
 
         }
@@ -1573,7 +1571,6 @@ int extract_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
             bool do_serialize = false;
 	    std::cerr << "read ddt stream" << std::endl;
 	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
-	    std::cerr << "extract dst stream" << std::endl;
             w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
 	    std::cerr << "extract dst stream done" << std::endl;
 	    //            w_datas_tri[hid].extract_gids(w_datas_tri[hid].format_gids,false);
@@ -1607,23 +1604,12 @@ int extract_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
 
     log.step("compute");
     std::cerr << "seg_step5" << std::endl;
-    tbmrf<DTW,D_MAP> * mrf;
+
+    tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri,&w_datas_tri);
+    mrf.lambda = params.lambda;
+    mrf.set_mode(0);
 
 
-    if(params.mode == std::string("surface"))
-    {
-        mrf = new tbmrf_reco<DTW,D_MAP>(params.nb_labs,&tri,&w_datas_tri);
-    }
-    else if(params.mode == std::string("conflict"))
-    {
-        mrf = new  tbmrf_conflict<DTW,D_MAP>(params.nb_labs,&tri,&w_datas_tri);
-    }
-    mrf->lambda = params.lambda;
-
-    bool do_pre_optimize=false;
-    if(do_pre_optimize){
-      mrf->alpha_exp(tri,w_datas_tri);
-    }
     
     
     log.step("write");
@@ -1631,19 +1617,12 @@ int extract_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
     ddt::stream_data_header oth("t","z",tid),osh("s","s",tid);;
     //oth.write_header(std::cout);
     std::cerr << "seg_step6" << std::endl;
-    //  int nbc = mrf->extract_factor_graph(1,tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid);
+    //  int nbc = mrf.extract_factor_graph(1,tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid);
     std::cerr << "area_processed:" << params.area_processed << std::endl;
     int nbc = 0;
-    if(params.area_processed == 0)
-    {
-        nbc = mrf->extract_stream_graph_v1(1,tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid,params.graph_type,params.coef_mult);
-    }
-    else
-    {
-        nbc = mrf->extract_stream_graph_v2(1,tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid,params.graph_type,params.area_processed,params.coef_mult);
-    }
+    nbc = mrf.extract_stream_graph_v2(1,tri,w_datas_tri,tile_ids,oth.get_output_stream(),tid,params.graph_type,params.area_processed,params.coef_mult);
+
     std::cerr << "seg_step7" << std::endl;
-    delete mrf;
     oth.finalize();
     std::cout << std::endl;
 

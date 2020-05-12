@@ -22,7 +22,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.graphx.{Edge, Graph, TripletFields}
 import org.apache.spark.storage.StorageLevel
 
-object PairwiseBP   {
+object PairwiseBP2   {
 
   /**
     * Runs Pairwise Loopy Belief Propagation
@@ -61,7 +61,6 @@ object PairwiseBP   {
 
       graphWithNewMessages.vertices.setName("NewMess_BP__" + iter);
       graphWithNewMessages.edges.setName("NewMess_BP__" + iter);
-
       graphWithNewMessages.edges.foreachPartition( x => {})
       val newAggMessages = graphWithNewMessages.aggregateMessages[Variable](
         triplet => {
@@ -162,6 +161,62 @@ object PairwiseBP   {
   }
 }
 
+
+object PairwiseBP   {
+
+  /**
+    * Runs Pairwise Loopy Belief Propagation
+    * @param graph graph: vertexes contain prior and belief, edges contain factors
+    * @param maxIterations max iterations
+    * @param eps epslion
+    * @return graph after running the algorithm
+    */
+  def apply(graph: Graph[PVertex, PEdge], maxIterations: Int = 50, eps: Double = 1e-3) : Graph[PVertex, PEdge] = {
+    var newGraph = graph.cache()
+    var prevGraph: Graph[PVertex, PEdge] = null
+    var graphWithNewMessages: Graph[PVertex, PEdge] = null
+    var iter = 0
+    var converged = false
+    val numVertices = newGraph.vertices.count
+    while (iter < maxIterations && !converged) {
+      prevGraph = newGraph
+      graphWithNewMessages = newGraph.mapTriplets{ edge =>
+        val tmpForwardMessage = edge.srcAttr.belief.decompose(edge.attr.reverseMessage)
+        val tmpReverseMessage = edge.dstAttr.belief.decompose(edge.attr.forwardMessage)
+        val factor = edge.attr.factor
+        val newForwardMessage = factor.compose(tmpForwardMessage, 0).marginalize(1)
+        val newReverseMessage = factor.compose(tmpReverseMessage, 1).marginalize(0)
+        PEdge(factor, newForwardMessage, newReverseMessage)
+      }.cache()
+      graphWithNewMessages.edges.foreachPartition( x => {})
+      val newAggMessages = graphWithNewMessages.aggregateMessages[Variable](
+        triplet => {
+          triplet.sendToDst(triplet.attr.forwardMessage)
+          triplet.sendToSrc(triplet.attr.reverseMessage)
+        },
+        (v1: Variable, v2: Variable) => v1.compose(v2),
+        TripletFields.EdgeOnly)
+      newGraph = graphWithNewMessages.joinVertices(newAggMessages) { (id, vertex, msg) =>
+        val newBelief = vertex.prior.compose(msg)
+        val maxDiff = newBelief.maxDiff(vertex.belief)
+        PVertex(newBelief, vertex.prior, maxDiff < eps)
+      }.cache()
+      newGraph.edges.foreachPartition(x => {})
+      val numConverged = newGraph.vertices.aggregate(0L)((res, vertex) =>
+          if (vertex._2.converged) res + 1 else res, (res1, res2) =>
+          res1 + res2)
+//      logInfo("%d/%d vertices converged".format(numConverged, numVertices))
+      converged = numConverged == numVertices
+      prevGraph.vertices.unpersist(false)
+      prevGraph.edges.unpersist(false)
+      graphWithNewMessages.edges.unpersist(false)
+      iter += 1
+    }
+//    logInfo("Total %d/%d iterations completed. Inference %s with epsilon = %f".
+      //format(iter, maxIterations, if (converged) "converged" else "did not converge", eps))
+    newGraph
+  }
+}
 /**
   * Edge in pairwise BP. Represents a factor
   * @param factor factor table: rows represent A states, columns - B states

@@ -128,6 +128,7 @@ val wasure_mode = params_scala.get_param("mode", "surface")
 val pscale = params_scala.get_param("pscale", "1").toFloat
 val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt
+val adaptative_scale = params_scala.get_param("adaptative_scale", "false").toBoolean
 
 
 
@@ -178,6 +179,9 @@ val params_wasure =  set_params(params_new,List(
   ("output_dir",output_dir),
   ("seed",algo_seed)
 ))
+
+if(adaptative_scale)
+  params_wasure("adaptative_scale") =  collection.mutable.Set("")
 
 val fmt = new java.text.DecimalFormat("##0.##############")
 val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")

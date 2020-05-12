@@ -15,6 +15,22 @@
 #include "ddt_exeptions.hpp"
 #include "graph.h"
 #include "wasure_maths.hpp"
+#include "QPBO.h"
+
+
+// Belief
+#include <opengm/graphicalmodel/graphicalmodel.hxx>
+#include <opengm/graphicalmodel/space/simplediscretespace.hxx>
+#include <opengm/functions/potts.hxx>
+#include <opengm/operations/adder.hxx>
+#include <opengm/inference/messagepassing/messagepassing.hxx>
+#include <opengm/inference/gibbs.hxx>
+#include <opengm/opengm.hxx>
+#include <opengm/graphicalmodel/graphicalmodel.hxx>
+#include <opengm/operations/adder.hxx>
+
+
+
 
 // struct g_edge {
 //   int id1,id2;
@@ -605,6 +621,398 @@ public :
     }
 
 
+
+
+      void opt_qpbo(int lalpha,DTW & tri,D_MAP & data_map)
+    {
+
+        int  N =   tri.number_of_cells();
+        int NF = 0;
+
+
+        std::cerr << "init facet QPBO " << std::endl;
+        for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+        {
+            NF++;
+        }
+
+	typedef double FLOAT;
+	QPBO<FLOAT>* q;
+	q = new QPBO<FLOAT>(N, NF); 
+	//	q->AddNode(N); // add two nodes	  
+
+        double e0,e1;
+
+        int acc = 0;
+        std::map<Cell_const_iterator,int> id_map;
+        std::cerr << "init cell " << std::endl;
+        for( auto cit = tri.cells_begin();
+                cit != tri.cells_end(); ++cit )
+        {
+            // if(tri.is_infinite(cit))
+            //   continue;
+	  q->AddNode(); // add two nodes	  
+	  id_map[cit] = acc++;
+        }
+
+
+        std::cerr << "score cell " << std::endl;
+        for( auto cit = tri.cells_begin();
+                cit != tri.cells_end(); ++cit )
+        {
+            Cell_const_iterator fch = *cit;
+
+            // if(tri->is_infinite(fch))
+            //   continue;
+
+            int cid = id_map[cit];
+	    //            int cccid = cit->cell_data().id;
+	    int cccid = cit->lid();
+
+            int lcurr = data_map[fch->tile()->id()].format_labs[cccid];
+
+            e0 = get_score_linear(fch,lcurr,data_map);
+            e1 = get_score_linear(fch,lalpha,data_map);
+            q->AddUnaryTerm(cid, (e0 * MULT), (e1 * MULT));
+
+        }
+
+
+        std::cerr << " ~~~~~ score facet " << std::endl;
+        DATA_TYPE E[4];
+        for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+        {
+            if(fit->is_infinite())
+            {
+	      //                std::cerr << " ~~~~~ is infinit" << std::endl;
+                continue;
+            }
+
+            try
+            {
+
+
+                Cell_const_iterator tmp_fch = fit.full_cell();
+                int tmp_idx = fit.index_of_covertex();
+                Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+
+                if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
+                        !tri.tile_is_loaded(tmp_fchn->main_id()))
+                    continue;
+
+                Cell_const_iterator fch = tmp_fch->main();
+                int idx = tmp_idx;
+                Cell_const_iterator fchn = tmp_fchn->main();
+
+                int c1Id = id_map[fch];
+                int cnId = id_map[fchn];
+
+                // if( c1Id ==  cnId  || c1Id == 0 || cnId == 0 ){
+                //   continue;
+                // }
+
+
+                // int cccid = fch->cell_data().id;
+                // int cccidn = fchn->cell_data().id;
+		int cccid = fch->lid();
+                int cccidn = fchn->lid();
+                double surface = get_surface(fch,idx);
+                double coef = lambda*surface;
+
+                int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
+                int chnlab = data_map[fchn->tile()->id()].format_labs[cccidn];
+
+
+
+                E[3] = get_score_quad(ch1lab,chnlab);
+                E[2] = get_score_quad(ch1lab,lalpha);
+                E[1] = get_score_quad(lalpha,chnlab);
+                E[0] = get_score_quad(lalpha,lalpha);
+		q->AddPairwiseTerm(c1Id,cnId,E[0]*coef,E[1]*coef,E[2]*coef,E[3]*coef); // add term (x+1)*(y+2)
+
+            }
+            catch (...)
+            {
+                continue;
+            }
+        }
+
+
+        std::cerr << "\t Start qpbo ..." << std::endl;
+	q->MergeParallelEdges();
+	std::cerr << "\t Solve ..." << std::endl;
+	q->Solve();
+	std::cerr << "\t Weak.. ..." << std::endl;
+	q->ComputeWeakPersistencies();
+	// q->Solve();
+
+        int nb_merge = 0;
+
+        for( auto cit = tri.cells_begin();
+                cit != tri.cells_end(); ++cit )
+        {
+            Cell_const_iterator fch = *cit;
+            int cid = id_map[fch];
+	    int lab = q->GetLabel(cid);
+	    
+            if(lab == 1)
+            {
+	      int cccid = cit->lid();
+                if( data_map.find(fch->tile()->id()) == data_map.end())
+                    continue;
+                data_map[fch->tile()->id()].format_labs[cccid] = lalpha;
+                nb_merge++;
+            }
+            else
+            {
+
+            }
+
+        }
+        std::cerr << "nb merges :" << nb_merge << "/"<< N << std::endl;
+        delete q;
+
+    }
+
+
+
+
+
+
+      void opt_belief(int lalpha,DTW & tri,D_MAP & data_map)
+    {
+
+
+      typedef double                                                               ValueType;          // type used for values
+      typedef size_t                                                               IndexType;          // type used for indexing nodes and factors (default : size_t)
+      typedef size_t                                                               LabelType;          // type used for labels (default : size_t)
+      typedef opengm::Adder                                                        OpType;             // operation used to combine terms
+      typedef opengm::ExplicitFunction<ValueType,IndexType,LabelType>              ExplicitFunction;   // shortcut for explicite function
+      typedef opengm::meta::TypeListGenerator<ExplicitFunction>::type              FunctionTypeList;   // list of all function the model cal use (this trick avoids virtual methods) - here only one
+      typedef opengm::DiscreteSpace<IndexType, LabelType>                          SpaceType;          // type used to define the feasible statespace
+      typedef opengm::GraphicalModel<ValueType,OpType,FunctionTypeList,SpaceType>  Model;              // type of the model
+      typedef Model::FunctionIdentifier                                            FunctionIdentifier; // type of the function identifier    
+
+      
+        int  N =   tri.number_of_cells();
+        int NF = 0;
+
+
+        std::cerr << "init facet BELIEF " << std::endl;
+        for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+        {
+            NF++;
+        }
+
+	
+	LabelType * numbersOfLabels = new LabelType[N];
+	for(int i = 0; i < N;i++)
+	  numbersOfLabels[i] = 2;
+
+	Model gm(SpaceType(numbersOfLabels, numbersOfLabels + N));
+	std::cerr << "num var belief :" << N << "," << gm.numberOfVariables() << std::endl;;
+	  
+
+	// construct a graphical model with 
+	// - addition as the operation (template parameter Adder)
+	// - support for Potts functions (template parameter PottsFunction<double>)
+
+	
+	
+        double e0,e1;
+
+        int acc = 0;
+        std::map<Cell_const_iterator,int> id_map;
+        std::cerr << "init cell " << std::endl;
+        for( auto cit = tri.cells_begin();
+                cit != tri.cells_end(); ++cit )
+        {
+            // if(tri.is_infinite(cit))
+            //   continue;
+	  //	  q->AddNode(); // add two nodes
+
+	  id_map[cit] = acc++;
+        }
+
+
+        std::cerr << "score cell " << std::endl;
+        for( auto cit = tri.cells_begin();
+                cit != tri.cells_end(); ++cit )
+        {
+            Cell_const_iterator fch = *cit;
+
+            // if(tri->is_infinite(fch))
+            //   continue;
+
+            int cid = id_map[cit];
+	    //            int cccid = cit->cell_data().id;
+	    int cccid = cit->lid();
+
+            int lcurr = data_map[fch->tile()->id()].format_labs[cccid];
+
+            e0 = get_score_linear(fch,lcurr,data_map);
+            e1 = get_score_linear(fch,lalpha,data_map);
+
+	    // =========
+	    const LabelType shape[] = {2};
+	    ExplicitFunction f(shape, shape + 1);
+
+	    // f(0) = reg(e0);
+	    // f(1) = reg(e1);
+	    f(0) = -e0;
+	    f(1) = -e1;
+
+	    // add function
+	    FunctionIdentifier id = gm.addFunction(f);
+	    // add factor
+	    IndexType variableIndex[] = {cid};
+	    gm.addFactor(id, variableIndex, variableIndex + 1);
+	    
+	    //            q->AddUnaryTerm(cid, (e0 * MULT), (e1 * MULT));
+
+        }
+
+
+        std::cerr << " ~~~~~ score facet " << std::endl;
+        DATA_TYPE E[4];
+        for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+        {
+            if(fit->is_infinite())
+            {
+	      //                std::cerr << " ~~~~~ is infinit" << std::endl;
+                continue;
+            }
+
+            try
+            {
+
+
+                Cell_const_iterator tmp_fch = fit.full_cell();
+                int tmp_idx = fit.index_of_covertex();
+                Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+
+                if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
+                        !tri.tile_is_loaded(tmp_fchn->main_id()))
+                    continue;
+
+                Cell_const_iterator fch = tmp_fch->main();
+                int idx = tmp_idx;
+                Cell_const_iterator fchn = tmp_fchn->main();
+
+                int c1Id = id_map[fch];
+                int cnId = id_map[fchn];
+
+                // if( c1Id ==  cnId  || c1Id == 0 || cnId == 0 ){
+                //   continue;
+                // }
+
+
+                // int cccid = fch->cell_data().id;
+                // int cccidn = fchn->cell_data().id;
+		int cccid = fch->lid();
+                int cccidn = fchn->lid();
+                double surface = get_surface(fch,idx);
+                double coef = lambda*surface;
+
+                int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
+                int chnlab = data_map[fchn->tile()->id()].format_labs[cccidn];
+
+
+
+                E[3] = get_score_quad(ch1lab,chnlab);
+                E[2] = get_score_quad(ch1lab,lalpha);
+                E[1] = get_score_quad(lalpha,chnlab);
+                E[0] = get_score_quad(lalpha,lalpha);
+
+
+
+		IndexType vars[]  = {c1Id,cnId}; 
+		LabelType shape[] = {2,2};
+		LabelType state[] = {0,0};
+		ExplicitFunction f(shape, shape + 2);
+
+		int cum = 0;
+		for(state[0] = 0; state[0] < gm.numberOfLabels(0); ++state[0]){
+		  for(state[1] = 0; state[1] < gm.numberOfLabels(1); ++state[1]) {
+		    f(state[0], state[1]) = -coef*E[cum++]; 
+		  }
+		}
+
+		
+		// add function
+		FunctionIdentifier fid = gm.addFunction(f);
+		// add factor
+
+		std::sort(vars, vars + 2);
+		gm.addFactor(fid, vars, vars + 2);
+		
+		//q->AddPairwiseTerm(c1Id,cnId,E[0]*coef,E[1]*coef,E[2]*coef,E[3]*coef); // add term (x+1)*(y+2)
+
+            }
+            catch (...)
+            {
+                continue;
+            }
+        }
+
+
+	std::cerr << " ~~~~~ start solving " << std::endl;
+
+	
+	// q->Solve();
+	// set up the optimizer (loopy belief propagation)
+	typedef opengm::BeliefPropagationUpdateRules<Model, opengm::Maximizer> UpdateRules;
+	typedef opengm::MessagePassing<Model, opengm::Maximizer, UpdateRules, opengm::MaxDistance> BeliefPropagation;
+	const size_t maxNumberOfIterations = 50;
+	const double convergenceBound = 1e-7;
+	const double damping = 0.5;
+	BeliefPropagation::Parameter parameter(maxNumberOfIterations, convergenceBound, damping);
+	BeliefPropagation bp(gm, parameter);
+	std::cerr << " ~~~~~ graph created " << std::endl;	
+	//	optimize (approximately)
+	BeliefPropagation::VerboseVisitorType visitor;
+	bp.infer(visitor);
+	std::cerr << " ~~~~~ solving done " << std::endl;
+	// obtain the (approximate) argmin
+	std::vector<size_t> labeling(N);
+	bp.arg(labeling);
+
+
+	std::cerr << " ~~~~~ solving done " << std::endl;
+        int nb_merge = 0;
+
+        for( auto cit = tri.cells_begin();
+                cit != tri.cells_end(); ++cit )
+        {
+            Cell_const_iterator fch = *cit;
+            int cid = id_map[fch];
+	    //	    	    int lab = q->GetLabel(cid);
+	    int lab = labeling[cid];
+            if(lab == 1)
+            {
+	      int cccid = cit->lid();
+                if( data_map.find(fch->tile()->id()) == data_map.end())
+                    continue;
+                data_map[fch->tile()->id()].format_labs[cccid] = lalpha;
+                nb_merge++;
+            }
+            else
+            {
+
+            }
+
+        }
+
+	
+	delete [] numbersOfLabels;
+        std::cerr << "nb merges :" << nb_merge << "/"<< N << std::endl;
+	//        delete q;
+
+    }
+
+
+  
+
     // int gc_on_stream(std::istream & ifile,std::ostream & ofile){
 
     //   int nb_dat,tt;
@@ -804,287 +1212,329 @@ public :
     //     }
     //   }
     // }
-
-
-  void regularize(double & v, double max_coef){
-    v = -MIN(max_coef,v);
+  double reg(double v,double mm = -1){
+    return -v;
+    //return -(v/mm)*4.60 - 0.01;
+    //return -log(1+v)
   }
+
   
-    int extract_stream_graph_v2(int lalpha,DTW & tri,D_MAP & data_map, std::map<int,std::vector<int>> & tile_ids,std::ostream & ofile, int main_tile_id, int gtype, int area_processed, double coef_mult)
-    {
-        ofile << std::fixed << std::setprecision(15);
+  double reg2(double v,double mm){
+    //return(-(v/mm)*(0.69) - 0.02);
+    //return -log(1+v);
+        return reg(v,mm);
+  }
 
-        int chunk_size = 10;
-        int sourceId = 0;
-        int targetId = 1;
-        double MULT_2 = coef_mult;
-        int  N = tri.number_of_cells();
-        int NF = 0;
+  double reg1(double v,double mm){
+    //return(-(v/mm)*(4.60) - 0.02);
+    return reg(v,mm);
+  }
 
-	double max_coef = 1000;
+  
+  int extract_stream_graph_v2(int lalpha,DTW & tri,D_MAP & data_map, std::map<int,std::vector<int>> & tile_ids,std::ostream & ofile, int main_tile_id, int gtype, int area_processed, double coef_mult)
+  {
+    ofile << std::fixed << std::setprecision(15);
+
+    int chunk_size = 10;
+    int sourceId = 0;
+    int targetId = 1;
+    double MULT_2 = coef_mult;
+    int  N = tri.number_of_cells();
+    int NF = 0;
+    double mv = 1000;
 	
-        std::cerr << "COEF_MULT" << MULT_2 << " LAMBDA:" << lambda << std::endl;
-        switch(gtype)
+    std::cerr << "COEF_MULT" << MULT_2 << " LAMBDA:" << lambda << std::endl;
+    switch(gtype)
+      {
+      case 0 :
         {
-        case 0 :
-        {
-            chunk_size = 1;
-            break;
+	  chunk_size = 1;
+	  break;
         }
 
-        case 1 :
+      case 1 :
         {
-            break;
+	  break;
         }
-        case 2 :
+      case 2 :
         {
-            break;
+	  break;
         }
-        }
+      }
 
 
 
-        std::cerr << "init graph" << std::endl;
-        for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
-        {
-            NF++;
-        }
+    std::cerr << "init graph" << std::endl;
+    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+      {
+	NF++;
+      }
 
-        double e0,e1,e2,e3;
+    double e0,e1,e2,e3;
 
-        int acc = 0;
-        //    std::map<int,int> id_map;
-        std::map<Cell_const_iterator,int> id_map;
-        std::vector<int> id2gid_vec;
-        std::cerr << "create ids" << std::endl;
-        for( auto cit = tri.cells_begin();
-                cit != tri.cells_end(); ++cit )
-        {
-            id_map[cit];
-        }
+    int acc = 0;
+    //    std::map<int,int> id_map;
+    std::map<Cell_const_iterator,int> id_map;
+    std::vector<int> id2gid_vec;
+    std::cerr << "create ids" << std::endl;
 
-
-        std::cerr << "score simplex" << std::endl;
-        for( auto cit = tri.cells_begin();
-                cit != tri.cells_end(); ++cit )
-        {
-            Cell_const_iterator fch = *cit;
-            if(cit->main_id() != main_tile_id)
-                continue;
-            if(area_processed > 1)
-                continue;
+    
+    for( auto cit = tri.cells_begin();
+	 cit != tri.cells_end(); ++cit )
+      {
+	id_map[cit];
+      }
 
 
-            // if(tri->is_infinite(fch))
-            //    continue;
-            int tid = cit->tile()->id();
-            //int lid = cit->cell_data().id;
-	    int lid = cit->lid();
-            int gid = cit->gid();//data_map[tid].format_gids[lid];
+    std::cerr << "score simplex" << std::endl;
+    std::vector<std::vector<double> > v_vertex;
+    std::vector<std::vector<double> > v_edge;
+    double v_max = 0;
+    for( auto cit = tri.cells_begin();
+	 cit != tri.cells_end(); ++cit )
+      {
+	Cell_const_iterator fch = *cit;
+	if(cit->main_id() != main_tile_id)
+	  continue;
+	if(area_processed > 1)
+	  continue;
 
-            int linit = 0;
-	    int lcurr = data_map[tid].format_labs[lid];
-            e0 = get_score_linear(fch,linit,data_map);
-            e1 = get_score_linear(fch,lalpha,data_map);
-	    e2 = e0;
-	    e3 = e1;
 
-	    // regularize(e0,max_coef);
-	    // regularize(e1,max_coef);
-	    // regularize(e2,max_coef);
-	    // regularize(e3,max_coef);
-	    // e2 = (lcurr == linit) ? e2 : e2*1000;
-	    // e3 = (lcurr == linit) ? e3: e3*1000;
-            switch(gtype)
+	// if(tri->is_infinite(fch))
+	//    continue;
+	int tid = cit->tile()->id();
+	//int lid = cit->cell_data().id;
+	int lid = cit->lid();
+	int gid = cit->gid();//data_map[tid].format_gids[lid];
+
+	int linit = 0;
+	int lcurr = data_map[tid].format_labs[lid];
+	e0 = get_score_linear(fch,linit,data_map);
+	e1 = get_score_linear(fch,lalpha,data_map);
+	// e2 = (lcurr == linit) ? e2 : e2*1000;
+	// e3 = (lcurr == linit) ? e3: e3*1000;
+	 if(e0 > v_max)
+	   v_max = e0;
+	 if(e1 > v_max)
+	   v_max = e1;
+	switch(gtype)
+	  {
+	  case 0 :
             {
-            case 0 :
-            {
-                // Belief spark
-                ofile << "v " <<   gid  << " " << (e0 * MULT_2) << " " <<  (e1 * MULT_2) << " " <<  (e2 * MULT_2) << " " <<  (e3 * MULT_2) ;
-                if(++acc % chunk_size == 0) ofile << std::endl;
-                break;       // and exits the switch
+	      // Belief spark
+
+	      //ofile << "v " <<   gid  << " " << e0*MULT_2 << " " <<  e1*MULT_2 ;
+	      v_vertex.push_back(std::vector<double>({(double)gid,e0,e1}));
+	      //	      if(++acc % chunk_size == 0) ofile << std::endl;
+	      break;       // and exits the switch
             }
 
-            case 1 :
+	  case 1 :
             {
-                // Graph cut spark (only edge with +2 id)
-                ofile << sourceId << " " <<  l2gid(gid) << " " << (e0 * MULT_2) << " " ;
-                if(++acc % chunk_size == 0) ofile << std::endl;
-                ofile << l2gid(gid) << " " << targetId << " " <<  (e1 * MULT_2) << " " ;
-                if(++acc % chunk_size == 0) ofile << std::endl;
-                break;
+	      // Graph cut spark (only edge with +2 id)
+	      ofile << sourceId << " " <<  l2gid(gid) << " " << (e0 * MULT_2) << " " ;
+	      if(++acc % chunk_size == 0) ofile << std::endl;
+	      ofile << l2gid(gid) << " " << targetId << " " <<  (e1 * MULT_2) << " " ;
+	      if(++acc % chunk_size == 0) ofile << std::endl;
+	      break;
             }
-            case 2 :
+	  case 2 :
             {
-                // Graph cut c++
+	      // Graph cut c++
 
-                // 1 : vertex
-                ofile << "1 " <<   gid  << " " << (e0 * MULT_2) << " " <<  (e1 * MULT_2) << " ";
-                if(++acc % chunk_size == 0) ofile << std::endl;
-                break;
+	      // 1 : vertex
+	      ofile << "1 " <<   gid  << " " << (e0 * MULT_2) << " " <<  (e1 * MULT_2) << " ";
+	      if(++acc % chunk_size == 0) ofile << std::endl;
+	      break;
             }
-            }
+	  }
 
-        }
+      }
 
+    std::cerr << "score facet " << std::endl;
+    DATA_TYPE E[4];
 
-        std::cerr << "score facet " << std::endl;
-        DATA_TYPE E[4];
+    // std::ofstream myfile;
+    // std::string filename("/home/laurent/shared_spark/tmp/voronoi.xyz");
+    // myfile.open (filename);
 
-        for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
-        {
-            if(fit->is_infinite())
-                continue;
-            try
-            {
+    
+    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+      {
+	if(fit->is_infinite())
+	  continue;
+	try
+	  {
 
-                Cell_const_iterator tmp_fch = fit.full_cell();
-                int tmp_idx = fit.index_of_covertex();
-                Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+	    Cell_const_iterator tmp_fch = fit.full_cell();
+	    int tmp_idx = fit.index_of_covertex();
+	    Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
 
-                if(
-                    (area_processed == 1 && tmp_fch->main_id() != tmp_fchn->main_id()) ||
-                    (area_processed == 2 && tmp_fch->main_id() == tmp_fchn->main_id()))
-                {
-                    continue;
-                }
-                // if(
-                //    (area_processed == 1 && !fit->is_local() ) ||
-                //    (area_processed == 2 && fit->is_local()))
-                //   continue;
+	    if(
+	       (area_processed == 1 && tmp_fch->main_id() != tmp_fchn->main_id()) ||
+	       (area_processed == 2 && tmp_fch->main_id() == tmp_fchn->main_id()))
+	      {
+		continue;
+	      }
+	    // if(
+	    //    (area_processed == 1 && !fit->is_local() ) ||
+	    //    (area_processed == 2 && fit->is_local()))
+	    //   continue;
 
-                if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
-                        !tri.tile_is_loaded(tmp_fchn->main_id()))
-                {
-                    //std::cerr << "ERROR : CELL NOT LOADED" << std::endl;
-                    //	   return 0;
-                    continue;
-                }
+	    if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
+	       !tri.tile_is_loaded(tmp_fchn->main_id()))
+	      {
+		//std::cerr << "ERROR : CELL NOT LOADED" << std::endl;
+		//	   return 0;
+		continue;
+	      }
 
+	    auto bb1 = tmp_fch->barycenter();
+	    auto bb2 = tmp_fchn->barycenter();
 
-                Cell_const_iterator fch = tmp_fch->main();
-                int idx = tmp_idx;
-                Cell_const_iterator fchn = tmp_fchn->main();
+	    // for(int i = 0; i < 10; i++){
+	    //   for(int j = 0; j < 3;j++){
+	    // 	myfile << (bb1[j] + (bb2[j]-bb1[j])*(i/10.0)) << " ";
+	    //   }
+	    //   myfile << std::endl;
+	    // }
+	    
 
-
-                int lidc = fch->lid();//cell_data().id;
-                int lidn = fchn->lid();//cell_data().id;
-
-                int tidc = fch->tile()->id();
-                int tidn = fchn->tile()->id();
-
-
-                int gidc = fch->gid();//data_map[tidc].format_gids[lidc];
-                int gidn = fchn->gid();//data_map[tidn].format_gids[lidn];
-
-		// std::cerr << "lidc" << lidc << " lidn:" << lidn << std::endl;
-		// std::cerr << "gidc" << gidc << " gidn:" << gidn << std::endl;
-		// std::cerr << "lab.size : " << data_map[tidn].format_labs.size();
-                double surface = get_surface(tmp_fch,tmp_idx);
-                double coef = lambda*surface;
-
-                int ch1lab = data_map[tidc].format_labs[lidc];
-                int chnlab = data_map[tidn].format_labs[lidn];
+	    Cell_const_iterator fch = tmp_fch->main();
+	    int idx = tmp_idx;
+	    Cell_const_iterator fchn = tmp_fchn->main();
 
 
-                E[3] = get_score_quad(ch1lab,chnlab);
-                E[2] = get_score_quad(ch1lab,lalpha);
-                E[1] = get_score_quad(lalpha,chnlab);
-                E[0] = get_score_quad(lalpha,lalpha);
+	    int lidc = fch->lid();//cell_data().id;
+	    int lidn = fchn->lid();//cell_data().id;
 
-                double E_x1 = E[0] - E[2];
-                double E_bx2 = E[3] - E[2];
-                // Quadratic term should be positif
-                double E_quad = -E[0] + E[1] + E[2] - E[3];
+	    int tidc = fch->tile()->id();
+	    int tidn = fchn->tile()->id();
 
 
+	    int gidc = fch->gid();//data_map[tidc].format_gids[lidc];
+	    int gidn = fchn->gid();//data_map[tidn].format_gids[lidn];
 
+	    // std::cerr << "lidc" << lidc << " lidn:" << lidn << std::endl;
+	    // std::cerr << "gidc" << gidc << " gidn:" << gidn << std::endl;
+	    // std::cerr << "lab.size : " << data_map[tidn].format_labs.size();
+	    double surface = get_surface(tmp_fch,tmp_idx);
+	    double coef = lambda*surface;
+
+	    int ch1lab = data_map[tidc].format_labs[lidc];
+	    int chnlab = data_map[tidn].format_labs[lidn];
+
+
+	    E[3] = get_score_quad(ch1lab,chnlab);
+	    E[2] = get_score_quad(ch1lab,lalpha);
+	    E[1] = get_score_quad(lalpha,chnlab);
+	    E[0] = get_score_quad(lalpha,lalpha);
+
+	    double E_x1 = E[0] - E[2];
+	    double E_bx2 = E[3] - E[2];
+	    // Quadratic term should be positif
+	    double E_quad = -E[0] + E[1] + E[2] - E[3];
 
 		
-                switch(gtype)
+	    switch(gtype)
+	      {
+	      case 0 :
                 {
-                case 0 :
-                {
-		  for(int i = 0 ; i < 4;i++)
+		  for(int i = 0 ; i < 4;i++){
 		    E[i] = E[i]*coef;
-		  // for(int i = 0 ; i < 4;i++)
-		  //   regularize(E[i],max_coef);
+		    if(E[i] > v_max)
+		      v_max = E[i];
+		  }
+		  // Belief spark
 
-                    // Belief spark
-                    ofile << "e " << gidc << " " << gidn  << " ";
-		    ofile << -MULT_2*E[0] << " ";
-		    ofile << -MULT_2*E[1] << " ";
-		    ofile << -MULT_2*E[2] << " ";
-		    ofile << -MULT_2*E[3];
-                    // for(int i = 0 ; i < 4; i++)
-                    // {
-		    //   ofile << MULT_2*E[i]*coef;
-                    //     if(i <3)
-                    //         ofile << " ";
-                    // }
-                    if(++acc % chunk_size == 0) ofile << std::endl;
-                    break;
+		  v_edge.push_back(std::vector<double>({(double)gidc,(double)gidn,E[0],E[1],E[2],E[3]}));
+		  // ofile << "e " << gidc << " " << gidn  << " ";
+		  // ofile << MULT_2*E[0] << " ";
+		  // ofile << MULT_2*E[1] << " ";
+		  // ofile << MULT_2*E[2] << " ";
+		  // ofile << MULT_2*E[3];
+		  // for(int i = 0 ; i < 4; i++)
+		  // {
+		  //   ofile << MULT_2*E[i]*coef;
+		  //     if(i <3)
+		  //         ofile << " ";
+		  // }
+		  //		  if(++acc % chunk_size == 0) ofile << std::endl;
+		  break;
                 }
-                case 1 :
+	      case 1 :
                 {
-                    // Graph cut spark (only edge with +2 id)
-                    if(E_x1 > 0)
+		  // Graph cut spark (only edge with +2 id)
+		  if(E_x1 > 0)
                     {
-                        ofile << l2gid(gidc) << " "  << targetId  << " " << MULT_2*E_x1*coef  << " ";;
+		      ofile << l2gid(gidc) << " "  << targetId  << " " << MULT_2*E_x1*coef  << " ";;
                     }
-                    else
+		  else
                     {
-                        ofile << sourceId << " " << l2gid(gidc) << " "  << -1*MULT_2*E_x1*coef  << " ";;
+		      ofile << sourceId << " " << l2gid(gidc) << " "  << -1*MULT_2*E_x1*coef  << " ";;
                     }
-                    if(E_bx2 > 0)
+		  if(E_bx2 > 0)
                     {
-                        ofile << sourceId << " " << l2gid(gidn) << " "  << MULT_2*E_bx2*coef   << " ";;
+		      ofile << sourceId << " " << l2gid(gidn) << " "  << MULT_2*E_bx2*coef   << " ";;
                     }
-                    else
+		  else
                     {
-                        ofile <<  l2gid(gidn) << " "  << targetId << " " << -1*MULT_2*E_bx2*coef  << " ";;
+		      ofile <<  l2gid(gidn) << " "  << targetId << " " << -1*MULT_2*E_bx2*coef  << " ";;
                     }
-                    if(++acc % chunk_size == 0) ofile << std::endl;
-                    break;
+		  if(++acc % chunk_size == 0) ofile << std::endl;
+		  break;
                 }
-                case 2 :
+	      case 2 :
                 {
-                    // Graph cut c++
-                    // 1 : vertex
-                    // 2 : edges
-                    if(E_x1 > 0)
+		  // Graph cut c++
+		  // 1 : vertex
+		  // 2 : edges
+		  if(E_x1 > 0)
                     {
-                        ofile << "1 " << gidc << " " << 0                   << " " << MULT_2*E_x1*coef  << " ";;
+		      ofile << "1 " << gidc << " " << 0                   << " " << MULT_2*E_x1*coef  << " ";;
                     }
-                    else
+		  else
                     {
-                        ofile << "1 " << gidc << " " << -1*MULT_2*E_x1*coef << " " << 0  << " ";;
+		      ofile << "1 " << gidc << " " << -1*MULT_2*E_x1*coef << " " << 0  << " ";;
                     }
-                    if(E_bx2 > 0)
+		  if(E_bx2 > 0)
                     {
-                        ofile << "1 " << gidn << " " << MULT_2*E_bx2*coef   << " " << 0 << " ";;
+		      ofile << "1 " << gidn << " " << MULT_2*E_bx2*coef   << " " << 0 << " ";;
                     }
-                    else
+		  else
                     {
-                        ofile << "1 " << gidn << " " << 0                   << " " << -1*MULT_2*E_bx2*coef  << " ";;
+		      ofile << "1 " << gidn << " " << 0                   << " " << -1*MULT_2*E_bx2*coef  << " ";;
                     }
-                    if(++acc % chunk_size == 0) ofile << std::endl;
-                    ofile << "2 " << gidc << " " <<  gidn <<  " " <<  MULT*E_quad*coef << " " << 0 << " ";;;
-                    if(++acc % chunk_size == 0) ofile << std::endl;
-                    break;
+		  if(++acc % chunk_size == 0) ofile << std::endl;
+		  ofile << "2 " << gidc << " " <<  gidn <<  " " <<  MULT*E_quad*coef << " " << 0 << " ";;;
+		  if(++acc % chunk_size == 0) ofile << std::endl;
+		  break;
                 }
-                }
-            }
-            catch (ddt::DDT_exeption& e)
-            {
-                std::cerr << "!! WARNING !!!" << std::endl;
-                std::cerr << "Exception catched : " << e.what() << std::endl;
-                continue;
-            }
-        }
-        std::cerr << "acc = " << acc << std::endl;
-        return acc;
+	      }
+	  }
+	catch (ddt::DDT_exeption& e)
+	  {
+	    std::cerr << "!! WARNING !!!" << std::endl;
+	    std::cerr << "Exception catched : " << e.what() << std::endl;
+	    continue;
+	  }
+      }
+    //    myfile.close();
+
+    for(auto vv : v_vertex){
+      ofile << "v " <<   (int)vv[0]  << " " << MULT_2*reg1(vv[1],v_max) << " " <<  MULT_2*reg1(vv[2],v_max) << std::endl;
     }
+    for(auto ee : v_edge){
+      ofile << "e " << (int)ee[0] << " " << (int)ee[1]  << " ";
+      ofile << MULT_2*reg2(ee[2],v_max) << " " << MULT_2*reg2(ee[3],v_max) << " " << MULT_2*reg2(ee[4],v_max) << " " <<  MULT_2*reg2(ee[5],v_max) << " ";
+      ofile << std::endl;
+    }
+
+
+    
+    std::cerr << "acc = " << acc << std::endl;
+    return acc;
+  }
 
 
 

@@ -138,15 +138,15 @@ object algo_iqlibbp {
 
   // }
 
-  def belief_prop(full_graph: RDD[VData] , maxIterations: Int, epsilon : Double,iq : IQlibSched,nb_part : Int):  Graph[PVertex,PEdge]  = {
+  def belief_prop(full_graph_merged: RDD[VData] , maxIterations: Int, epsilon : Double,iq : IQlibSched,nb_part : Int):  Graph[PVertex,PEdge]  = {
     println(" belief prop : Init")
-    val edges_cpp = full_graph.filter(x => !x.isEmpty).filter(_(0) == 'e').map(_.substring(2))
-    val nodes_cpp = full_graph.filter(x => !x.isEmpty).filter(_(0) == 'v').map(_.substring(2))
+    val edges_cpp = full_graph_merged.filter(x => !x.isEmpty).filter(_(0) == 'e').map(_.substring(2))
+    val nodes_cpp = full_graph_merged.filter(x => !x.isEmpty).filter(_(0) == 'v').map(_.substring(2))
     val vertexRDD: RDD[(Long, PVertex)] = nodes_cpp.map { line =>
       val fields = line.split(' ')
       val id = fields(0).toLong
       val prior = Variable(fields.slice(1,3).map(x =>  x.toDouble))
-      val belief = Variable(fields.slice(3,5).map(x => x.toDouble)) // Variable(prior.cloneValues) // Variable(fields.tail.slice(3,5).map(_.toDouble)) //
+      val belief = Variable(prior.cloneValues) // Variable(fields.tail.slice(3,5).map(_.toDouble)) //
       (id, PVertex(belief, prior))
     }
     val edgeRDD = edges_cpp.map { line =>
@@ -175,7 +175,7 @@ object algo_iqlibbp {
 
     println(" belief prop : start belief")
     //val beliefs = PairwiseBP(graph, maxIterations, epsilon,iq.get_storage_level())
-    val beliefs = PairwiseBP(graph, maxIterations, epsilon)
+    val beliefs = PairwiseBP2(graph, maxIterations, epsilon)
     graph.unpersist()
     graph.unpersist()
     return beliefs

@@ -227,6 +227,8 @@ class nd_tree(dim : Int,depth : Int,iq : IQlibSched) extends Serializable {
       li_new = root_li_new
       acc = acc + 1;
     }
+    if(lf_new.count() == 0)
+      lf_new = li_new.map(x => (1,x._2)).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2));
     println(" Done : Constructing the nd tree id map")
     val fff_map = lf_new.flatMap( x=> x._2._2.map(y => (y.toLong,x._1.toLong))).persist(iq.get_storage_level()).setName("KDTREE_MAP")
     lf_new.cache().count

@@ -157,8 +157,8 @@ int main(int argc, char **argv)
     std::cout << "Start dim" << std::endl;
 
     w_algo.compute_dim(wdp.format_points,
-				 wdp.format_egv,
-				 wdp.format_sigs);
+		       wdp.format_egv,
+		       wdp.format_sigs);
 
     // Flip the normal according to the optical center
     w_algo.flip_dim_ori(wdp.format_points,
@@ -204,6 +204,7 @@ int main(int argc, char **argv)
     auto tile = tri1.get_tile(tid);
     nbs = tile->number_of_cells();
     init_local_ids(tri1);
+    tri1.finalize(sch);
     std::cerr << "nbs:" << nbs << std::endl;
   }else{  
     std::vector<Point_id>  vp;
@@ -240,9 +241,9 @@ int main(int argc, char **argv)
       }
 
     
-      // ===== Init the id of each cell
-  int acc = 0;
-  init_local_ids(tri1);
+    // ===== Init the id of each cell
+    int acc = 0;
+    init_local_ids(tri1);
 
     // Compute the dst
   
@@ -264,157 +265,167 @@ int main(int argc, char **argv)
   tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri1,&w_datas_tri);
 
 
-  //std::vector<double> lambda_list({0.1,0.2,0.4,0.8,1,1.5,2,3});
-  std::vector<double> lambda_list({0,0.000001,0.000002,0.000005,0.00001,0.0001,0.001,0.01,1,2,4});
-  //std::vector<double> lambda_list({0});
+
+  //  std::vector<double> lambda_list({0,0.000001,0.000002,0.000005,0.00001,0.0001,0.001,0.01,0.02,0.05,0.1,1,2,4});
+  std::vector<double> lambda_list({0.000002});
+  std::vector<int> opt_mode({1});
+  //std::vector<double> lambda_list({0.1});
+  //std::vector<double> lambda_list({1});
   // Mode 0 => outdoor scene
   // Mode 1 => indoor scene
   mrf.set_mode(0);
 
+
+
   for(auto ll : lambda_list){
-    mrf.lambda = ll;
-    // Optimizing with alpha expansion
-    for(int ii = 0; ii < nbs;ii++)
-      format_labs[ii] = 0;
-    mrf.alpha_exp(tri1,w_datas_tri);
+    for(auto opt_id : opt_mode){
+      mrf.lambda = ll;
+      // Optimizing with alpha expansion
+      for(int ii = 0; ii < nbs;ii++)
+	format_labs[ii] = 0;
+      //mrf.alpha_exp(tri1,w_datas_tri);
+      if(opt_id == 0)
+	mrf.opt_gc(1,tri1,w_datas_tri);
+      else
+	mrf.opt_belief(1,tri1,w_datas_tri);
 
-
-    w_datas_tri[tid].fill_labs(w_datas_tri[tid].format_labs);
+      w_datas_tri[tid].fill_labs(w_datas_tri[tid].format_labs);
 
 
   
-    // ===== Surface extraction =====
-    // Extract the surface from the simplex segmentation
-    if(D == 2){
-      DT & tri_tile  = tri1.get_tile(tid)->triangulation();
-      traits.export_tri_to_data(tri_tile,w_datas_tri[tid]);    
-      ddt::stream_data_header oqh_1("p","s",tid),oqh_2("p","s",tid);
-      std::string filename(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_seg");
-      oqh_1.init_file_name(filename,"_pts.geojson");
-      oqh_1.write_header(std::cout);
-      oqh_2.init_file_name(filename,"_spx.geojson");
-      oqh_2.write_header(std::cout);
-      w_datas_tri[tid].write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
-      oqh_1.finalize();
-      oqh_2.finalize();
-      ddt::add_qgis_style(oqh_2.get_file_name(),"tri_seg.qml");
-      std::cout << std::endl;
-    }
+      // ===== Surface extraction =====
+      // Extract the surface from the simplex segmentation
+      if(D == 2){
+	DT & tri_tile  = tri1.get_tile(tid)->triangulation();
+	traits.export_tri_to_data(tri_tile,w_datas_tri[tid]);    
+	ddt::stream_data_header oqh_1("p","s",tid),oqh_2("p","s",tid);
+	std::string filename(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_seg");
+	oqh_1.init_file_name(filename,"_pts.geojson");
+	oqh_1.write_header(std::cout);
+	oqh_2.init_file_name(filename,"_spx.geojson");
+	oqh_2.write_header(std::cout);
+	w_datas_tri[tid].write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
+	oqh_1.finalize();
+	oqh_2.finalize();
+	ddt::add_qgis_style(oqh_2.get_file_name(),"tri_seg.qml");
+	std::cout << std::endl;
+      }
   
-    std::vector<Facet_const_iterator> lft;
-    std::vector<bool> lbool;
-    mrf.extract_surface(tid,lft,w_datas_tri);
+      std::vector<Facet_const_iterator> lft;
+      std::vector<bool> lbool;
+      mrf.extract_surface(tid,lft,w_datas_tri);
 
 
-    std::string string_name = time_in_HH_MM_SS_MMM();
-    std::string ply_name(params.output_dir +  "/" + params.slabel + "_" + string_name + "_ll_" + std::to_string(ll) + "_surface");
-    ddt::stream_data_header oth("p","f",tid);
+      std::string string_name = time_in_HH_MM_SS_MMM();
+      std::string ply_name(params.output_dir +  "/" + params.slabel + "_" + string_name + "_ll_" + std::to_string(ll) + "_surface_" + std::to_string(opt_id));
+      ddt::stream_data_header oth("p","f",tid);
 
-    if(D == 2)
-      oth.init_file_name(ply_name,".geojson");
-    else
-      oth.init_file_name(ply_name,".ply");
+      if(D == 2)
+	oth.init_file_name(ply_name,".geojson");
+      else
+	oth.init_file_name(ply_name,".ply");
 
-    oth.write_header(std::cout);
+      oth.write_header(std::cout);
 
-    switch (D)
-      {
-      case 2 :
+      switch (D)
 	{
-	  wasure::dump_2d_surface_geojson<DTW>(lft,oth.get_output_stream());
-	  break;
-	}
-      case 3 :
-	{
-	  std::vector<Point>  format_points;
-	  std::vector<int> v_simplex;
-	  std::vector<int> vid;
-	  std::map<Vertex_const_iterator, uint> vertex_map;
-	  ddt_data<Traits> datas_out;
-	  int acc = 0;
-	  for(auto fit = lft.begin(); fit != lft.end(); ++fit)
-	    {
-	      Cell_const_iterator fch = fit->full_cell();
-	      int id_cov = fit->index_of_covertex();
-	      for(int i = 0; i < D+1; ++i)
-		{
-		  if(i != id_cov)
-		    {
-		      Vertex_const_iterator v = fch->vertex(i);
-		      if(vertex_map.find(v) == vertex_map.end())
-			{
-			  vertex_map[v] = acc++;
-			  format_points.push_back(v->point());
-			}
-		    }
-		}
-	    }
-
-	  for(auto fit = lft.begin(); fit != lft.end(); ++fit)
-	    {
-	      Cell_const_iterator fch = fit->full_cell();
-	      int id_cov = fit->index_of_covertex();
-
-	      int cccid = fch->lid();
-	      int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
-	    
-	      const Point& a = fch->vertex((id_cov+1)&3)->point();
-	      const Point& b = fch->vertex((id_cov+2)&3)->point();
-	      const Point& c = fch->vertex((id_cov+3)&3)->point();
-	      const Point& d = fch->vertex((id_cov)&3)->point();
-
-
-	    
-	      bool bl =
-		(CGAL::orientation(a,b,c,d) == 1 && ch1lab == 0) ||
-		(CGAL::orientation(a,b,c,d) == -1 && ch1lab == 1);
-
-	      Id ida = (id_cov+1)&3;
-	      Id idb = (id_cov+2)&3;
-	      Id idc = (id_cov+3)&3;
-
-
-	      vid.push_back(fch->lid());
-	      v_simplex.push_back(vertex_map[fch->vertex(ida)]);
-	      if(!bl){
-		v_simplex.push_back(vertex_map[fch->vertex(idb)]);
-		v_simplex.push_back(vertex_map[fch->vertex(idc)]);
-	      }else{
-		v_simplex.push_back(vertex_map[fch->vertex(idc)]);
-		v_simplex.push_back(vertex_map[fch->vertex(idb)]);
+	case 2 :
+	  {
+	    wasure::dump_2d_surface_geojson<DTW>(lft,oth.get_output_stream());
+	    break;
+	  }
+	case 3 :
+	  {
+	    std::vector<Point>  format_points;
+	    std::vector<int> v_simplex;
+	    std::vector<int> vid;
+	    std::map<Vertex_const_iterator, uint> vertex_map;
+	    ddt_data<Traits> datas_out;
+	    int acc = 0;
+	    for(auto fit = lft.begin(); fit != lft.end(); ++fit)
+	      {
+		Cell_const_iterator fch = fit->full_cell();
+		int id_cov = fit->index_of_covertex();
+		for(int i = 0; i < D+1; ++i)
+		  {
+		    if(i != id_cov)
+		      {
+			Vertex_const_iterator v = fch->vertex(i);
+			if(vertex_map.find(v) == vertex_map.end())
+			  {
+			    vertex_map[v] = acc++;
+			    format_points.push_back(v->point());
+			  }
+		      }
+		  }
 	      }
 
+	    for(auto fit = lft.begin(); fit != lft.end(); ++fit)
+	      {
+		Cell_const_iterator fch = fit->full_cell();
+		int id_cov = fit->index_of_covertex();
+
+		int cccid = fch->lid();
+		int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
 	    
-	      // for(int i = 0; i < D+1; ++i)
-	      //   {
-	      //     if(i != id_cov)
-	      // 	  {
-	      //         Vertex_const_iterator v = fch->vertex(i);
-	      //         v_simplex.push_back(vertex_map[v]);
-	      // 	  }
-	      //   }
-	    }
+		const Point& a = fch->vertex((id_cov+1)&3)->point();
+		const Point& b = fch->vertex((id_cov+2)&3)->point();
+		const Point& c = fch->vertex((id_cov+3)&3)->point();
+		const Point& d = fch->vertex((id_cov)&3)->point();
 
 
-	  datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-	  datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
-	  datas_out.dmap[std::vector<std::string>{"id"}] = ddt_data<Traits>::Data_ply(std::vector<std::string>{"id"},"face",1,1,tinyply::Type::INT32);
-	  datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(format_points);
-	  datas_out.dmap[datas_out.simplex_name].fill_full_uint8_vect(v_simplex);
-	  datas_out.dmap[std::vector<std::string>{"id"}].fill_full_uint8_vect(vid);
-	  datas_out.write_ply_stream(oth.get_output_stream(),'\n',true);
-	  break;
+	    
+		bool bl =
+		  (CGAL::orientation(a,b,c,d) == 1 && ch1lab == 0) ||
+		  (CGAL::orientation(a,b,c,d) == -1 && ch1lab == 1);
+
+		Id ida = (id_cov+1)&3;
+		Id idb = (id_cov+2)&3;
+		Id idc = (id_cov+3)&3;
+
+
+		vid.push_back(fch->lid());
+		v_simplex.push_back(vertex_map[fch->vertex(ida)]);
+		if(!bl){
+		  v_simplex.push_back(vertex_map[fch->vertex(idb)]);
+		  v_simplex.push_back(vertex_map[fch->vertex(idc)]);
+		}else{
+		  v_simplex.push_back(vertex_map[fch->vertex(idc)]);
+		  v_simplex.push_back(vertex_map[fch->vertex(idb)]);
+		}
+
+	    
+		// for(int i = 0; i < D+1; ++i)
+		//   {
+		//     if(i != id_cov)
+		// 	  {
+		//         Vertex_const_iterator v = fch->vertex(i);
+		//         v_simplex.push_back(vertex_map[v]);
+		// 	  }
+		//   }
+	      }
+
+
+	    datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+	    datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
+	    datas_out.dmap[std::vector<std::string>{"id"}] = ddt_data<Traits>::Data_ply(std::vector<std::string>{"id"},"face",1,1,tinyply::Type::INT32);
+	    datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(format_points);
+	    datas_out.dmap[datas_out.simplex_name].fill_full_uint8_vect(v_simplex);
+	    datas_out.dmap[std::vector<std::string>{"id"}].fill_full_uint8_vect(vid);
+	    datas_out.write_ply_stream(oth.get_output_stream(),'\n',true);
+	    break;
+	  }
+	default :             // Note the colon, not a semicolon
+	  {
+	    return 1;
+	    break;
+	  }
 	}
-      default :             // Note the colon, not a semicolon
-	{
-	  return 1;
-	  break;
-	}
-      }
+  
 
-
-    oth.finalize();
-    std::cout << std::endl;
+      oth.finalize();
+      std::cout << std::endl;
+  }
   }
   return 0;
 
