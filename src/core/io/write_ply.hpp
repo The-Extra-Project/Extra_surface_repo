@@ -13,6 +13,11 @@ namespace ddt
 void write_ply_header_begin(std::ostream& out);
 void write_ply_header_end(std::ostream& out);
 
+
+
+
+
+  
 template<typename DDT>
 void write_ply_element_cell(const DDT& tri, std::ostream& out)
 {

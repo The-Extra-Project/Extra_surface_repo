@@ -339,7 +339,7 @@ val lambda_list = List("1","4")
 val it_list = List(20)
 val coef_mult_list = List(1)
 
-val lambda_list = List("0.000002","0.000004")
+val lambda_list = List("0.000004")
 val coef_mult_list = List(10000000)
 
 // val coef_mult = coef_mult_list.head

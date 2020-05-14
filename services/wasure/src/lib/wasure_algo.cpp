@@ -154,12 +154,96 @@ void wasure_algo::tessel_adapt(std::vector<Point> & points,std::vector<Point> & 
 }
 
 
+int dump_tessel(DT_raw  & tri, int it, int max_it,int tid, double * bbox_min,double * bbox_max){
+  Traits_raw traits_raw;
+  int nbp_face = 10;;
+  typedef typename DT_raw::Vertex_handle                            Vertex_const_handle;  
+  std::vector<std::vector<double>> l_cir;
+  for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit){
+  	auto tmp_fch = fit->first;
+  	int tmp_idx = fit->second;
+  	auto tmp_fchn = tmp_fch->neighbor(tmp_idx);
+  	auto bb1 = traits_raw.circumcenter(tri,tmp_fch);
+  	auto bb2 = traits_raw.circumcenter(tri,tmp_fchn);
+
+  	for(int i = 0; i < nbp_face; i++){
+	  std::vector<double> pp;
+	  bool do_insert = true;
+  	  for(int j = 0; j < 3;j++){
+  	    pp.push_back((bb1[j] + (bb2[j]-bb1[j])*(i/((double)nbp_face))));
+  	  }
+	  for(int j = 0; j < 3;j++){
+	    if(pp[j] < bbox_min[j] || pp[j] > bbox_max[j]){
+	      do_insert = false;
+	    }
+	  }
+	  if(do_insert)
+	    l_cir.push_back(pp);
+  	}
+  }
+  
+  std::cerr << "dump" << std::endl;
+  std::ofstream myfile;
+  std::string filename("/home/laurent/shared_spark/tmp/tessel_" + std::to_string(it) + "_" + std::to_string(tid) + ".ply");
+  myfile.open (filename);
+  myfile << "ply" <<  std::endl;
+  myfile << "format ascii 1.0" << std::endl;
+  myfile << "element vertex "  << tri.number_of_vertices() + l_cir.size()  << std::endl;
+  myfile << "property float x" << std::endl;
+  myfile << "property float y" << std::endl;
+  myfile << "property float z" << std::endl;
+  myfile << "property uchar red " << std::endl;
+  myfile << "property uchar green" << std::endl;
+  myfile << "property uchar blue" << std::endl;
+  myfile << "element face " << tri.number_of_finite_facets() << std::endl;
+  myfile << "property list uchar int vertex_index " << std::endl;
+  myfile << "end_header                " << std::endl;
+
+
+  double ccol = ((double)it)/((double)max_it);
+  CGAL::Unique_hash_map<Vertex_const_handle, int> vertex_map;
+  int acc = 0;
+  for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv){
+    if(tri.is_infinite(vv))
+      continue;
+    myfile << vv->point() << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << std::endl;
+    vertex_map[vv] = acc++;
+  }
+
+  for(auto pp : l_cir)
+    myfile << pp[0] << " " << pp[1] << " " << pp[2] << " 0 255 0" << std::endl;;
+
+  
+  for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit){
+    if(tri.is_infinite(*fit))
+      continue;
+    auto fch = fit->first;
+    int id_cov = fit->second;
+    myfile << "3 ";
+    for(int i = 0; i < 4; ++i)
+      {
+	if(i != id_cov)
+	  {
+	    auto v = fch->vertex(i);
+	    myfile << vertex_map[v] << " ";
+	  }
+      }
+    myfile << std::endl;
+
+  }
+  
+  std::cerr << "close" << std::endl;
+  myfile.close();
+  std::cerr << "dump done" << std::endl;
+  return 0;
+}
+
 int 
 wasure_algo::tessel(DT_raw  & tri,
 		    std::vector<Point> & points,  std::vector<Point> & vps,
 		    std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales, int max_it, Id tid){
 
- typedef typename DT_raw::Vertex_handle                            Vertex_const_handle;  
+  typedef typename DT_raw::Vertex_handle                            Vertex_const_handle;  
   double bbox_min[Traits::D];
   double bbox_max[Traits::D];
   for(int d = 0; d < D; d++){
@@ -209,18 +293,21 @@ wasure_algo::tessel(DT_raw  & tri,
     for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv){
       if(tri.is_infinite(vv))
 	continue;
-
-      auto vp = vertex_map[vv];
+      auto vpo = vv->point();
+      auto vpn = vertex_map[vv];
       auto vn = norm_map[vv];
       auto vs = norm_map[vv];
-      if(vp[D] == 0)
+      if(vpn[D] == 0)
 	continue;
       for(int d = 0; d < D; d++){
-	vp[d]=vp[d]/vp[D];
-	vn[d]=vn[d]/vp[D];
-	vs[d]=vs[d]/vp[D];
+	vpn[d]=vpn[d]/vpn[D];
+	vn[d]=vn[d]/vpn[D];
+	vs[d]=vs[d]/vpn[D];
       }
-      auto pp = Point(vp[0],vp[1],vp[2]);
+      //auto pp = Point(vpn[0],vpn[1],vpn[2]);
+      auto pp = Point(vpo[0] +(vpn[0]-vpo[0])/15,
+		      vpo[1] +(vpn[1]-vpo[1])/15,
+		      vpo[2] +(vpn[2]-vpo[2])/15);
       //std::cerr << "move:" << vv->point() << " -> " << pp << "(" << vp[D] << ")"<<std::endl;
 
       bool do_insert = true;
@@ -231,53 +318,28 @@ wasure_algo::tessel(DT_raw  & tri,
 	tri.move(vv,pp);
       }
 
-       if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1){
-	 auto pp2 = Point(vp[0]-vn[0]*vs[0]*3,vp[1]-vn[1]*vs[1]*3,vp[2]-vn[2]*vs[2]*3);
+      if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1){
+	auto pp2 = Point(vpn[0]-vn[0]*vs[0]*3,vpn[1]-vn[1]*vs[1]*3,vpn[2]-vn[2]*vs[2]*3);
  	std::cerr << "insert new " << pp2 <<  std::endl;
 	extra_pts.push_back(pp2);
-	 std::cerr << "insert done " <<  std::endl;
-       }
+	std::cerr << "insert done " <<  std::endl;
+      }
+
+            
       // if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1){
       // 	auto pp2 = Point(vp[0]-vn[0],vp[1]-vn[1],vp[2]-vn[2]);
       // 	std::cerr << "insert new " << pp2 <<  std::endl;
       // 	insert_np(tri,pp2,bbox_min,bbox_max,D);
       // 	std::cerr << "insert done " <<  std::endl;
       // }
-    }   
-    
-
-    bool do_debug = false;
-    if(do_debug){
-      std::cerr << "dump" << std::endl;
-      std::ofstream myfile;
-      std::string filename("/home/laurent/shared_spark/tmp/tessel_" + std::to_string(it) + "_" + std::to_string(tid) + ".ply");
-      myfile.open (filename);
-      myfile << "ply" <<  std::endl;
-      myfile << "format ascii 1.0" << std::endl;
-      myfile << "comment author: Greg Turk" << std::endl;
-      myfile << "comment object: another cube" << std::endl;
-      myfile << "element vertex "  << tri.number_of_vertices() + extra_pts.size() << std::endl;
-      myfile << "property float x" << std::endl;
-      myfile << "property float y" << std::endl;
-      myfile << "property float z" << std::endl;
-      myfile << "property uchar red                   { start of vertex color }" << std::endl;
-      myfile << "property uchar green" << std::endl;
-      myfile << "property uchar blue" << std::endl;
-      myfile << "end_header" << std::endl;
-
-      double ccol = ((double)it)/((double)max_it);
-      for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv){
-	if(!tri.is_infinite(vv))
-	  myfile << vv->point() << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << " " << ((int)(255*ccol)) << std::endl;
-      }
-      for(auto pp : extra_pts){
-	  myfile << pp << " " << ((int)(0)) << " " << ((int)(255)) << " " << ((int)(0)) << std::endl;
-      }
-      myfile.close();
     }
+     if(true)
+       dump_tessel(tri,it,max_it,tid,bbox_min,bbox_max);
 
-  }
-    std::cerr << "filter out bbox" << std::endl;
+  }    
+
+
+  std::cerr << "filter out bbox" << std::endl;
     
   for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv){
     bool do_insert = true;
@@ -298,7 +360,7 @@ wasure_algo::tessel(DT_raw  & tri,
   }
   
   return 0;
-  }
+}
 
 
 

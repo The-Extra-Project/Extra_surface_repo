@@ -151,7 +151,17 @@ int main(int argc, char **argv)
 
     wds.dmap[wdp.xyz_name].extract_full_uint8_vect(wds.format_points);
     // ofile.open(filename_tes);
-    // wdp.read_ply_stream(ofile);    
+    // wdp.read_ply_stream(ofile);
+
+    std::cout << "Start tessel" << std::endl;
+    w_algo.tessel_adapt(wdp.format_points,
+			wds.format_points,
+			wdp.format_egv,
+			wdp.format_sigs,
+			100,params.pscale,D,tid
+			);
+
+    
   }else{
   
     std::cout << "Start dim" << std::endl;
