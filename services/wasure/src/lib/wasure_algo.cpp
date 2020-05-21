@@ -305,9 +305,9 @@ wasure_algo::tessel(DT_raw  & tri,
 	vs[d]=vs[d]/vpn[D];
       }
       //auto pp = Point(vpn[0],vpn[1],vpn[2]);
-      auto pp = Point(vpo[0] +(vpn[0]-vpo[0])/15,
-		      vpo[1] +(vpn[1]-vpo[1])/15,
-		      vpo[2] +(vpn[2]-vpo[2])/15);
+      auto pp = Point(vpo[0] +(vpn[0]-vpo[0]),
+		      vpo[1] +(vpn[1]-vpo[1]),
+		      vpo[2] +(vpn[2]-vpo[2]));
       //std::cerr << "move:" << vv->point() << " -> " << pp << "(" << vp[D] << ")"<<std::endl;
 
       bool do_insert = true;
@@ -333,7 +333,7 @@ wasure_algo::tessel(DT_raw  & tri,
       // 	std::cerr << "insert done " <<  std::endl;
       // }
     }
-     if(true)
+     if(false)
        dump_tessel(tri,it,max_it,tid,bbox_min,bbox_max);
 
   }    
@@ -935,9 +935,6 @@ void wasure_algo::finalize_sample(DT & tri, int nb_samples){
 
 double get_min_scale(std::vector<double> &v)
 {
-  for( auto tt : v)
-    std::cerr << tt << " ";
-  std::cerr << std::endl;
   size_t n = v.size() / 10;
   return v[n];
 }

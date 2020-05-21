@@ -277,8 +277,8 @@ int main(int argc, char **argv)
 
 
   //  std::vector<double> lambda_list({0,0.000001,0.000002,0.000005,0.00001,0.0001,0.001,0.01,0.02,0.05,0.1,1,2,4});
-  std::vector<double> lambda_list({0.000002});
-  std::vector<int> opt_mode({1});
+  std::vector<double> lambda_list({0.000002,0.000004,0.000006});
+  std::vector<int> opt_mode({0,1});
   //std::vector<double> lambda_list({0.1});
   //std::vector<double> lambda_list({1});
   // Mode 0 => outdoor scene

@@ -118,9 +118,10 @@ function run_3d_toulouse
 function run_3d_church
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${HOME}/shared_spark/inputs/church/preprocessed_vsmall_merged/"
+    #INPUT_DIR="${HOME}/shared_spark/inputs/church/preprocessed_vsmall_merged/"
+    INPUT_DIR="${HOME}/shared_spark/inputs/church/preprocessed_small_2_merged"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d_small.xml"
     run_algo_docker
 }
 

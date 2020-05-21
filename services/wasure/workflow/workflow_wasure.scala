@@ -304,7 +304,7 @@ println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 val lambda_list = List("0.001","0.01","0.1","1","10","100","1000")
 val coef_mult_list = List(0.1,1,10,100,1000,100000)
-val it_list = List(50)
+val it_list = List(20)
 
 
 val lambda_list = List("0.000002")

@@ -48,7 +48,7 @@ private object FactorMath {
     i = 0
     while (i < x.length) {
       x(i) = x(i) - max - sumExp
-      if (x(i) < precision) x(i) = precision
+      // if (x(i) < precision) x(i) = precision
       i += 1
     }
   }

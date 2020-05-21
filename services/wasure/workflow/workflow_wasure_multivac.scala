@@ -336,11 +336,11 @@ graph_dst.vertices.setName("GRAPH_DST_VERTICES");
 println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 val lambda_list = List("1","4")
-val it_list = List(20)
+val it_list = List(100)
 val coef_mult_list = List(1)
 
 val lambda_list = List("0.000004")
-val coef_mult_list = List(10000000)
+val coef_mult_list = List("110000000000".toLong)
 
 // val coef_mult = coef_mult_list.head
 // val ll = lambda_list.head
@@ -351,18 +351,16 @@ if(true){
   it_list.foreach{ max_it =>
     lambda_list.foreach{ ll =>
       coef_mult_list.foreach{ coef_mult =>
-
         params_wasure("lambda") = collection.mutable.Set(ll)
         params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)
-        val ext_name = "_" + acc + "_ll_" + ll + "_cm_" + fmt.format(coef_mult) + "_it_" + fmt.format(max_it);
-
+        val ext_name = "_ITER_" + acc + "_ll_" + ll + "_cm_" + fmt.format(coef_mult) + "_it_" + fmt.format(max_it);
         if(true){
           println("==== Segmentation with lambda:" + ll + " coef_mult:" + coef_mult +  "  ====")
           val ext_cmd_vertex =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","1"))).to_command_line
           val ext_cmd_edges =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","2"))).to_command_line
 
           val graph_bp = Graph((graph_dst.vertices union graph_stats.vertices).reduceByKey(_ ::: _ ), graph_tri_gid.edges, List(""))
-          val epsilon = 0.001;
+          val epsilon = 0.000000001;
           val kvrdd_seg = compute_belief_prop_v2(
             graph_bp,
             max_it,epsilon,
@@ -399,7 +397,6 @@ if(true){
           //   iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
           // rdd_ply_surface.collect()
         }
-
         if(false){
           // val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
           // val res_seg = iq.run_pipe_fun_KValue(
@@ -412,7 +409,6 @@ if(true){
           //   iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
           // rdd_ply_surface.collect()
         }
-
         acc = acc + 1;
       }
     }
