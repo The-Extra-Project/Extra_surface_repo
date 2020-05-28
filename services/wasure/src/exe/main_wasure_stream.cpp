@@ -277,28 +277,28 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 }
 
 
-int dim_simp(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 {
-    std::cout.setstate(std::ios_base::failbit);
-    std::cerr << "into fun simp" << std::endl;
-    wasure_algo w_algo;
-    int D = Traits::D;
-    Traits  traits;
-    D_LMAP w_datas_map;
+  std::cout.setstate(std::ios_base::failbit);
+  std::cerr << "into fun simp" << std::endl;
+  wasure_algo w_algo;
+  int D = Traits::D;
+  Traits  traits;
+  D_LMAP w_datas_map;
 
-
-    wasure_data<Traits>  w_datas_full;
-    std::vector<Point> p_simp_full;    
-    for(int i = 0; i < nb_dat; i++)
+  bool do_splitted = true;
+  wasure_data<Traits>  w_datas_full;
+  std::vector<Point> p_simp_full;    
+  for(int i = 0; i < nb_dat; i++)
     {
 
-        ddt::stream_data_header hpi;
-        hpi.parse_header(std::cin);
+      ddt::stream_data_header hpi;
+      hpi.parse_header(std::cin);
 	
-        Id hid = hpi.get_id(0);
-        log.step("read");
-        if(hpi.get_lab() == "z" )
-	  {
+      Id hid = hpi.get_id(0);
+      log.step("read");
+      if(hpi.get_lab() == "z" )
+	{
 	  // if(hpi.is_serialized()){
 	  //   std::vector<Point> rvp;
 	  //   ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
@@ -306,314 +306,237 @@ int dim_simp(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 	  //     {
           //       vp.emplace_back(std::make_pair(pp,tid));
 	  //     }
-	    w_datas_map[hid].push_back(wasure_data<Traits>());
-	    if(hpi.is_serialized()){
-	      std::cerr << "start read ply" << std::endl;
-	      w_datas_map[hid].back().read_serialized_stream(hpi.get_input_stream());
-	      //	      w_datas.read_serialized_stream(hpi.get_input_stream());
-	      //w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
-	      std::cerr << "end read ply" << std::endl;
-	    }else{
-	      w_datas_map[hid].back().read_ply_stream(hpi.get_input_stream());
-	      w_datas_map[hid].back().shpt2uint8();
-	    }
+	  w_datas_map[hid].push_back(wasure_data<Traits>());
+	  if(hpi.is_serialized()){
+	    std::cerr << "start read ply" << std::endl;
+	    w_datas_map[hid].back().read_serialized_stream(hpi.get_input_stream());
+	    //	      w_datas.read_serialized_stream(hpi.get_input_stream());
+	    //w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+	    std::cerr << "end read ply" << std::endl;
+	  }else{
+	    w_datas_map[hid].back().read_ply_stream(hpi.get_input_stream());
+	    w_datas_map[hid].back().shpt2uint8();
+	  }
 	    
 
-            std::cerr << "start read ply" << std::endl;
+	  std::cerr << "start read ply" << std::endl;
 
-            //w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
-            std::cerr << "end read ply" << std::endl;
-	  }
+	  //w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+	  std::cerr << "end read ply" << std::endl;
+	}
 
-	std::cerr << "reading end" << std::endl;
-	wasure_data<Traits> & w_datas = w_datas_map[hid].back();
-        //}
-        hpi.finalize();
-        std::cerr << "finalize" << std::endl;
+      std::cerr << "reading end" << std::endl;
+      wasure_data<Traits> & w_datas = w_datas_map[hid].back();
+      //}
+      hpi.finalize();
+      std::cerr << "finalize" << std::endl;
 
-        log.step("compute");
-        // w_datas.extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
-        // w_datas.extract_ptsvect(w_datas.center_name,w_datas.format_centers,false);
-	w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(w_datas.format_points,false);
-	std::cerr << "xyz ok" << std::endl;
-	w_datas.dmap[w_datas.center_name].extract_full_uint8_vect(w_datas.format_centers,false);
+      log.step("compute");
+      // w_datas.extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
+      // w_datas.extract_ptsvect(w_datas.center_name,w_datas.format_centers,false);
+      w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(w_datas.format_points,false);
+      std::cerr << "xyz ok" << std::endl;
+      w_datas.dmap[w_datas.center_name].extract_full_uint8_vect(w_datas.format_centers,false);
 
-	std::cerr << "flags" << std::endl;
-	w_datas.dmap[w_datas.flags_name].extract_full_uint8_vect(w_datas.format_flags,false);
+      // std::cerr << "flags" << std::endl;
+      // w_datas.dmap[w_datas.flags_name].extract_full_uint8_vect(w_datas.format_flags,false);
 
-	// for(auto ff : w_datas.format_flags)
-	//   std::cerr << "flags:" << ff << std::endl;
-	// exit(10);
+      // for(auto ff : w_datas.format_flags)
+      //   std::cerr << "flags:" << ff << std::endl;
+      // exit(10);
 	
-	std::cerr << "center ok" << std::endl;
-	std::vector<Point> p_simp;    
-        // if(params.pscale >= 0)
-        // {
-        //     w_algo.compute_dim_with_simp(w_datas.format_points,
-        //                                  w_datas.format_egv,
-        //                                  w_datas.format_sigs,
-        //                                  p_simp,
-        //                                  params.pscale);
-        // }
-        // else
-        // {
-            w_algo.compute_dim(w_datas.format_points,
-                               w_datas.format_egv,
-                               w_datas.format_sigs);
-	    //}
+      std::cerr << "center ok" << std::endl;
+      std::vector<Point> p_simp;    
+      // if(params.pscale >= 0)
+      // {
+      //     w_algo.compute_dim_with_simp(w_datas.format_points,
+      //                                  w_datas.format_egv,
+      //                                  w_datas.format_sigs,
+      //                                  p_simp,
+      //                                  params.pscale);
+      // }
+      // else
+      // {
+
+      if(w_datas.format_centers.size() == 0)
+	{
+	  double coords[Traits::D];
+	  for(auto pp : w_datas.format_points)
+	    {
+	      for(int d = 0; d < D; d++)
+		{
+		  if(d < D-1)
+		    coords[d] = pp[d];
+		  else
+		    coords[d] = pp[d] + 30;
+		}
+	      w_datas.format_centers.push_back(traits.make_point(coords));
+	    }
+	}
+
+      if(do_splitted){
+	w_algo.compute_dim(w_datas.format_points,
+			   w_datas.format_egv,
+			   w_datas.format_sigs);
 
 
-        if(w_datas.format_centers.size() == 0)
-        {
-            double coords[Traits::D];
-            for(auto pp : w_datas.format_points)
-            {
-                for(int d = 0; d < D; d++)
-                {
-                    if(d < D-1)
-                        coords[d] = pp[d];
-                    else
-                        coords[d] = pp[d] + 30;
-                }
-                w_datas.format_centers.push_back(traits.make_point(coords));
-            }
-        }
 
 	
-        w_algo.flip_dim_ori(w_datas.format_points,
-                            w_datas.format_egv,
-                            w_datas.format_centers);
+	w_algo.flip_dim_ori(w_datas.format_points,
+			    w_datas.format_egv,
+			    w_datas.format_centers);
 
-        std::cerr << i << "~~ ==" << w_datas.format_points.size() << " " << w_datas.format_points.size() << std::endl;
-        std::cerr << i << "~~ ==" << w_datas.format_egv.size() << " " << w_datas.format_sigs.size() << std::endl;
-        std::cerr << i << "~~ ==" << w_datas.format_centers.size() << " " << w_datas.format_centers.size() << std::endl;
+	std::cerr << i << "~~ ==" << w_datas.format_points.size() << " " << w_datas.format_points.size() << std::endl;
+	std::cerr << i << "~~ ==" << w_datas.format_egv.size() << " " << w_datas.format_sigs.size() << std::endl;
+	std::cerr << i << "~~ ==" << w_datas.format_centers.size() << " " << w_datas.format_centers.size() << std::endl;
 	w_datas_full.format_points.insert(w_datas_full.format_points.end(),w_datas.format_points.begin(),w_datas.format_points.end());
 	w_datas_full.format_egv.insert(w_datas_full.format_egv.end(),w_datas.format_egv.begin(),w_datas.format_egv.end());
 	w_datas_full.format_sigs.insert(w_datas_full.format_sigs.end(),w_datas.format_sigs.begin(),w_datas.format_sigs.end());
 	p_simp_full.insert(p_simp_full.end(),p_simp.begin(),p_simp.end());
 	std::cerr << "inserted" << std::endl;
-        if(tid == 0)
-        {
-            for(int ii = 0; ii < 30; ii++)
-            {
-                std::cerr << "==O>" << w_datas.format_points[ii][0] << " " << w_datas.format_egv[ii][0][0] << std::endl;
-            }
-        }
+      }else{
+	if(i == 0){
+	  w_datas_full = w_datas;
+	}else{
+	  w_datas_full.insert(w_datas);
+	}
+      }
+
 
     }
-    std::cerr << "start tessel" << std::endl;
-      w_algo.tessel_adapt(w_datas_full.format_points,
+
+  if(!do_splitted){
+    w_datas_full.dmap[w_datas_full.xyz_name].extract_full_uint8_vect(w_datas_full.format_points,false);
+
+    w_datas_full.dmap[w_datas_full.center_name].extract_full_uint8_vect(w_datas_full.format_centers,false);
+    
+    w_algo.compute_dim(w_datas_full.format_points,
+		       w_datas_full.format_egv,
+		       w_datas_full.format_sigs);
+    
+    if(w_datas_full.format_centers.size() == 0)
+      {
+	double coords[Traits::D];
+	for(auto pp : w_datas_full.format_points)
+	  {
+	    for(int d = 0; d < D; d++)
+	      {
+		if(d < D-1)
+		  coords[d] = pp[d];
+		else
+		  coords[d] = pp[d] + 30;
+	      }
+	    w_datas_full.format_centers.push_back(traits.make_point(coords));
+	  }
+      }
+
+	
+    w_algo.flip_dim_ori(w_datas_full.format_points,
+			w_datas_full.format_egv,
+			w_datas_full.format_centers);
+  }
+    
+  std::cerr << "start tessel" << std::endl;
+  w_algo.tessel_adapt(w_datas_full.format_points,
 		      p_simp_full,
 		      w_datas_full.format_egv,
 		      w_datas_full.format_sigs,
 		      20,params.pscale,D,tid
 		      );
 
-    // w_algo.tessel(w_datas_full.format_points,
-    // 		  p_simp_full,
-    // 		  w_datas_full.format_egv,
-    // 		  w_datas_full.format_sigs,tid);
-      
-      for ( auto it = w_datas_map.begin(); it != w_datas_map.end(); it++ )
-	{
-	  int acc = 0;
-	  for(auto & w_datas : w_datas_map[it->first])
-	    {
-      
+  // w_algo.tessel(w_datas_full.format_points,
+  // 		  p_simp_full,
+  // 		  w_datas_full.format_egv,
+  // 		  w_datas_full.format_sigs,tid);
 
-	      //w_datas.dmap[w_datas.egv_name].fill_full_uint8_vect(w_datas.format_egv);
-	      w_datas.fill_egv(w_datas.format_egv);
-	      //w_datas.dmap[w_datas.sig_name].fill_full_uint8_vect(w_datas.format_sigs);
-	      w_datas.fill_sigs(w_datas.format_sigs);
-
-
-	      std::cerr << "dim done tile : "<< tid << std::endl;
-	      std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(it->first) + "_" + std::to_string(acc++) +  "_dim");
-	      std::cout.clear();
-
-
-	      log.step("write");
-	      ddt::stream_data_header oth("z","s",tid);
-	      if(params.dump_ply)
-		oth.init_file_name(ply_name,".ply");
-	      oth.write_header(std::cout);
-
-	      if(params.dump_ply)
-		w_datas.write_ply_stream(oth.get_output_stream(),'\n',true);
-	      else
-		w_datas.write_serialized_stream(oth.get_output_stream());
-
-	      oth.finalize();
-	      std::cout << std::endl;
-	    }
-	}
-
-    if(p_simp_full.size() > 0)
-        {
-            ddt::stream_data_header oxh("x","z",tid);
-            ddt_data<Traits> datas_out;
-            datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-            datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(p_simp_full);
-
-	    std::string ply_name(params.output_dir +  "/simp_id_" + std::to_string(tid) + "_simp");
-            if(params.dump_ply)
-	      oxh.init_file_name(ply_name,".ply");
-            oxh.write_header(std::cout);
-	    if(params.dump_ply)
-	      datas_out.write_ply_stream(oxh.get_output_stream());
-	    else
-	      datas_out.write_serialized_stream(oxh.get_output_stream());
-            oxh.finalize();
-            std::cout << std::endl;
-        }
-
-    return 0;
-}
-
-
-
-int dim_fun(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
-{
-    std::cout.setstate(std::ios_base::failbit);
-    std::cerr << "into fun" << std::endl;
-    wasure_algo w_algo;
-    int D = Traits::D;
-    Traits  traits;
-
-    for(int i = 0; i < nb_dat; i++)
-    {
-
-        ddt::stream_data_header hpi;
-        wasure_data<Traits> w_datas;
-
-        hpi.parse_header(std::cin);
-
-        log.step("read");
-        if(hpi.get_lab() == "z" )
+  if(do_splitted){
+    for ( auto it = w_datas_map.begin(); it != w_datas_map.end(); it++ )
+      {
+	int acc = 0;
+	for(auto & w_datas : w_datas_map[it->first])
 	  {
-	  // if(hpi.is_serialized()){
-	  //   std::vector<Point> rvp;
-	  //   ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
-	  //   for(auto pp : rvp)
-	  //     {
-          //       vp.emplace_back(std::make_pair(pp,tid));
-	  //     }
-	     if(hpi.is_serialized()){
-	       std::cerr << "start read ply" << std::endl;
-	       w_datas.read_serialized_stream(hpi.get_input_stream());
-	       //w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
-	       std::cerr << "end read ply" << std::endl;
-	     }else{
-	       w_datas.read_ply_stream(hpi.get_input_stream());
-	       w_datas.shpt2uint8();
-	     }
-	  }
-        //}
-        hpi.finalize();
-        std::cerr << "finalize" << std::endl;
+      
 
-        log.step("compute");
-        // w_datas.extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
-        // w_datas.extract_ptsvect(w_datas.center_name,w_datas.format_centers,false);
-	w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(w_datas.format_points,false);
-	std::cerr << "xyz ok" << std::endl;
-	w_datas.dmap[w_datas.center_name].extract_full_uint8_vect(w_datas.format_centers,false);
-	std::cerr << "center ok" << std::endl;
-        std::vector<Point> p_simp;
-        // if(params.pscale >= 0)
-        // {
-        //     w_algo.compute_dim_with_simp(w_datas.format_points,
-        //                                  w_datas.format_egv,
-        //                                  w_datas.format_sigs,
-        //                                  p_simp,
-        //                                  params.pscale);
-        // }
-        // else
-        // {
-            w_algo.compute_dim(w_datas.format_points,
-                               w_datas.format_egv,
-                               w_datas.format_sigs);
-	    //}
+	    //w_datas.dmap[w_datas.egv_name].fill_full_uint8_vect(w_datas.format_egv);
+	    w_datas.fill_egv(w_datas.format_egv);
+	    //w_datas.dmap[w_datas.sig_name].fill_full_uint8_vect(w_datas.format_sigs);
+	    w_datas.fill_sigs(w_datas.format_sigs);
 
 
-        if(w_datas.format_centers.size() == 0)
-        {
-            double coords[Traits::D];
-            for(auto pp : w_datas.format_points)
-            {
-                for(int d = 0; d < D; d++)
-                {
-                    if(d < D-1)
-                        coords[d] = pp[d];
-                    else
-                        coords[d] = pp[d] + 30;
-                }
-                w_datas.format_centers.push_back(traits.make_point(coords));
-            }
-        }
-        w_algo.flip_dim_ori(w_datas.format_points,
-                            w_datas.format_egv,
-                            w_datas.format_centers);
+	    std::cerr << "dim done tile : "<< tid << std::endl;
+	    std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(it->first) + "_" + std::to_string(acc++) +  "_dim");
+	    std::cout.clear();
 
 
-
-
-        std::cerr << "~~ ==" << w_datas.format_points.size() << " " << w_datas.format_points.size() << std::endl;
-        std::cerr << "~~ ==" << w_datas.format_egv.size() << " " << w_datas.format_sigs.size() << std::endl;
-        std::cerr << "~~ ==" << w_datas.format_centers.size() << " " << w_datas.format_centers.size() << std::endl;
-
-        if(tid == 0)
-        {
-            for(int ii = 0; ii < 30; ii++)
-            {
-                std::cerr << "==O>" << w_datas.format_points[ii][0] << " " << w_datas.format_egv[ii][0][0] << std::endl;
-            }
-        }
-
-	//w_datas.dmap[w_datas.egv_name].fill_full_uint8_vect(w_datas.format_egv);
-        w_datas.fill_egv(w_datas.format_egv);
-	//w_datas.dmap[w_datas.sig_name].fill_full_uint8_vect(w_datas.format_sigs);
-        w_datas.fill_sigs(w_datas.format_sigs);
-
-
-        std::cerr << "dim done tile : "<< tid << std::endl;
-        std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_dim");
-        std::cout.clear();
-
-
-        log.step("write");
-        ddt::stream_data_header oth("z","s",tid);
-        if(params.dump_ply)
-            oth.init_file_name(ply_name,".ply");
-        oth.write_header(std::cout);
-	if(params.dump_ply)
-	  w_datas.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
-	else
-	  w_datas.write_serialized_stream(oth.get_output_stream());
-        oth.finalize();
-        std::cout << std::endl;
-        if(p_simp.size() > 0)
-        {
-            ddt::stream_data_header oxh("x","s",tid);
-            ddt_data<Traits> datas_out;
-            datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
-            datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(p_simp);
-
-            if(params.dump_ply)
-                oxh.init_file_name(ply_name,".ply");
-            oxh.write_header(std::cout);
+	    log.step("write");
+	    ddt::stream_data_header oth("z","s",tid);
 	    if(params.dump_ply)
-	      datas_out.write_ply_stream(oxh.get_output_stream());
+	      oth.init_file_name(ply_name,".ply");
+	    oth.write_header(std::cout);
+
+	    if(params.dump_ply)
+	      w_datas.write_ply_stream(oth.get_output_stream(),'\n',true);
 	    else
-	      datas_out.write_serialized_stream(oxh.get_output_stream());
-            oxh.finalize();
-            std::cout << std::endl;
-        }
+	      w_datas.write_serialized_stream(oth.get_output_stream());
+
+	    oth.finalize();
+	    std::cout << std::endl;
+	  }
+      }
+  }else{
+
+    //w_datas_full.dmap[w_datas_full.egv_name].fill_full_uint8_vect(w_datas_full.format_egv);
+    w_datas_full.fill_egv(w_datas_full.format_egv);
+    //w_datas_full.dmap[w_datas_full.sig_name].fill_full_uint8_vect(w_datas_full.format_sigs);
+    w_datas_full.fill_sigs(w_datas_full.format_sigs);
+    w_datas_full.dmap[w_datas_full.xyz_name].fill_full_uint8_vect(w_datas_full.format_points);
+    std::cerr << "dim done tile : "<< tid << std::endl;
+    std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) +  "_dim");
+    std::cout.clear();
 
 
+    log.step("write");
+    ddt::stream_data_header oth("z","s",tid);
+    if(params.dump_ply)
+      oth.init_file_name(ply_name,".ply");
+    oth.write_header(std::cout);
+
+    if(params.dump_ply)
+      w_datas_full.write_ply_stream(oth.get_output_stream(),'\n',true);
+    else
+      w_datas_full.write_serialized_stream(oth.get_output_stream());
+
+    oth.finalize();
+    std::cout << std::endl;
+
+  }
+  if(p_simp_full.size() > 0)
+    {
+      ddt::stream_data_header oxh("x","z",tid);
+      ddt_data<Traits> datas_out;
+      datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+      datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(p_simp_full);
+
+      std::string ply_name(params.output_dir +  "/simp_id_" + std::to_string(tid) + "_simp");
+      if(params.dump_ply)
+	oxh.init_file_name(ply_name,".ply");
+      oxh.write_header(std::cout);
+      if(params.dump_ply)
+	datas_out.write_ply_stream(oxh.get_output_stream());
+      else
+	datas_out.write_serialized_stream(oxh.get_output_stream());
+      oxh.finalize();
+      std::cout << std::endl;
     }
-    return 0;
+
+  return 0;
 }
+
+
+
+
+
+
 
 
 
@@ -2027,7 +1950,7 @@ int main(int argc, char **argv)
             }
             else if(params.algo_step == std::string("dim"))
             {
-                rv = dim_simp(tile_id,params,nb_dat,log);
+                rv = dim_splitted(tile_id,params,nb_dat,log);
             }
             else if(params.algo_step == std::string("simplify"))
             {

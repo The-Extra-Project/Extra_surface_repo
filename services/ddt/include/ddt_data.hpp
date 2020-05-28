@@ -815,6 +815,16 @@ public :
     }
   }
 
+
+  void insert(ddt_data & wd){
+    for ( const auto &ee : wd.dmap ) {
+	if(ee.second.do_exist){
+	  dmap[ee.first].uint8_vect.insert(dmap[ee.first].uint8_vect.end(),wd.dmap[ee.first].uint8_vect.begin(),wd.dmap[ee.first].uint8_vect.end());
+	  dmap[ee.first].do_exist = true;
+	}
+    }
+  }
+
   
   // void copy_point(ddt_data & wd, int id){
   //   for ( const auto &ee : wd.dmap ) {

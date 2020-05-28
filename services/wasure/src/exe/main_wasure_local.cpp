@@ -95,10 +95,11 @@ int main(int argc, char **argv)
   // Extract the unformated data into formated vector format_points and format_centers
   wdp.dmap[wdp.xyz_name].extract_full_uint8_vect(wdp.format_points);
   wdp.dmap[wdp.center_name].extract_full_uint8_vect(wdp.format_centers);
-  if(wdp.dmap[wdp.flags_name].do_exist)
-    wdp.dmap[wdp.flags_name].extract_full_uint8_vect(wdp.format_flags);
-  else
-    wdp.format_flags.resize(count,0);
+  // if(wdp.dmap[wdp.flags_name].do_exist)
+  //   wdp.dmap[wdp.flags_name].extract_full_uint8_vect(wdp.format_flags);
+  // else
+  wdp.format_flags.clear();
+  wdp.format_flags.resize(count,0);
 
  
 
@@ -153,13 +154,13 @@ int main(int argc, char **argv)
     // ofile.open(filename_tes);
     // wdp.read_ply_stream(ofile);
 
-    std::cout << "Start tessel" << std::endl;
-    w_algo.tessel_adapt(wdp.format_points,
-			wds.format_points,
-			wdp.format_egv,
-			wdp.format_sigs,
-			100,params.pscale,D,tid
-			);
+    // std::cout << "Start tessel" << std::endl;
+    // w_algo.tessel_adapt(wdp.format_points,
+    // 			wds.format_points,
+    // 			wdp.format_egv,
+    // 			wdp.format_sigs,
+    // 			100,params.pscale,D,tid
+    // 			);
 
     
   }else{

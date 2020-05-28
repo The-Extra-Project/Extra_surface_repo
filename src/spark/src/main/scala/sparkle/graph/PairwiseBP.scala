@@ -82,15 +82,25 @@ object PairwiseBP2   {
       val numConverged = newGraph.vertices.aggregate(0L)((res, vertex) =>
           if (vertex._2.converged) res + 1 else res, (res1, res2) =>
         res1 + res2)
-      cur_v = newGraph.vertices.unpersist().persist(slvl).setName("RDD_BP__" + iter)
-      cur_e = newGraph.edges.unpersist().persist(slvl).setName("RDD_BP_" + iter)
 
-      cur_v.count
-      cur_e.count
-      if(iter > 0){
-        old_v.unpersist()
-        old_e.unpersist()
+      if(iter % 20 == 0 && iter !=0){
+        cur_v = newGraph.vertices
+        cur_e = newGraph.edges
+        cur_v.checkpoint();
+        cur_e.checkpoint();        
+      }else{
+        cur_v = newGraph.vertices.unpersist().persist(slvl).setName("RDD_BP__" + iter)
+        cur_e = newGraph.edges.unpersist().persist(slvl).setName("RDD_BP_" + iter)
+        cur_v.count
+        cur_e.count
+        if(iter > 0){
+          old_v.unpersist()
+          old_e.unpersist()
+        }
       }
+
+
+
       old_v = cur_v;
       old_e = cur_e;
 

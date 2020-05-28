@@ -62,6 +62,18 @@ import files_opt._;
 val conf = new SparkConf().setAppName("DDT")
 val fs = FileSystem.get(sc.hadoopConfiguration);
 
+// Checkpoint
+val do_checkpoint = true
+val checkpoint_dir_string = "/home/laurent/shared_spark/checkpoint/"
+val checkpoint_dir_path = new Path(checkpoint_dir_string)
+if(do_checkpoint){
+  sc.setCheckpointDir(checkpoint_dir_string)
+  if (fs.exists(checkpoint_dir_path))
+    fs.delete(checkpoint_dir_path, true)
+  fs.mkdirs(checkpoint_dir_path,new FsPermission("777"))
+}
+
+
 // Metadata extraction
 val output_dir = get_bash_variable("OUTPUT_DATA_DIR").replaceAll("//", "/");
 val input_dir = get_bash_variable("INPUT_DATA_DIR").replaceAll("//", "/");
@@ -157,7 +169,7 @@ val params_wasure =  set_params(params_new,List(
 ))
 
 
-if(false){
+if(true){
   params_ddt("dump_ply") = collection.mutable.Set("")
   params_wasure("dump_ply") = collection.mutable.Set("")
 }
@@ -304,11 +316,13 @@ println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 val lambda_list = List("0.001","0.01","0.1","1","10","100","1000")
 val coef_mult_list = List(0.1,1,10,100,1000,100000)
-val it_list = List(20)
 
 
-val lambda_list = List("0.000002")
-val coef_mult_list = List(500000,1000000,5000000,10000000,100000000,1000000000)
+val coef_mult_list = List(1)
+
+val it_list = List(20,40,60)
+val lambda_list = List("0.00000","0.000004")
+val coef_mult_list = List("310000000000".toLong)
 
 
 var acc = 0;

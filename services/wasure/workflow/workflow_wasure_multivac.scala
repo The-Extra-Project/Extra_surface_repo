@@ -62,6 +62,17 @@ import files_opt._;
 val conf = new SparkConf().setAppName("DDT")
 val fs = FileSystem.get(sc.hadoopConfiguration);
 
+// Checkpoint
+val do_checkpoint = true
+val checkpoint_dir_string = "hdfs:/user/lcaraffa/checkpoint/"
+val checkpoint_dir_path = new Path(checkpoint_dir_string)
+if(do_checkpoint){
+  sc.setCheckpointDir(checkpoint_dir_string)
+  if (fs.exists(checkpoint_dir_path))
+    fs.delete(checkpoint_dir_path, true)
+  fs.mkdirs(checkpoint_dir_path,new FsPermission("777"))
+}
+
 // Metadata extraction
 val output_dir = get_bash_variable("OUTPUT_DATA_DIR").replaceAll("//", "/");
 val input_dir = get_bash_variable("INPUT_DATA_DIR").replaceAll("//", "/");
@@ -336,7 +347,7 @@ graph_dst.vertices.setName("GRAPH_DST_VERTICES");
 println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 val lambda_list = List("1","4")
-val it_list = List(100)
+val it_list = List(70)
 val coef_mult_list = List(1)
 
 val lambda_list = List("0.000004")
