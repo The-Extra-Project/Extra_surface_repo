@@ -347,11 +347,17 @@ graph_dst.vertices.setName("GRAPH_DST_VERTICES");
 println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 val lambda_list = List("1","4")
-val it_list = List(70)
+val it_list = List(20)
 val coef_mult_list = List(1)
 
 val lambda_list = List("0.000004")
+val coef_mult_list = List("100000000000".toLong,"1000000000".toLong,"10000000".toLong,"100000".toLong)
+
+
+val it_list = List(20,50)
+val lambda_list = List("0.003","0.01","0.02")
 val coef_mult_list = List("110000000000".toLong)
+
 
 // val coef_mult = coef_mult_list.head
 // val ll = lambda_list.head
@@ -359,9 +365,9 @@ val coef_mult_list = List("110000000000".toLong)
 // Loop over the differents parameters
 var acc = 0;
 if(true){
-  it_list.foreach{ max_it =>
-    lambda_list.foreach{ ll =>
-      coef_mult_list.foreach{ coef_mult =>
+  coef_mult_list.foreach{ coef_mult =>
+    it_list.foreach{ max_it =>
+      lambda_list.foreach{ ll =>
         params_wasure("lambda") = collection.mutable.Set(ll)
         params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)
         val ext_name = "_ITER_" + acc + "_ll_" + ll + "_cm_" + fmt.format(coef_mult) + "_it_" + fmt.format(max_it);

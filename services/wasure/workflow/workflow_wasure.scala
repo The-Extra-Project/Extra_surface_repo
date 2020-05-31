@@ -169,7 +169,7 @@ val params_wasure =  set_params(params_new,List(
 ))
 
 
-if(true){
+if(false){
   params_ddt("dump_ply") = collection.mutable.Set("")
   params_wasure("dump_ply") = collection.mutable.Set("")
 }
@@ -318,11 +318,11 @@ val lambda_list = List("0.001","0.01","0.1","1","10","100","1000")
 val coef_mult_list = List(0.1,1,10,100,1000,100000)
 
 
-val coef_mult_list = List(1)
 
-val it_list = List(20,40,60)
-val lambda_list = List("0.00000","0.000004")
-val coef_mult_list = List("310000000000".toLong)
+
+val it_list = List(20,50)
+val lambda_list = List("0.001","0.002","0.004","0.008","0.016","0.032","0.064")
+val coef_mult_list = List("100000000000".toLong,"100000000".toLong,"100000".toLong)
 
 
 var acc = 0;
@@ -346,9 +346,11 @@ def partition2ply(path_output : String, label : String){
 // Loop over the differents parameters
 
 if(true){
-  lambda_list.foreach{ ll =>
-    coef_mult_list.foreach{ coef_mult =>
-      it_list.foreach{ max_it =>
+  coef_mult_list.foreach{ coef_mult =>
+    it_list.foreach{ max_it =>
+      lambda_list.foreach{ ll =>
+
+
         params_wasure("lambda") = collection.mutable.Set(ll)
         params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)
         val datestring = dateFormatter.format(Calendar.getInstance().getTime());

@@ -11,10 +11,10 @@
 # mkdir -p $OUTPUT_DIR
 # ./build//build-spark-Release-3/bin/wasure-local-exe --output_dir $OUTPUT_DIR  --input_dir /home/laurent/shared_spark/inputs/ --dim 3 --bbox 0000x10000:0000x10000  --pscale 0.3 --nb_samples 10 --rat_ray_sample 1 --mode surface --lambda 0 --step church --seed 18696 --label damping_05 --adaptative_scale --filename /home/laurent/shared_spark/inputs/church/preprocessed_small_2_merged/merged_01.ply
 
-OUTPUT_DIR="/home/laurent/shared_spark/tests_outputs/preprocessed_small_2_merged2/"
+OUTPUT_DIR="/home/laurent/shared_spark/tests_outputs/preprocessed_small_2_merged2_new/"
 # INPUT_FILE="/home/laurent/shared_spark/inputs/church/preprocessed_small_2_merged/merged_01.ply"
 INPUT_FILE="/home/laurent/shared_spark/inputs/church/preprocessed_small_2_merged2/merged2.ply"
-
+#INPUT_FILE="/home/laurent//shared_spark/inputs/toulouse_pp/Toul1_3_LAMB93_000006.ply"
 mkdir -p $OUTPUT_DIR
 ./build//build-spark-Release-3/bin/wasure-local-exe --output_dir $OUTPUT_DIR  --input_dir /home/laurent/shared_spark/inputs/ --dim 3 --bbox 0000x10000:0000x10000  --pscale 1 --nb_samples 10 --rat_ray_sample 1 --mode surface --lambda 0 --step church --seed 18696 --label damping_05 --adaptative_scale --filename $INPUT_FILE
 

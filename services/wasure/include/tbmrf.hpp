@@ -965,7 +965,7 @@ public :
 	typedef opengm::MessagePassing<Model, opengm::Maximizer, UpdateRules, opengm::MaxDistance> BeliefPropagation;
 	const size_t maxNumberOfIterations = 50;
 	const double convergenceBound = 1e-7;
-	const double damping = 1;
+	const double damping = 0;
 	BeliefPropagation::Parameter parameter(maxNumberOfIterations, convergenceBound, damping);
 	BeliefPropagation bp(gm, parameter);
 	std::cerr << " ~~~~~ graph created " << std::endl;	

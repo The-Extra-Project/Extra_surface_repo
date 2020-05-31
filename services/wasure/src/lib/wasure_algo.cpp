@@ -371,7 +371,7 @@ wasure_algo::simplify(std::vector<Point> & points, std::vector<bool> & do_keep, 
 
   int nbp = points.size();
   double eps = 0;
-  int K_T = 100;
+  int K_T = 150;
   if(K_T > points.size() -1)
     K_T = points.size() - 1;
   //std::cerr << "step1" << std::endl;
@@ -484,9 +484,14 @@ wasure_algo::compute_dim(  std::vector<Point> & points, std::vector<std::vector<
 
   int nbp = points.size();
   double eps = 0;
-  int K_T = 100;
+  int K_T = 150;
   if(K_T > points.size() -1)
     K_T = points.size() - 1;
+
+  int K_T_min = 3;
+  // if(K_T_min > points.size() -1)
+  //   K_T_min = points.size() - 1;
+  
   //std::cerr << "step1" << std::endl;
   ANNpointArray	dataPts;
   ANNpoint	queryPt;
@@ -523,8 +528,9 @@ wasure_algo::compute_dim(  std::vector<Point> & points, std::vector<std::vector<
 
     kdTree->annkSearch(queryPt,K_T, nnIdx,dists,eps);
     
-    for(int k = 3; k < K_T; k++){
-      
+    for(int k = K_T_min; k < K_T; k++){
+      if(dists[k] < 0.02 && k < 30)
+	continue;
       std::vector<Point> cur_pts_norms;
       std::vector<double> cur_coords_scale(D);
       compute_svd(k, nnIdx, points,cur_pts_norms,cur_coords_scale);
