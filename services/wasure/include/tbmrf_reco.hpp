@@ -51,6 +51,7 @@ public :
         double volume = 1;
 	if(!fch->is_infinite()){
 	  volume =  log(1+tbmrf<DTW,D_MAP>::get_volume(fch));
+	  //volume = tbmrf<DTW,D_MAP>::get_volume(fch);
 	  
 	}
 	int D = Traits::D;

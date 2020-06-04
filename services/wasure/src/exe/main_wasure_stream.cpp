@@ -286,7 +286,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
   Traits  traits;
   D_LMAP w_datas_map;
 
-  bool do_splitted = true;
+  bool do_splitted =  true;
   wasure_data<Traits>  w_datas_full;
   std::vector<Point> p_simp_full;    
   for(int i = 0; i < nb_dat; i++)

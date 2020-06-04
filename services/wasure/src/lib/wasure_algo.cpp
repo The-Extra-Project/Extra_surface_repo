@@ -1033,10 +1033,10 @@ wasure_algo::get_params_surface_dst(const std::vector<double> & pts_scales,doubl
   double maxs = *std::max_element(pts_scales.begin(),pts_scales.end());
   double rat = (mins/maxs);
   coef_conf = 1;
-  //coef_conf = exp(-(rat*rat)/0.01);
+  //coef_conf = exp(-(rat*rat)/0.05);
   //coef_conf = exp(-(rat*rat)/0.002);
   if(min_scale > 0)
-    coef_conf = MIN(MAX(min_scale/data_scale,0.000001),1);//*get_conf_volume(pts_scales,D);
+    coef_conf = coef_conf*MIN(MAX(min_scale/data_scale,0.000001),1);//*get_conf_volume(pts_scales,D);
 
  
 }
@@ -1906,7 +1906,7 @@ void wasure_algo::compute_dst_with_center(DTW & tri, wasure_data<Traits>  & data
 
   compute_dst_tri(tri,datas_tri,datas_pts,params);
   DT & tri_tile  = tri.get_tile(tid)->triangulation();
-  //compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
+  compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
   center_dst(tri,datas_tri,datas_pts.format_centers,tid);
 } 
 

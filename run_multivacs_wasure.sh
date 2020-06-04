@@ -69,7 +69,7 @@ function run_multivac_church
     export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/preprocessed_small/"
     export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/preprocessed_small_2/"
     export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church/"
-    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_small.xml"    
+    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_small.xml"
     run_algo_multivac
 }
 

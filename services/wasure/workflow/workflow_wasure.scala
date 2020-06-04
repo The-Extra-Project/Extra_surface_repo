@@ -321,8 +321,10 @@ val coef_mult_list = List(0.1,1,10,100,1000,100000)
 
 
 val it_list = List(20,50)
-val lambda_list = List("0.001","0.002","0.004","0.008","0.016","0.032","0.064")
-val coef_mult_list = List("100000000000".toLong,"100000000".toLong,"100000".toLong)
+
+//val lambda_list = List("0.1","0.2","0.05")
+
+
 
 
 var acc = 0;
@@ -345,11 +347,14 @@ def partition2ply(path_output : String, label : String){
 
 // Loop over the differents parameters
 
-if(true){
-  coef_mult_list.foreach{ coef_mult =>
-    it_list.foreach{ max_it =>
-      lambda_list.foreach{ ll =>
+val coef_mult_list = List("110000000000".toLong,"11000000".toLong)
+val lambda_list = List("0.005","0.001","0.0005","0.0001","0.01")
 
+
+if(true){
+  it_list.foreach{ max_it =>
+  coef_mult_list.foreach{ coef_mult =>
+      lambda_list.foreach{ ll =>
 
         params_wasure("lambda") = collection.mutable.Set(ll)
         params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)

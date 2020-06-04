@@ -355,8 +355,15 @@ val coef_mult_list = List("100000000000".toLong,"1000000000".toLong,"10000000".t
 
 
 val it_list = List(20,50)
-val lambda_list = List("0.003","0.01","0.02")
-val coef_mult_list = List("110000000000".toLong)
+//val lambda_list = List("0.001","0.0001","0.00001","0.0005")
+
+// val coef_mult_list = List("110000000000".toLong,"110000000".toLong,"110000".toLong)
+// val lambda_list = List("0.007","0.003","0.001","0.001")
+//val lambda_list = List("1","0.01","0.001","0.0001","0.00001")
+
+val coef_mult_list = List("110000000000".toLong,"11000000".toLong)
+val lambda_list = List("0.005","0.001","0.0005","0.0001","0.01")
+
 
 
 // val coef_mult = coef_mult_list.head
@@ -365,8 +372,9 @@ val coef_mult_list = List("110000000000".toLong)
 // Loop over the differents parameters
 var acc = 0;
 if(true){
+  it_list.foreach{ max_it =>
   coef_mult_list.foreach{ coef_mult =>
-    it_list.foreach{ max_it =>
+
       lambda_list.foreach{ ll =>
         params_wasure("lambda") = collection.mutable.Set(ll)
         params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)
