@@ -361,9 +361,15 @@ val it_list = List(20,50)
 // val lambda_list = List("0.007","0.003","0.001","0.001")
 //val lambda_list = List("1","0.01","0.001","0.0001","0.00001")
 
-val coef_mult_list = List("110000000000".toLong,"11000000".toLong)
+
+
 val lambda_list = List("0.005","0.001","0.0005","0.0001","0.01")
 
+
+val it_list = List(50,60)
+
+val lambda_list = List("0.0015")
+val coef_mult_list = List("110000000000".toLong,"11000000".toLong)
 
 
 // val coef_mult = coef_mult_list.head
@@ -372,10 +378,10 @@ val lambda_list = List("0.005","0.001","0.0005","0.0001","0.01")
 // Loop over the differents parameters
 var acc = 0;
 if(true){
+  lambda_list.foreach{ ll =>
   it_list.foreach{ max_it =>
   coef_mult_list.foreach{ coef_mult =>
 
-      lambda_list.foreach{ ll =>
         params_wasure("lambda") = collection.mutable.Set(ll)
         params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)
         val ext_name = "_ITER_" + acc + "_ll_" + ll + "_cm_" + fmt.format(coef_mult) + "_it_" + fmt.format(max_it);

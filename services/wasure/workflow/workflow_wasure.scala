@@ -315,12 +315,8 @@ graph_dst.edges.setName("graph_dst");
 println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 val lambda_list = List("0.001","0.01","0.1","1","10","100","1000")
-val coef_mult_list = List(0.1,1,10,100,1000,100000)
+val lambda_list = List("0.001")
 
-
-
-
-val it_list = List(20,50)
 
 //val lambda_list = List("0.1","0.2","0.05")
 
@@ -347,14 +343,18 @@ def partition2ply(path_output : String, label : String){
 
 // Loop over the differents parameters
 
-val coef_mult_list = List("110000000000".toLong,"11000000".toLong)
-val lambda_list = List("0.005","0.001","0.0005","0.0001","0.01")
+
+val it_list = List(50)
+val lambda_list = List("0.002","0.004","0.005","0.001")
+val coef_mult_list = List("110000000000".toLong)
+
 
 
 if(true){
+  lambda_list.foreach{ ll =>
   it_list.foreach{ max_it =>
   coef_mult_list.foreach{ coef_mult =>
-      lambda_list.foreach{ ll =>
+
 
         params_wasure("lambda") = collection.mutable.Set(ll)
         params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)
