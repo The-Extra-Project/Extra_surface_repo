@@ -7,10 +7,10 @@
       <dim>3</dim>
       <ndtree_depth>2</ndtree_depth>
       <bbox>-50x50:-50x50:-50x50</bbox>
-      <max_ppt>50000000</max_ppt>  
+      <max_ppt>5000</max_ppt>  
 
-      <pscale>1</pscale>
-      <nb_samples>10</nb_samples>
+      <pscale>0.01</pscale>
+      <nb_samples>1</nb_samples>
      
       <lambda>1</lambda>
       <!-- <StorageLevel>MEMORY_AND_DISK</StorageLevel> -->

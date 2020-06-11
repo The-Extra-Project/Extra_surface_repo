@@ -83,7 +83,7 @@ object PairwiseBP2   {
           if (vertex._2.converged) res + 1 else res, (res1, res2) =>
         res1 + res2)
 
-      if(iter % 20 == 0 && iter !=0){
+      if(iter % 20 == 0 && iter !=0 && false){
         cur_v = newGraph.vertices
         cur_e = newGraph.edges
         cur_v.checkpoint();

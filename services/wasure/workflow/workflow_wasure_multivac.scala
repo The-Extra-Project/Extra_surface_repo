@@ -366,7 +366,7 @@ val it_list = List(20,50)
 val lambda_list = List("0.005","0.001","0.0005","0.0001","0.01")
 
 
-val it_list = List(50,60)
+val it_list = List(3)
 
 val lambda_list = List("0.0015")
 val coef_mult_list = List("110000000000".toLong,"11000000".toLong)
@@ -404,17 +404,22 @@ if(true){
           //     kvrdd_seg, "seg", do_dump = false).collect()
           // }
 
-          val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
-            ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge" + ext_name),
-            graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false)
-          val rdd_ply_surface_vertex = iq.run_pipe_fun_KValue(
-            ext_cmd_vertex ++ List("--label","ext_spark_ll_v2_tile" + ext_name),
-            graph_seg.vertices, "seg", do_dump = false)
+          if(true){
+            val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
+              ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge" + ext_name),
+              graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false)
+            val rdd_ply_surface_vertex = iq.run_pipe_fun_KValue(
+              ext_cmd_vertex ++ List("--label","ext_spark_ll_v2_tile" + ext_name),
+              graph_seg.vertices, "seg", do_dump = false)
+            ddt_algo.saveAsPly(rdd_ply_surface_edges,cur_output_dir + "/ply_edges" + ext_name,plot_lvl)
+            ddt_algo.saveAsPly(rdd_ply_surface_vertex,cur_output_dir + "/ply_vertex" + ext_name,plot_lvl)
+          }else{
+            val rdd_ply_surface = iq.run_pipe_fun_KValue(
+              ext_cmd ++ List("--label","ext_spark"  +  ext_name),
+              iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
+            ddt_algo.saveAsPly(rdd_ply_surface_vertex,cur_output_dir + "/ply_vertex" + ext_name,plot_lvl)
+          }
 
-          val rdd_ply_surface = iq.run_pipe_fun_KValue(
-            ext_cmd ++ List("--label","ext_spark"  +  ext_name),
-            iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
-          ddt_algo.saveAsPly(rdd_ply_surface,cur_output_dir + "/ply" + ext_name,plot_lvl)
           if(true){
             fs.listStatus(new Path(cur_output_dir)).filter(
               dd => (dd.isDirectory)).map(
