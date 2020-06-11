@@ -262,7 +262,7 @@ kvrdd_points = ddt_algo.compute_tiling_2(kvrdd_inputs,iq,params_ddt,params_scala
 nb_leaf = params_scala("nb_leaf").head.toInt;
 
 val rep_merge = ((if((nb_leaf) < spark_core_max) spark_core_max else  nb_leaf));
-val rep_belief = rep_merge*3
+val rep_belief = rep_merge/3
 var rep_loop = nb_leaf;
 
 if(ndtree_depth == 8)
