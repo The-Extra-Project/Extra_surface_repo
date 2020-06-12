@@ -275,7 +275,6 @@ wasure_algo::tessel(DT_raw  & tri,
       norm_map[vv] = std::vector<double>(D,0);
       scale_map[vv] = std::vector<double>(D,0);
     }
-    std::cerr << "accumulate" << std::endl;
     for(int ii = 0; ii < points.size();ii++){
       Point pp = points[ii];
       double ss = 1;//exp(-(scales[ii][D-1]*scales[ii][D-1])/0.1);
@@ -289,7 +288,6 @@ wasure_algo::tessel(DT_raw  & tri,
       vertex_map[vv][D]+=ss;
     }
 
-    std::cerr << "move" << std::endl;
     for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv){
       if(tri.is_infinite(vv))
 	continue;
@@ -320,9 +318,7 @@ wasure_algo::tessel(DT_raw  & tri,
 
       if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1){
 	auto pp2 = Point(vpn[0]-vn[0]*vs[0]*3,vpn[1]-vn[1]*vs[1]*3,vpn[2]-vn[2]*vs[2]*3);
- 	std::cerr << "insert new " << pp2 <<  std::endl;
 	extra_pts.push_back(pp2);
-	std::cerr << "insert done " <<  std::endl;
       }
 
             

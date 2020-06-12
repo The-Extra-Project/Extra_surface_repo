@@ -59,7 +59,7 @@ target_link_libraries(opt-qpbo-exe
 
 
 
-include_directories("/home/laurent/code/spark-ddt/services/extern/opengm/include/")
+include_directories("../../../extern/opengm/include/")
 # add_executable(example-grid-potts grid_potts.cxx)
 # find_library(RT_LIBRARY rt)
 # target_link_libraries(example-grid-potts rt)
