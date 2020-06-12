@@ -1,6 +1,7 @@
-** ftp
+* ftp
  ssh ftpuser@caraffa.ddns.net
-  
+
+* Run  
 ** Spark (distributed)
    cd /home/ftpuser/code/spark-ddt/
  ./run_all_workflow.sh
@@ -9,7 +10,11 @@
  ~/code/spark-ddt/src/docker/docker_interface.sh shell
  cd /home/ftpuser/code/spark-ddt/
   ./run_local_2.sh
- 
+
+* Other 
+** Compile 
+~/code/spark-ddt/src/docker/docker_interface.sh compile -j4 -t3
+
 **  Copy back the result
  scp -r ftpuser@lcaraffa.ddns.net:/home/ftpuser/shared_spark/ .
  
