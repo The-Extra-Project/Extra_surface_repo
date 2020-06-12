@@ -9,10 +9,10 @@
       <bbox>-50x50:-50x50:-50x50</bbox>
       <max_ppt>5000</max_ppt>  
 
-      <pscale>0.01</pscale>
+      <pscale>0.03</pscale>
       <nb_samples>1</nb_samples>
      
-      <lambda>1</lambda>
+      <lambda>0.1,0.01,0.001</lambda>
       <!-- <StorageLevel>MEMORY_AND_DISK</StorageLevel> -->
       <StorageLevel>MEMORY_ONLY</StorageLevel> 
       <!-- Meta paramexters -->

@@ -5,7 +5,7 @@
 
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
 source ${DDT_MAIN_DIR}/algo-env.sh
-GLOBAL_OUTPUT_DIR="${HOME}/shared_spark/outputs/"
+GLOBAL_OUTPUT_DIR="${SHARED_DIR}/outputs/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
@@ -87,7 +87,7 @@ function run_3d_croco
 function run_3d_daratech
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${HOME}/shared_spark/inputs/daratech_small/"
+    INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/daratech_small/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
@@ -97,8 +97,8 @@ function run_3d_daratech
 function run_3d_aerial
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    #INPUT_DIR="${HOME}/shared_spark/inputs/aerial_small/"
-    INPUT_DIR="${HOME}/shared_spark/inputs/church/stream_bbox1/"
+    #INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/aerial_small/"
+    INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/church/stream_bbox1/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
@@ -108,7 +108,7 @@ function run_3d_aerial
 function run_3d_toulouse
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${HOME}/shared_spark/inputs/toulouse_pp/"
+    INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/toulouse_pp/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
@@ -118,7 +118,7 @@ function run_3d_toulouse
 function run_3d_church
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${HOME}/shared_spark/inputs/church/preprocessed_small_2/"
+    INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/church/preprocessed_small_2/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
 #    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d_small.xml"
@@ -155,9 +155,9 @@ function preprocess_data
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
-    #INPUT_DIR="${HOME}/shared_spark/inputs/aerial_crop/"
-    #INPUT_DIR="${HOME}/shared_spark/inputs/toulouse/"    
-    #INPUT_DIR="${HOME}/shared_spark/inputs/church/cloudcompaire/"
+    #INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/aerial_crop/"
+    #INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/toulouse/"    
+    #INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/church/cloudcompaire/"
     #INPUT_DIR="/home/laurent/shared_spark/inputs/church/preprocessed_vsmall_merged/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"

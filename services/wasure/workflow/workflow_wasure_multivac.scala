@@ -366,7 +366,7 @@ val it_list = List(20,50)
 val lambda_list = List("0.005","0.001","0.0005","0.0001","0.01")
 
 
-val it_list = List(3)
+val it_list = List(3,50)
 
 val lambda_list = List("0.0015")
 val coef_mult_list = List("110000000000".toLong,"11000000".toLong)
@@ -379,9 +379,8 @@ val coef_mult_list = List("110000000000".toLong,"11000000".toLong)
 var acc = 0;
 if(true){
   lambda_list.foreach{ ll =>
-  it_list.foreach{ max_it =>
   coef_mult_list.foreach{ coef_mult =>
-
+  it_list.foreach{ max_it =>
         params_wasure("lambda") = collection.mutable.Set(ll)
         params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)
         val ext_name = "_ITER_" + acc + "_ll_" + ll + "_cm_" + fmt.format(coef_mult) + "_it_" + fmt.format(max_it);
@@ -417,7 +416,7 @@ if(true){
             val rdd_ply_surface = iq.run_pipe_fun_KValue(
               ext_cmd ++ List("--label","ext_spark"  +  ext_name),
               iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
-            ddt_algo.saveAsPly(rdd_ply_surface_vertex,cur_output_dir + "/ply_vertex" + ext_name,plot_lvl)
+            ddt_algo.saveAsPly(rdd_ply_surface,cur_output_dir + "/ply_vertex" + ext_name,plot_lvl)
           }
 
           if(true){
