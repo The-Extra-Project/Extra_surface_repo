@@ -1338,11 +1338,14 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
             int tmp_idx = fit.index_of_covertex();
             Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
 
+	    
 
-	    if(
-            (params.area_processed == 1 && ((tmp_fch->main_id() != tmp_fchn->main_id()) )) ||
-            (params.area_processed == 2 && ((tmp_fch->main_id() == tmp_fchn->main_id()) )))
+	     if(
+		(params.area_processed == 1 && tmp_fch->main_id() != tmp_fchn->main_id() )){
+	       //	       || (params.area_processed == 2 && tmp_fch->main_id() == tmp_fchn->main_id()))
+
             continue;
+	     }
 
             if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
 	       !tri.tile_is_loaded(tmp_fchn->main_id())){
@@ -1353,7 +1356,7 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
 	    
 	    // if(
 	    //    (params.area_processed == 1 && (!fit->is_local()))  ||
-	    // 	(params.area_processed == 2 && fit->is_local()))
+	    // 	(params.area_processed == 2 && !fit->is_mixed()))
             // continue;
 
             // if(!tri.tile_is_loaded(tmp_fch->main_id()) ||

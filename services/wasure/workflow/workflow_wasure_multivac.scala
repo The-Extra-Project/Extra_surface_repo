@@ -366,7 +366,7 @@ val it_list = List(20,50)
 val lambda_list = List("0.005","0.001","0.0005","0.0001","0.01")
 
 
-val it_list = List(3,50)
+val it_list = List(1,50)
 
 val lambda_list = List("0.0015")
 val coef_mult_list = List("110000000000".toLong,"11000000".toLong)

@@ -6,6 +6,7 @@
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
 source ${DDT_MAIN_DIR}/algo-env.sh
 GLOBAL_OUTPUT_DIR="${SHARED_DIR}/outputs/"
+GLOBAL_INPUT_DIR="${SHARED_DIR}/inputs/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
@@ -79,7 +80,7 @@ function run_3d_croco
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d_big.xml"
     run_algo_docker
 }
 
@@ -87,7 +88,7 @@ function run_3d_croco
 function run_3d_daratech
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/daratech_small/"
+    INPUT_DIR="${GLOBAL_INPUT_DIR}/daratech_small/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
@@ -97,8 +98,8 @@ function run_3d_daratech
 function run_3d_aerial
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    #INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/aerial_small/"
-    INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/church/stream_bbox1/"
+    #INPUT_DIR="${GLOBAL_INPUT_DIR}/aerial_small/"
+    INPUT_DIR="${GLOBAL_INPUT_DIR}/church/stream_bbox1/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
@@ -108,7 +109,7 @@ function run_3d_aerial
 function run_3d_toulouse
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/toulouse_pp/"
+    INPUT_DIR="${GLOBAL_INPUT_DIR}/toulouse_pp/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
@@ -118,10 +119,10 @@ function run_3d_toulouse
 function run_3d_church
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/church/preprocessed_small_2/"
+    INPUT_DIR="${GLOBAL_INPUT_DIR}/church/preprocessed_small_2/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
 #    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d_small.xml"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d_big.xml"
     run_algo_docker
 }
 
@@ -155,9 +156,9 @@ function preprocess_data
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
-    #INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/aerial_crop/"
-    #INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/toulouse/"    
-    #INPUT_DIR="${GLOBAL_OUTPUT_DIR}/inputs/church/cloudcompaire/"
+    #INPUT_DIR="${GLOBAL_INPUT_DIR}/aerial_crop/"
+    #INPUT_DIR="${GLOBAL_INPUT_DIR}/toulouse/"    
+    #INPUT_DIR="${GLOBAL_INPUT_DIR}/church/cloudcompaire/"
     #INPUT_DIR="/home/laurent/shared_spark/inputs/church/preprocessed_vsmall_merged/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
@@ -176,8 +177,8 @@ function preprocess_data
 #run_2d_wasure
 
 ### 3D
-run_3d_croco
-#run_3d_church
+#run_3d_croco
+run_3d_church
 #run_3d_toulouse
 #run_3d_daratech
 
