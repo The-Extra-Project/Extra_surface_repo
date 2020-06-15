@@ -437,12 +437,17 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
   }
     
   std::cerr << "start tessel" << std::endl;
+  if(params.pscale < 1){
   w_algo.tessel_adapt(w_datas_full.format_points,
 		      p_simp_full,
 		      w_datas_full.format_egv,
 		      w_datas_full.format_sigs,
 		      20,params.pscale,D,tid
 		      );
+  }else{
+    p_simp_full.insert(p_simp_full.end(),w_datas_full.format_points.begin(),w_datas_full.format_points.end());
+    
+  }
 
   // w_algo.tessel(w_datas_full.format_points,
   // 		  p_simp_full,
@@ -1297,13 +1302,15 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
     int D = Traits::D;
 
     D_MAP w_datas_tri;
-
+    
     log.step("read");
+    std::vector<Id> lid;
     for(int i = 0; i < nb_dat; i++)
     {
         ddt::stream_data_header hpi;
         hpi.parse_header(std::cin);
         Id hid = hpi.get_id(0);
+	lid.push_back(hid);
         if(hpi.get_lab() == "t")
         {
             w_datas_tri[hid] = wasure_data<Traits>();
@@ -1338,13 +1345,26 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
             int tmp_idx = fit.index_of_covertex();
             Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
 
-	    
 
-	     if(
-		(params.area_processed == 1 && tmp_fch->main_id() != tmp_fchn->main_id() )){
-	       //	       || (params.area_processed == 2 && tmp_fch->main_id() == tmp_fchn->main_id()))
 
-            continue;
+
+	    if(params.area_processed == 2  ){
+	      bool is_edge =  false;
+	      if((tmp_fch->has_id(lid[0]) && tmp_fchn->has_id(lid[1])) ||
+		 (tmp_fch->has_id(lid[1]) && tmp_fchn->has_id(lid[0]))
+		 ){
+		is_edge = true;
+	      // for(auto ii : lid){
+	      // 	if(!tmp_fch->had_id(ii) || !tmp_fchn->had_id(ii) )
+	      // 	is_edge = false;
+	      }
+	      if(!is_edge )
+		continue;
+	    }
+
+	    if(params.area_processed == 1){
+	      if(tmp_fch->is_mixed() || tmp_fchn->is_mixed())
+	    	continue;
 	     }
 
             if(!tri.tile_is_loaded(tmp_fch->main_id()) ||

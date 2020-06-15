@@ -379,6 +379,46 @@ public:
         return !foreign;
     }
 
+
+  // Check if the facet is main
+    template<typename F>
+    bool facet_has_id(F f,Id ii) const
+    {
+        int icv = index_of_covertex(f);
+        auto c = full_cell(f);
+        bool foreign = true;
+        for(int i=0; i<=current_dimension(); ++i)
+        {
+            if (i == icv) continue;
+            auto v = vertex(c,i);
+            if (vertex_is_infinite(v)) continue;
+            Id vid = id(v);
+	    if(vid == ii)
+	      return true;
+        }
+        return false;
+    }
+
+  
+  template<typename C>
+  bool has_id(C c,Id ii) const
+  {
+    bool foreign = true;
+    for(int i=0; i<=current_dimension(); ++i)
+        {
+            auto v = vertex(c,i);
+            if (vertex_is_infinite(v))
+            {
+                continue;
+            }
+            Id vid = id(v);
+            if ( vid == ii )
+	      return true;
+        }
+        return false;
+    }
+
+  
     // Active
     template<typename C>
     bool cell_is_active(const Bbox<D>& bbox, C c) const

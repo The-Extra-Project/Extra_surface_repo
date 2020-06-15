@@ -179,6 +179,7 @@ public:
     bool is_local()    const { return tile_->facet_is_local(facet_); }
     int local_score() const { return tile_->facet_local_score(facet_); }
     bool is_mixed()    const { return tile_->facet_is_mixed(facet_); }
+    bool facet_has_id(Id ii)    const { return tile_->facet_has_id(facet_,ii); }
     bool is_foreign()  const { return tile_->facet_is_foreign(facet_); }
     bool is_main()     const { return tile_->facet_is_main(facet_); }
     bool is_infinite() const { return tile_->facet_is_infinite(facet_); }

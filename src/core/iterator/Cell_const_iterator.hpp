@@ -258,6 +258,7 @@ public:
     bool is_mixed()    const { return tile_->cell_is_mixed(cell_); }
     bool is_foreign()  const { return tile_->cell_is_foreign(cell_); }
     bool is_main()     const { return tile_->cell_is_main(cell_); }
+  bool has_id(Id ii)     const { return tile_->has_id(cell_,ii); }
     bool is_infinite() const { return tile_->cell_is_infinite(cell_); }
     bool is_inside() const { return tile_->cell_is_inside(cell_); }
 

@@ -241,6 +241,7 @@ var rep_loop = nb_leaf;
 if(ndtree_depth > 8){
   rep_loop = spark_core_max*10;
   rep_merge = spark_core_max*10;
+}
 params_scala("rep_loop") = collection.mutable.Set(rep_loop.toString)
 params_scala("rep_merge") = collection.mutable.Set(rep_merge.toString)
 params_scala("dump_mode") = collection.mutable.Set("NONE")
@@ -350,7 +351,7 @@ val coef_mult_list = List("110000000000".toLong,"1100000000".toLong,"1100000".to
 
 
 
-if(false){
+if(true){
   lambda_list.foreach{ ll =>
     it_list.foreach{ max_it =>
       coef_mult_list.foreach{ coef_mult =>
@@ -403,29 +404,46 @@ if(false){
           }
           partition2ply(cur_output_dir, acc.toString);
 
-          if(false){
-            val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
-            val input_seg = graph_dst.vertices;
-            val res_seg = iq.run_pipe_fun_KValue(
-              seg_cmd ++ List("--label", "seg"),
-              input_seg, "dst", do_dump = false).persist(slvl_glob)
-            val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
-            val graph_seg = Graph(kvrdd_seg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
-            val rdd_ply_surface = iq.run_pipe_fun_KValue(
-              ext_cmd ++ List("--label","ext_seg" + ext_name),
-              iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
-            rdd_ply_surface.collect()
+          // if(false){
+          //   val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
+          //   val input_seg = graph_dst.vertices;
+          //   val res_seg = iq.run_pipe_fun_KValue(
+          //     seg_cmd ++ List("--label", "seg"),
+          //     input_seg, "dst", do_dump = false).persist(slvl_glob)
+          //   val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
+          //   val graph_seg = Graph(kvrdd_seg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
+          //   val rdd_ply_surface = iq.run_pipe_fun_KValue(
+          //     ext_cmd ++ List("--label","ext_seg" + ext_name),
+          //     iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
+          //   rdd_ply_surface.collect()
 
-            val ply_dir = cur_output_dir + "/ply" + ext_name + "_gc"
-            ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl)
-            partition2ply(cur_output_dir,acc.toString);
-          }
+          //   val ply_dir = cur_output_dir + "/ply" + ext_name + "_gc"
+          //   ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl)
+          //   partition2ply(cur_output_dir,acc.toString);
+          // }
           acc += 1;
         }
         /// End
       }
     }
   }
+}
+
+if(false){
+  acc += 1;
+  val datestring = dateFormatter.format(Calendar.getInstance().getTime());
+  val ext_name = label + "_" + acc + "_ll_" + ll + "_cm_" + fmt.format(coef_mult) + "_it_" + fmt.format(max_it) + "_" +  datestring;
+  val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
+    ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge" + ext_name),
+    graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false)
+  val rdd_ply_surface_vertex = iq.run_pipe_fun_KValue(
+    ext_cmd_vertex ++ List("--label","ext_spark_ll_v2_tile" + ext_name),
+    graph_seg.vertices, "seg", do_dump = false)
+  val ply_dir_edges = cur_output_dir + "/ply" + ext_name + "_edges"
+  val ply_dir_vertex = cur_output_dir + "/ply" + ext_name + "_vertex"
+  ddt_algo.saveAsPly(rdd_ply_surface_edges,ply_dir_edges,plot_lvl)
+  ddt_algo.saveAsPly(rdd_ply_surface_vertex,ply_dir_vertex,plot_lvl)
+  partition2ply(cur_output_dir, acc.toString);
 }
 
 // // ====== Dump geojson ======
