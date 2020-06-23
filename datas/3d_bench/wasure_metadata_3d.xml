@@ -7,6 +7,7 @@
       <dim>3</dim>
       <ndtree_depth>2</ndtree_depth>
       <bbox>-50x50:-50x50:-50x50</bbox>
+      <!-- Nombre maximum de point par tuile (octree) -->
       <max_ppt>5000</max_ppt>  
 
       <pscale>0.03</pscale>

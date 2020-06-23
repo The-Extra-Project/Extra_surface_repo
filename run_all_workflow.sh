@@ -121,8 +121,8 @@ function run_3d_church
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     INPUT_DIR="${GLOBAL_INPUT_DIR}/church/preprocessed_small_2/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-#    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d_big.xml"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+#    PARAMS="${INPUT_DIR}/wasure_metadata_3d_big.xml"
     run_algo_docker
 }
 
