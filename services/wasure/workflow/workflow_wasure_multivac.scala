@@ -384,7 +384,7 @@ if(true){
         rep_belief_list.foreach{ rep_belief =>
           params_wasure("lambda") = collection.mutable.Set(ll)
           params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)
-          val ext_name = "_ITER_" + acc + "_ll_" + ll + "_cm_" + fmt.format(coef_mult) + "_it_" + fmt.format(max_it) + "_rep_" + fmt.format(rep_belief);
+          val ext_name = "FULL_ITER_" + acc + "_ll_" + ll + "_cm_" + fmt.format(coef_mult) + "_it_" + fmt.format(max_it) + "_rep_" + fmt.format(rep_belief);
           if(true){
             println("==== Segmentation with lambda:" + ll + " coef_mult:" + coef_mult +  "  ====")
             val ext_cmd_vertex =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","1"))).to_command_line

@@ -63,7 +63,7 @@ target_compile_definitions(Sampler PUBLIC ${PNG_DEFINITIONS})
 
 add_executable(pc_generator  ${sampler_HEADERS} sampler/pc_generator.cpp)
 target_include_directories(pc_generator PUBLIC ${sampler_INCLUDE})
-target_link_libraries(pc_generator PUBLIC Sampler)
+target_link_libraries(pc_generator PUBLIC Sampler Modeling)
 
 add_executable(uniform_sampler  ${sampler_HEADERS} sampler/run_uniform.cpp)
 target_include_directories(uniform_sampler PUBLIC ${sampler_INCLUDE})

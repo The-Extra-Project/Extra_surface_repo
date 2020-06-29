@@ -400,6 +400,9 @@ lambda_list.foreach{ ll =>
             iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
           val ply_dir = cur_output_dir + "/ply" + ext_name + "_edges"
           ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl)
+          dump_json(params_wasure,ply_dir + "/params_wasure.json",sc);
+          dump_json(params_scala,ply_dir + "/params_scala.json",sc);
+
 
         }
         partition2ply(cur_output_dir, acc.toString);
