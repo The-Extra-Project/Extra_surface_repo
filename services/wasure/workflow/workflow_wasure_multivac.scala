@@ -270,6 +270,9 @@ params_scala("rep_loop") = collection.mutable.Set(rep_loop.toString)
 params_scala("rep_merge") = collection.mutable.Set(rep_merge.toString)
 params_scala("dump_mode") = collection.mutable.Set("NONE")
 
+params_scala("availableProcessors") = collection.mutable.Set(java.lang.Runtime.getRuntime.availableProcessors.toString)
+params_scala("Parallelism_lvl") = collection.mutable.Set((iqsc.getExecutorMemoryStatus.size -1).toString)
+
 println("======== Dimenstionnality =============")
 val t0 = System.nanoTime()
 params_scala("t0") = collection.mutable.Set(t0.toString)
@@ -376,6 +379,7 @@ val rep_belief_list = List(rep_merge/3)
 var acc = 0;
 
 
+
 val sstt = StorageLevel.MEMORY_ONLY
 if(true){
   lambda_list.foreach{ ll =>
@@ -419,6 +423,12 @@ if(true){
                 iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
               ddt_algo.saveAsPly(rdd_ply_surface,cur_output_dir + "/ply_vertex" + ext_name,plot_lvl)
             }
+
+            params_scala("scala_time_full") = collection.mutable.Set(scala_time.toString)
+
+            dump_json(params_wasure,cur_output_dir + "/params_wasure.json",sc);
+            dump_json(params_scala,cur_output_dir + "/params_scala.json",sc);
+
 
             if(true){
               fs.listStatus(new Path(cur_output_dir)).filter(
