@@ -81,6 +81,7 @@ object algo_iqlibbp {
       res_belief_str.persist(iq.get_storage_level()).setName("res_belief_str")
       res_belief_str.count()
 
+
     val input_extract_graph = (input_vertex).union(res_belief_str).reduceByKey(_ ::: _,nb_part)
 
     val res_seg_mf = iq.run_pipe_fun_KValue(

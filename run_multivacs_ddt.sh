@@ -148,38 +148,10 @@ function run_multivac_eval
 
 	export EVAL_REP="eval_core_300M"
 	filepath=${DDT_MAIN_DIR}/datas/eval_dir/${EVAL_REP}/*${ii}.xml
-	export LIST_EXECUTORS="2 1"
-	export LIST_CORES="2 1"
-	export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/eval_scale/${eval_name}/${EVAL_REP}_${ii}/"
+	export LIST_EXECUTORS=" 7"
+	export LIST_CORES="1 2 3 4"
+	export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/eval_church/${eval_name}/${EVAL_REP}_${ii}/"
 	eval_params_loop
-
-	# export EVAL_REP="eval_core_300M"
-	# filepath=${DDT_MAIN_DIR}/datas/eval_dir/${EVAL_REP}/*${ii}.xml
-	# export LIST_EXECUTORS="0"
-	# export LIST_CORES="1"
-	# export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/eval_scale/${eval_name}/${EVAL_REP}/"
-	# eval_params_loop
-
-
-	
-
-
-	# export EVAL_REP="eval_core_300Mb"
-	# filepath=${DDT_MAIN_DIR}/datas/eval_dir/${EVAL_REP}/*xml
-	# export LIST_EXECUTORS=" 7"
-	# export LIST_CORES="4 3 2 1"
-	# export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/eval_scale/${eval_name}/${EVAL_REP}_${ii}/"
-	# eval_params_loop
-
-
-	# export EVAL_REP="eval_core_100M"
-	# filepath=${DDT_MAIN_DIR}/datas/eval_dir/${EVAL_REP}/*xml
-	# export LIST_CORES="4 3 2 1"
-	# export LIST_EXECUTORS="7"
-	# export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/eval_scale/${eval_name}/${EVAL_REP}_cores_${ii}/"
-	# eval_params_loop
-
-	# your-unix-command-here
 
     done
 

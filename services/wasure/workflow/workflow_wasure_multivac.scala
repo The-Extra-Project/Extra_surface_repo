@@ -81,6 +81,9 @@ val hdfs_files_dir = get_bash_variable("HDFS_FILES_DIR");
 val ddt_main_dir = get_bash_variable("DDT_MAIN_DIR");
 val global_build_dir = get_bash_variable("GLOBAL_BUILD_DIR");
 
+val num_core_string = get_bash_variable("MULTIVAC_NUM_CORE");
+val num_executor_string = get_bash_variable("MULTIVAC_NUM_EXECUTORS");
+
 // Check if we have
 if (output_dir.isEmpty ||  input_dir.isEmpty )
 {
@@ -132,7 +135,7 @@ val nbp =  params_scala.get_param("nbp", "10000").toInt
 val datatype =  params_scala.get_param("datatype", "filestream")
 val spark_core_max = params_scala.get_param("spark_core_max", df_par.toString).toInt
 //val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(100000).toString);
-val algo_seed =  params_scala.get_param("algo_seed","1000");
+val algo_seed =  params_scala.get_param("algo_seed","2000");
 
 // Surface reconstruction prarams
 val wasure_mode = params_scala.get_param("mode", "surface")
@@ -163,7 +166,7 @@ var env_map_multivacs = Map(
 
 // Set the iq library on
 val iq = new IQlibSched(slvl_glob,slvl_loop,env_map_multivacs)
-val output_dir = params_scala("output_dir").head;
+//val output_dir = params_scala("output_dir").head;
 
 // Set the c++ command line object
 val params_new = new Hash_StringSeq with mutable.MultiMap[String, String]
@@ -212,6 +215,9 @@ params_scala("output_dir") = collection.mutable.Set(cur_output_dir)
 params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)
 params_ddt("nbt_side") =  collection.mutable.Set(nbt_side.toString)
 
+params_scala("num_core") = collection.mutable.Set(num_core_string)
+params_scala("num_executor") = collection.mutable.Set(num_executor_string)
+
 println("")
 println("=======================================================")
 params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
@@ -256,6 +262,7 @@ var kvrdd_inputs = format_data(
 
 // =========== Start of the algorithm ==============
 val t0 = System.nanoTime()
+
 params_scala("t0") = collection.mutable.Set(t0.toString)
 println("======== Tiling =============")
 kvrdd_points = ddt_algo.compute_tiling_2(kvrdd_inputs,iq,params_ddt,params_scala);
@@ -271,16 +278,17 @@ params_scala("rep_merge") = collection.mutable.Set(rep_merge.toString)
 params_scala("dump_mode") = collection.mutable.Set("NONE")
 
 params_scala("availableProcessors") = collection.mutable.Set(java.lang.Runtime.getRuntime.availableProcessors.toString)
-params_scala("Parallelism_lvl") = collection.mutable.Set((iqsc.getExecutorMemoryStatus.size -1).toString)
+
 
 println("======== Dimenstionnality =============")
-val t0 = System.nanoTime()
-params_scala("t0") = collection.mutable.Set(t0.toString)
 
 val res_dim = iq.run_pipe_fun_KValue(
   dim_cmd ++ List("--label", "dim"),
   kvrdd_points, "dim", do_dump = false).persist(slvl_glob)
 res_dim.count
+
+ddt_algo.update_time(params_scala,"dim");
+
 kvrdd_points.unpersist()
 val kvrdd_dim = iq.get_kvrdd(res_dim,"z");
 val kvrdd_simp = iq.get_kvrdd(res_dim,"x").reduceByKey((u,v) => u ::: v,rep_loop);
@@ -330,6 +338,7 @@ val res_dst = iq.run_pipe_fun_KValue(
   dst_cmd ++ List("--label", "dst"),
   input_dst, "dst", do_dump = false).persist(slvl_glob).setName("res_dst");
 res_dst.count
+ddt_algo.update_time(params_scala,"dst");
 res_dim.unpersist()
 input_dst.unpersist()
 kvrdd_points.unpersist();
@@ -347,24 +356,13 @@ graph_dst.vertices.setName("GRAPH_DST_VERTICES");
 
 
 println("============= Optimiation ===============")
-val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
-val lambda_list = List("1","4")
-val it_list = List(20)
-val coef_mult_list = List(1)
-
-val lambda_list = List("0.000004")
-val coef_mult_list = List("100000000000".toLong,"1000000000".toLong,"10000000".toLong,"100000".toLong)
+//val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 
 
-
-//val lambda_list = List("0.001","0.0001","0.00001","0.0005")
 
 // val coef_mult_list = List("110000000000".toLong,"110000000".toLong,"110000".toLong)
 // val lambda_list = List("0.007","0.003","0.001","0.001")
 //val lambda_list = List("1","0.01","0.001","0.0001","0.00001")
-
-
-
 
 
 
@@ -401,7 +399,7 @@ if(true){
               max_it,epsilon,
               stats_tri, params_wasure, iq, sc,rep_belief);
             val graph_seg = Graph(kvrdd_seg, graph_dst.edges, List(""));
-
+            ddt_algo.update_time(params_scala,"belief");
             // if (dim == 2)  {
             //   iq.run_pipe_fun_KValue(
             //     tri2geojson_cmd ++ List("--label","sparkcuted_v2_ll_" + ll,"--style","tri_seg.qml"),
@@ -424,10 +422,7 @@ if(true){
               ddt_algo.saveAsPly(rdd_ply_surface,cur_output_dir + "/ply_vertex" + ext_name,plot_lvl)
             }
 
-            params_scala("scala_time_full") = collection.mutable.Set(scala_time.toString)
 
-            dump_json(params_wasure,cur_output_dir + "/params_wasure.json",sc);
-            dump_json(params_scala,cur_output_dir + "/params_scala.json",sc);
 
 
             if(true){
@@ -438,6 +433,17 @@ if(true){
                 ff => fs.rename(ff.getPath, new Path(ff.getPath.toString + ".ply"))
               )
             }
+            ddt_algo.update_time(params_scala,"final");
+            val t1 = System.nanoTime()
+            val scala_time = ((t1 - t0)/1000000000.0);
+
+            params_scala("scala_time_full") = collection.mutable.Set(scala_time.toString)
+
+            dump_json(params_wasure,cur_output_dir + "/params_wasure.json",sc);
+            dump_json(params_scala,cur_output_dir + "/params_scala.json",sc);
+
+
+
             // val rdd_ply_surface = iq.run_pipe_fun_KValue(
             //   ext_cmd ++ List("--label","ext_spark"  +  ext_name),
             //   iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
@@ -461,6 +467,9 @@ if(true){
     }
   }
 }
+
+
+sys.exit
 
 // // ====== Dump geojson ======
 // if(false){

@@ -28,7 +28,7 @@ function run_algo_multivac
     echo "spark-shell -i ${FILE_SCRIPT}"
     echo "	--master yarn --deploy-mode client "
     echo "	--jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar "
-    echo "	--executor-cores ${MULTIVAC_EXECUTOR_CORE} "
+    echo "	--executor-cores ${MULTIVAC_NUM_CORE} "
     echo "	--executor-memory ${MULTIVAC_EXECUTOR_MEMORY} "
     echo "	--driver-memory ${MULTIVAC_DRIVER_MEMORY} "
     echo "	--num-executors ${MULTIVAC_NUM_EXECUTORS} "
@@ -40,11 +40,11 @@ function run_algo_multivac
     echo "	--conf spark.memory.fraction=0.2 "
     echo "	--conf spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
 
-#    spark-shell -i  ${FILE_SCRIPT} \
-    spark-shell -i  \
+	#    spark-shell -i  \
+    spark-shell -i  ${FILE_SCRIPT} \
 		--master yarn --deploy-mode client \
 		--jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar \
-		--executor-cores ${MULTIVAC_EXECUTOR_CORE} \
+		--executor-cores ${MULTIVAC_NUM_CORE} \
 		--executor-memory ${MULTIVAC_EXECUTOR_MEMORY} \
 		--driver-memory ${MULTIVAC_DRIVER_MEMORY} \
 		--num-executors ${MULTIVAC_NUM_EXECUTORS} \
@@ -63,10 +63,38 @@ function run_algo_multivac
 
 export HDFS_FILES_DIR="hdfs:/user/lcaraffa/tmp/"
 
+
+
+function eval_params_loop {
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
+    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/preprocessed_small_2/"
+    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church_eval/"
+    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"
+    export LIST_EXECUTORS=" 7 4 1"
+    export LIST_CORES="4 3 2 1"    
+    for ee in ${LIST_EXECUTORS}
+    do
+	for cc in ${LIST_CORES}
+	do
+    	    export MULTIVAC_NUM_EXECUTORS="$ee"
+	    export MULTIVAC_NUM_CORE="$cc" 
+    	    if [ "$ee" == "0" ]; then
+		echo "special case 0000000000000"
+    		export MULTIVAC_NUM_EXECUTORS="1"
+    		export MULTIVAC_NUM_CORE="1" 
+    	    fi
+
+    	    echo "num executors => $MULTIVAC_NUM_EXECUTORS"
+    	    echo "num cores => $MULTIVAC_NUM_CORE"
+    	    run_algo_multivac
+	done
+    done
+}
+
+
 function run_multivac_church
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
-    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/preprocessed_small/"
     export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/preprocessed_small_2/"
     export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church/"
     export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"
@@ -101,9 +129,10 @@ function run_multivac_croco
     run_algo_multivac
 }
 
+eval_params_loop
 #run_multivac_church
 #run_multivac_aerial
-run_multivac_full
+#run_multivac_full
 #run_multivac_croco
 
 
