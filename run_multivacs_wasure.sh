@@ -68,16 +68,26 @@ export HDFS_FILES_DIR="hdfs:/user/lcaraffa/tmp/"
 function eval_params_loop {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
     export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/preprocessed_small_2/"
-    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church_eval/"
+    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church_eval_new
+/"
     export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"
     export LIST_EXECUTORS=" 7 4 1"
-    export LIST_CORES="4 3 2 1"    
+    export LIST_CORES="4 3 2 1"
+
+    
     for ee in ${LIST_EXECUTORS}
     do
 	for cc in ${LIST_CORES}
 	do
     	    export MULTIVAC_NUM_EXECUTORS="$ee"
-	    export MULTIVAC_NUM_CORE="$cc" 
+	    export MULTIVAC_NUM_CORE="$cc"
+
+	    if [ "$ee $cc" = "7 4" ] || [ "$ee $cc" = "7 3" ] || [ "$ee $cc" = "7 2" ];
+	    then
+		continue;
+	    fi
+
+	    
     	    if [ "$ee" == "0" ]; then
 		echo "special case 0000000000000"
     		export MULTIVAC_NUM_EXECUTORS="1"

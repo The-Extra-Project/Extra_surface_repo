@@ -55,11 +55,11 @@ public :
 	  
 	}
 	int D = Traits::D;
-        if(fch->is_infinite())
 
+        if(fch->is_infinite() && false)
         {
 	  //std::cout << "retrun inf!!" << std::endl;
-	  	  return 0;
+	  return 0;
 	  int id_cov;
 	  for(int d = 0; d < D+1;d++){
 	    if(fch->vertex(d)->is_infinite())
@@ -103,29 +103,19 @@ public :
 	    else
 	      return 100000;
 	  }
-
-	    
-	  // double v1[Traits::D];
-	  // double v2[Traits::D];
-	  // for(int d = 0; d < Traits::D;d++)
-	  //   if(fch->vertex(d)->is_infinite())
-	  //     inf_id = d;
-	  // auto chn = fch>neighbors(inf_id);
-	      
-	  // std::vector<double> pii_coefs = compute_base_coef<Point>(p1,pii,pts_norm,D);
-	  
-            // if(mode == 1 && pLabsOut[label] > 0.5)
-            //     return 10;
-            // else
-            //     return 0;
-	    
-            // if(mode == 0 && pLabsOut[label] > 0.5)
-            //     return 0;
-            // else
-            //     return 10;
-
-	    // return 0;
+	
         }
+
+
+	if(fch->is_infinite() && true){	     	  
+	  if((mode == 1 && pLabsOut[label] > 0.5) ||
+	     (mode == 0 && pLabsOut[label] < 0.5)
+	     )
+	    return 1000000;
+	  else
+	    return 0;
+	}
+	
         double nbe = 1;//((double)fch->data().dat[3]);
         double coef = volume/nbe;
         int cell_id = fch->lid();

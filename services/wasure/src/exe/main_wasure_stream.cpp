@@ -1113,10 +1113,10 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
 
     log.step("compute");
     int mode = -1;
-    if(true)
-        mode = 1;
+
+    //mode = 1;
     // if(params.mode.find(std::string("out")) != std::string::npos)
-    //   mode = 0;
+       mode = 0;
 
 
     for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
@@ -1139,6 +1139,9 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
                 continue;
 	    }
 
+	    bool is_on_convex = false;
+	    if(tmp_fch->is_infinite() ||  tmp_fchn->is_infinite() )
+	      is_on_convex = true;
 
 
             Cell_const_iterator fch = tmp_fch->main();
@@ -1152,7 +1155,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
             int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
             int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];
             if(
-                (ch1lab != chnlab)
+	       (ch1lab != chnlab)  || (mode == 0 && (is_on_convex && (ch1lab == 0 || chnlab == 0)))
 	       ){
                 lft.push_back(*fit);
 		
@@ -1175,8 +1178,6 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
             continue;
         }
     }
-
-
 
 
     log.step("write");
@@ -1328,10 +1329,9 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
 
     log.step("compute");
     int mode = -1;
-    if(true)
-        mode = 1;
-    // if(params.mode.find(std::string("out")) != std::string::npos)
-    //   mode = 0;
+    //mode = 1;
+	// if(params.mode.find(std::string("out")) != std::string::npos)
+    mode = 0;
 
 
     for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
@@ -1798,7 +1798,7 @@ int extract_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
 
     tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri,&w_datas_tri);
     mrf.lambda = params.lambda;
-    mrf.set_mode(0);
+    mrf.set_mode(-1);
 
 
     

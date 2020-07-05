@@ -317,12 +317,7 @@ graph_dst.edges.setName("graph_dst");
 println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 
-
-
 //val lambda_list = List("0.1","0.2","0.05")
-
-
-
 
 var acc = 0;
 val label = "coef_adapt"
@@ -383,7 +378,7 @@ lambda_list.foreach{ ll =>
         //     kvrdd_seg, "seg", do_dump = false).collect()
         // }
 
-        if(true){
+        if(false){
           val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
             ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge" + ext_name),
             graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false)
@@ -402,11 +397,8 @@ lambda_list.foreach{ ll =>
           ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl)
           dump_json(params_wasure,ply_dir + "/params_wasure.json",sc);
           dump_json(params_scala,ply_dir + "/params_scala.json",sc);
-
-
         }
         partition2ply(cur_output_dir, acc.toString);
-
         // if(false){
         //   val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
         //   val input_seg = graph_dst.vertices;
