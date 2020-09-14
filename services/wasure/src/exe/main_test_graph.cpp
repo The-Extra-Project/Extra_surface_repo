@@ -28,8 +28,6 @@ int test1(){
     g -> add_node(); 
   }
 
-
- 
   g->add_tweights(0, 1,6);
   g->add_tweights(1, 4,6);
   g->add_tweights(2, 4,0);
@@ -134,8 +132,6 @@ int test2(int N){
     {
       std::cerr << "ARC:" << a->sister->head << " " << a->head << std::endl;
       std::cerr << "ARC rap:" << a->r_cap << std::endl;
-
-								  
     }
   // int acc = 0;
   // for (auto a= g->get_first_node(); a < g->get_last_node(); a++)
