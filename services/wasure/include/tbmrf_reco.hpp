@@ -107,14 +107,14 @@ public :
         }
 
 
-	if(fch->is_infinite() && true){	     	  
-	  if((mode == 1 && pLabsOut[label] > 0.5) ||
-	     (mode == 0 && pLabsOut[label] < 0.5)
-	     )
-	    return 1000000;
-	  else
-	    return 0;
-	}
+	// if(fch->is_infinite() && true){	     	  
+	//   if((mode == 1 && pLabsOut[label] > 0.5) ||
+	//      (mode == 0 && pLabsOut[label] < 0.5)
+	//      )
+	//     return 1000000;
+	//   else
+	//     return 0;
+	// }
 	
         double nbe = 1;//((double)fch->data().dat[3]);
         double coef = volume/nbe;
@@ -146,12 +146,18 @@ public :
             int tmp_idx = fit.index_of_covertex();
             Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
 
+	    
 
 
             if(!this->tri->tile_is_loaded(tmp_fch->main_id()) ||
                     !this->tri->tile_is_loaded(tmp_fchn->main_id()))
                 continue;
 
+	    bool is_on_convex = false;
+	    if(tmp_fch->is_infinite() ||  tmp_fchn->is_infinite() )
+	      is_on_convex = true;
+
+	    
 
             Cell_const_iterator fch = tmp_fch->main();
             int id_cov = fit.index_of_covertex();
@@ -168,7 +174,8 @@ public :
             //     (((fch->is_infinite() && !fchn->is_infinite()) ||
             //       (!fch->is_infinite() && fchn->is_infinite())) && ch1lab == mode )
             // )
-	      if(ch1lab != chnlab)
+	    if(
+	       (ch1lab != chnlab) ||  (mode == 0 && (is_on_convex && (ch1lab == 0 || chnlab == 0))))
 		lft.push_back(*fit);
 
         }

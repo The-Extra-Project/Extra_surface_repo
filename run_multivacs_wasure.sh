@@ -139,10 +139,10 @@ function run_multivac_croco
     run_algo_multivac
 }
 
-eval_params_loop
+#eval_params_loop
 #run_multivac_church
 #run_multivac_aerial
-#run_multivac_full
+run_multivac_full
 #run_multivac_croco
 
 
