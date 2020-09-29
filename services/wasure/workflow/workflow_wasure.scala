@@ -348,7 +348,7 @@ val coef_mult_list = List("110000000000".toLong)
 
 
 
-if(true){
+if(false){
 lambda_list.foreach{ ll =>
   it_list.foreach{ max_it =>
     coef_mult_list.foreach{ coef_mult =>
@@ -401,24 +401,24 @@ lambda_list.foreach{ ll =>
           dump_json(params_scala,ply_dir + "/params_scala.json",sc);
         }
         partition2ply(cur_output_dir, acc.toString);
-        // if(false){
 
-        //   val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
-        //   val input_seg = graph_dst.vertices;
-        //   val res_seg = iq.run_pipe_fun_KValue(
-        //     seg_cmd ++ List("--label", "seg"),
-        //     input_seg, "dst", do_dump = false).persist(slvl_glob)
-        //   val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
-        //   val graph_seg = Graph(kvrdd_seg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
-        //   val rdd_ply_surface = iq.run_pipe_fun_KValue(
-        //     ext_cmd ++ List("--label","ext_seg" + ext_name),
-        //     iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
-        //   rdd_ply_surface.collect()
+        if(true){
+          val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
+          val input_seg = graph_dst.vertices;
+          val res_seg = iq.run_pipe_fun_KValue(
+            seg_cmd ++ List("--label", "seg"),
+            input_seg, "dst", do_dump = false).persist(slvl_glob)
+          val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
+          val graph_seg = Graph(kvrdd_seg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
+          val rdd_ply_surface = iq.run_pipe_fun_KValue(
+            ext_cmd ++ List("--label","ext_seg" + ext_name),
+            iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
+          rdd_ply_surface.collect()
 
-        //   val ply_dir = cur_output_dir + "/ply" + ext_name + "_gc"
-        //   ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl)
-        //   partition2ply(cur_output_dir,acc.toString);
-        // }
+          val ply_dir = cur_output_dir + "/ply" + ext_name + "_gc_new4"
+          ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl)
+          partition2ply(cur_output_dir,acc.toString);
+        }
         acc += 1;
       }
       /// End

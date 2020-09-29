@@ -38,51 +38,51 @@ object algo_iqlibbp {
    */
 
 
-      def compute_graph_cut(graph_bp: TGraph , maxIterations : Int, epsilon : Double, stats_tri : RDD[KValue], params_wasure : params_map, iq : IQlibSched, sc : SparkContext,nb_part : Int): RDD[KValue]  = {
+//       def compute_graph_cut(graph_bp: TGraph , maxIterations : Int, epsilon : Double, stats_tri : RDD[KValue], params_wasure : params_map, iq : IQlibSched, sc : SparkContext,nb_part : Int): RDD[KValue]  = {
 
-      val input_vertex : RDD[KValue] =  graph_bp.vertices
-//      input_vertex.persist(iq.get_storage_level())
-      val input_edges : RDD[KValue] =  graph_bp.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr))
+//       val input_vertex : RDD[KValue] =  graph_bp.vertices
+// //      input_vertex.persist(iq.get_storage_level())
+//       val input_edges : RDD[KValue] =  graph_bp.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr))
 
-      val fill_graph_cmd =  set_params(params_wasure, List(("step","fill_graph"))).to_command_line
-      val extract_graph_cmd_local =  set_params(params_wasure, List(("step","extract_graph"),("graph_type","1"),("area_processed","1"))).to_command_line
-      val extract_graph_cmd_shared =  set_params(params_wasure, List(("step","extract_graph"),("graph_type","1"),("area_processed","2"))).to_command_line
-
-
-    val full_graph_local = iq.run_pipe_fun_KValue(
-      extract_graph_cmd_local,
-      input_vertex, "ext_gr", do_dump = false)
+//       val fill_graph_cmd =  set_params(params_wasure, List(("step","fill_graph"))).to_command_line
+//       val extract_graph_cmd_local =  set_params(params_wasure, List(("step","extract_graph"),("graph_type","1"),("area_processed","1"))).to_command_line
+//       val extract_graph_cmd_shared =  set_params(params_wasure, List(("step","extract_graph"),("graph_type","1"),("area_processed","2"))).to_command_line
 
 
-    val full_graph_shared = iq.run_pipe_fun_KValue(
-      extract_graph_cmd_shared, 
-      input_edges, "ext_gr", do_dump = false)
-
-    val full_graph_merged =  (full_graph_local union full_graph_shared);
-
-    val beliefs = graph_cut(full_graph_merged,maxIterations,epsilon,iq,nb_part)
-
-    val summed_id = sum_simplex_id(stats_tri);
-    val res_belief_str = belief_2_kvrdd(beliefs,summed_id);
-      res_belief_str.persist(iq.get_storage_level()).setName("res_belief_str")
-      res_belief_str.count()
+//     val full_graph_local = iq.run_pipe_fun_KValue(
+//       extract_graph_cmd_local,
+//       input_vertex, "ext_gr", do_dump = false)
 
 
-    val input_extract_graph = (input_vertex).union(res_belief_str).reduceByKey(_ ::: _,nb_part)
+//     val full_graph_shared = iq.run_pipe_fun_KValue(
+//       extract_graph_cmd_shared, 
+//       input_edges, "ext_gr", do_dump = false)
 
-    val res_seg_mf = iq.run_pipe_fun_KValue(
-      fill_graph_cmd ++ List("--label", "sparkcuted_full"),
-      input_extract_graph, "ext_gr", do_dump = false)
+//     val full_graph_merged =  (full_graph_local union full_graph_shared);
 
-      res_seg_mf.persist(iq.get_storage_level()).setName("res_seg_mf");
-      res_seg_mf.count()
-      res_belief_str.unpersist();
-      input_vertex.unpersist();
+//     val beliefs = graph_cut(full_graph_merged,maxIterations,epsilon,iq,nb_part)
 
-    val kvrdd_seg = iq.get_kvrdd(res_seg_mf,"t");
-    return kvrdd_seg;
+//     val summed_id = sum_simplex_id(stats_tri);
+//     val res_belief_str = belief_2_kvrdd(beliefs,summed_id);
+//       res_belief_str.persist(iq.get_storage_level()).setName("res_belief_str")
+//       res_belief_str.count()
 
-  }
+
+//     val input_extract_graph = (input_vertex).union(res_belief_str).reduceByKey(_ ::: _,nb_part)
+
+//     val res_seg_mf = iq.run_pipe_fun_KValue(
+//       fill_graph_cmd ++ List("--label", "sparkcuted_full"),
+//       input_extract_graph, "ext_gr", do_dump = false)
+
+//       res_seg_mf.persist(iq.get_storage_level()).setName("res_seg_mf");
+//       res_seg_mf.count()
+//       res_belief_str.unpersist();
+//       input_vertex.unpersist();
+
+//     val kvrdd_seg = iq.get_kvrdd(res_seg_mf,"t");
+//     return kvrdd_seg;
+
+//   } 
 
     def compute_belief_prop_v2(graph_bp: TGraph , maxIterations : Int, epsilon : Double, stats_tri : RDD[KValue], params_wasure : params_map, iq : IQlibSched, sc : SparkContext,nb_part : Int): RDD[KValue]  = {
 
@@ -223,36 +223,36 @@ object algo_iqlibbp {
   }
 
 
-  def graph_cut(full_graph_merged: RDD[VData] , maxIterations: Int, epsilon : Double,iq : IQlibSched,nb_part : Int):  Graph[PVertex,PEdge]  = {
-    println(" belief prop : Init")
-    val edges_cpp = full_graph_merged.filter(x => !x.isEmpty).filter(_(0) == 'e').map(_.substring(2))
-    val nodes_cpp = full_graph_merged.filter(x => !x.isEmpty).filter(_(0) == 'v').map(_.substring(2))
-    val vertexRDD = nodes_cpp.map(x => x.split(" ")).map(x => (x(0).toLong,x(1).toLong));
-    val edgesRDD = edges_cpp.map( x=> x.split(" ")).filter(_.size > 1).map( x => org.apache.spark.graphx.Edge(x(0).toLong,x(1).toLong,x(2).toFloat.toInt))
+//   def graph_cut(full_graph_merged: RDD[VData] , maxIterations: Int, epsilon : Double,iq : IQlibSched,nb_part : Int):  Graph[PVertex,PEdge]  = {
+//     println(" belief prop : Init")
+//     val edges_cpp = full_graph_merged.filter(x => !x.isEmpty).filter(_(0) == 'e').map(_.substring(2))
+//     val nodes_cpp = full_graph_merged.filter(x => !x.isEmpty).filter(_(0) == 'v').map(_.substring(2))
+//     val vertexRDD = nodes_cpp.map(x => x.split(" ")).map(x => (x(0).toLong,x(1).toLong));
+//     val edgesRDD = edges_cpp.map( x=> x.split(" ")).filter(_.size > 1).map( x => org.apache.spark.graphx.Edge(x(0).toLong,x(1).toLong,x(2).toFloat.toInt))
 
-    edgeRDD.setName("INPUT_BG")
-    vertexRDD.setName("INPUT_BG")
-val sourceId_ex: VertexId = 0L
-val targetId_ex: VertexId = 1L
-    val graph : org.apache.spark.graphx.Graph[Long,Int] = Graph(vertexRDD,edgesRDD)
-    // fixing the dimensions of factor based on vertexes
-    val flows_ex = maxFlow(sourceId_ex, targetId_ex, graph,sc,5)
-    val graph = tmpGraph.mapTriplets { triplet =>
-      val srcSize = triplet.srcAttr.prior.size
-      val dstSize = triplet.dstAttr.prior.size
-      PEdge(Factor(Array(srcSize, dstSize), triplet.attr), Variable.fill(srcSize)(0.0), Variable.fill(dstSize)(0.0))
-    }.partitionBy(EdgePartition1D,nb_part)
+//     edgeRDD.setName("INPUT_BG")
+//     vertexRDD.setName("INPUT_BG")
+// val sourceId_ex: VertexId = 0L
+// val targetId_ex: VertexId = 1L
+//     //    val graph : org.apache.spark.graphx.Graph[Long,Int] = Graph(vertexRDD,edgesRDD)
+//     // fixing the dimensions of factor based on vertexes
+//     val flows_ex = maxFlow(sourceId_ex, targetId_ex, graph,sc,5)
+//     val graph = tmpGraph.mapTriplets { triplet =>
+//       val srcSize = triplet.srcAttr.prior.size
+//       val dstSize = triplet.dstAttr.prior.size
+//       PEdge(Factor(Array(srcSize, dstSize), triplet.attr), Variable.fill(srcSize)(0.0), Variable.fill(dstSize)(0.0))
+//     }.partitionBy(EdgePartition1D,nb_part)
 
-    graph.vertices.setName("INPUT_BG_2")
-    graph.edges.setName("INPUT_BG_2")
+//     graph.vertices.setName("INPUT_BG_2")
+//     graph.edges.setName("INPUT_BG_2")
 
-    println(" belief prop : start belief")
-    //val beliefs = PairwiseBP(graph, maxIterations, epsilon,iq.get_storage_level())
-    val beliefs = PairwiseBP2(graph, maxIterations, epsilon)
-    graph.unpersist()
-    graph.unpersist()
-    return beliefs
-  }
+//     println(" belief prop : start belief")
+//     //val beliefs = PairwiseBP(graph, maxIterations, epsilon,iq.get_storage_level())
+//     val beliefs = PairwiseBP2(graph, maxIterations, epsilon)
+//     graph.unpersist()
+//     graph.unpersist()
+//     return beliefs
+//   }
 
 
 

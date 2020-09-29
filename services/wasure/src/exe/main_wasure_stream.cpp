@@ -1111,6 +1111,95 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
     //    w_datas_tri[tid].extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
     // Cell_const_iterator fch;
 
+    log.step("compute_0");
+    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+      {
+
+      }
+
+
+    log.step("compute_0b");
+    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+      {
+            if(fit->main_id() != tid || fit->is_infinite())
+	      continue;
+
+
+            Cell_const_iterator tmp_fch = fit.full_cell();
+            int tmp_idx = fit.index_of_covertex();
+            Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+
+
+
+            if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
+	       !tri.tile_is_loaded(tmp_fchn->main_id())){
+	      std::cerr << "ERROR tile not loaded" << std::endl;
+	      continue;
+	    }
+	    bool is_on_convex = false;
+	    if(tmp_fch->is_infinite() ||  tmp_fchn->is_infinite() )
+	      is_on_convex = true;
+      }
+    log.step("compute_0c");
+    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+      {
+            if(fit->main_id() != tid || fit->is_infinite())
+	      continue;
+
+
+            Cell_const_iterator tmp_fch = fit.full_cell();
+            int tmp_idx = fit.index_of_covertex();
+            Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+
+
+
+            if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
+	       !tri.tile_is_loaded(tmp_fchn->main_id())){
+	      std::cerr << "ERROR tile not loaded" << std::endl;
+	      continue;
+	    }
+	    bool is_on_convex = false;
+	    if(tmp_fch->is_infinite() ||  tmp_fchn->is_infinite() )
+	      is_on_convex = true;
+
+	    Cell_const_iterator fch = tmp_fch->main();
+            int id_cov = fit.index_of_covertex();
+            Cell_const_iterator fchn = tmp_fchn->main();
+      }
+    log.step("compute_0d");
+    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+      {
+
+            if(fit->main_id() != tid || fit->is_infinite())
+	      continue;
+
+
+            Cell_const_iterator tmp_fch = fit.full_cell();
+            int tmp_idx = fit.index_of_covertex();
+            Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+
+
+
+            if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
+	       !tri.tile_is_loaded(tmp_fchn->main_id())){
+	      std::cerr << "ERROR tile not loaded" << std::endl;
+	      continue;
+	    }
+
+	    bool is_on_convex = false;
+	    if(tmp_fch->is_infinite() ||  tmp_fchn->is_infinite() )
+	      is_on_convex = true;
+
+
+            Cell_const_iterator fch = tmp_fch->main();
+            int id_cov = fit.index_of_covertex();
+            Cell_const_iterator fchn = tmp_fchn->main();
+	    //            Vertex_h_iterator vht;
+
+            int cccid = fch->lid();
+            int cccidn = fchn->lid();
+	  }
+
     log.step("compute");
     int mode = -1;
 
@@ -1119,6 +1208,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
        mode = 0;
 
 
+       
     for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
     {
         try
@@ -2242,12 +2332,12 @@ int main(int argc, char **argv)
                     rv = extract_surface(tile_id,params,nb_dat,log);
                 else
                     rv = extract_surface_area(tile_id,params,nb_dat,log);
-		do_dump_log = false;
+		//		do_dump_log = false;
             }
             else if(params.algo_step == std::string("extract_graph"))
             {
                 rv = extract_graph(tile_id,params,nb_dat,log);
-                do_dump_log = false;
+		//                do_dump_log = false;
             }
             else if(params.algo_step == std::string("fill_graph"))
             {
@@ -2258,7 +2348,7 @@ int main(int argc, char **argv)
                 rv = gc_on_stream(tile_id,params,nb_dat,log);
                 std::cerr << "finish" << std::endl;
                 return 0;
-                do_dump_log = false;
+		//                do_dump_log = false;
             }
             else if(params.algo_step == std::string("tri2geojson"))
             {
@@ -2283,11 +2373,12 @@ int main(int argc, char **argv)
             if(rv != 0) return rv;
             if(do_dump_log)
             {
-                ddt::stream_data_header olh("l","s",tile_id);
-                olh.write_header(std::cout);
-                log.dump_log(olh.get_output_stream());
-                olh.finalize();
-                std::cout << std::endl;
+                // ddt::stream_data_header olh("l","s",tile_id);
+                // olh.write_header(std::cout);
+                //log.dump_log(olh.get_output_stream());
+                // olh.finalize();
+                // std::cout << std::endl;
+	      log.dump_log(std::cerr);
             }
         }
         catch (std::exception& e)

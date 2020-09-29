@@ -756,8 +756,24 @@ public:
         return facets_end();
     }
 
+  // locate the cell by searching the barycenter with the local function on the oposite delaunay triangulation
+  // It it does not work, loop on all the cell
     Cell_const_handle locate_cell(const Tile& t, Cell_const_handle c) const
     {
+     
+        assert(!t.cell_is_foreign(c));
+	auto cc = traits_.locate_cell(dt_,c);
+	if(traits_.are_cells_equal(t.dt_, c, dt_, cc))
+	  return cc;
+	else
+	  locate_cell_slow(t,c);
+	  
+    }
+
+  // slow localisation on the 
+      Cell_const_handle locate_cell_slow(const Tile& t, Cell_const_handle c) const
+    {
+     
         assert(!t.cell_is_foreign(c));
         for(auto cit = cells_begin(); cit != cells_end(); ++cit )
         {
