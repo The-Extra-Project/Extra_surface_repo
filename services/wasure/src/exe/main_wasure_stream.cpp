@@ -1882,7 +1882,6 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
         if(hpi.get_lab() == "s")
         {
             std::vector<int> vv(3);
-
             for(int d = 0; d < 3; d++)
             {
                 hpi.get_input_stream() >> vv[d];
@@ -1895,7 +1894,6 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
 
             int id,lab_val,nb_elems;
             hpi.get_input_stream() >> nb_elems;
-
             //      std::sort(id_vect.begin(), id_vect.end());
             std::cerr << "start fill nb_elems" << nb_elems<< std::endl;
             for(int ss = 0; ss < nb_elems ; ss++)
@@ -1910,7 +1908,6 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
         hpi.finalize();
     }
     tri.finalize(sch);
-
     std::cerr << "start processing" << std::endl;
     //      std::vector<int> id_vect;
     std::map<int,int> g2lmap;

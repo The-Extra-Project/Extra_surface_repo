@@ -326,6 +326,8 @@ val ll = lambda_list.head
 val coef_mult = coef_mult_list.head
 val max_it = it_list.head
 
+val maxIterations = 1
+val nb_part = rep_merge
  */
 
 def partition2ply(path_output : String, label : String){
@@ -346,7 +348,7 @@ val coef_mult_list = List("110000000000".toLong)
 
 
 
-
+if(true){
 lambda_list.foreach{ ll =>
   it_list.foreach{ max_it =>
     coef_mult_list.foreach{ coef_mult =>
@@ -400,6 +402,7 @@ lambda_list.foreach{ ll =>
         }
         partition2ply(cur_output_dir, acc.toString);
         // if(false){
+
         //   val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
         //   val input_seg = graph_dst.vertices;
         //   val res_seg = iq.run_pipe_fun_KValue(
@@ -422,7 +425,7 @@ lambda_list.foreach{ ll =>
     }
   }
 }
-
+}
 
 // if(false){
 //   acc += 1;

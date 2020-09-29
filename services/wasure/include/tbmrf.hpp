@@ -1225,6 +1225,12 @@ public :
         return reg(v,mm);
   }
 
+  double reg3(double v,double mm){
+    //return(-(v/mm)*(0.69) - 0.02);
+    //return -log(1+v);
+    return v;
+  }
+
   double reg1(double v,double mm){
     //return(-(v/mm)*(4.60) - 0.02);
     return reg(v,mm);
@@ -1254,6 +1260,7 @@ public :
 
       case 1 :
         {
+	  chunk_size = 1;
 	  break;
         }
       case 2 :
@@ -1290,6 +1297,12 @@ public :
     std::vector<std::vector<double> > v_vertex;
     std::vector<std::vector<double> > v_edge;
     double v_max = 0;
+
+    if(gtype == 1){
+      v_vertex.push_back(std::vector<double>({0,0}));
+      v_vertex.push_back(std::vector<double>({1,0}));
+    }
+    
     for( auto cit = tri.cells_begin();
 	 cit != tri.cells_end(); ++cit )
       {
@@ -1331,11 +1344,9 @@ public :
 
 	  case 1 :
             {
-	      // Graph cut spark (only edge with +2 id)
-	      ofile << sourceId << " " <<  l2gid(gid) << " " << (e0 * MULT_2) << " " ;
-	      if(++acc % chunk_size == 0) ofile << std::endl;
-	      ofile << l2gid(gid) << " " << targetId << " " <<  (e1 * MULT_2) << " " ;
-	      if(++acc % chunk_size == 0) ofile << std::endl;
+	      v_vertex.push_back(std::vector<double>({l2gid(gid),0}));
+	      v_edge.push_back(std::vector<double>({(double)sourceId,(double)l2gid(gid),e0}));
+	      v_edge.push_back(std::vector<double>({l2gid(gid),(double)sourceId,e0}));
 	      break;
             }
 	  case 2 :
@@ -1467,21 +1478,24 @@ public :
 		  // Graph cut spark (only edge with +2 id)
 		  if(E_x1 > 0)
                     {
-		      ofile << l2gid(gidc) << " "  << targetId  << " " << MULT_2*E_x1*coef  << " ";;
+		      // ofile << l2gid(gidc) << " "  << targetId  << " " << *E_x1*coef  << " ";;
+		      v_edge.push_back(std::vector<double>({(double)l2gid(gidc),(double)targetId,E_x1*coef}));
                     }
 		  else
                     {
-		      ofile << sourceId << " " << l2gid(gidc) << " "  << -1*MULT_2*E_x1*coef  << " ";;
+		      v_edge.push_back(std::vector<double>({(double)sourceId,(double)l2gid(gidc),-1*E_x1*coef}));
+		      // ofile << sourceId << " " << l2gid(gidc) << " "  << -1*E_x1*coef  << " ";;
                     }
 		  if(E_bx2 > 0)
                     {
-		      ofile << sourceId << " " << l2gid(gidn) << " "  << MULT_2*E_bx2*coef   << " ";;
+		      //ofile << sourceId << " " << l2gid(gidn) << " "  << E_bx2*coef   << " ";;
+		      v_edge.push_back(std::vector<double>({(double)sourceId,(double)l2gid(gidn),E_bx2*coef}));
                     }
 		  else
                     {
-		      ofile <<  l2gid(gidn) << " "  << targetId << " " << -1*MULT_2*E_bx2*coef  << " ";;
+		      v_edge.push_back(std::vector<double>({l2gid(gidn),(double)targetId,-1*E_bx2*coef}));
+		      //		      ofile <<  l2gid(gidn) << " "  << targetId << " " << -1*E_bx2*coef  << " ";;
                     }
-		  if(++acc % chunk_size == 0) ofile << std::endl;
 		  break;
                 }
 	      case 2 :
@@ -1521,16 +1535,39 @@ public :
       }
     //    myfile.close();
 
-    for(auto vv : v_vertex){
-      ofile << "v " <<   (int)vv[0]  << " " << MULT_2*reg1(vv[1],v_max) << " " <<  MULT_2*reg1(vv[2],v_max) << std::endl;
-    }
-    for(auto ee : v_edge){
-      ofile << "e " << (int)ee[0] << " " << (int)ee[1]  << " ";
-      ofile << MULT_2*reg2(ee[2],v_max) << " " << MULT_2*reg2(ee[3],v_max) << " " << MULT_2*reg2(ee[4],v_max) << " " <<  MULT_2*reg2(ee[5],v_max) << " ";
-      ofile << std::endl;
-    }
 
 
+    switch(gtype)
+      {
+      case 0 :
+        {
+	  for(auto vv : v_vertex){
+	    ofile << "v " <<   (int)vv[0]  << " " << MULT_2*reg1(vv[1],v_max) << " " <<  MULT_2*reg1(vv[2],v_max) << std::endl;
+	  }
+	  for(auto ee : v_edge){
+	    ofile << "e " << (int)ee[0] << " " << (int)ee[1]  << " ";
+	    ofile << MULT_2*reg2(ee[2],v_max) << " " << MULT_2*reg2(ee[3],v_max) << " " << MULT_2*reg2(ee[4],v_max) << " " <<  MULT_2*reg2(ee[5],v_max) << " ";
+	    ofile << std::endl;
+	  }
+	  break;
+        }
+
+      case 1 :
+        {
+	  for(auto vv : v_vertex){
+	    ofile << "v " <<   (int)vv[0]  << " " << (int)vv[1]  <<  std::endl;
+	  }
+	  for(auto ee : v_edge){
+	    ofile << "e " << (int)ee[0] << " " << (int)ee[1]  << " ";
+	    ofile << MULT_2*reg3(ee[2],v_max) ;
+	    ofile << std::endl;
+	  }
+        }
+      case 2 :
+        {
+	  break;
+        }
+      }
     
     std::cerr << "acc = " << acc << std::endl;
     return acc;

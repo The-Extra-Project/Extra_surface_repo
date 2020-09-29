@@ -288,8 +288,8 @@ int main(int argc, char **argv)
   mrf.set_mode(0);
 
 
-    for(auto opt_id : opt_mode){
-  for(auto ll : lambda_list){
+  for(auto opt_id : opt_mode){
+    for(auto ll : lambda_list){
 
       mrf.lambda = ll;
       // Optimizing with alpha expansion

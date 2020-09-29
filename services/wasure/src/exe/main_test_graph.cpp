@@ -50,8 +50,18 @@ int test1(){
 
 }
 
-
-
+void add_tweight(GraphType *g ,int i,int e0,int e1){
+  g->add_tweights(i,e0,e1);
+  std::cout << 0 << " " << i+2 << " " << e0 << ",";
+  std::cout << i+2 << " " << 1 << " " << e1 << ",";
+}
+void add_edge(GraphType *g ,int id1,int id2,int w1,int w2,bool is_last = false){
+  g->add_edge(id1,id2,w1,w2);
+  std::cout << id1 + 2 << " " << id2 + 2 << " " << w1 << ",";
+  std::cout << id2 + 2<< " " << id1 +2 << " " << w2 ;
+  if(!is_last)
+    std::cout << ",";
+}
 
 int test2(int N){
   int NF = 1;
@@ -71,15 +81,19 @@ int test2(int N){
     int e1 = 100-e0;
     ve0[i] = e0;
     ve1[i] = e1;
-    g->add_tweights(i,e0,e1);
-    //    std::cout << i << " " << ve0[i] << " " << ve1[i] << " ";
+    add_tweight(g,i,e0,e1);
   }
 
-    
-  g->add_edge(0, 1,1,2);
-  g->add_edge(1, 2,3,4);
-  g->add_edge(2, 3,5,6);
-  //  std::map<node*,int> node_map;
+  int nbe = N/3;
+  for(int i = 0; i < nbe; i ++){
+    int id1 = rand()%N;
+    int id2 = rand()%N;
+    if(id1 == id2)
+      continue;
+    add_edge(g,id1,id2,(rand()%100)/10,(rand()%100)/10,i == (nbe-1));
+  }
+  std::cout << ";";
+  
   std::cerr << "ARC:" << g->get_arc_num() << std::endl;
   double flow = g->maxflow();
   std::cerr << "\t\t flow value : " << flow << std::endl;
@@ -96,6 +110,10 @@ int test2(int N){
       cap2 = -cap;
     }
     //    node_map[nd] = i;
+
+        
+    std::cerr << 0 << " " << i+2 << " " << ve0[i] << " " << lab  << " " << cap1 <<  std::endl;
+    std::cerr << i+2 << " " << 1 << " " << ve1[i] << " " << lab << " " << cap2 << std::endl;
     
     std::cout << 0 << " " << i+2 << " " << ve0[i] << " " << lab  << " " << cap1 << ",";
     std::cout << i+2 << " " << 1 << " " << ve1[i] << " " << lab << " " << cap2;
@@ -104,35 +122,39 @@ int test2(int N){
       std::cout << "," ;
     
   }
-
   std::cout << ";";
+  for (auto a= g->get_first_arc(); a < g->get_last_arc(); a++)
+    {
+      std::cout << a->sister->head - g->get_first_node() +2 << " " 
+		<< a->head - g->get_first_node() + 2 << " " << 0 << " " << a->r_cap;
 
+      if( a < g->get_last_arc() - 1)
+	std::cout << "," ;
+    }
+
+  // std::cout << ";";
+
+  // for(int i = 0 ; i < N;i++){
+  //   int lab = (g->what_segment(i) == GraphType::SOURCE);
+  //   //    std::cerr  << i << " " << ve0[i] << " " << ve1[i] << std::endl;
+  //   if(i < N-1)
+  //     std::cout << "," ;
+  // }
+  std::cout << ";";
   for(int i = 0 ; i < N;i++){
     int lab = (g->what_segment(i) == GraphType::SOURCE);
-    //    std::cerr  << i << " " << ve0[i] << " " << ve1[i] << std::endl;
+    std::cout << i+2 << " " << lab << " ";
     if(i < N-1)
       std::cout << "," ;
   }
   std::cout << ";";
-  for(int i = 0 ; i < N;i++){
-    int lab = (g->what_segment(i) == GraphType::SOURCE);
-    std::cout << i << " " << lab << " ";
-    if(i < N-1)
-      std::cout << "," ;
-  }
-  std::cout << ";";
-  std::cout << flow << ";";
-
+  std::cout << flow ;
   std::cout << std::endl;
 
   //  std::cerr << "ARC:" << *g->get_first_arc()  << " " << *g->get_last_arc() << std::endl;
   
   
-  for (auto a= g->get_first_arc(); a < g->get_last_arc(); a++)
-    {
-      std::cerr << "ARC:" << a->sister->head << " " << a->head << std::endl;
-      std::cerr << "ARC rap:" << a->r_cap << std::endl;
-    }
+
   // int acc = 0;
   // for (auto a= g->get_first_node(); a < g->get_last_node(); a++)
   //   {
