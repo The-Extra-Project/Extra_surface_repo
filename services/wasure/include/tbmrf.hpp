@@ -531,14 +531,12 @@ public :
                 Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
 
                 if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
-                        !tri.tile_is_loaded(tmp_fchn->main_id()))
+		   !tri.tile_is_loaded(tmp_fchn->main_id()))
                     continue;
 
                 Cell_const_iterator fch = tmp_fch->main();
                 int idx = tmp_idx;
                 Cell_const_iterator fchn = tmp_fchn->main();
-
-
 
 
                 int c1Id = id_map[fch];
@@ -553,7 +551,7 @@ public :
                 // int cccidn = fchn->cell_data().id;
 		int cccid = fch->lid();
                 int cccidn = fchn->lid();
-                double surface = get_surface(fch,idx);
+                double surface = get_surface(tmp_fch,tmp_idx);
                 double coef = lambda*surface;
 
                 int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
@@ -604,8 +602,10 @@ public :
             {
 	      //int cccid = cit->cell_data().id;
 	      int cccid = cit->lid();
-                if( data_map.find(fch->tile()->id()) == data_map.end())
+	      if( data_map.find(fch->tile()->id()) == data_map.end()){
+		std::cerr << "ERROR, NO CELL LOAD, WHY??" << std::endl;
                     continue;
+	      }
                 data_map[fch->tile()->id()].format_labs[cccid] = lalpha;
                 nb_merge++;
             }
@@ -716,7 +716,7 @@ public :
                 // int cccidn = fchn->cell_data().id;
 		int cccid = fch->lid();
                 int cccidn = fchn->lid();
-                double surface = get_surface(fch,idx);
+                double surface = get_surface(tmp_fch,tmp_idx);
                 double coef = lambda*surface;
 
                 int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
@@ -911,7 +911,7 @@ public :
                 // int cccidn = fchn->cell_data().id;
 		int cccid = fch->lid();
                 int cccidn = fchn->lid();
-                double surface = get_surface(fch,idx);
+                double surface = get_surface(tmp_fch,tmp_idx);
                 double coef = lambda*surface;
 
                 int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];

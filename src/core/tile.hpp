@@ -766,7 +766,7 @@ public:
 	if(traits_.are_cells_equal(t.dt_, c, dt_, cc))
 	  return cc;
 	else
-	  locate_cell_slow(t,c);
+	  return locate_cell_slow(t,c);
 	  
     }
 

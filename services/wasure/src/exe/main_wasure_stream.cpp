@@ -1111,94 +1111,6 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
     //    w_datas_tri[tid].extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
     // Cell_const_iterator fch;
 
-    log.step("compute_0");
-    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
-      {
-
-      }
-
-
-    log.step("compute_0b");
-    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
-      {
-            if(fit->main_id() != tid || fit->is_infinite())
-	      continue;
-
-
-            Cell_const_iterator tmp_fch = fit.full_cell();
-            int tmp_idx = fit.index_of_covertex();
-            Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
-
-
-
-            if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
-	       !tri.tile_is_loaded(tmp_fchn->main_id())){
-	      std::cerr << "ERROR tile not loaded" << std::endl;
-	      continue;
-	    }
-	    bool is_on_convex = false;
-	    if(tmp_fch->is_infinite() ||  tmp_fchn->is_infinite() )
-	      is_on_convex = true;
-      }
-    log.step("compute_0c");
-    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
-      {
-            if(fit->main_id() != tid || fit->is_infinite())
-	      continue;
-
-
-            Cell_const_iterator tmp_fch = fit.full_cell();
-            int tmp_idx = fit.index_of_covertex();
-            Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
-
-
-
-            if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
-	       !tri.tile_is_loaded(tmp_fchn->main_id())){
-	      std::cerr << "ERROR tile not loaded" << std::endl;
-	      continue;
-	    }
-	    bool is_on_convex = false;
-	    if(tmp_fch->is_infinite() ||  tmp_fchn->is_infinite() )
-	      is_on_convex = true;
-
-	    Cell_const_iterator fch = tmp_fch->main();
-            int id_cov = fit.index_of_covertex();
-            Cell_const_iterator fchn = tmp_fchn->main();
-      }
-    log.step("compute_0d");
-    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
-      {
-
-            if(fit->main_id() != tid || fit->is_infinite())
-	      continue;
-
-
-            Cell_const_iterator tmp_fch = fit.full_cell();
-            int tmp_idx = fit.index_of_covertex();
-            Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
-
-
-
-            if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
-	       !tri.tile_is_loaded(tmp_fchn->main_id())){
-	      std::cerr << "ERROR tile not loaded" << std::endl;
-	      continue;
-	    }
-
-	    bool is_on_convex = false;
-	    if(tmp_fch->is_infinite() ||  tmp_fchn->is_infinite() )
-	      is_on_convex = true;
-
-
-            Cell_const_iterator fch = tmp_fch->main();
-            int id_cov = fit.index_of_covertex();
-            Cell_const_iterator fchn = tmp_fchn->main();
-	    //            Vertex_h_iterator vht;
-
-            int cccid = fch->lid();
-            int cccidn = fchn->lid();
-	  }
 
     log.step("compute");
     int mode = -1;
@@ -1215,6 +1127,9 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
         {
             if(fit->main_id() != tid || fit->is_infinite())
                 continue;
+
+	  // if(fit->is_infinite())
+	  //   continue;
 
 
             Cell_const_iterator tmp_fch = fit.full_cell();
@@ -2109,8 +2024,8 @@ int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
     std::cerr << "seg_step5" << std::endl;
     tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri,&w_datas_tri);
     mrf.lambda = params.lambda;
-    mrf.set_mode(0);
-    mrf.alpha_exp(tri,w_datas_tri);
+    mrf.set_mode(-1);
+    mrf.opt_gc(1,tri,w_datas_tri);
 
     log.step("finalize");
     w_datas_tri[tid].fill_labs(w_datas_tri[tid].format_labs);
