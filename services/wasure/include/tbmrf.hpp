@@ -1335,7 +1335,6 @@ public :
 	  case 0 :
             {
 	      // Belief spark
-
 	      //ofile << "v " <<   gid  << " " << e0*MULT_2 << " " <<  e1*MULT_2 ;
 	      v_vertex.push_back(std::vector<double>({(double)gid,e0,e1}));
 	      //	      if(++acc % chunk_size == 0) ofile << std::endl;
@@ -1344,9 +1343,9 @@ public :
 
 	  case 1 :
             {
-	      v_vertex.push_back(std::vector<double>({l2gid(gid),0}));
+	      v_vertex.push_back(std::vector<double>({(double)l2gid(gid),0}));
 	      v_edge.push_back(std::vector<double>({(double)sourceId,(double)l2gid(gid),e0}));
-	      v_edge.push_back(std::vector<double>({l2gid(gid),(double)sourceId,e0}));
+	      v_edge.push_back(std::vector<double>({(double)l2gid(gid),(double)targetId,e1}));
 	      break;
             }
 	  case 2 :
@@ -1493,9 +1492,10 @@ public :
                     }
 		  else
                     {
-		      v_edge.push_back(std::vector<double>({l2gid(gidn),(double)targetId,-1*E_bx2*coef}));
+		      v_edge.push_back(std::vector<double>({(double)l2gid(gidn),(double)targetId,-1*E_bx2*coef}));
 		      //		      ofile <<  l2gid(gidn) << " "  << targetId << " " << -1*E_bx2*coef  << " ";;
                     }
+		  v_edge.push_back(std::vector<double>({(double)l2gid(gidc),(double)l2gid(gidn),E_quad*coef}));
 		  break;
                 }
 	      case 2 :
@@ -1558,8 +1558,7 @@ public :
 	    ofile << "v " <<   (int)vv[0]  << " " << (int)vv[1]  <<  std::endl;
 	  }
 	  for(auto ee : v_edge){
-	    ofile << "e " << (int)ee[0] << " " << (int)ee[1]  << " ";
-	    ofile << MULT_2*reg3(ee[2],v_max) ;
+	    ofile << "e " << (int)ee[0] << " " << (int)ee[1]  << " " << MULT_2*reg3(ee[2],v_max) ;
 	    ofile << std::endl;
 	  }
         }

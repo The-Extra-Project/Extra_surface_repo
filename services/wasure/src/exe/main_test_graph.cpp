@@ -8,7 +8,6 @@
 #include "partitioner/grid_partitioner.hpp"
 #include "scheduler/scheduler.hpp"
 #include "DDT.hpp"
-
 #include "graph.h"
 //#include "maths.hpp"
 
@@ -49,6 +48,68 @@ int test1(){
 
 
 }
+
+void dump_graph(GraphType *g){
+    for (auto a= g->get_first_node(); a < g->get_last_node(); a++)
+    {
+      std::cerr << a->is_sink << std::endl;
+      double cap = a->tr_cap;
+      if(cap > 0)
+  	std::cout  << 0 << " " << a - g->get_first_node() + 2 << " " << cap;
+      else
+  	std::cout  << a - g->get_first_node() + 2 << " " << 1 << " " << -cap;
+      std::cout << "," ;
+    }
+  for (auto a= g->get_first_arc(); a < g->get_last_arc(); a++)
+    {
+      std::cout << (a->sister->head - g->get_first_node() + 2) << " " 
+		<< (a->head - g->get_first_node() + 2) << " " 
+		<< a->r_cap;
+
+      if( a < g->get_last_arc() - 1)
+	std::cout << "," ;
+    }
+
+  // std::cout << ";";
+  
+  // std::cerr << "ARC:" << g->get_arc_num() << std::endl;
+  // double flow = g->maxflow();
+  // std::cerr << "\t\t flow value : " << flow << std::endl;
+  // auto nd = g->get_first_node();
+  // for(int i = 0 ; i < N;i++){
+  //   int lab = (g->what_segment(i) == GraphType::SOURCE);
+  //   double cap = nd->tr_cap;
+  //   double cap1,cap2;
+  //   if(cap > 0){
+  //     cap1 = cap;
+  //     cap2 = 0;
+  //   }else{
+  //     cap1 = 0;
+  //     cap2 = -cap;
+  //   }
+  //   //    node_map[nd] = i;
+
+        
+  //   std::cerr << 0 << " " << i+2 << " " << ve0[i] << " " << lab  << " " << cap1 <<  std::endl;
+  //   std::cerr << i+2 << " " << 1 << " " << ve1[i] << " " << lab << " " << cap2 << std::endl;
+    
+  //   std::cout << 0 << " " << i+2 << " " << ve0[i] << " " << lab  << " " << cap1 << ",";
+  //   std::cout << i+2 << " " << 1 << " " << ve1[i] << " " << lab << " " << cap2;
+  //   nd++;
+  //   if(i < N-1)
+  //     std::cout << "," ;
+    
+  // }
+
+  // for(int i = 0 ; i < N;i++){
+  //   int lab = (g->what_segment(i) == GraphType::SOURCE);
+  //   //    std::cerr  << i << " " << ve0[i] << " " << ve1[i] << std::endl;
+  //   if(i < N-1)
+  //     std::cout << "," ;
+  // }
+}
+
+
 
 void add_tweight(GraphType *g ,int i,int e0,int e1){
   g->add_tweights(i,e0,e1);
@@ -93,57 +154,15 @@ int test2(int N){
     add_edge(g,id1,id2,(rand()%100)/10,(rand()%100)/10,i == (nbe-1));
   }
   std::cout << ";";
-  
-  std::cerr << "ARC:" << g->get_arc_num() << std::endl;
+  dump_graph(g);
   double flow = g->maxflow();
-  std::cerr << "\t\t flow value : " << flow << std::endl;
-  auto nd = g->get_first_node();
-  for(int i = 0 ; i < N;i++){
-    int lab = (g->what_segment(i) == GraphType::SOURCE);
-    double cap = nd->tr_cap;
-    double cap1,cap2;
-    if(cap > 0){
-      cap1 = cap;
-      cap2 = 0;
-    }else{
-      cap1 = 0;
-      cap2 = -cap;
-    }
-    //    node_map[nd] = i;
-
-        
-    std::cerr << 0 << " " << i+2 << " " << ve0[i] << " " << lab  << " " << cap1 <<  std::endl;
-    std::cerr << i+2 << " " << 1 << " " << ve1[i] << " " << lab << " " << cap2 << std::endl;
-    
-    std::cout << 0 << " " << i+2 << " " << ve0[i] << " " << lab  << " " << cap1 << ",";
-    std::cout << i+2 << " " << 1 << " " << ve1[i] << " " << lab << " " << cap2;
-    nd++;
-    if(i < N-1)
-      std::cout << "," ;
-    
-  }
   std::cout << ";";
-  for (auto a= g->get_first_arc(); a < g->get_last_arc(); a++)
-    {
-      std::cout << a->sister->head - g->get_first_node() +2 << " " 
-		<< a->head - g->get_first_node() + 2 << " " << 0 << " " << a->r_cap;
+  dump_graph(g);
 
-      if( a < g->get_last_arc() - 1)
-	std::cout << "," ;
-    }
-
-  // std::cout << ";";
-
-  // for(int i = 0 ; i < N;i++){
-  //   int lab = (g->what_segment(i) == GraphType::SOURCE);
-  //   //    std::cerr  << i << " " << ve0[i] << " " << ve1[i] << std::endl;
-  //   if(i < N-1)
-  //     std::cout << "," ;
-  // }
   std::cout << ";";
   for(int i = 0 ; i < N;i++){
     int lab = (g->what_segment(i) == GraphType::SOURCE);
-    std::cout << i+2 << " " << lab << " ";
+    std::cout << (i+2) << " " << lab << " ";
     if(i < N-1)
       std::cout << "," ;
   }

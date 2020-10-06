@@ -321,14 +321,7 @@ val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).
 
 var acc = 0;
 val label = "coef_adapt"
-/*
- val ll = lambda_list.head
- val coef_mult = coef_mult_list.head
- val max_it = it_list.head
 
- val maxIterations = 1
- val nb_part = rep_merge
- */
 
 def partition2ply(path_output : String, label : String){
   fs.listStatus(new Path(path_output)).filter(
@@ -345,9 +338,16 @@ def partition2ply(path_output : String, label : String){
 val it_list = List(20)
 //val lambda_list = List("0.002","0.004","0.005")
 val coef_mult_list = List("110000000000".toLong)
-val coef_mult_list = List("11".toLong)
+val coef_mult_list = List("1000000".toLong)
 
+/*
+ val ll = lambda_list.head
+ val coef_mult = coef_mult_list.head
+ val max_it = it_list.head
 
+ val maxIterations = 1
+ val nb_part = rep_merge
+ */
 
 if(true){
   lambda_list.foreach{ ll =>
@@ -368,9 +368,13 @@ if(true){
           graph_bp.vertices.setName("graph_bp");
           graph_bp.edges.setName("graph_bp");
           val epsilon = 0.00000001;
-          val kvrdd_seg = compute_belief_prop_v2(
+          // val kvrdd_seg = compute_belief_prop_v2(
+          //   graph_bp,
+          //   max_it,epsilon,
+          //   stats_tri, params_wasure, iq, sc,rep_merge);
+          val kvrdd_seg = compute_graph_cut(
             graph_bp,
-            max_it,epsilon,
+            50,epsilon,
             stats_tri, params_wasure, iq, sc,rep_merge);
           val graph_seg = Graph(kvrdd_seg, graph_dst.edges, List(""));
           graph_seg.vertices.setName("graph_seg");
