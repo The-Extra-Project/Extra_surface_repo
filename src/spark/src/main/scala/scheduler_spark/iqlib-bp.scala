@@ -227,8 +227,9 @@ object algo_iqlibbp {
 
   def graph_cut(full_graph_merged: RDD[VData] , maxIterations: Int, epsilon : Double,iq : IQlibSched,sc : SparkContext,nb_part : Int):  RDD[(Int, Int)]  = {
     println(" belief prop : Init")
+
     val edges_cpp = full_graph_merged.filter(x => !x.isEmpty).filter(_(0) == 'e').map(_.substring(2))
-    val nodes_cpp = full_graph_merged.filter(x => !x.isEmpty).filter(_(0) == 'v').map(_.substring(2))
+    val nodes_cpp = (sc.parallelize(Array("0 0", "1 0")) union full_graph_merged.filter(x => !x.isEmpty).filter(_(0) == 'v').map(_.substring(2)))
     val vertexRDD = nodes_cpp.map(x => x.split(" ")).map(x => (x(0).toLong,x(1).toLong));
     val edgesRDD = edges_cpp.map( x=> x.split(" ")).filter(_.size > 1).map( x => org.apache.spark.graphx.Edge(x(0).toLong,x(1).toLong,x(2).toFloat.toInt))
 
@@ -244,12 +245,12 @@ object algo_iqlibbp {
 
     val res_score_ex = (graph_2.edges.map(x => ((x.srcId,x.dstId),x.attr)) union flows_ex).reduceByKey((u,v) => Math.abs(u - v))
     val res_spark = res_score_ex.filter(
-      {case ((u,v),w) => u <2 || v < 2 } // Keep only edges connected to source or target
-    ).map(
-      {case ((u,v),w) => if(u >1) (u,(v,w)) else (v,(u,w))}
-    ).reduceByKey(
-      (x1,x2) => if(x1._2 < x2._2) x1 else x2
-    ).map( x=> (x._1.toInt,x._2._1.toInt))
+  {case ((u,v),w) => u <2 || v < 2 } // Keep only edges connected to source or target
+).map(
+  {case ((u,v),w) => if(u >1) (u,(v,w)) else (v,(u,w))} // Put the source target id 
+).reduceByKey(
+  (x1,x2) => if(x1._2 < x2._2) x2 else x1
+).map( x=> (x._1.toInt,(x._2._1.toInt + 1) % 2))
 
     return res_spark
     }

@@ -1248,7 +1248,6 @@ public :
     int  N = tri.number_of_cells();
     int NF = 0;
     double mv = 1000;
-	
     std::cerr << "COEF_MULT" << MULT_2 << " LAMBDA:" << lambda << std::endl;
     switch(gtype)
       {
@@ -1277,31 +1276,37 @@ public :
 	NF++;
       }
 
-    double e0,e1,e2,e3;
+    
 
+    GraphType *g = new GraphType(N,NF*2 );
+
+
+    double e0,e1,e2,e3;
     int acc = 0;
-    //    std::map<int,int> id_map;
+
     std::map<Cell_const_iterator,int> id_map;
+    std::map<int,int> gid_map;
     std::vector<int> id2gid_vec;
     std::cerr << "create ids" << std::endl;
 
-    
+    if(gtype == 1){
     for( auto cit = tri.cells_begin();
 	 cit != tri.cells_end(); ++cit )
       {
-	id_map[cit];
-      }
 
+	
+	id_map[cit] = acc++;
+	gid_map[id_map[cit]] = cit->gid();
+	g->add_node();
+      }
+    }
 
     std::cerr << "score simplex" << std::endl;
     std::vector<std::vector<double> > v_vertex;
     std::vector<std::vector<double> > v_edge;
     double v_max = 0;
 
-    if(gtype == 1){
-      v_vertex.push_back(std::vector<double>({0,0}));
-      v_vertex.push_back(std::vector<double>({1,0}));
-    }
+
     
     for( auto cit = tri.cells_begin();
 	 cit != tri.cells_end(); ++cit )
@@ -1343,9 +1348,10 @@ public :
 
 	  case 1 :
             {
-	      v_vertex.push_back(std::vector<double>({(double)l2gid(gid),0}));
-	      v_edge.push_back(std::vector<double>({(double)sourceId,(double)l2gid(gid),e0}));
-	      v_edge.push_back(std::vector<double>({(double)l2gid(gid),(double)targetId,e1}));
+	      g->add_tweights(id_map[cit],e0*MULT_2,e1*MULT_2);
+	      // v_vertex.push_back(std::vector<double>({(double)l2gid(gid),0}));
+	      // v_edge.push_back(std::vector<double>({(double)sourceId,(double)l2gid(gid),e0}));
+	      // v_edge.push_back(std::vector<double>({(double)l2gid(gid),(double)targetId,e1}));
 	      break;
             }
 	  case 2 :
@@ -1474,28 +1480,24 @@ public :
                 }
 	      case 1 :
                 {
-		  // Graph cut spark (only edge with +2 id)
+		  // if(E_x1 > 0)
+		  //     v_edge.push_back(std::vector<double>({(double)l2gid(gidc),(double)targetId,E_x1*coef}));
+		  // else
+		  //     v_edge.push_back(std::vector<double>({(double)sourceId,(double)l2gid(gidc),-1*E_x1*coef}));
+		  // if(E_bx2 > 0)
+		  //     v_edge.push_back(std::vector<double>({(double)sourceId,(double)l2gid(gidn),E_bx2*coef}));
+		  // else
+		  //     v_edge.push_back(std::vector<double>({(double)l2gid(gidn),(double)targetId,-1*E_bx2*coef}));
+		  // v_edge.push_back(std::vector<double>({(double)l2gid(gidc),(double)l2gid(gidn),E_quad*coef}));
 		  if(E_x1 > 0)
-                    {
-		      // ofile << l2gid(gidc) << " "  << targetId  << " " << *E_x1*coef  << " ";;
-		      v_edge.push_back(std::vector<double>({(double)l2gid(gidc),(double)targetId,E_x1*coef}));
-                    }
+                    g->add_tweights(id_map[fch], 0, MULT_2*E_x1*coef);
 		  else
-                    {
-		      v_edge.push_back(std::vector<double>({(double)sourceId,(double)l2gid(gidc),-1*E_x1*coef}));
-		      // ofile << sourceId << " " << l2gid(gidc) << " "  << -1*E_x1*coef  << " ";;
-                    }
+                    g->add_tweights(id_map[fch],-1*MULT_2*E_x1*coef, 0);
 		  if(E_bx2 > 0)
-                    {
-		      //ofile << sourceId << " " << l2gid(gidn) << " "  << E_bx2*coef   << " ";;
-		      v_edge.push_back(std::vector<double>({(double)sourceId,(double)l2gid(gidn),E_bx2*coef}));
-                    }
+                    g->add_tweights(id_map[fchn], MULT_2*E_bx2*coef, 0 );
 		  else
-                    {
-		      v_edge.push_back(std::vector<double>({(double)l2gid(gidn),(double)targetId,-1*E_bx2*coef}));
-		      //		      ofile <<  l2gid(gidn) << " "  << targetId << " " << -1*E_bx2*coef  << " ";;
-                    }
-		  v_edge.push_back(std::vector<double>({(double)l2gid(gidc),(double)l2gid(gidn),E_quad*coef}));
+                    g->add_tweights(id_map[fchn],0, -1*MULT_2*E_bx2*coef);
+		  g->add_edge(id_map[fch], id_map[fchn],    /* capacities */ MULT_2*E_quad*coef,0);
 		  break;
                 }
 	      case 2 :
@@ -1535,6 +1537,7 @@ public :
       }
     //    myfile.close();
 
+    //    double flow = g->maxflow();
 
 
     switch(gtype)
@@ -1554,13 +1557,35 @@ public :
 
       case 1 :
         {
-	  for(auto vv : v_vertex){
-	    ofile << "v " <<   (int)vv[0]  << " " << (int)vv[1]  <<  std::endl;
+
+	  if(area_processed < 2){
+	    for (auto a= g->get_first_node(); a < g->get_last_node(); a++){
+	      ofile << "v " <<  gid_map[(int)(a - g->get_first_node())] + 2  << " " << 0  <<  std::endl;
+	    }
 	  }
-	  for(auto ee : v_edge){
-	    ofile << "e " << (int)ee[0] << " " << (int)ee[1]  << " " << MULT_2*reg3(ee[2],v_max) ;
-	    ofile << std::endl;
-	  }
+	  for (auto a= g->get_first_node(); a < g->get_last_node(); a++)
+	    {
+
+	      double cap = a->tr_cap;
+	      if(cap > 0)
+		std::cout  << "e " << 0 << " " << gid_map[(int)(a - g->get_first_node())] + 2 << " " << cap << " " << main_tile_id << std::endl;
+	      else
+		std::cout  << "e " << gid_map[(int)(a - g->get_first_node())] + 2 << " " << 1 << " " << -cap << " " << main_tile_id  << std::endl;
+	    }
+
+	  for (auto a= g->get_first_arc(); a < g->get_last_arc(); a++)
+	    {
+	      std::cout << "e " << gid_map[(int)(a->head - g->get_first_node())] + 2 << " " 
+			<< gid_map[(int)(a->sister->head - g->get_first_node())] + 2 << " "
+			<< a->r_cap << " ttt" << main_tile_id << std::endl;
+	    }
+
+
+	  delete g;
+	  // for(auto ee : v_edge){
+	  //   ofile << "e " << (int)ee[0] << " " << (int)ee[1]  << " " << MULT_2*reg3(ee[2],v_max) ;
+	  //   ofile << std::endl;
+	  // }
         }
       case 2 :
         {
