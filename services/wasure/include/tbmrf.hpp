@@ -453,79 +453,83 @@ public :
         ////std::cerr << "alpha exp finish" << std::endl;
     }
 
+  // cherche l'ensemble des labels qui minimisent la fonction d'énergie définie par "get_score_linear & get_score_quad"
+  // Lalpha (ici label 1),
+  // Tri, la structure de la triangulation de Delaunay
+  // Les informations (label courant, dempster shafer, etc) dans chaque tetraèdre.
 
+  // Les étapes sont :
     void opt_gc(int lalpha,DTW & tri,D_MAP & data_map)
     {
 
+      
+      // recupération nb cells (== nb sommets du graph) et nb triangles (nb edges du graph)
         int  N =   tri.number_of_cells();
         int NF = 0;
-
-
-        std::cerr << "init facet " << std::endl;
         for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
         {
             NF++;
         }
 
+	// Création du graph (N et NF ne servent qu'à la "pre-alocation")
+	// ./services/extern/graphcut/include/graph.h
         GraphType *g = new GraphType(N,NF*2 );
         double e0,e1;
-
         int acc = 0;
+
+	// ID map est une structure map d'un pointeur de tetraèdre => id
+	// ou id = indice des tétraèdres dans le du graph local.
         std::map<Cell_const_iterator,int> id_map;
         std::cerr << "init cell " << std::endl;
         for( auto cit = tri.cells_begin();
                 cit != tri.cells_end(); ++cit )
         {
-            // if(tri.is_infinite(cit))
-            //   continue;
+	  // incrémentaiton de l'indice
             id_map[cit] = acc++;
-            g -> add_node();
+	    // Construction du noeud.
+            g->add_node();
         }
 
 
-        std::cerr << "score cell " << std::endl;
+	// Création des aretes (termes unaires) entre  (S => noeuds) et (noeuds => T)
+	// On boucle sur les main => local + shared (id min)
         for( auto cit = tri.cells_begin();
                 cit != tri.cells_end(); ++cit )
         {
             Cell_const_iterator fch = *cit;
 
-            // if(tri->is_infinite(fch))
-            //   continue;
-
+	    // recupération de l'id local du tétraèdre dans le graph
             int cid = id_map[cit];
-	    //            int cccid = cit->cell_data().id;
-	    int cccid = cit->lid();
 
+	    // Lid : l'id local (mais dans la structure "data"
+	    int cccid = cit->lid();
+	    // En théorie lcurr = 0, mais ici on a une fonction générique.
             int lcurr = data_map[fch->tile()->id()].format_labs[cccid];
 
+	    // Lcurr = 0 et lAlpha = 1 dans le cas binaire.
             e0 = get_score_linear(fch,lcurr,data_map);
             e1 = get_score_linear(fch,lalpha,data_map);
-	    // std::cerr << "lcurr:" << lcurr << " lalpha:" << lalpha << std::endl;
-	    // std::cerr << "e0   :" << e0    << "     e1:" << e1 << std::endl;
-            //    if(1 == lcurr)
-            // if(tri.is_infinite(fch)){
-            //   e0 = 0;
-            //   e1 = 0;
-            // }
+
+	    // Construction des termes unaires
+	    // add_tweights(id du tétraèdre, score S->node,score node->T);
             g->add_tweights(cid, (e0 * MULT), (e1 * MULT));
 
         }
 
-
+	// Ajout des termes quadratiques (on boucle sur les triangles main)
         std::cerr << " ~~~~~ score facet " << std::endl;
         DATA_TYPE E[4];
         for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
         {
+	  // is infinite => pour faire sauter les triangles infinis
             if(fit->is_infinite())
             {
-	      //                std::cerr << " ~~~~~ is infinit" << std::endl;
                 continue;
             }
 
             try
             {
-
-
+	      // recuperation des 2 tetraèdres de la facet
                 Cell_const_iterator tmp_fch = fit.full_cell();
                 int tmp_idx = fit.index_of_covertex();
                 Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
@@ -542,13 +546,6 @@ public :
                 int c1Id = id_map[fch];
                 int cnId = id_map[fchn];
 
-                // if( c1Id ==  cnId  || c1Id == 0 || cnId == 0 ){
-                //   continue;
-                // }
-
-
-                // int cccid = fch->cell_data().id;
-                // int cccidn = fchn->cell_data().id;
 		int cccid = fch->lid();
                 int cccidn = fchn->lid();
                 double surface = get_surface(tmp_fch,tmp_idx);
@@ -558,7 +555,6 @@ public :
                 int chnlab = data_map[fchn->tile()->id()].format_labs[cccidn];
 
 
-
                 E[3] = get_score_quad(ch1lab,chnlab);
                 E[2] = get_score_quad(ch1lab,lalpha);
                 E[1] = get_score_quad(lalpha,chnlab);
@@ -566,15 +562,16 @@ public :
 
                 double E_x1 = E[0] - E[2];
                 double E_bx2 = E[3] - E[2];
+
                 // Quadratic term should be positif
                 double E_quad = -E[0] + E[1] + E[2] - E[3];
-
-
+ 
                 if(E_x1 > 0)
                     g->add_tweights(c1Id, 0, MULT*E_x1*coef);
                 else
                     g->add_tweights(c1Id,-1*MULT*E_x1*coef, 0);
                 if(E_bx2 > 0)
+
                     g->add_tweights(cnId, MULT*E_bx2*coef, 0 );
                 else
                     g->add_tweights(cnId,0, -1*MULT*E_bx2*coef);
@@ -593,14 +590,17 @@ public :
         std::cerr << "\t\t flow value : " << flow << std::endl;
         int nb_merge = 0;
 
+
+	// On reboucle sur les tets main
         for( auto cit = tri.cells_begin();
                 cit != tri.cells_end(); ++cit )
         {
             Cell_const_iterator fch = *cit;
+	    // recuperation de l'id
             int cid = id_map[fch];
+	    // Ici si le noeud (cid) est connecté à la source, c'est que la coupe est entre le noeud (cid) et le puits (score minimum, inclus dans la mincut)
             if(g->what_segment(cid) == GraphType::SOURCE)
             {
-	      //int cccid = cit->cell_data().id;
 	      int cccid = cit->lid();
 	      if( data_map.find(fch->tile()->id()) == data_map.end()){
 		std::cerr << "ERROR, NO CELL LOAD, WHY??" << std::endl;
@@ -1537,7 +1537,7 @@ public :
       }
     //    myfile.close();
 
-    //    double flow = g->maxflow();
+    double flow = g->maxflow();
 
 
     switch(gtype)
@@ -1567,18 +1567,22 @@ public :
 	    {
 
 	      double cap = a->tr_cap;
-	      if(cap > 0)
-		std::cout  << "e " << 0 << " " << gid_map[(int)(a - g->get_first_node())] + 2 << " " << cap << " " << main_tile_id << std::endl;
-	      else
-		std::cout  << "e " << gid_map[(int)(a - g->get_first_node())] + 2 << " " << 1 << " " << -cap << " " << main_tile_id  << std::endl;
+	      if(abs(cap) > 0.000001){
+		if(cap > 0)
+		  std::cout  << "e " << 0 << " " << gid_map[(int)(a - g->get_first_node())] + 2 << " " << cap << std::endl;
+		else
+		  std::cout  << "e " << gid_map[(int)(a - g->get_first_node())] + 2 << " " << 1 << " " << -cap << std::endl;
+	      }
 	    }
 
-	  for (auto a= g->get_first_arc(); a < g->get_last_arc(); a++)
-	    {
-	      std::cout << "e " << gid_map[(int)(a->head - g->get_first_node())] + 2 << " " 
-			<< gid_map[(int)(a->sister->head - g->get_first_node())] + 2 << " "
-			<< a->r_cap << " ttt" << main_tile_id << std::endl;
-	    }
+	  // for (auto a= g->get_first_arc(); a < g->get_last_arc(); a++)
+	  //   {
+	  //     if(abs(a->r_cap) > 0.0001){
+	  //     std::cout << "e " << gid_map[(int)(a->head - g->get_first_node())] + 2 << " " 
+	  // 		<< gid_map[(int)(a->sister->head - g->get_first_node())] + 2 << " "
+	  // 		<< a->r_cap << std::endl;
+	  //     }
+	  //   }
 
 
 	  delete g;

@@ -61,7 +61,7 @@ object algo_iqlibbp {
       input_edges, "ext_gr", do_dump = false)
 
     val full_graph_merged =  (full_graph_local union full_graph_shared);
-
+//        val full_graph_merged = full_graph_local
     val beliefs = graph_cut(full_graph_merged,maxIterations,epsilon,iq,sc,nb_part)
 
     val summed_id = sum_simplex_id(stats_tri);

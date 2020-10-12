@@ -295,10 +295,10 @@ int main(int argc, char **argv)
       // Optimizing with alpha expansion
       for(int ii = 0; ii < nbs;ii++)
 	format_labs[ii] = 0;
-      //mrf.alpha_exp(tri1,w_datas_tri);
-      if(opt_id == 0)
+      if(opt_id == 0){
 	mrf.opt_gc(1,tri1,w_datas_tri);
-      else
+	mrf.opt_qpbo(1,DTW & tri,D_MAP & data_map)
+      }else
 	mrf.opt_belief(1,tri1,w_datas_tri);
 
       w_datas_tri[tid].fill_labs(w_datas_tri[tid].format_labs);
