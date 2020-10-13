@@ -297,7 +297,7 @@ int main(int argc, char **argv)
 	format_labs[ii] = 0;
       if(opt_id == 0){
 	mrf.opt_gc(1,tri1,w_datas_tri);
-	mrf.opt_qpbo(1,DTW & tri,D_MAP & data_map)
+	//	mrf.opt_qpbo(1,DTW & tri,D_MAP & data_map)
       }else
 	mrf.opt_belief(1,tri1,w_datas_tri);
 
