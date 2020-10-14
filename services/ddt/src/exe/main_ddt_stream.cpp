@@ -471,8 +471,11 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
       }
   }
 
+  Tile_iterator tci = tri.get_tile(tid);
+  tci->init_local_id_tile();
   std::cerr << "[local id] Start" << std::endl;
-  tri.init_local_id();
+  //  tri.init_local_id();
+
   std::cerr << "[local id] Done" << std::endl;
   std::cout.clear();
   ddt::stream_data_header oth("t","s",tid);
@@ -481,7 +484,6 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
   oth.set_logger(&log);
   oth.write_header(std::cout);
   log.step("[write]write_tri");
-  Tile_iterator tci = tri.get_tile(tid);
 
   ddt::write_ddt_stream(tri, oth.get_output_stream(),tid,oth.is_serialized(),log);
   return 0;
