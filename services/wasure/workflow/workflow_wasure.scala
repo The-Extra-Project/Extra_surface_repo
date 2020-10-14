@@ -368,14 +368,14 @@ if(true){
           graph_bp.vertices.setName("graph_bp");
           graph_bp.edges.setName("graph_bp");
           val epsilon = 0.00000001;
-          // val kvrdd_seg = compute_belief_prop_v2(
-          //   graph_bp,
-          //   max_it,epsilon,
-          //   stats_tri, params_wasure, iq, sc,rep_merge);
-          val kvrdd_seg = compute_graph_cut(
+          val kvrdd_seg = compute_belief_prop_v2(
             graph_bp,
-            5,epsilon,
+            max_it,epsilon,
             stats_tri, params_wasure, iq, sc,rep_merge);
+          // val kvrdd_seg = compute_graph_cut(
+          //   graph_bp,
+          //   5,epsilon,
+          //   stats_tri, params_wasure, iq, sc,rep_merge);
           val graph_seg = Graph(kvrdd_seg, graph_dst.edges, List(""));
           graph_seg.vertices.setName("graph_seg");
           graph_seg.edges.setName("graph_seg");

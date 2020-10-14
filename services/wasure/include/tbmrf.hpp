@@ -457,9 +457,181 @@ public :
   // Lalpha (ici label 1),
   // Tri, la structure de la triangulation de Delaunay
   // Les informations (label courant, dempster shafer, etc) dans chaque tetraèdre.
-
   // Les étapes sont :
     void opt_gc(int lalpha,DTW & tri,D_MAP & data_map)
+    {
+
+      
+      // recupération nb cells (== nb sommets du graph) et nb triangles (nb edges du graph)
+        int  N =   tri.number_of_cells();
+        int NF = 0;
+        for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+        {
+            NF++;
+        }
+
+	// Création du graph (N et NF ne servent qu'à la "pre-alocation")
+	// ./services/extern/graphcut/include/graph.h
+        GraphType *g = new GraphType(N,NF*2 );
+        double e0,e1;
+        int acc = 0;
+
+	// ID map est une structure map d'un pointeur de tetraèdre => id
+	// ou id = indice des tétraèdres dans le du graph local.
+        std::map<Cell_const_iterator,int> id_map;
+        std::cerr << "init cell " << std::endl;
+        for( auto cit = tri.cells_begin();
+                cit != tri.cells_end(); ++cit )
+        {
+	  // incrémentaiton de l'indice
+            id_map[cit] = acc++;
+	    // Construction du noeud.
+            g->add_node();
+        }
+
+
+	// Création des aretes (termes unaires) entre  (S => noeuds) et (noeuds => T)
+	// On boucle sur les main => local + shared (id min)
+        for( auto cit = tri.cells_begin();
+                cit != tri.cells_end(); ++cit )
+        {
+            Cell_const_iterator fch = *cit;
+
+	    // recupération de l'id local du tétraèdre dans le graph
+            int cid = id_map[cit];
+
+	    // Lid : l'id local (mais dans la structure "data"
+	    int cccid = cit->lid();
+	    // En théorie lcurr = 0, mais ici on a une fonction générique.
+            int lcurr = data_map[fch->tile()->id()].format_labs[cccid];
+
+	    // Lcurr = 0 et lAlpha = 1 dans le cas binaire.
+            e0 = get_score_linear(fch,lcurr,data_map);
+            e1 = get_score_linear(fch,lalpha,data_map);
+
+	    // Construction des termes unaires
+	    // add_tweights(id du tétraèdre, score S->node,score node->T);
+            g->add_tweights(cid, (e0 * MULT), (e1 * MULT));
+
+        }
+
+	// Ajout des termes quadratiques (on boucle sur les triangles main)
+        std::cerr << " ~~~~~ score facet " << std::endl;
+        DATA_TYPE E[4];
+        for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+        {
+	  // is infinite => pour faire sauter les triangles infinis
+            if(fit->is_infinite())
+            {
+                continue;
+            }
+
+            try
+            {
+	      // recuperation des 2 tetraèdres de la facet
+                Cell_const_iterator tmp_fch = fit.full_cell();
+                int tmp_idx = fit.index_of_covertex();
+                Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+
+                if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
+		   !tri.tile_is_loaded(tmp_fchn->main_id()))
+                    continue;
+
+                Cell_const_iterator fch = tmp_fch->main();
+                int idx = tmp_idx;
+                Cell_const_iterator fchn = tmp_fchn->main();
+
+
+                int c1Id = id_map[fch];
+                int cnId = id_map[fchn];
+
+		int cccid = fch->lid();
+                int cccidn = fchn->lid();
+                double surface = get_surface(tmp_fch,tmp_idx);
+                double coef = lambda*surface;
+
+		
+                int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
+                int chnlab = data_map[fchn->tile()->id()].format_labs[cccidn];
+
+
+                E[3] = get_score_quad(ch1lab,chnlab);
+                E[2] = get_score_quad(ch1lab,lalpha);
+                E[1] = get_score_quad(lalpha,chnlab);
+                E[0] = get_score_quad(lalpha,lalpha);
+
+                double E_x1 = E[0] - E[2];
+                double E_bx2 = E[3] - E[2];
+
+                // Quadratic term should be positif
+                double E_quad = -E[0] + E[1] + E[2] - E[3];
+ 
+                if(E_x1 > 0)
+                    g->add_tweights(c1Id, 0, MULT*E_x1*coef);
+                else
+                    g->add_tweights(c1Id,-1*MULT*E_x1*coef, 0);
+                if(E_bx2 > 0)
+
+                    g->add_tweights(cnId, MULT*E_bx2*coef, 0 );
+                else
+                    g->add_tweights(cnId,0, -1*MULT*E_bx2*coef);
+                g->add_edge(c1Id, cnId,    /* capacities */ MULT*E_quad*coef,0);
+
+            }
+            catch (...)
+            {
+                continue;
+            }
+        }
+
+
+        std::cerr << "\t Max flow algorithm ..." << std::endl;
+        double flow = g->maxflow();
+        std::cerr << "\t\t flow value : " << flow << std::endl;
+        int nb_merge = 0;
+
+
+	// On reboucle sur les tets main
+        for( auto cit = tri.cells_begin();
+                cit != tri.cells_end(); ++cit )
+        {
+            Cell_const_iterator fch = *cit;
+	    // recuperation de l'id
+            int cid = id_map[fch];
+	    // Ici si le noeud (cid) est connecté à la source, c'est que la coupe est entre le noeud (cid) et le puits (score minimum, inclus dans la mincut)
+            if(g->what_segment(cid) == GraphType::SOURCE)
+            {
+	      int cccid = cit->lid();
+	      if( data_map.find(fch->tile()->id()) == data_map.end()){
+		std::cerr << "ERROR, NO CELL LOAD, WHY??" << std::endl;
+                    continue;
+	      }
+                data_map[fch->tile()->id()].format_labs[cccid] = lalpha;
+                nb_merge++;
+            }
+            else
+            {
+
+            }
+
+        }
+        std::cerr << "nb merges :" << nb_merge << "/"<< N << std::endl;
+        delete g;
+
+    }
+
+
+
+
+    // cherche l'ensemble des labels qui minimisent la fonction d'énergie définie par "get_score_linear & get_score_quad"
+  // Lalpha (ici label 1),
+  // Tri, la structure de la triangulation de Delaunay
+  // Les informations (label courant, dempster shafer, etc) dans chaque tetraèdre.
+  // Les étapes sont :
+
+
+  // 
+    void opt_gc_lambda(int lalpha,DTW & tri,D_MAP & data_map)
     {
 
       
