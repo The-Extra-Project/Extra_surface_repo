@@ -349,7 +349,7 @@ val coef_mult_list = List("1000000".toLong)
  val nb_part = rep_merge
  */
 
-if(true){
+if(false){
   lambda_list.foreach{ ll =>
     it_list.foreach{ max_it =>
       coef_mult_list.foreach{ coef_mult =>
@@ -504,3 +504,7 @@ if(true){
 // }
 
 
+val rdd_graph = iq.run_pipe_fun_KValue(
+  extract_struct_cmd ++ List("--label", "extrac_struct"),
+  kvrdd_dst, "dst", do_dump = false)
+  rdd_graph.collect()

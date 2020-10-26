@@ -1969,6 +1969,87 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
 }
 
 
+int seg_lagrange(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+
+    std::cout.setstate(std::ios_base::failbit);
+    std::cerr << "seg_step0" << std::endl;
+
+    DTW tri;
+    Scheduler sch(1);
+
+    std::cerr << "seg_step1" << std::endl;
+    wasure_algo w_algo;
+
+
+    D_MAP w_datas_tri;
+
+
+    log.step("read");
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+        if(hpi.get_lab() == "t")
+        {
+            //std::cerr << "read filename: " << hpi.get_file_name() << " [" << hpi.get_lab() << "]" << std::endl;
+            w_datas_tri[hid] = wasure_data<Traits>();
+            bool do_clean_data = false;
+            bool do_serialize = false;
+	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+            w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
+
+            std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
+            if(format_labs.size() == 0)
+            {
+	      //int nbs = w_datas_tri[hid].nb_simplex_uint8_vect();
+		int nbs = w_datas_tri[hid].format_dst.size();
+                for(int ss = 0; ss < nbs ; ss++)
+                {
+                    format_labs.push_back(0);
+                }
+            }
+            //      std::cerr << "done filename: " << hpi.get_file_name() << " [" << hpi.get_lab() << "]" << std::endl;
+        }
+
+        tri.finalize(sch);
+        hpi.finalize();
+    }
+
+    // ===== Init the id of each cell
+
+
+    log.step("compute");
+    std::cerr << "seg_step5" << std::endl;
+    tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri,&w_datas_tri);
+    mrf.lambda = params.lambda;
+    mrf.set_mode(-1);
+    mrf.opt_gc_lagrange(1,tri,w_datas_tri,tid);
+
+    log.step("finalize");
+    w_datas_tri[tid].fill_labs(w_datas_tri[tid].format_labs);
+
+    log.step("write");
+    std::cout.clear();
+    //  log.step("Write header");
+    ddt::stream_data_header oth("t","z",tid);
+    std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
+    if(params.dump_ply)
+        oth.init_file_name(filename,".ply");
+    oth.write_header(std::cout);
+
+
+    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    oth.finalize();
+    std::cout << std::endl;
+
+
+    return 0;
+}
+
+
+
 int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 {
 
@@ -2240,6 +2321,10 @@ int main(int argc, char **argv)
             else if(params.algo_step == std::string("seg"))
             {
                 rv = seg(tile_id,params,nb_dat,log);
+            }
+	    else if(params.algo_step == std::string("seg_lagrange"))
+            {
+                rv = seg_lagrange(tile_id,params,nb_dat,log);
             }
             else if(params.algo_step == std::string("extract_surface"))
             {

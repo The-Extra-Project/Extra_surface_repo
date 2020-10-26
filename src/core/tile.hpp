@@ -836,24 +836,35 @@ public:
 	      continue;
 	    const Data_V & vd = datav(vit);
 	    Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
-	    Id main_id = vit->main_id();
+	    vd_quickndirty.gid =  (acc++);
+        }
+	for(auto vit = vertices_begin(); vit != vertices_end(); ++vit)
+        {
+            if(vertex_is_main(vit))
+	      continue;
+	    const Data_V & vd = datav(vit);
+	    Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
 	    vd_quickndirty.gid =  (acc++);
         }
 
-        for(auto cit = cells_begin(); cit != cells_end(); ++cit)
-        {
-            if(!cell_is_main(cit)) continue;
-            int local = 0;
-            for(int i=0; i<=D+1; ++i)
-            {
-                auto v = cit->vertex(i % (D+1));
-                if(i>0)
-                {
-                    local += vertex_is_local(v);
-                }
-            }
-            flagc(cit) = local;
-        }
+	acc = 0;
+	for(auto cit = cells_begin(); cit != cells_end(); ++cit)
+	  {
+	    if(!cell_is_main(cit)) continue;
+
+	    const Data_C & cd = datac(cit);
+	    Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
+	    cd_quickndirty.gid =  (acc++);
+	  }
+
+	for(auto cit = cells_begin(); cit != cells_end(); ++cit)
+	  {
+	    if(cell_is_main(cit)) continue;
+	    const Data_C & cd = datac(cit);
+	    Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
+	    cd_quickndirty.gid =  (acc++);
+	  }
+
     }
 
     void update_local_flag() const

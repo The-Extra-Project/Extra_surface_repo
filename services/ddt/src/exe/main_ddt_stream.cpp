@@ -485,6 +485,7 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
   oth.write_header(std::cout);
   log.step("[write]write_tri");
 
+
   ddt::write_ddt_stream(tri, oth.get_output_stream(),tid,oth.is_serialized(),log);
   return 0;
 

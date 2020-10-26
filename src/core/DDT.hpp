@@ -85,12 +85,23 @@ public:
     Facet_const_iterator facets_begin() const { return Facet_const_iterator(tiles_begin(), tiles_end()); }
     Facet_const_iterator facets_end  () const { return Facet_const_iterator(tiles_begin(), tiles_end(), tiles_end()); }
 
+
+    Tile_vertex_const_iterator tile_vertices_begin(Id tid) const { return tiles[tid].vertices_begin();}
+    Tile_vertex_const_iterator tile_vertices_end  (Id tid) const { return tiles[tid].vertices_end();} 
+
+    Tile_cell_const_iterator tile_cells_begin(Id tid) const { return tiles[tid].cells_begin() ;}
+    Tile_cell_const_iterator tile_cells_end  (Id tid) const { return tiles[tid].cells_end() ;}
+
+    Tile_facet_const_iterator tile_facets_begin(Id tid) const { return tiles[tid].facets_begin();}
+    Tile_facet_const_iterator tile_facets_end  (Id tid) const { return tiles[tid].facets_end();} 
+
+  
     Tile_id_const_iterator tile_ids_begin() const { return tiles.begin(); }
     Tile_id_const_iterator tile_ids_end  () const { return tiles.end  (); }
 
     Tile_const_iterator tiles_begin  () const { return tiles.begin (); }
     Tile_const_iterator tiles_end    () const { return tiles.end   (); }
-    Tile_const_iterator get_tile(Id id) const { return tiles.find(id); }
+    Tile_const_iterator get_const_tile(Id id) const { return tiles.find(id); }
 
     Tile_iterator tiles_begin  () { return tiles.begin (); }
     Tile_iterator tiles_end    () { return tiles.end   (); }

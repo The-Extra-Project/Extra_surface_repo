@@ -109,7 +109,7 @@ std::ostream & write_ddt_stream_core(const DDT& ddt, std::ostream & ofile, int t
 
     //std::cout << "write tile [id:" << tid << "]" << std::endl;
     typename DDT::Traits ttraits;
-    auto tile  = ddt.get_tile(tid);
+    auto tile  = ddt.get_const_tile(tid);
     tile->update_local_flag();
     auto ttri = tile->triangulation();
 

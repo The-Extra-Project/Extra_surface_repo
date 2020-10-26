@@ -1134,7 +1134,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
     // Cell_handle ch = cit;
     if( cit->is_infinite() )
       continue;
-
+ 
     int cid = cit->lid();
 
     double  vpe = v_dst[cid][0];
