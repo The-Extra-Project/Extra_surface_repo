@@ -816,6 +816,8 @@ public :
   }
 
 
+  
+
   void insert(ddt_data & wd){
     for ( const auto &ee : wd.dmap ) {
 	if(ee.second.do_exist){
@@ -847,6 +849,20 @@ public :
 	  dmap[ee.first].uint8_vect.push_back(wd.dmap[ee.first].uint8_vect[id*vnbb+i]);
 	}
 	dmap[ee.first].do_exist = true;
+      }
+    }
+  }
+
+  void replace_attribute(ddt_data & wd, int id1,int id2){
+    for ( const auto &ee : wd.dmap ) {
+      if(ee.second.do_exist){
+	int vnbb =  ee.second.get_vnbb();
+	for(int i = 0 ; i < vnbb; i++){
+	  dmap[ee.first].uint8_vect[id1*vnbb+i] = wd.dmap[ee.first].uint8_vect[id2*vnbb+i];
+	}
+      }else{
+	//std::cerr << "ERROR ATTRIBUTE DOES NOT EXISTS" << std::endl;
+
       }
     }
   }

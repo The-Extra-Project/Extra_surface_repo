@@ -942,13 +942,14 @@ int extract_struct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream &
       if(hpi.get_lab() == "t" || hpi.get_lab() == "v" )
         {
 	  log.step("[read]read_triangulation");
-	  bool do_clean_data = true;
-	  read_ddt_stream(tri,hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
+	  bool do_clean_data = false;
+	  bool do_serialize = false;
+	  read_ddt_stream(tri,hpi.get_input_stream(),hpi.get_id(0),do_serialize,do_clean_data,log);
         }
       hpi.finalize();
     }
 
-
+  //
   std::map<Id, std::vector<Point_id_id>>  outbox_nbrs;
   Tile_iterator tci = tri.get_tile(tid);
   get_edges(tci,outbox_nbrs);
