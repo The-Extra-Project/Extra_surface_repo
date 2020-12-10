@@ -43,14 +43,17 @@ public :
     //void dump_points(std::vector<Point> & points, std::string namefile, int D);
 
 
+  double get_volume_reco(Cell_const_iterator fch){
+    return log(1+tbmrf<DTW,D_MAP>::get_volume(fch));
 
+  }
   
     double get_score_linear(Cell_const_iterator fch,int label,D_MAP & data_map)
     {
 
         double volume = 1;
 	if(!fch->is_infinite()){
-	  volume =  log(1+tbmrf<DTW,D_MAP>::get_volume(fch));
+	  volume =  get_volume_reco(fch);
 	  //volume = tbmrf<DTW,D_MAP>::get_volume(fch);
 	  
 	}

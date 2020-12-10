@@ -15,7 +15,7 @@ class wasure_params
 {
 public :
   wasure_params() : verbose_flag(0),nbp(0),log_level(2),show_ghost(false),dump_ply(false),area_processed(0),coef_mult(1),adaptative_scale(false),
-        input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),slabel(std::string("")),mode("surface"),rat_ray_sample(0.5),pscale(1),nb_samples(1),lambda(1),nb_labs(2),graph_type(0),skip_app_header(false)
+		    input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),slabel(std::string("")),mode("surface"),rat_ray_sample(0.5),pscale(1),nb_samples(1),lambda(1),nb_labs(2),graph_type(0),tau(0.5),skip_app_header(false)
     {
 
 
@@ -23,7 +23,7 @@ public :
     };
     int verbose_flag,seed,nbp,log_level,id_padding,graph_type,area_processed;
   bool show_ghost,skip_app_header,dump_ply,process_only_shared,adaptative_scale;
-    double lambda,terr,rat_ray_sample,rat_extra_pts,min_scale,pscale,coef_mult;
+  double lambda,terr,rat_ray_sample,rat_extra_pts,min_scale,pscale,coef_mult,tau;
     int nb_samples,max_it,nb_labs,nb_threads;
     int center_type,tile_id;
 
@@ -66,6 +66,7 @@ public :
             {"seed",  required_argument, 0, 'a'},
             {"input_dir",  required_argument, 0, 'r'},
             {"mode",  required_argument, 0, 'm'},
+	    {"tau",  required_argument, 0, 'q'},
             {"output_dir",  required_argument, 0, 'w'},
             {"label",  required_argument, 0, 'l'},
             {"lambda",  required_argument, 0, 'c'},
@@ -88,7 +89,7 @@ public :
 
         int option_index = 0;
 
-        while ((cc = getopt_long(argc, argv, "s:a:c:k:n:i:d:u:m:o:f:j:l:b:p:r:w:gtexh",long_options,&option_index)) != -1)
+        while ((cc = getopt_long(argc, argv, "s:a:q:c:k:n:i:d:u:m:o:f:j:l:b:p:r:w:gtexh",long_options,&option_index)) != -1)
         {
             switch (cc)
             {
@@ -110,6 +111,9 @@ public :
                 break;
             case 'l':
                 slabel = std::string(optarg);
+                break;
+	    case 'q':
+                tau = atof(optarg);
                 break;
             case 'b':
                 bbox_string = std::string(optarg);
