@@ -634,7 +634,7 @@ public :
 
   //
   typedef std::tuple<Id,double,double,double>                                EdgeData;
-  void opt_gc_lagrange(int lalpha,DTW & tri,D_MAP & data_map,std::map<Id,std::map<Id,EdgeData> > shared_data_map,int tid_k) 
+  void opt_gc_lagrange(int lalpha,DTW & tri,D_MAP & data_map,std::map<Id,std::map<Id,EdgeData> > shared_data_map,int tid_k, bool use_weight = true) 
     {
 
 
@@ -689,14 +689,17 @@ public :
 	  // === Lagrangian stuff for mixed cell ===
 	  double lag_acc = 0;
 	  int card_shared = 1;
-	  if(shared_data_map.size() > 0 && tile_k->cell_is_mixed(cit) ){
+
+
+	  if(shared_data_map.size() > 0 && tile_k->cell_is_mixed(cit)){
 	    std::unordered_set<Id> idSet ;
 	    // Number of time the cell is duplicated
 	    for(int l=0; l<=D ; ++l){
 	      Id tid_l = tile_k->id(tile_k->vertex(cit,l));
 	      idSet.insert(tid_l);
 	    }
-	     card_shared = idSet.size();// tile_k->cell_nb_duplicate(cit);
+	    if(use_weight)
+	      card_shared = idSet.size();// tile_k->cell_nb_duplicate(cit);
 	    idSet.clear();
 	    for(int l=0; l<=D; ++l){
 	      // Get current lagrangian
@@ -757,7 +760,7 @@ public :
                 auto tmp_fchn = tmp_fch->neighbor(tmp_idx);
 		// Nombre fe fois la facet est dupliquée
 		double card_shared = 1; 
-		if(tile_k->facet_is_mixed(fit)){
+		if(tile_k->facet_is_mixed(fit) && use_weight){
 		  std::unordered_set<Id> idSet ; 
 		  for(int i=0; i<=D; ++i)
 		    {

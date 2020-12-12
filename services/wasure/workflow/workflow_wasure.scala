@@ -432,7 +432,7 @@ if(true){
           var acc_loop = 0;
 
           val nb_it = 200;
-          val mod_val = 20;
+          val mod_val = 10;
           while (acc_loop < nb_it) {
             val acc_loop_str = "%03d".format(acc_loop)
             val res_seg = iq.run_pipe_fun_KValue(

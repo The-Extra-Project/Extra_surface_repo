@@ -26,7 +26,7 @@ public :
   double lambda,terr,rat_ray_sample,rat_extra_pts,min_scale,pscale,coef_mult,tau;
     int nb_samples,max_it,nb_labs,nb_threads;
     int center_type,tile_id;
-
+  bool use_weight = true;
 
 
   std::string bbox_string,input_dir,output_dir,algo_step,slabel,mode,filename;

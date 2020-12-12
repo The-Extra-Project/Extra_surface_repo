@@ -89,7 +89,6 @@ int write_edges_serialized(const std::map<Id,EdgeData>  & lp, std::ostream & ofi
     {
       outputv.emplace_back(pp.first);
       outputv.emplace_back(pp.second);
-      
     }
     serialize_b64_vect(outputv,ofile);
     return 0;
@@ -2662,7 +2661,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 
     // === Do a graphcut ============
     log.step("compute");
-    mrf.opt_gc_lagrange(1,tri,w_datas_tri,shared_data_map,tid_1);
+    mrf.opt_gc_lagrange(1,tri,w_datas_tri,shared_data_map,tid_1,params.use_weight);
 
 
     log.step("write");
@@ -3358,7 +3357,13 @@ int main(int argc, char **argv)
             }
 	    else if(params.algo_step == std::string("seg_lagrange"))
             {
-                rv = seg_lagrange(tile_id,params,nb_dat,log);
+	      params.use_weight = false;
+	      rv = seg_lagrange(tile_id,params,nb_dat,log);
+            }
+	    else if(params.algo_step == std::string("seg_lagrange_weight"))
+            {
+	      params.use_weight = true;
+	      rv = seg_lagrange(tile_id,params,nb_dat,log);
             }
             else if(params.algo_step == std::string("extract_surface"))
             {
