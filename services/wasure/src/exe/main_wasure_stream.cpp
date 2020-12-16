@@ -31,7 +31,7 @@ typedef Id                                EdgeData;
 
 int write_id_double_serialized(const std::map<Id,SharedData>  & lp, std::ostream & ofile,bool do_print = false)
 {
-
+    do_print = false;
     std::vector<double> outputv;
     for(auto pp : lp)
     {
@@ -60,6 +60,7 @@ int write_id_double_serialized(const std::map<Id,SharedData>  & lp, std::ostream
 
 std::istream & read_id_double_serialized(std::map<Id,SharedData> & lp, std::istream & ifile, bool do_print = false)
 {
+  do_print = false;
   std::vector<double> input_v;
   deserialize_b64_vect(input_v,ifile);
   int nbe = 5;
@@ -1267,6 +1268,8 @@ int regularize_slave(Id tid,wasure_params & params,int nb_dat,ddt::logging_strea
     // Dum edges
     for(auto ee : shared_data_map){
       Id tid2 = ee.first;
+      if(tid2 == tid)
+	continue;
       ddt::stream_data_header hto("e","z",std::vector<int> {tid,tid2});
       std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid) + "_nid" + std::to_string(tid2));
       //hto.init_file_name(filename,".pts");
@@ -2454,8 +2457,8 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	  Id eid2 = hpi.get_id(1);
 	  edges_data_map[eid1] = std::map<Id,SharedData>();	  
 	  std::map<Id,SharedData>  & lp = edges_data_map[eid1];
-	  if(tid_1==3)
-	    std::cerr << "READ_EDGES" << eid2 << "<->" << eid1 << std::endl;
+	  // if(tid_1==3)
+	  //   std::cerr << "READ_EDGES" << eid2 << "<->" << eid1 << std::endl;
 	  read_id_double_serialized(lp, hpi.get_input_stream(),tid_1 == 3);
         }
 
@@ -2566,7 +2569,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 
 
     // ============== Debug results ============
-    if(true){
+    if(false){
       Traits  traits;
       std::vector<Point> pvect;
       std::vector<int> v_labs;
@@ -2650,7 +2653,6 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	  
 	  ofile << "conv:" << conv << std::endl;
       }
-
       ofile.close();
     }
 
@@ -2723,6 +2725,8 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 
     for(auto ee : shared_data_map){
       Id tid2 = ee.first;
+      if(tid2 == tid_1)
+	continue;
       ddt::stream_data_header hto("e","z",std::vector<int> {tid_1,tid2});
       std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1) + "_nid" + std::to_string(tid2));
       //hto.init_file_name(filename,".pts");
@@ -3355,7 +3359,7 @@ int main(int argc, char **argv)
             {
                 rv = seg_global_extract(tile_id,params,nb_dat,log);
             }
-	    else if(params.algo_step == std::string("seg_lagrange"))
+	    else if(params.algo_step == std::string("seg_lagrange_raw"))
             {
 	      params.use_weight = false;
 	      rv = seg_lagrange(tile_id,params,nb_dat,log);
