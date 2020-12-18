@@ -2556,6 +2556,8 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 		new_lagrange  = new_lagrange + cur_tau*(v_diff);
 		if(old_diff != v_diff)
 		  cur_tau /=2;
+		else if(old_diff == v_diff && lab_2 != lab_1)
+		  cur_tau *=2;
 
     	      }else{
 		if(shared_data_map.find(tid_2) == shared_data_map.end())
@@ -2569,7 +2571,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 
 
     // ============== Debug results ============
-    if(false){
+    if(true){
       Traits  traits;
       std::vector<Point> pvect;
       std::vector<int> v_labs;
@@ -2886,8 +2888,6 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
 	    if(w_datas_tri[hid].dmap[w_datas_tri[hid].labseg_name].do_exist){
 	      w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
 	      std::vector<int> format_labs_new(format_labs);
-	      std::cerr << "format_labs_size " << format_labs.size() << std::endl;
-
 	      v_map[hid] = format_labs_new;
 
 	      std::fill(format_labs.begin(), format_labs.end(), 0);
@@ -2920,7 +2920,8 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     // Stats and finalizing
     int acc_tot = 0;
     int acc_diff = 0;
-
+    double wacc_tot = 0;
+    double wacc_diff = 0;
 
     for( auto cit = tri.cells_begin();
                 cit != tri.cells_end(); ++cit )
@@ -2932,29 +2933,18 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
 
 	    int cccid = cit->lid();
             Cell_const_iterator fch = *cit;
+	    double cur_tau = mrf.get_volume_reco(fch);
 	    // En théorie lcurr = 0, mais ici on a une fonction générique.
             int lcurr = w_datas_tri[fch->tile()->id()].format_labs[cccid];
 	    int lnew = v_map[fch->tile()->id()][cccid];
-	    if(lcurr != lnew)
+	    if(lcurr != lnew){
 	      acc_diff++;
+	      wacc_diff+=cur_tau;
+	    }
 	    acc_tot++;
+	    wacc_tot+=cur_tau;
 	}
     
-    // for ( auto it = w_datas_tri.begin(); it != w_datas_tri.end(); it++ )
-    //   {
-    // 	std::vector<int>  & format_labs_new = w_datas_tri[it->first].format_labs ;
-    // 	std::vector<int>  & format_labs_ori = v_map[it->first] ;
-    // 	std::cerr << "size:" << format_labs_new.size() << " " << format_labs_ori.size() << std::endl;
-    // 	for(int i = 0; i < format_labs_new.size(); i++){
-    // 	  acc_tot++;
-
-    // 	}
-	  
-    // 	//	w_datas_tri[it->first].fill_labs(w_datas_tri[it->first].format_labs);
-
-    //   }
-
-
 
     
     // =============
@@ -3043,7 +3033,8 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     // Dump stats
     ddt::stream_data_header sth("s","z",tid);
     sth.write_header(std::cout);
-    std::cout << "[diff:tot] " << acc_diff << " " << acc_tot;
+    //std::cout << "[diff:tot] " << acc_diff << " " << acc_tot << " " << wacc_diff << " " << wacc_tot;
+    std::cout << "[diff:tot] " << wacc_diff << " " << wacc_tot;
     sth.finalize();
     std::cout << std::endl;
 

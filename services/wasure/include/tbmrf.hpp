@@ -694,12 +694,13 @@ public :
 	  if(shared_data_map.size() > 0 && tile_k->cell_is_mixed(cit)){
 	    std::unordered_set<Id> idSet ;
 	    // Number of time the cell is duplicated
-	    for(int l=0; l<=D ; ++l){
-	      Id tid_l = tile_k->id(tile_k->vertex(cit,l));
-	      idSet.insert(tid_l);
+	    if(use_weight){
+	      for(int l=0; l<=D ; ++l){
+		Id tid_l = tile_k->id(tile_k->vertex(cit,l));
+		idSet.insert(tid_l);
+	      }
+	      card_shared = idSet.size();
 	    }
-	    if(use_weight)
-	      card_shared = idSet.size();// tile_k->cell_nb_duplicate(cit);
 	    idSet.clear();
 	    for(int l=0; l<=D; ++l){
 	      // Get current lagrangian
@@ -809,7 +810,6 @@ public :
                 else
                     g->add_tweights(c1Id,-1*MULT*E_x1*coef, 0);
                 if(E_bx2 > 0)
-
                     g->add_tweights(cnId, MULT*E_bx2*coef, 0 );
                 else
                     g->add_tweights(cnId,0, -1*MULT*E_bx2*coef);
