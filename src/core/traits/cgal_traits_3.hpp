@@ -350,7 +350,8 @@ struct Cgal_traits_3
     }
 
 
-  void get_list_vertices(Cell_const_handle fch,std::list<Vertex_const_handle> & lp){
+  void get_list_vertices(const Cell_const_handle fch,std::list<Vertex_const_handle> & lp) const
+  {
     	for(int dd = 0; dd < D+1; dd++)
 	  {	  
             lp.push_back(fch->vertex(dd));
@@ -358,7 +359,7 @@ struct Cgal_traits_3
   }
 
   
-  std::vector<double> get_cell_barycenter(Cell_const_handle ch)
+  std::vector<double> get_cell_barycenter(Cell_const_handle ch) const
     {
 
       std::vector<double>  coords(D,0);

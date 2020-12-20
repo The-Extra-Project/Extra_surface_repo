@@ -103,12 +103,12 @@ public :
 
 
   template<typename CH>
-  std::vector<double>   wasure_algo::Pick(CH  ch, int D){
-  if(D == 3)
-    return Pick_3d(ch->vertex(0)->point(),ch->vertex(1)->point(),ch->vertex(2)->point(),ch->vertex(3)->point());
-  if(D == 2)
-    return Pick_2d(ch->vertex(0)->point(),ch->vertex(1)->point(),ch->vertex(2)->point());
-}
+  std::vector<double>   Pick(CH  ch, int D){
+    if(D == 3)
+      return Pick_3d(ch->vertex(0)->point(),ch->vertex(1)->point(),ch->vertex(2)->point(),ch->vertex(3)->point());
+    if(D == 2)
+      return Pick_2d(ch->vertex(0)->point(),ch->vertex(1)->point(),ch->vertex(2)->point());
+  }
 
   
   Traits  traits  ;

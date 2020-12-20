@@ -360,13 +360,14 @@ val ll = lambda_list.head
 val coef_mult = coef_mult_list.head
 val max_it = it_list.head
 
-//val algo_list = List("seg_lagrange_weight","seg_lagrange_raw");
-val algo_list = List("seg_lagrange_weight");
+val algo_list = List("seg_lagrange_weight","seg_lagrange_raw");
+//val algo_list = List("seg_lagrange_weight");
 /*
  val maxIterations = 1
  val nb_part = rep_merge
  */
 //val coef_mult_list = List("5".toLong,"10".toLong,"50".toLong)
+
 
 var stats_list_1 = new ListBuffer[(Int,(Float,Float))]()
 var stats_list_2 = new ListBuffer[(Int,(Float,Float))]()
@@ -374,12 +375,17 @@ var stats_list_2 = new ListBuffer[(Int,(Float,Float))]()
 
 def dump_it_stats(stats_filename : String, stats_list : ListBuffer[(Int, (Float, Float))]){
   val fs = FileSystem.get(sc.hadoopConfiguration);
-  val output = fs.create(new Path(stats_filename));
+  val path_name = new Path(stats_filename);
+  if (fs.exists(path_name))
+    fs.delete(path_name, true)
+  val output = fs.create(path_name);
   val os = new BufferedOutputStream(output)
   os.write((stats_list.map( x => x._1 + "," + x._2._1 + "," + x._2._2 + "," + x._2._1   /  (if(x._2._2 != 0) x._2._2.toFloat else 1)).reduce(_ + "\n" + _) + "\n").getBytes)
   os.close()
 }
 
+
+val algo_list = List("seg_lagrange_weight","seg_lagrange_raw");
 
 if(true){
   algo_list.foreach{ cur_algo =>
@@ -440,7 +446,7 @@ if(true){
       input_seg2.persist(slvl_loop)
       input_seg2.count()
       var acc_loop = 0;
-      val nb_it = 100;
+      val nb_it = 150;
       val mod_val = 10;
       while (acc_loop < nb_it) {
         val acc_loop_str = "%03d".format(acc_loop)
@@ -495,12 +501,13 @@ if(true){
           stats_list_2 += t2
           println("[it " + acc_loop_str + "] " + floatFormat.format(100*stats_1._1/stats_1._2.toFloat) + "% "
             + stats_1 + " \t --- " + floatFormat.format(100*stats_2._1/stats_2._2.toFloat) + "% " + stats_2)
+          dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_conv_1.txt",stats_list_1)
+          dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_gtdiff_2.txt",stats_list_2)
         }
         res_seg.unpersist()
         acc_loop = acc_loop + 1;
       }
-      dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_conv_1.txt",stats_list_1)
-      dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_gtdiff_2.txt",stats_list_2)
+
       stats_list_1.clear()
       stats_list_2.clear()
     }

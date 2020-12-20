@@ -1754,8 +1754,8 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
   if(start->has_vertex(tri.infinite_vertex(), ind_inf))
     start = start->neighbor(ind_inf);
 
-  CGAL_triangulation_precondition(start != Cell_handle());
-  CGAL_triangulation_precondition(! start->has_vertex(infinite));
+    CGAL_triangulation_precondition(start != Cell_handle());
+  //     CGAL_triangulation_precondition(! start->has_vertex(infinite));
 
   // We implement the remembering visibility walk.
   // In this phase, no need to be stochastic

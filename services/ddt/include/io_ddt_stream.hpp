@@ -84,7 +84,7 @@ int read_ddt_stream_core(DDT & ddt,  std::istream & ifile, typename DDT::Id tid,
 }
 
   template<typename DDT,typename WD>
-std::ostream & write_ddt_stream(const DDT& ddt, const WD& wd , std::ostream & ofile, int tid,bool do_serialize,ddt::logging_stream & log)
+std::ostream & write_ddt_stream(const DDT& ddt,  WD& wd , std::ostream & ofile, int tid,bool do_serialize,ddt::logging_stream & log)
 {
   ofile << " 1 ";
   wd.write_serialized_stream(ofile);

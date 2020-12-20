@@ -265,7 +265,7 @@ public:
   bool circumcircle() const { return tile_->cell_is_inside(cell_); }
   std::vector<double> barycenter() const { return tile_->get_cell_barycenter(cell_); }
 
-  void get_list_vertices(std::list<Tile_vertex_const_handle> & ll) { return tile_->get_list_vertices(cell_,ll);}
+  void get_list_vertices(std::list<Tile_vertex_const_handle> & ll) const { return tile_->get_list_vertices(cell_,ll);}
   
     bool is_valid()    const
     {

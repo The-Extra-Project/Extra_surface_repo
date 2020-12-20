@@ -50,19 +50,19 @@ public :
     }
 
     
-    int get_nbe_uint8_vect(){
+    int get_nbe_uint8_vect() const { 
       return uint8_vect.size()/((tinyply::PropertyTable[type].stride)*vsize);
     }
 
     
-    int get_nbe_shpt_vect(){
+    int get_nbe_shpt_vect() const {
       if(shpt_vect != nullptr)
 	return get_nbe_shpt_vect_shp();
       return 0;
     }
 
 
-    int get_nbe(){
+    int get_nbe() const {
       if(shpt_vect != nullptr)
 	return get_nbe_shpt_vect();
       if(uint8_vect.size() != 0)
@@ -87,7 +87,7 @@ public :
       return false;
     }
 
-    void print_elems(std::ostream & ss){
+    void print_elems(std::ostream & ss) const {
       int acc=0;
       std::cout << "==============" << std::endl;
       for(auto ee : vname){
@@ -476,7 +476,7 @@ public :
     }
   }
 
-  void write_serialized_stream( std::ostream & ss) 
+  void write_serialized_stream( std::ostream & ss)
   {
     int nn = 0;
     for ( const auto &ee : dmap ) {

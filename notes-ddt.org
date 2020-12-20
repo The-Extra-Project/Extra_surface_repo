@@ -1,5 +1,7 @@
 
+
 * Todos
+** 
 * Notes
 ** Geneartion de jeu de données 2D à partir d'images
 Script qui permet de génerer un nuage de point ply à partir d'images labélisées d'empreintes de batiments.

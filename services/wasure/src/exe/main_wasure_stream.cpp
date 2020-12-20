@@ -296,7 +296,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	}
 
 	std::cerr << "yo" << std::endl;
-	for ( const auto &ee : datas_map[hid].dmap ) {
+	for (  auto &ee : datas_map[hid].dmap ) {
 	  if(ee.second.do_exist){
 	    std::cerr << fname_map[hid] << std::endl;
 	    ee.second.print_elems(std::cerr);
@@ -2629,6 +2629,13 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	    ofile << bary[i] << " ";
 	  ofile << " -- ";
 	  int conv = 1;
+	  int card = 1;
+    	  for(int i=0; i<=D; ++i){
+	    Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
+	    idSet.insert(tid_2);
+	  }
+	  card = idSet.size();
+	  idSet.clear();
     	  for(int i=0; i<=D; ++i)
     	    {
     	      Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
@@ -2647,7 +2654,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	      
 	      ofile << " tid_2:" << tid_2 << " lid_2:" << lid_2 << " lab_2:" << lab_2
 		    << " cur_lag:" << new_lagrange << " cur_tau:" << cur_tau 
-		    << " ci:" << c_i << " cj:" << c_j 
+		    << " ci:" << c_i << " cj:" << c_j <<  " card:" << card
 		    << " -- ";
 	      if(lab_2 != lab_1)
 		conv = 0;
@@ -2933,7 +2940,7 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
 
 	    int cccid = cit->lid();
             Cell_const_iterator fch = *cit;
-	    double cur_tau = mrf.get_volume_reco(fch);
+	    double cur_tau =  mrf.get_volume_reco(fch);
 	    // En théorie lcurr = 0, mais ici on a une fonction générique.
             int lcurr = w_datas_tri[fch->tile()->id()].format_labs[cccid];
 	    int lnew = v_map[fch->tile()->id()][cccid];
