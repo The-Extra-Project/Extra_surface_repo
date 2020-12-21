@@ -1,4 +1,4 @@
-## Distributed Delaunay Triangulation & surface reconstruction
+## Distributed Delaunay Triangulation & surface reconstruction doc
 
 
 # User manual
