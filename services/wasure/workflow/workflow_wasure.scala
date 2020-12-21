@@ -446,7 +446,7 @@ if(true){
       input_seg2.persist(slvl_loop)
       input_seg2.count()
       var acc_loop = 0;
-      val nb_it = 150;
+      val nb_it = 100;
       val mod_val = 10;
       while (acc_loop < nb_it) {
         val acc_loop_str = "%03d".format(acc_loop)

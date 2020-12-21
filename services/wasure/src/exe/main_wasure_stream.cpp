@@ -161,7 +161,7 @@ int simplify(Id tid,wasure_params & params,int nb_dat)
             ddt::stream_data_header oqh("p","s",id);
             std::string filename(params.output_dir + "/" + params.slabel +"_id_"+ std::to_string(tid) + "_" + std::to_string(id));
             if(params.dump_ply)
-                oqh.init_file_name(filename,".ply");
+                oqh.write_into_file(filename,".ply");
             oqh.write_header(std::cout);
             w_datas.write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
             oqh.finalize();
@@ -346,7 +346,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	if(true){
 	  ddt::stream_data_header oqh("p","f",id);
 	  std::string filename(params.output_dir + "/" + fname_map[id]);
-	  oqh.init_file_name(filename,".stream");
+	  oqh.write_into_file(filename,".stream");
 	  oqh.write_header(std::cout);
 	  datas_map[id].write_serialized_stream(oqh.get_output_stream());
 	  oqh.finalize();
@@ -355,7 +355,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	if(true){
 	  ddt::stream_data_header oqh("p","f",id);
 	  std::string filename(params.output_dir + "/" + fname_map[id]);
-	  oqh.init_file_name(filename,".ply");
+	  oqh.write_into_file(filename,".ply");
 	  oqh.write_header(std::cout);
 	  datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n',true);
 	  oqh.finalize();
@@ -566,7 +566,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
 	    log.step("write");
 	    ddt::stream_data_header oth("z","s",tid);
 	    if(params.dump_ply)
-	      oth.init_file_name(ply_name,".ply");
+	      oth.write_into_file(ply_name,".ply");
 	    oth.write_header(std::cout);
 
 	    if(params.dump_ply)
@@ -593,7 +593,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
     log.step("write");
     ddt::stream_data_header oth("z","s",tid);
     if(params.dump_ply)
-      oth.init_file_name(ply_name,".ply");
+      oth.write_into_file(ply_name,".ply");
     oth.write_header(std::cout);
 
     if(params.dump_ply)
@@ -614,7 +614,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
 
       std::string ply_name(params.output_dir +  "/simp_id_" + std::to_string(tid) + "_simp");
       if(params.dump_ply)
-	oxh.init_file_name(ply_name,".ply");
+	oxh.write_into_file(ply_name,".ply");
       oxh.write_header(std::cout);
       if(params.dump_ply)
 	datas_out.write_ply_stream(oxh.get_output_stream());
@@ -803,7 +803,7 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
     if(params.dump_ply)
-        oth.init_file_name(filename,".ply");
+        oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     std::cerr << "stream dumped" << std::endl;
@@ -991,7 +991,7 @@ int dst_conflict(const Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
     if(params.dump_ply)
-        oth.init_file_name(filename,".ply");
+        oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
@@ -1139,7 +1139,7 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
     if(params.dump_ply)
-        oth.init_file_name(filename,".ply");
+        oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
@@ -1257,7 +1257,7 @@ int regularize_slave(Id tid,wasure_params & params,int nb_dat,ddt::logging_strea
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
     if(params.dump_ply)
-        oth.init_file_name(filename,".ply");
+        oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     std::cerr << "stream dumped" << std::endl;
@@ -1272,9 +1272,9 @@ int regularize_slave(Id tid,wasure_params & params,int nb_dat,ddt::logging_strea
 	continue;
       ddt::stream_data_header hto("e","z",std::vector<int> {tid,tid2});
       std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid) + "_nid" + std::to_string(tid2));
-      //hto.init_file_name(filename,".pts");
+      //hto.write_into_file(filename,".pts");
       if(params.dump_ply)
-    	hto.init_file_name(filename,".ply");
+    	hto.write_into_file(filename,".ply");
       hto.write_header(std::cout);
       write_id_double_serialized(ee.second,hto.get_output_stream());
       hto.finalize();
@@ -1426,11 +1426,11 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
 
     ddt::stream_data_header oth("p","z",tid);
     if(D == 2){
-      oth.init_file_name(ply_name,".geojson");
+      oth.write_into_file(ply_name,".geojson");
       oth.write_header(std::cout);
     }
     // else
-    //     oth.init_file_name(ply_name,".ply");
+    //     oth.write_into_file(ply_name,".ply");
 
 
 
@@ -1680,11 +1680,11 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
 
     ddt::stream_data_header oth("p","z",tid);
     if(D == 2){
-      oth.init_file_name(ply_name,".geojson");
+      oth.write_into_file(ply_name,".geojson");
       oth.write_header(std::cout);
     }
     // else
-    //     oth.init_file_name(ply_name,".ply");
+    //     oth.write_into_file(ply_name,".ply");
 
 
     if(lft.size() == 0)
@@ -1874,9 +1874,9 @@ int extract_surface_area_old(Id tid,wasure_params & params,int nb_dat,ddt::loggi
     ddt::stream_data_header oth("p","f",tid);
 
     if(D == 2)
-        oth.init_file_name(ply_name,".geojson");
+        oth.write_into_file(ply_name,".geojson");
     else
-        oth.init_file_name(ply_name,".ply");
+        oth.write_into_file(ply_name,".ply");
 
     oth.write_header(std::cout);
 
@@ -2190,7 +2190,7 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
     if(params.dump_ply)
-        oth.init_file_name(filename,".ply");
+        oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
@@ -2368,7 +2368,7 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
 //     ddt::stream_data_header oth("t","z",tid1);
 //     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid1));
 //     if(params.dump_ply)
-//         oth.init_file_name(filename,".ply");
+//         oth.write_into_file(filename,".ply");
 //     oth.write_header(std::cout);
 //     ddt::write_ddt_stream(tri, w_datas_tri[tid1], oth.get_output_stream(),tid1,false,log);
 //     oth.finalize();
@@ -2379,9 +2379,9 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
 //       Id tid2 = ee.first;
 //       ddt::stream_data_header hto("e","z",std::vector<int> {tid1,tid2});
 //       std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid1) + "_nid" + std::to_string(tid2));
-//       //hto.init_file_name(filename,".pts");
+//       //hto.write_into_file(filename,".pts");
 //       if(params.dump_ply)
-//     	hto.init_file_name(filename,".ply");
+//     	hto.write_into_file(filename,".ply");
 //       hto.write_header(std::cout);
 //       write_id_double_serialized(ee.second,hto.get_output_stream());
 //       hto.finalize();
@@ -2571,7 +2571,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 
 
     // ============== Debug results ============
-    if(true){
+    if(false){
       Traits  traits;
       std::vector<Point> pvect;
       std::vector<int> v_labs;
@@ -2725,7 +2725,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
     ddt::stream_data_header oth("t","z",tid_1);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1));
     if(params.dump_ply)
-        oth.init_file_name(filename,".ply");
+        oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid_1], oth.get_output_stream(),tid_1,false,log);
     oth.finalize();
@@ -2738,9 +2738,9 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	continue;
       ddt::stream_data_header hto("e","z",std::vector<int> {tid_1,tid2});
       std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1) + "_nid" + std::to_string(tid2));
-      //hto.init_file_name(filename,".pts");
+      //hto.write_into_file(filename,".pts");
       if(params.dump_ply)
-    	hto.init_file_name(filename,".ply");
+    	hto.write_into_file(filename,".ply");
       hto.write_header(std::cout);
       write_id_double_serialized(ee.second,hto.get_output_stream(),tid_1 ==3);
       hto.finalize();
@@ -2752,9 +2752,9 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
       Id tid2 = ee.first;
       ddt::stream_data_header hto("f","z",std::vector<int> {tid_1,tid2});
       std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1) + "_nid" + std::to_string(tid2));
-      //hto.init_file_name(filename,".pts");
+      //hto.write_into_file(filename,".pts");
       if(params.dump_ply)
-    	hto.init_file_name(filename,".ply");
+    	hto.write_into_file(filename,".ply");
       hto.write_header(std::cout);
       write_id_double_serialized(ee.second,hto.get_output_stream(),tid_1 ==3);
       hto.finalize();
@@ -2844,7 +2844,7 @@ int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
     if(params.dump_ply)
-        oth.init_file_name(filename,".ply");
+        oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
 
 
@@ -3048,12 +3048,12 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     
     ddt::stream_data_header oth("p","z",0);
     if(D == 2){
-      oth.init_file_name(ply_name,".geojson");
+      oth.write_into_file(ply_name,".geojson");
       oth.write_header(std::cout);
     }
 
     // else
-    //     oth.init_file_name(ply_name,".ply");
+    //     oth.write_into_file(ply_name,".ply");
 
 
 
@@ -3196,7 +3196,7 @@ int tri2geojson(Id tid,wasure_params & params, int nb_dat,ddt::logging_stream & 
     std::string json_name(params.output_dir +  "/" + params.slabel + "_" + std::to_string(tid) + "_tri");
     std::cout.clear();
     ddt::stream_data_header oth("j","h",tid);
-    oth.init_file_name(json_name,".geojson");
+    oth.write_into_file(json_name,".geojson");
     oth.write_header(std::cout);
     wasure::write_geojson_tri_wasure(tri,w_datas_tri,oth.get_output_stream());
     oth.finalize();
@@ -3235,11 +3235,11 @@ int ply2geojson(Id tile_id,wasure_params & params,int nb_dat)
         Id id = hpi.get_id(0);
         ddt::stream_data_header oqh_1("p","s",id),oqh_2("p","s",id),oqh_3("p","s",id);
         std::string filename(params.output_dir + "/" + params.slabel +"_id_"+ std::to_string(tile_id) + "_" + std::to_string(id));
-        oqh_1.init_file_name(filename,"_pts.geojson");
+        oqh_1.write_into_file(filename,"_pts.geojson");
         oqh_1.write_header(std::cout);
-        oqh_2.init_file_name(filename,"_spx.geojson");
+        oqh_2.write_into_file(filename,"_spx.geojson");
         oqh_2.write_header(std::cout);
-        oqh_3.init_file_name(filename,"_nrm.geojson");
+        oqh_3.write_into_file(filename,"_nrm.geojson");
         oqh_3.write_header(std::cout);
         //w_datas.write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
         //w_datas.write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
@@ -3274,7 +3274,7 @@ int hello(Id tile_id,wasure_params & params,int nb_dat)
         std::cerr << "finalize" << std::endl;
         std::cout.clear();
         ddt::stream_data_header oth("j","f",tile_id);
-        oth.init_file_name("hello",".json");
+        oth.write_into_file("hello",".json");
         oth.write_header(std::cout);
         oth.finalize();
         std::cout << std::endl;

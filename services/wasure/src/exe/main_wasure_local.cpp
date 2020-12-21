@@ -312,9 +312,9 @@ int main(int argc, char **argv)
 	traits.export_tri_to_data(tri_tile,w_datas_tri[tid]);    
 	ddt::stream_data_header oqh_1("p","s",tid),oqh_2("p","s",tid);
 	std::string filename(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_seg");
-	oqh_1.init_file_name(filename,"_pts.geojson");
+	oqh_1.write_into_file(filename,"_pts.geojson");
 	oqh_1.write_header(std::cout);
-	oqh_2.init_file_name(filename,"_spx.geojson");
+	oqh_2.write_into_file(filename,"_spx.geojson");
 	oqh_2.write_header(std::cout);
 	w_datas_tri[tid].write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
 	oqh_1.finalize();
@@ -333,9 +333,9 @@ int main(int argc, char **argv)
       ddt::stream_data_header oth("p","f",tid);
 
       if(D == 2)
-	oth.init_file_name(ply_name,".geojson");
+	oth.write_into_file(ply_name,".geojson");
       else
-	oth.init_file_name(ply_name,".ply");
+	oth.write_into_file(ply_name,".ply");
 
       oth.write_header(std::cout);
 

@@ -23,7 +23,7 @@ int send_neighbors(Id tid,algo_params & params, std::map<Id, std::vector<Point_i
         {
 	  ddt::stream_data_header hto("e","s",std::vector<int> {tid,nb_tid});
 	  std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid) + "_nid" + std::to_string(nb_tid));
-	  //hto.init_file_name(filename,".pts");
+	  //hto.write_into_file(filename,".pts");
 	  hto.write_header(std::cout);
 	  if(!svh.empty())
 	    ddt::write_points_id_source_serialized<Point_id_id,Point>(svh,hto.get_output_stream(),D);
@@ -806,9 +806,9 @@ int ply2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & lo
       ddt::stream_data_header oqh_1("p","s",id),oqh_2("p","s",id);
       std::string filename(params.output_dir + "/" + params.slabel +
 			   "_id_" + std::to_string(id) + "_" + std::to_string(tid) + "_" + std::to_string(i)) ;
-      oqh_1.init_file_name(filename,"_pts.geojson");
+      oqh_1.write_into_file(filename,"_pts.geojson");
       oqh_1.write_header(std::cout);
-      oqh_2.init_file_name(filename,"_spx.geojson");
+      oqh_2.write_into_file(filename,"_spx.geojson");
       oqh_2.write_header(std::cout);
 
 
@@ -893,9 +893,9 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
 	ddt::stream_data_header oqh_1("p","s",id),oqh_2("p","s",id);
 	std::string filename(params.output_dir + "/" + params.slabel +
 			     "_id_" + std::to_string(id) + "_" + std::to_string(tid) + "_" + std::to_string(acc++)) ;
-	oqh_1.init_file_name(filename,"_pts.geojson");
+	oqh_1.write_into_file(filename,"_pts.geojson");
 	oqh_1.write_header(std::cout);
-	oqh_2.init_file_name(filename,"_spx.geojson");
+	oqh_2.write_into_file(filename,"_spx.geojson");
 	oqh_2.write_header(std::cout);
         
 	std::cerr << "ser3" << std::endl;
@@ -1504,7 +1504,7 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
 	std::string stream_lab = datas_map[hid].stream_lab;
 	ddt::stream_data_header ozh(stream_lab,"z",hid);
 	std::string filename(params.output_dir + "/pts_" + params.slabel +"_id_"+ std::to_string(hid) + "_" + std::to_string(tid));
-	//ozh.init_file_name(filename,".stream");
+	//ozh.write_into_file(filename,".stream");
 	ozh.write_header(std::cout);
 	datas_map[hid].write_serialized_stream(ozh.get_output_stream());
 	ozh.finalize();  
@@ -1587,7 +1587,7 @@ int preprocess(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 	ddt::stream_data_header ozh(stream_lab,"p",hid);
 
 	std::string filename(params.output_dir + "/tile_" + params.slabel +"_id_"+ std::to_string(hid) + "_" + std::to_string(tid));
-	ozh.init_file_name(filename,".ply");
+	ozh.write_into_file(filename,".ply");
 	
 	ozh.write_header(std::cout);
 	datas_map[hid].write_serialized_stream(ozh.get_output_stream());
@@ -1734,7 +1734,7 @@ int generate_points_normal(Id tid,algo_params & params,ddt::logging_stream & log
   // ddt::stream_data_header oqh("g","s",tid);
   // std::string filename(params.output_dir + "/tile_" + params.slabel +"_id_"+ std::to_string(tid) + "_" + std::to_string(tid));
   // if(params.dump_ply)
-  //   oqh.init_file_name(filename,".ply");
+  //   oqh.write_into_file(filename,".ply");
   // oqh.write_header(std::cout);
   // datas_out.write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
   // oqh.finalize();
@@ -1975,7 +1975,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	ddt::stream_data_header oqh("z","z",id),och("c","z",id);
 	std::string filename(params.output_dir + "/tile_" + params.slabel +"_id_"+ std::to_string(tid) + "_" + std::to_string(id));
 	if(params.dump_ply)
-	   oqh.init_file_name(filename,".ply");
+	   oqh.write_into_file(filename,".ply");
 	oqh.write_header(std::cout);
 
 	if(params.dump_ply)
@@ -2042,7 +2042,7 @@ int dump_ply_binary(Id tid,algo_params & params, int nb_dat,ddt::logging_stream 
 	  Id id = hpi.get_id(0);
 	  ddt::stream_data_header oqh("p","s",id);
 	  std::string filename(params.output_dir + "/" + params.slabel + "_id_"+ std::to_string(tid) + "_" + std::to_string(id) + "_" + std::to_string(i) );
-	  oqh.init_file_name(filename,".ply");
+	  oqh.write_into_file(filename,".ply");
 	  oqh.write_header(std::cout);
 	  //w_datas_in.write_ply_stream(oqh.get_output_stream(),'\n',false);
 	  w_datas_in.write_ply_stream(oqh.get_output_stream(),'\n',false);

@@ -119,7 +119,7 @@ public :
         return filename;
     }
 
-    void init_file_name(std::string root_dir,std::string ext, bool rand_ext = false);
+    void write_into_file(std::string root_dir,std::string ext, bool rand_ext = false);
     void set_file_name(std::string fname);
 
 
@@ -337,7 +337,7 @@ std::string stream_data_header::random_string( size_t length )
     return str;//oss.str();
 }
 
-void stream_data_header::init_file_name(std::string root_name,std::string ext, bool rand_ext)
+void stream_data_header::write_into_file(std::string root_name,std::string ext, bool rand_ext)
 {
     std::string curname;
 
@@ -353,6 +353,7 @@ void stream_data_header::init_file_name(std::string root_name,std::string ext, b
         type = "h";
     }
 }
+
 
 
 void stream_data_header::set_file_name(std::string fname)
