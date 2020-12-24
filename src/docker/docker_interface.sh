@@ -30,7 +30,7 @@ function compile # ./docker_interface.sh  Compile [-jx]
 {
     echo "starting daemon ..."
     echo "compile"
-    DDT_TRAITS="D2"
+    DDT_TRAITS="3"
     COMPILE_MODE="Release"
     while getopts "j:t:df" OPTION
     do

@@ -117,8 +117,8 @@ object ddt_algo {
     }
 
 
-      res_tiles.persist(iq.get_storage_level())
-      res_tiles.count
+    res_tiles.persist(iq.get_storage_level())
+    res_tiles.count
 
 
     update_time(params_scala,"tiling");
