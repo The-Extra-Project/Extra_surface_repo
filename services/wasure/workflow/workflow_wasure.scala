@@ -404,7 +404,7 @@ algo_list.foreach{ cur_algo =>
 
         val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_gc_" + full_acc.toString + "_" + acc_loop_str
         ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl)
-        partition2ply(cur_output_dir,full_acc.toString);
+        wasure_algo.partition2ply(cur_output_dir,full_acc.toString,sc);
       }
       val rdd_local_edges = iq.get_edgrdd(res_seg,"e")
       val rdd_shared_edges = iq.get_edgrdd(res_seg,"f")
@@ -431,7 +431,7 @@ algo_list.foreach{ cur_algo =>
         if(acc_loop == 0){
           val ply_dir = cur_output_dir + "/plyglob_" + ext_name + "_gc_" + full_acc.toString + "_" + acc_loop_str + "_global3"
           ddt_algo.saveAsPly(rdd_ply,ply_dir,plot_lvl)
-          partition2ply(cur_output_dir,full_acc.toString);
+          wasure_algo.partition2ply(cur_output_dir,full_acc.toString,sc);
         }
       }
       if( acc_loop % mod_val == 0 || acc_loop == 1){
@@ -441,8 +441,8 @@ algo_list.foreach{ cur_algo =>
         stats_list_2 += t2
         println("[it " + acc_loop_str + "] " + floatFormat.format(100*stats_1._1/stats_1._2.toFloat) + "% "
           + stats_1 + " \t --- " + floatFormat.format(100*stats_2._1/stats_2._2.toFloat) + "% " + stats_2)
-        dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_conv_1.txt",stats_list_1)
-        dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_gtdiff_2.txt",stats_list_2)
+        wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_conv_1.txt",stats_list_1,sc)
+        wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_gtdiff_2.txt",stats_list_2,sc)
       }
       res_seg.unpersist()
       acc_loop = acc_loop + 1;
