@@ -67,7 +67,7 @@ function run_fun () {
 		echo "====> DOCKER RUN :"
 		echo "$DOCKER_EXE"
 		echo ""
-		echo "## =======> BASH CMD <======="
+		echo "## =======> TYPE THE FOLLOWING BASH CMD TO START <======="
 		echo "${RED}$BASH_CMD ${NC}"
 		echo ""
 		eval $DOCKER_EXE

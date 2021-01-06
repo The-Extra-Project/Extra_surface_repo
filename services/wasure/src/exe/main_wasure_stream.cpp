@@ -2556,8 +2556,8 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 		new_lagrange  = new_lagrange + cur_tau*(v_diff);
 		if(old_diff != v_diff)
 		  cur_tau /=2;
-		else if(old_diff == v_diff && lab_2 != lab_1)
-		  cur_tau *=2;
+		// else if(old_diff == v_diff && lab_2 != lab_1)
+		//   cur_tau *=2;
 
     	      }else{
 		if(shared_data_map.find(tid_2) == shared_data_map.end())
