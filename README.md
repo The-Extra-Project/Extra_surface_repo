@@ -2,20 +2,20 @@
 
 
 # User manual
-## Install
+## Install & compile 
 - Create and edit the file algo-env.sh from the template algo-env.sh.conf 
 
-## Build the docker image
+### Build the docker image
 ```console
 ./src/docker/docker_interface.sh build
 ```
 
-## Compile the project
-For example, to compile the project with the 2D generic kernel and 4 core, do :
+### Compile the project
+For example, to compile the project with the 3D CGAL kernel with 4 core, do :
 
 
 ```console
-./src/docker/docker_interface.sh compile j4 -tD2
+./src/docker/docker_interface.sh compile -j4 -t3
 ```
 The scriptfile "./compile_all_kernel.sh" compile all aviable kernel
 
