@@ -108,5 +108,35 @@ Each workflow can be parametrized with an xml file of the form :
 </env>
 ```
 
-In this part of the documentatino, only global parameters are shown, 
-Each service has their own parameters (described in the README of the service
+# Dev Manual
+## Introduction
+This projet aim to schedule algorithms on the cloud based on Delaunay triangulation.
+For that, the Delauany trinagulation is decomposed in tiles where each tile is overlapped with its neighbors
+A distributed algorithm based on the tiling structure is performed. (see https://hal.archives-ouvertes.fr/hal-02551509)
+Once this delaunay triangulation is performed, several opperation can be done on it.
+
+Surface reconstruction : 
+A distributed surface reconstruction algorithm is implanted based on the Inside/Outside segmentation of the space 
+The goal is to label each tets of the triangulation as Inside or Outside.
+
+
+## Code
+The project is decomposed in 3 main part :
+### Distributed delaunay triangulation core
+    All the classes for the distributed delaunay triangulation structure are sotred in ./src/core
+### Scheduler : The spark-core API
+For the scheduling, we use Scala and Spark.
+The core of the scheduler is in the folder ./src/spark/src/main/scala/
+  
+### Services
+A service is an algorithm based on the distributed delauany triangulation structure.
+- Distribured delauany triangulation
+  This service aim to build the full distributed delaunay triangulation.
+  The c++ core function is in ./services/ddt/src/
+  The Spark scheduler is in ./services/ddt/workflow/ 
+
+- Watertight surface reconstruction
+  This service aim to performe the surface reconstruction on point cloud.
+  The c++ core function is in ./services/wasure/src/
+  The Spark scheduler is in ./services/wasure/workflow/ 
+
