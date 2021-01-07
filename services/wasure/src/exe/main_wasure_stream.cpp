@@ -2571,7 +2571,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 
 
     // ============== Debug results ============
-    if(false){
+    if(params.dump_debug){
       Traits  traits;
       std::vector<Point> pvect;
       std::vector<int> v_labs;

@@ -27,7 +27,7 @@ public :
     int nb_samples,max_it,nb_labs,nb_threads;
     int center_type,tile_id;
   bool use_weight = true;
-
+  bool dump_debug  = false;
 
   std::string bbox_string,input_dir,output_dir,algo_step,slabel,mode,filename;
     std::ostream& operator<<(std::ostream& os)
@@ -66,7 +66,6 @@ public :
             {"seed",  required_argument, 0, 'a'},
             {"input_dir",  required_argument, 0, 'r'},
             {"mode",  required_argument, 0, 'm'},
-	    {"tau",  required_argument, 0, 'q'},
             {"output_dir",  required_argument, 0, 'w'},
             {"label",  required_argument, 0, 'l'},
             {"lambda",  required_argument, 0, 'c'},
@@ -79,6 +78,7 @@ public :
             {"pscale", required_argument,0, 'f'},
 	    {"adaptative_scale", no_argument, 0, 't'},
             {"show_ghost", no_argument,0, 'g'},
+	    {"dump_debug",  no_argument, 0, 'q'},
             {"skip_app_header", no_argument,0, 'e'},
             {"dump_ply", no_argument,0, 'x'},
             {"verbose", no_argument, &verbose_flag, 1},
@@ -89,7 +89,7 @@ public :
 
         int option_index = 0;
 
-        while ((cc = getopt_long(argc, argv, "s:a:q:c:k:n:i:d:u:m:o:f:j:l:b:p:r:w:gtexh",long_options,&option_index)) != -1)
+        while ((cc = getopt_long(argc, argv, "s:a:c:k:n:i:d:u:m:o:f:j:l:b:p:r:w:gtqexh",long_options,&option_index)) != -1)
         {
             switch (cc)
             {
@@ -113,7 +113,7 @@ public :
                 slabel = std::string(optarg);
                 break;
 	    case 'q':
-                tau = atof(optarg);
+	      dump_debug = true;
                 break;
             case 'b':
                 bbox_string = std::string(optarg);

@@ -18,6 +18,7 @@
       <!-- Meta paramexters -->
       <do_process>true</do_process>
       <do_expand>false</do_expand>
+      <dump_debug>true</dump_debug>
       
     </austin>
   </datasets>

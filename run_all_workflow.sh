@@ -74,10 +74,20 @@ function run_2d_img_ddt
 
 
 ### 3D Surface reconstruction 
-function run_3d_croco
+function run_3d_bench
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    run_algo_docker
+}
+
+### 3D Surface reconstruction 
+function run_3d_bench_small
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_small/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
@@ -176,7 +186,8 @@ function preprocess_data
 #run_2d_wasure
 
 ### 3D
-run_3d_croco
+#run_3d_bench_small
+run_3d_bench
 #run_3d_church
 #run_3d_toulouse
 #run_3d_daratech
