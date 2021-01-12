@@ -1,4 +1,4 @@
-package iqlibflow
+package iqlibflow1
 
 import org.apache.spark._
 import org.apache.spark.graphx._

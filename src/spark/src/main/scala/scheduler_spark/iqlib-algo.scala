@@ -1,4 +1,4 @@
-package iqlib_algo
+package spark_ddt.ddt_algo
 
 import sys.process._
 import scala.io.Source
@@ -24,10 +24,10 @@ import org.apache.spark.storage.StorageLevel
 import org.apache.spark.SparkConf
 import org.apache.spark.HashPartitioner
 
-import iqlibc._;
-import iqlibu._;
+import spark_ddt.core._;
+import spark_ddt.util._;
 import algo_stats._;
-import iqlibc.IQlibCore._;
+import spark_ddt.core.IQlibCore._;
 import xml_parsing._;
 import bash_funcs._
 import strings_opt._;

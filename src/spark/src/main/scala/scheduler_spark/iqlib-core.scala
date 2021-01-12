@@ -1,4 +1,4 @@
-package iqlibc
+package spark_ddt.core
 
 import sys.process._
 import org.apache.spark._;

@@ -1,4 +1,4 @@
-package iqlibbp
+package spark_ddt.bp_algo
 
 import org.apache.spark._
 import org.apache.spark.graphx._
@@ -14,9 +14,9 @@ import org.apache.spark.storage.StorageLevel
 import org.apache.spark.graphx._;
 import org.apache.spark.graphx.PartitionStrategy._
 
-import iqlibc._;
-import iqlibu._;
-import iqlibc.IQlibCore._;
+import spark_ddt.core._;
+import spark_ddt.util._;
+import spark_ddt.core.IQlibCore._;
 import xml_parsing._;
 import bash_funcs._
 import strings_opt._;
@@ -26,8 +26,8 @@ import files_opt._;
 import algo_stats._;
 
 
-import iqlibflow.mflow._;
-object algo_iqlibbp {
+import iqlibflow1.mflow._;
+object algo_spark_ddt {
   /*
    maxFlow function
 

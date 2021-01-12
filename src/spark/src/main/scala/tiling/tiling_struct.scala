@@ -17,9 +17,9 @@ import org.apache.spark.rdd.RDD;
 import java.util.Calendar
 import java.text.SimpleDateFormat;
 
-import iqlibc._;
-import iqlibc.IQlibCore._;
-import iqlibu._;
+import spark_ddt.core._;
+import spark_ddt.core.IQlibCore._;
+import spark_ddt.util._;
 import params_parser._;
 
 

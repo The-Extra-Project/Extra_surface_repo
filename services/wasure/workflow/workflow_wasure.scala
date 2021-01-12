@@ -30,13 +30,13 @@ import org.apache.spark.storage.StorageLevel
 import org.apache.spark.SparkConf
 
 // Iqlib Import
-import iqlibc._;
-import iqlibu._;
-import iqlibc.IQlibCore._;
-import iqlib_algo._;
-import ddt_scheduler.wasure_algo._;
+import spark_ddt.core._;
+import spark_ddt.util._;
+import spark_ddt.core.IQlibCore._;
+import spark_ddt.ddt_algo._;
+import spark_ddt.wasure._;
 import iqlibflow._;
-import iqlibbp._;
+import spark_ddt.bp_algo._;
 import tiling._;
 
 import algo_stats._;
@@ -47,7 +47,7 @@ import strings_opt._;
 import params_parser._;
 import files_opt._;
 import mflow._;
-import algo_iqlibbp._;
+import algo_spark_ddt.bp_algo._;
 import geojson_export._;
 // Belief propagation
 import sparkle.graph._

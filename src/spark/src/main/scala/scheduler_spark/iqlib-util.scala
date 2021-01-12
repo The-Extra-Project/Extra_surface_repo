@@ -1,4 +1,4 @@
-package iqlibu
+package spark_ddt.util
 
 import org.apache.spark.rdd.RDD;
 import org.apache.hadoop.fs.FileSystem
@@ -13,8 +13,8 @@ import java.io._
 
 
 import java.io.BufferedOutputStream
-import iqlibc._;
-import iqlibc.IQlibCore._;
+import spark_ddt.core._;
+import spark_ddt.core.IQlibCore._;
 
 import java.util.Date;
 import java.text.SimpleDateFormat;

@@ -1,4 +1,4 @@
-package ddt_scheduler.wasure_algo
+package spark_ddt.wasure
 
 import sys.process._
 import scala.io.Source
@@ -30,13 +30,13 @@ import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.fs.permission.FsPermission
 
-import iqlibc._;
-import iqlibu._;
-import iqlibbp._;
-import iqlib_algo._;
-import algo_iqlibbp._;
+import spark_ddt.core._;
+import spark_ddt.util._;
+import spark_ddt.bp_algo._;
+import spark_ddt.ddt_algo._;
+import spark_ddt.bp_algo._;
 import algo_stats._;
-import iqlibc.IQlibCore._;
+import spark_ddt.core.IQlibCore._;
 import xml_parsing._;
 import bash_funcs._
 import strings_opt._;

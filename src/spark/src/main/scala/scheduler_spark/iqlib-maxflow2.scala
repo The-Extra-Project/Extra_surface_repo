@@ -1,4 +1,4 @@
-package iqlibflow2
+package spark_ddt.mflow2
 
 import org.apache.spark._
 import org.apache.spark.graphx._
@@ -49,7 +49,7 @@ object mflow2 {
     vertexBuffer: Array[(Long, VertexData)],
     edgeBuffer : Array[Edge[EdgeData]],
     sc : SparkContext
-  ) : Graph[iqlibflow2.mflow2.VertexData,iqlibflow2.mflow2.EdgeData] = {
+  ) : Graph[spark_ddt.mflow2.mflow2.VertexData,spark_ddt.mflow2.mflow2.EdgeData] = {
 
     // Initialize the graph
     var activeMessages = 1

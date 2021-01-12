@@ -186,8 +186,8 @@ function preprocess_data
 #run_2d_wasure
 
 ### 3D
-#run_3d_bench_small
-run_3d_bench
+run_3d_bench_small
+#run_3d_bench
 #run_3d_church
 #run_3d_toulouse
 #run_3d_daratech
