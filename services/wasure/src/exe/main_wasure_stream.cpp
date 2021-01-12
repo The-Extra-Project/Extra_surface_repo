@@ -2614,7 +2614,6 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
       for( auto cit_1 = tile_1->cells_begin();
 	   cit_1 != tile_1->cells_end(); ++cit_1 )
       {
-
 	Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
     	  // lagrangian only on mixed cell
       	  if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))

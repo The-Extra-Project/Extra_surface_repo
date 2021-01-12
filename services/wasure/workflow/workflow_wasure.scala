@@ -1,62 +1,63 @@
-// Java import 
- import java.io.PrintWriter
- import java.io._
- import java.lang.Double
- import java.nio.charset.StandardCharsets
- import java.nio.file.{Paths, Files}
- import java.text.DecimalFormat
- import java.text.SimpleDateFormat;
- import java.util.Calendar;
- import java.util.Date;
- import java.util.concurrent.Executors
+import sys.process._
+import scala.io.Source
+import java.io._
+import scala.xml._
+import java.lang.Double
+import scala.concurrent._
+import scala.collection.parallel._
+import scala.collection.mutable.ListBuffer
 
-// Iqlib import 
- import algo_iqlibbp._;
- import algo_stats._;
- import bash_funcs._
- import bash_funcs._
- import collection.mutable
- import dataset_processing._;
- import files_opt._;
- import files_opt._;
- import geojson_export._;
- import iqlib_algo._;
- import iqlibbp._;
- import iqlibc.IQlibCore._;
- import ddt_scheduer.core._;
- import iqlibflow._;
- import iqlibu._;
- import mflow._;
+import java.util.concurrent.Executors
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.text.DecimalFormat
+import java.util.Calendar;
 
- import params_parser._;
- import params_parser._;
- import strings_opt._;
- import strings_opt._;
+import org.apache.hadoop.fs.FileSystem
+import org.apache.hadoop.fs.Path
+import org.apache.hadoop.fs.permission.FsPermission
 
-// Spark / Hadoop import 
- import org.apache.hadoop.fs.FileSystem
- import org.apache.hadoop.fs.Path
- import org.apache.hadoop.fs.permission.FsPermission
- import org.apache.spark.SparkConf
- import org.apache.spark._;
- import org.apache.spark.graphx.PartitionStrategy._
- import org.apache.spark.graphx._;
- import org.apache.spark.rdd.RDD;
- import org.apache.spark.sql.SaveMode
- import org.apache.spark.storage.StorageLevel
+import java.io.PrintWriter
+import java.nio.file.{Paths, Files}
+import java.nio.charset.StandardCharsets
+// Spark Import
+import org.apache.spark._;
+import org.apache.spark.graphx._;
+import org.apache.spark.graphx.PartitionStrategy._
+import org.apache.spark.rdd.RDD;
+import org.apache.spark.sql.SaveMode
+import org.apache.spark.storage.StorageLevel
+import org.apache.spark.SparkConf
 
- import scala.collection.mutable.ListBuffer
- import scala.collection.parallel._
- import scala.concurrent._
- import scala.io.Source
- import scala.xml._
- import sparkle.graph._
+// Iqlib Import
+import iqlibc._;
+import iqlibu._;
+import iqlibc.IQlibCore._;
+import iqlib_algo._;
+import ddt_scheduler.wasure_algo._;
+import iqlibflow._;
+import iqlibbp._;
+import tiling._;
 
- import sys.process._
- import tiling._;
- import wasure_algo._;
- import xml_parsing._;
+import algo_stats._;
+import xml_parsing._;
+import dataset_processing._;
+import bash_funcs._
+import strings_opt._;
+import params_parser._;
+import files_opt._;
+import mflow._;
+import algo_iqlibbp._;
+import geojson_export._;
+// Belief propagation
+import sparkle.graph._
 
+import collection.mutable
+import xml_parsing._;
+import bash_funcs._
+import strings_opt._;
+import params_parser._;
+import files_opt._;
 
 //=============================================
 //==== Configuration and file sysyem init  ====
