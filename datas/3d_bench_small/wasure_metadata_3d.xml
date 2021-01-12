@@ -12,8 +12,8 @@
       <pscale>0.01</pscale>
       <nb_samples>1</nb_samples>
      
-      <lambda>1</lambda>
-      <lambda>10</lambda>
+      <lambda>0.1</lambda>
+      <max_opt_it>50</max_opt_it>
       <StorageLevel>MEMORY_AND_DISK</StorageLevel>
       <!-- Meta paramexters -->
       <do_process>true</do_process>
