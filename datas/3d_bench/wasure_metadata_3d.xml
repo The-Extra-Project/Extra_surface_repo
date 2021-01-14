@@ -15,6 +15,7 @@
      
       <lambda>0.1,0.01,0.001</lambda>
       <max_opt_it>50</max_opt_it>
+      <!-- <stats_mod_it>1</stats_mod_it> -->
       <!-- <StorageLevel>MEMORY_AND_DISK</StorageLevel> -->
       <StorageLevel>MEMORY_ONLY</StorageLevel> 
       <!-- Meta paramexters -->

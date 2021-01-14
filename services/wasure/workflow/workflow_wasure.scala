@@ -35,8 +35,6 @@ import spark_ddt.util._;
 import spark_ddt.core.IQlibCore._;
 import spark_ddt.ddt_algo._;
 import spark_ddt.wasure._;
-import iqlibflow._;
-import spark_ddt.bp_algo._;
 import tiling._;
 
 import algo_stats._;
@@ -46,8 +44,6 @@ import bash_funcs._
 import strings_opt._;
 import params_parser._;
 import files_opt._;
-import mflow._;
-import algo_spark_ddt.bp_algo._;
 import geojson_export._;
 // Belief propagation
 import sparkle.graph._
@@ -133,6 +129,7 @@ val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt
 val adaptative_scale = params_scala.get_param("adaptative_scale", "false").toBoolean
 val max_opt_it = params_scala.get_param("max_opt_it", "10").toInt
+val stats_mod_it = params_scala.get_param("stats_mod_it", max_opt_it.toString).toInt
 
 
 val fmt = new java.text.DecimalFormat("##0.##############")
@@ -336,8 +333,6 @@ val algo_list = List("seg_lagrange_weight","seg_lagrange_raw");
 var stats_list_1 = new ListBuffer[(Int,(Float,Float))]()
 var stats_list_2 = new ListBuffer[(Int,(Float,Float))]()
 val do_stats = true
-val stats_mod_v = 10;
-
 
 
 var loop_acc = 0;
@@ -361,6 +356,7 @@ algo_list.foreach{ cur_algo =>
   var acc_loop = 0;
 
   while (acc_loop < max_opt_it) {
+    val t0_loop = System.nanoTime()
     val acc_loop_str = "%03d".format(acc_loop)
     val res_seg = iq.run_pipe_fun_KValue(
       seg_cmd ++ List("--label", "seg" + acc_loop_str),
@@ -368,7 +364,9 @@ algo_list.foreach{ cur_algo =>
     res_seg.count()
     val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
     input_seg2.unpersist()
-    if(((acc_loop == max_opt_it -1) || acc_loop % stats_mod_v == 0 || acc_loop == 1) ){
+    if(((acc_loop == max_opt_it -1) ||
+      acc_loop % stats_mod_it == 0 ||
+      acc_loop == 1 || acc_loop == 0) ){
       val graph_seg = Graph(kvrdd_seg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
       val rdd_ply_surface = iq.run_pipe_fun_KValue(
         ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
@@ -390,7 +388,7 @@ algo_list.foreach{ cur_algo =>
     ).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
     input_seg2.count()
 
-    if( acc_loop % stats_mod_v == 0 || acc_loop == 1 ){
+    if( acc_loop % stats_mod_it == 0 || acc_loop == 1 ){
       val seg_cmd_full =  set_params(params_wasure, List(("step","seg_global_extract"))).to_command_line
       val input_extract = kvrdd_seg.map(x => (0L,x._2)).reduceByKey(_ ::: _)
       val res_surface = iq.run_pipe_fun_KValue(
@@ -406,16 +404,22 @@ algo_list.foreach{ cur_algo =>
         wasure_algo.partition2ply(cur_output_dir,loop_acc.toString,sc);
       }
     }
-    if( acc_loop % stats_mod_v == 0 || acc_loop == 1){
+
+    val t1_loop = System.nanoTime()
+
+    println("[it " + acc_loop_str + "]")
+    ddt_algo.update_time(params_scala,"opt_loop" + loop_acc.toString);
+    if( acc_loop % stats_mod_it == 0 || acc_loop == 1){
       val t1 = ( acc_loop,stats_1)
       val t2 = ( acc_loop,stats_2)
       stats_list_1 += t1
       stats_list_2 += t2
-      println("[it " + acc_loop_str + "] " + floatFormat.format(100*stats_1._1/stats_1._2.toFloat) + "% "
+      println("   stats -> " + floatFormat.format(100*stats_1._1/stats_1._2.toFloat) + "% "
         + stats_1 + " \t --- " + floatFormat.format(100*stats_2._1/stats_2._2.toFloat) + "% " + stats_2)
       wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_conv_1.txt",stats_list_1,sc)
       wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_gtdiff_2.txt",stats_list_2,sc)
     }
+    println("")
     res_seg.unpersist()
     acc_loop = acc_loop + 1;
   }
