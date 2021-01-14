@@ -129,7 +129,7 @@ val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt
 val adaptative_scale = params_scala.get_param("adaptative_scale", "false").toBoolean
 val max_opt_it = params_scala.get_param("max_opt_it", "10").toInt
-val stats_mod_it = params_scala.get_param("stats_mod_it", max_opt_it.toString).toInt
+val stats_mod_it = params_scala.get_param("stats_mod_it", (max_opt_it-1).toString).toInt
 
 
 val fmt = new java.text.DecimalFormat("##0.##############")

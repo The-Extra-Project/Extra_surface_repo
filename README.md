@@ -1,4 +1,4 @@
-## Distributed Delaunay Triangulation & surface reconstruction doc
+## Distributed Delaunay Triangulation & surface reconstruction
 ## Readme
 
 
@@ -18,7 +18,7 @@ For example, to compile the project with the 3D CGAL kernel with 4 core, do :
 ```console
 ./src/docker/docker_interface.sh compile -j4 -t3
 ```
-The scriptfile "./compile_all_kernel.sh" compile all aviable kernel
+The scriptfile "./compile_all_kernel.sh" shows all aviable kernel compile command
 
 
 ## Runing a workflow 
@@ -44,7 +44,7 @@ With the following variables
 - DEBUG_FLAG : set as "-d" to go into the docker container without runing the script.
 
 
-### Algo parameters PARAMS
+### Generic Algo parameters PARAMS
 Each workflow can be parametrized with an xml file of the form :
 ```xml
 <env>
@@ -77,35 +77,25 @@ Each workflow can be parametrized with an xml file of the form :
       <do_expand>false</do_expand>
       
     </setn1>
-
-
-    <setn2>
-      <!-- Plotting level (0 : nothing, 3(max) -->
-      <plot_lvl>3</plot_lvl>
-      <do_process>true</do_process>
-      <datatype>files</datatype>
-      <dim>2</dim>
-      <ndtree_depth>3,4,5</ndtree_depth>
-      <bbox>0000x10000:0000x10000</bbox>
-      <max_ppt>12000</max_ppt>
-      <pscale>20</pscale>
-
-      <nb_samples>1</nb_samples>
-
-      <lambda>1</lambda>
-      <lambda>10</lambda>
-
-      <mode>surface</mode>
-      <algo_seed>1000</algo_seed>
-      <StorageLevel>MEMORY_AND_DISK</StorageLevel>
-      <!-- Meta parameters -->
-      <do_process>true</do_process>
-      <do_expand>true</do_expand>
-      
-    </setn2>
-
   </datasets>
 </env>
+```
+### Surface reconstruction Algo parameters PARAMS
+Here is parameters that can be added for the surface reconstruction Algorithm
+```xml
+      <!-- Dempster Shafer -->
+      <!-- number of sampling -->
+      <nb_samples>1</nb_samples>
+
+      <!-- Regularization term
+      lambda     : Smoothing term		  
+      max_opt_it : max number of iteration durting the distributed graphcut
+      dump_debug : dump debug results
+      -->
+      <lambda>0.1</lambda>
+      <max_opt_it>10</max_opt_it>
+      <dump_debug>false</dump_debug>
+
 ```
 
 # Dev Manual
