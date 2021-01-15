@@ -30,49 +30,6 @@ function run_algo_docker
 }
 
 
-### Distributed delaunay triangulation on random datasets
-function run_all_tests
-{
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/ddt/workflow/workflow_ddt.scala"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/random/"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/unitest_metadata.xml"
-    run_algo_docker
-}
-
-
-### Distributed delaunay triangulation on random datasets
-function run_2d_ddt_random
-{
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/ddt/workflow/workflow_ddt.scala"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/random/"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/unitest_metadata_2D.xml"
-    run_algo_docker
-}
-
-### Distributed delaunay triangulation on random datasets
-function run_3d_ddt_random
-{
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/ddt/workflow/workflow_ddt.scala"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/random/"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/unitest_metadata_3D.xml"
-    run_algo_docker
-}
-
-
-### 2D img ddt
-function run_2d_img_ddt
-{
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/ddt/workflow/workflow_ddt.scala"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/2d_austin/imgs/"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/ddt_metadata.xml"
-    run_algo_docker
-}
-
-
 ### 3D Surface reconstruction 
 function run_3d_bench
 {
@@ -93,107 +50,24 @@ function run_3d_bench_small
     run_algo_docker
 }
 
-### 3D Surface reconstruction 
-function run_3d_daratech
-{
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${GLOBAL_INPUT_DIR}/daratech_small/"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
-    run_algo_docker
-}
-
-### 3D Surface reconstruction 
-function run_3d_aerial
-{
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    #INPUT_DIR="${GLOBAL_INPUT_DIR}/aerial_small/"
-    INPUT_DIR="${GLOBAL_INPUT_DIR}/church/stream_bbox1/"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
-    run_algo_docker
-}
-
-### 3D Surface reconstruction 
-function run_3d_toulouse
-{
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${GLOBAL_INPUT_DIR}/toulouse_pp/"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
-    run_algo_docker
-}
-
-
-function run_3d_church
-{
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${GLOBAL_INPUT_DIR}/church/preprocessed_small_2/"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
-#    PARAMS="${INPUT_DIR}/wasure_metadata_3d_big.xml"
-    run_algo_docker
-}
-
-
-### 2D Surface reconstruction 
-function run_2d_wasure
-{
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/2d_austin/imgs2/"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_surface.xml"
-    run_algo_docker
-}
-
-
-
-
-### Create 2D ply from images 
-function run_img2ply
-{
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/create_datas/scripts/aerial_raytracing.py"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/2d_austin/imgs2/"
-    OUTPUT_DIR="${DDT_MAIN_DIR}/datas/2d_austin/imgs2/"
-    CMD="python3  $FILE_SCRIPT  --img_dir $INPUT_DIR  --output_dir $OUTPUT_DIR --bin_dir ${DDT_MAIN_DIR}/build/build-spark-Release-D2/bin/"
-    ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m " -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}" -l "${CMD}" -i "${NAME_IMG_BASE}"  -c "${CONTAINER_NAME_SHELL}"
-}
-
 
 # format data
 function preprocess_data
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
-    #INPUT_DIR="${GLOBAL_INPUT_DIR}/aerial_crop/"
-    #INPUT_DIR="${GLOBAL_INPUT_DIR}/toulouse/"    
-    #INPUT_DIR="${GLOBAL_INPUT_DIR}/church/cloudcompaire/"
-    #INPUT_DIR="/home/laurent/shared_spark/inputs/church/preprocessed_vsmall_merged/"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    OUTPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_preprocessed/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
 }
-
-
-# ========== Random ddt workflow =============
-#run_all_tests
-#run_2d_ddt_random
-#run_3d_ddt_random
-
 # ==== surface reconstruction workflow ====
-### 2D
-#run_img2ply
-#run_2d_wasure
-
+##
+preprocess_data
 ### 3D
+#run_3d_bench
 #run_3d_bench_small
-run_3d_bench
-#run_3d_church
-#run_3d_toulouse
-#run_3d_daratech
 
-### Cloud
-#preprocess_data
+
 
 
 

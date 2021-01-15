@@ -1,6 +1,7 @@
 ## Distributed Delaunay Triangulation & surface reconstruction
 ## Readme
 
+Distributed Delaunay triangulation and surface reconstruction on Spark / hadoop
 
 # User manual
 ## Install & compile 
@@ -25,6 +26,13 @@ The scriptfile "./compile_all_kernel.sh" shows all aviable kernel compile comman
 
 ### Examples
 Several examples are aviable in the script "run_all_workflow.sh"
+#### Inputs
+The input of the algorithm is a set of plyfile
+- For local version -
+  classic ply file is used "*.ply"
+- For Cloud version(using HDFS)
+onliner text ply is mandatory (*.stream)
+The *.stream can be produce with the preprocessing_step
 
 ### Command Line
 
