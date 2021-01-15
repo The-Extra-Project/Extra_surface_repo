@@ -121,7 +121,7 @@ The goal is to label each tets of the triangulation as Inside or Outside.
 ## Code
 ### Architecture
 
-
+![plot](./doc/workflow.png)
 All the communications between executors are preformed by a streaming architecture scheduled with Spark. Data sets are both persisted on memory and disk. Large data sets like input point clouds and finalized cells are stored only on disk (green color in figure~\ref{fig:algorithmflow}) and lightweight data sets like simplified triangulation during the iterative scheme that are likely to have multiple I/O are stored both in memory and disk.% (red color in figure~\ref{fig:algorithmflow}).
 In this section, the implementation choices are detailed.
 For implementing, both \CC and Spark are used.
