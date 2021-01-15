@@ -58,13 +58,13 @@ function preprocess_data
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
     OUTPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_preprocessed/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
-    run_algo_docker
+    run_algo_docker    
 }
 # ==== surface reconstruction workflow ====
-##
-preprocess_data
+## Preprocess data
+# preprocess_data
 ### 3D
-#run_3d_bench
+run_3d_bench
 #run_3d_bench_small
 
 

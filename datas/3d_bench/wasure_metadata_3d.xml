@@ -3,7 +3,7 @@
     <austin>
       <plot_lvl>1</plot_lvl>
       <do_process>true</do_process>
-      <datatype>filestream</datatype>
+      <datatype>files</datatype>
       <dim>3</dim>
       <ndtree_depth>2</ndtree_depth>
       <bbox>-50x50:-50x50:-50x50</bbox>

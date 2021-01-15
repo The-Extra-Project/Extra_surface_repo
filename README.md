@@ -119,6 +119,52 @@ The goal is to label each tets of the triangulation as Inside or Outside.
 
 
 ## Code
+### Architecture
+
+
+All the communications between executors are preformed by a streaming architecture scheduled with Spark. Data sets are both persisted on memory and disk. Large data sets like input point clouds and finalized cells are stored only on disk (green color in figure~\ref{fig:algorithmflow}) and lightweight data sets like simplified triangulation during the iterative scheme that are likely to have multiple I/O are stored both in memory and disk.% (red color in figure~\ref{fig:algorithmflow}).
+In this section, the implementation choices are detailed.
+For implementing, both \CC and Spark are used.
+On a higher level, Spark provides a fault-tolerant and lazy programming language that distributes efficiently the operations on the cluster according to the data location thanks to the use of resilient distributed data sets ($RDD$).
+
+\paragraph{C++}
+\CC is widely used in computational geometry because of the low-level architecture that allows high speed computational time.
+Each geometric operation is implemented with a \CC 
+executable leveraging the CGAL library. Once a triangulation is computed, the \CC sets are encoded with the \emph{Base64} encoding, consequently, the data integrity is guarantied across transformations.
+%This base64 serialization enables to communicate losslessly with a reasonable overhead between Spark and the \CC executable using the plain standard inputs and outputs.
+
+%% For a triangulation, it is composed by a vector of double for points coordinate and two vectors of integer for the simplex encoding and the neighbours relations.
+%% In the next \CC call, The stream received by the Spark Scheduler is decoded and the local view of the triangulation rebuilds.
+
+\paragraph{Spark}
+The Scala interface of Spark is used for the scheduling process.
+Each point set $P_I$ and triangulation $T_I$ are stored in a $RDD$ of size $|I|$ serialized with a \emph{Base64} encoding in a \emph{String}. The key/value formalism is used. Each element of the $RDD$ is represented by a key $K$ and a value $V$ which is a list of sets (Point Set, local view of a triangulation, etc.). The value is then  $V=List[String]$, finally we have $RDD[(K,V)]$.
+To implement the shuffling $S_{i \rightarrow j}$, the GraphX library~\cite{bib:graphx} is used. An exchange is stored as an edge of a graph with the triplet $RDD[(K_i,K_j,V)])$ where $K_i$ is the key of the source and $K_j$ the key of the target.
+%\paragraph{Transformation}
+%% Spark works with transformation abstraction. All Spark transformations are \emph{lazy}, it means that nothing is computed before an action is called.
+For each $RDD$ transformation that requires geometric processing, the content of a $RDD$ is encoded in base64 and streamed to a \CC
+executable by using the transformation \emph{pipe} operator for Spark $RDD$. 
+Since each serialized value encodes its own key, the \CC thread can interpret and build the local view of the triangulation.
+As an example, the local triangulation step (alg~\ref{alg:overall}.\ref{alg:tile}) which is a map function of %% each triangulation is written as:
+
+```scala
+    RDD[(K,P_i)].pipe(\text{./Delaunay})
+```
+
+
+where $\text{./Delaunay}$ is a \CC executable that takes as input the streamed point cloud and stream a new %% triangulation
+The union operator ($\cup$ in alg:\ref{alg:overall} and $\diamond$ in figure~\ref{fig:algorithmflow}) is a union following by a \emph{ReduceByKey} in Spark.
+As an example, the star splaying step (lines~\ref{alg:star1} and \ref{alg:star2}) can be written as follows:
+\begin{footnotesize}
+\begin{alignat*}{2}
+  &( && RDD[(K_i,K_j,S_{i \rightarrow j})].map(e \rightarrow (e.K_j,e.V) )  \cup  RDD[(K,T_j)] \\
+ &).&&reduceByKey((a,b)\rightarrow (a \cup b)).pipe(\text{./StarSplay}) 
+\end{alignat*}
+\end{footnotesize}
+Where $\text{./StarSplay}$ is a \CC executable that takes as input the union of the previous step triangulation and the received points, do the insertion, the simplification, extract the stars and produce as output the new triangulation with the new points to send.
+Finally, a filter operator is used to separate the output stream of each \CC call.
+
+
 The project is decomposed in 3 main part :
 ### Distributed delaunay triangulation core
     All the classes for the distributed delaunay triangulation structure are sotred in ./src/core

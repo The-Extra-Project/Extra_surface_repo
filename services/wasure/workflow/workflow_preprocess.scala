@@ -97,7 +97,6 @@ val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop
 
 // General Algo params
 val bbox = params_scala.get_param("bbox", "")
-val datatype =  params_scala.get_param("datatype", "")
 val spark_core_max = params_scala.get_param("spark_core_max", df_par.toString).toInt
 val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(100000).toString);
 
@@ -115,14 +114,8 @@ val params_wasure =  set_params(params_new,List(
   ("output_dir",output_dir)
 ))
 
-val fmt = new java.text.DecimalFormat("##0.##############")
-val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
-
+// Create output dir
 fs.mkdirs(new Path( output_dir),new FsPermission("777"))
-val nbp_per_tile = nbp/tot_nbt;
-val rep_value = ((if((tot_nbt) < sc.defaultParallelism) sc.defaultParallelism else  (tot_nbt).toInt))
-var nb_leaf = tot_nbt;
-
 params_scala("output_dir") = collection.mutable.Set(output_dir)
 params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)
 
@@ -134,28 +127,25 @@ params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
 // Starts preprocess
 val preprocess_cmd =  set_params(params_wasure, List(("step","preprocess"))).to_command_line
 val fs = FileSystem.get(sc.hadoopConfiguration);
-val datatype =  params_scala.get_param("datatype", "")
 val regexp_filter = params_scala.get_param("regexp_filter", "");
 val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
-var rep_value = df_par.toLong;
-
 var kvrdd_inputs: RDD[KValue] = sc.parallelize(List((0L,List(""))));
-var kvrdd_inputs_struct  : RDD[KValue] = sc.parallelize(List((0L,List(""))));
 
 
 println("")
 println("======== LOAD DATA  file =============")
 val ss_reg = regexp_filter.r
+// get number of ply
 val nb_ply = fs.listStatus(new Path(input_dir)).map(x => fs.listStatus(x.getPath)).reduce(_ ++ _).map(_.getPath).filter(
   x => ((x.toString endsWith ".ply")) && ((ss_reg).findFirstIn(x.toString).isDefined)
 ).size
-
+// List of input ply filepath
 val ply_input = getListOfFiles(input_dir).filter(
   x => ((x.toString endsWith ".ply") && ((ss_reg).findFirstIn(x.toString).isDefined)))
 kvrdd_inputs = iq.get_kvrdd(sc.parallelize(ply_input.map(
   fname => "p 1 " + ("([0-9]+)".r).findAllIn(fname.toString).toArray.last + " f " + fname.toString)),"p").repartition(nb_ply)
 
-
+// process data
 val struct_inputs = iq.run_pipe_fun_KValue(
   preprocess_cmd ++ List("--label", "struct"),
   kvrdd_inputs
