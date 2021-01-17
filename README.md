@@ -110,6 +110,8 @@ Here is parameters that can be added for the surface reconstruction Algorithm
 ## Introduction
 This projet aim to schedule algorithms on the cloud based on Delaunay triangulation.
 For that, the Delauany trinagulation is decomposed in tiles where each tile is overlapped with its neighbors
+![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/dt_struct.png?raw=true)
+
 A distributed algorithm based on the tiling structure is performed. (see https://hal.archives-ouvertes.fr/hal-02551509)
 
 ### Distributed Delauney triangulation
