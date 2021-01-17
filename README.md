@@ -111,6 +111,10 @@ Here is parameters that can be added for the surface reconstruction Algorithm
 This projet aim to schedule algorithms on the cloud based on Delaunay triangulation.
 For that, the Delauany trinagulation is decomposed in tiles where each tile is overlapped with its neighbors
 ![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/dt_struct.png?raw=true)
+*The structure of the distributed triangulation is the folowing, from left to right : First image, the full triangulation. 
+Second image shows in color the DT of a supset of the local points of the bottom left corner tile. 
+These extra points, denoted as foreign points are called redundant if they are not adjacent to a local point. Simplices may be categorized as local,  
+mixed or foreign. The final image shows the tile after simplification, by removing redundant foreign points from the local triangulation.*
 
 A distributed algorithm based on the tiling structure is performed. (see https://hal.archives-ouvertes.fr/hal-02551509)
 
