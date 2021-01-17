@@ -124,11 +124,12 @@ A distributed algorithm based on the tiling structure is implemented based on th
 The workflow of the algorithm is the following :
 
 ![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/workflow_wasure.png?raw=true)
-*Proposed distributed Delaunay triangulation workflow in Spark. $P^r$ denotes the input point set, accessible through chunks $P^r_k$, $P_i$ the tiled point, $T^0_i$
- the local triangulation of the tile, $S^0_{i\rightarrow all}$ the first broadcasted point set, $S_{i\rightarrow j}^n$ the point set sent from tile $i$ to tile $j$, Solid (\
-resp. dashed) red arrows show active (resp. inactive) connections between two tiles. $C^0_i$ the finalized cells after the first triangulation and $\overline{C}^\infty_i$ t\
-he unfinalized cells at the end. Dashed boxes denote geometrical processing transformations (e.g. $Ins;Simp;Splay$  denotes an insertion following by a simplification and s\
-tarsplaying). The color of the node represents the Spark persistence level.*
+*Proposed distributed Delaunay triangulation workflow in Spark. P^r denotes the input point set, accessible through chunks P^r_k, P_i the tiled point,
+ T^0_i the local triangulation of the tile, S^0_{i -> all} the first broadcasted point set, S_{i -> j}^n the point set sent from tile i to tile j, 
+Solid (resp. dashed) red arrows show active (resp. inactive) connections between two tiles. 
+C^0_i the finalized cells after the first triangulation.
+Dashed boxes denote geometrical processing transformations (e.g. Ins;Simp;Splay  denotes an insertion following by a simplification and starsplaying). 
+The color of the node represents the Spark persistence level.*
 
 
 Once this delaunay triangulation is performed, several opperation can be done on it.
@@ -166,7 +167,7 @@ executable leveraging the CGAL library. Once a triangulation is computed, the \C
 \paragraph{Spark}
 The Scala interface of Spark is used for the scheduling process.
 Each point set $P_I$ and triangulation $T_I$ are stored in a $RDD$ of size $|I|$ serialized with a \emph{Base64} encoding in a \emph{String}. The key/value formalism is used. Each element of the $RDD$ is represented by a key $K$ and a value $V$ which is a list of sets (Point Set, local view of a triangulation, etc.). The value is then  $V=List[String]$, finally we have $RDD[(K,V)]$.
-To implement the shuffling $S_{i \rightarrow j}$, the GraphX library~\cite{bib:graphx} is used. An exchange is stored as an edge of a graph with the triplet $RDD[(K_i,K_j,V)])$ where $K_i$ is the key of the source and $K_j$ the key of the target.
+To implement the shuffling $S_{i -> j}$, the GraphX library~\cite{bib:graphx} is used. An exchange is stored as an edge of a graph with the triplet $RDD[(K_i,K_j,V)])$ where $K_i$ is the key of the source and $K_j$ the key of the target.
 %\paragraph{Transformation}
 %% Spark works with transformation abstraction. All Spark transformations are \emph{lazy}, it means that nothing is computed before an action is called.
 For each $RDD$ transformation that requires geometric processing, the content of a $RDD$ is encoded in base64 and streamed to a \CC
