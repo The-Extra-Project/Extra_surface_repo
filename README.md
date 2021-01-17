@@ -2,12 +2,12 @@
 This project aims to process algorithm based on Delaunay triangulation on distributed infrastructures .
 We use Apache Spark for the cloud infrastructure.
 
-To use the code, please reffer to the user manual section
+To use the code, please reffer to the [user manual](#user-manual) section
 For more information about the architecutre and the source code,
-reffers to 
+reffers to the [dev manual](#dev-manual) section
 
 
-[Heading](#user-manual)
+
 
 # User manual
 ## Install & compile 
