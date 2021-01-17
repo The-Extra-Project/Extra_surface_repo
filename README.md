@@ -1,7 +1,13 @@
-## Distributed Delaunay Triangulation & surface reconstruction
-## Readme
+# Distributed Delaunay triangulation & surface reconstruction on Spark / hadoopw
+This project aims to process algorithm based on Delaunay triangulation on distributed infrastructures .
+We use Apache Spark for the cloud infrastructure.
 
-Distributed Delaunay triangulation and surface reconstruction on Spark / hadoop
+To use the code, please reffer to the user manual section
+For more information about the architecutre and the source code,
+reffers to 
+
+
+[Heading](#heading)
 
 # User manual
 ## Install & compile 
@@ -118,12 +124,11 @@ These extra points, denoted as foreign points are called redundant if they are n
 mixed or foreign. The final image shows the tile after simplification, by removing redundant foreign points from the local triangulation.*
 
 
-
 ### Distributed Delauney triangulation
 A distributed algorithm based on the tiling structure is implemented based on this article. (see https://hal.archives-ouvertes.fr/hal-02551509)
 The workflow of the algorithm is the following :
 
-![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/workflow_wasure.png?raw=true)
+![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/workflow_ddt.png?raw=true)
 *Proposed distributed Delaunay triangulation workflow in Spark. P^r denotes the input point set, accessible through chunks P^r_k, P_i the tiled point,
  T^0_i the local triangulation of the tile, S^0_{i -> all} the first broadcasted point set, S_{i -> j}^n the point set sent from tile i to tile j, 
 Solid (resp. dashed) red arrows show active (resp. inactive) connections between two tiles. 
@@ -144,9 +149,15 @@ The goal is to label each tets of the triangulation as Inside or Outside.
 
 
 ### Architecture
-The following chart shows the workflow of the distributed delaunay triangulation
+The following chart shows the workflow of the distributed surface reconstruction algorithm
 
-![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/workflow_ddt.png?raw=true)
+![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/workflow_wasure.png?raw=true)
+*Proposed distributed Delaunay triangulation workflow in Spark. P^r denotes the input point set, accessible through chunks P^r_k, P_i the tiled point, T^0_i\
+ the local triangulation of the tile, S^0_{i ->  all} the first broadcasted point set, S_{i ->  j}^n the point set sent from tile i to tile j, Solid (\
+resp. dashed) red arrows show active (resp. inactive) connections between two tiles. C^0_i the finalized cells after the first triangulation and \overline{C}^\infty_i t\
+he unfinalized cells at the end. Dashed boxes denote geometrical processing transformations (e.g. Ins;Simp;Splay  denotes an insertion following by a simplification and s\
+tarsplaying). The color of the node represents the Spark persistence level.*
+
 
 
 
