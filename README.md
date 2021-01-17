@@ -111,20 +111,27 @@ Here is parameters that can be added for the surface reconstruction Algorithm
 This projet aim to schedule algorithms on the cloud based on Delaunay triangulation.
 For that, the Delauany trinagulation is decomposed in tiles where each tile is overlapped with its neighbors
 A distributed algorithm based on the tiling structure is performed. (see https://hal.archives-ouvertes.fr/hal-02551509)
+
+### Distributed Delauney triangulation
+![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/workflow_wasure.png?raw=true)
 Once this delaunay triangulation is performed, several opperation can be done on it.
 
-Surface reconstruction : 
+
+
+
+### Surface reconstruction : 
 A distributed surface reconstruction algorithm is implanted based on the Inside/Outside segmentation of the space 
 The goal is to label each tets of the triangulation as Inside or Outside.
 
 
-## Code
+
 ### Architecture
-The following chart shows the workflow of the distributed surface reconstruction algorithm.
+The following chart shows the workflow of the distributed delaunay triangulation
 
 ![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/workflow_ddt.png?raw=true)
 
-![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/workflow_wasure.png?raw=true)
+
+
 All the communications between executors are preformed by a streaming architecture scheduled with Spark. Data sets are both persisted on memory and disk. Large data sets like input point clouds and finalized cells are stored only on disk (green color in figure~\ref{fig:algorithmflow}) and lightweight data sets like simplified triangulation during the iterative scheme that are likely to have multiple I/O are stored both in memory and disk.% (red color in figure~\ref{fig:algorithmflow}).
 In this section, the implementation choices are detailed.
 For implementing, both \CC and Spark are used.
@@ -155,7 +162,7 @@ As an example, the local triangulation step (alg~\ref{alg:overall}.\ref{alg:tile
 ```
 
 
-where ./Delaunay is a \CC executable that takes as input the streamed point cloud and stream a new %% triangulation
+where ./Delaunay is a \CC executable that takes as input the streamed point cloud and stream a new  triangulation
 The union operator ($\cup$ in alg:\ref{alg:overall} and $\diamond$ in figure~\ref{fig:algorithmflow}) is a union following by a \emph{ReduceByKey} in Spark.
 As an example, the star splaying step (lines~\ref{alg:star1} and \ref{alg:star2}) can be written as follows:
 \begin{footnotesize}
@@ -167,13 +174,13 @@ As an example, the star splaying step (lines~\ref{alg:star1} and \ref{alg:star2}
 Where $\text{./StarSplay}$ is a \CC executable that takes as input the union of the previous step triangulation and the received points, do the insertion, the simplification, extract the stars and produce as output the new triangulation with the new points to send.
 Finally, a filter operator is used to separate the output stream of each \CC call.
 
-
-The project is decomposed in 3 main part :
+## Code
+The source code of this project is decomposed in 3  parts :
 ### Distributed delaunay triangulation core
-    All the classes for the distributed delaunay triangulation structure are sotred in ./src/core
+    The c++ classes for the distributed delaunay triangulation structure are sotred in ./src/core
 ### Scheduler : The spark-core API
 For the scheduling, we use Scala and Spark.
-The core of the scheduler is in the folder ./src/spark/src/main/scala/
+The core of the scheduler is in the folder ./src/spark/src/main/scala/ 
   
 ### Services
 A service is an algorithm based on the distributed delauany triangulation structure.
