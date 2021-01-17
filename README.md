@@ -110,16 +110,27 @@ Here is parameters that can be added for the surface reconstruction Algorithm
 ## Introduction
 This projet aim to schedule algorithms on the cloud based on Delaunay triangulation.
 For that, the Delauany trinagulation is decomposed in tiles where each tile is overlapped with its neighbors
+
 ![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/dt_struct.png?raw=true)
 *The structure of the distributed triangulation is the folowing, from left to right : First image, the full triangulation. 
 Second image shows in color the DT of a supset of the local points of the bottom left corner tile. 
 These extra points, denoted as foreign points are called redundant if they are not adjacent to a local point. Simplices may be categorized as local,  
 mixed or foreign. The final image shows the tile after simplification, by removing redundant foreign points from the local triangulation.*
 
-A distributed algorithm based on the tiling structure is performed. (see https://hal.archives-ouvertes.fr/hal-02551509)
+
 
 ### Distributed Delauney triangulation
+A distributed algorithm based on the tiling structure is implemented based on this article. (see https://hal.archives-ouvertes.fr/hal-02551509)
+The workflow of the algorithm is the following :
+
 ![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/workflow_wasure.png?raw=true)
+*Proposed distributed Delaunay triangulation workflow in Spark. $P^r$ denotes the input point set, accessible through chunks $P^r_k$, $P_i$ the tiled point, $T^0_i$
+ the local triangulation of the tile, $S^0_{i\rightarrow all}$ the first broadcasted point set, $S_{i\rightarrow j}^n$ the point set sent from tile $i$ to tile $j$, Solid (\
+resp. dashed) red arrows show active (resp. inactive) connections between two tiles. $C^0_i$ the finalized cells after the first triangulation and $\overline{C}^\infty_i$ t\
+he unfinalized cells at the end. Dashed boxes denote geometrical processing transformations (e.g. $Ins;Simp;Splay$  denotes an insertion following by a simplification and s\
+tarsplaying). The color of the node represents the Spark persistence level.*
+
+
 Once this delaunay triangulation is performed, several opperation can be done on it.
 
 
