@@ -708,9 +708,9 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
 	  std::cerr << "extract centers" << std::endl;
 	  wpt.dmap[wpt.center_name].extract_full_uint8_vect(wpt.format_centers,false);
 	  w_data_full.format_centers.insert(w_data_full.format_centers.end(),wpt.format_centers.begin(),wpt.format_centers.end());
-	  std::cerr << "extract flagss" << std::endl;
-	  wpt.dmap[wpt.flags_name].extract_full_uint8_vect(wpt.format_flags,false);
-	  w_data_full.format_flags.insert(w_data_full.format_flags.end(),wpt.format_flags.begin(),wpt.format_flags.end());
+	  // std::cerr << "extract flagss" << std::endl;
+	  // wpt.dmap[wpt.flags_name].extract_full_uint8_vect(wpt.format_flags,false);
+	  // w_data_full.format_flags.insert(w_data_full.format_flags.end(),wpt.format_flags.begin(),wpt.format_flags.end());
 	  std::cerr << "extract sig" << std::endl;
 	  //wpt.dmap[w_data_full.sig_name].extract_full_uint8_vect(w_data_full.format_sigs,false);
 	  wpt.extract_sigs(w_data_full.format_sigs,false);

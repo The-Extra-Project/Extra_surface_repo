@@ -4,8 +4,8 @@
 ### Start workflow in local mode 
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
 source ${DDT_MAIN_DIR}/algo-env.sh
-GLOBAL_OUTPUT_DIR="${SHARED_DIR}/outputs/"
-GLOBAL_INPUT_DIR="${SHARED_DIR}/inputs/"
+GLOBAL_OUTPUT_DIR="${SPARK_SHARED_DIR}/outputs/"
+GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/inputs/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
@@ -41,6 +41,16 @@ function run_3d_bench
 }
 
 ### 3D Surface reconstruction 
+function run_3d_bench_preprocessed
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_preprocessed/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    run_algo_docker
+}
+
+### 3D Surface reconstruction 
 function run_3d_bench_small
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
@@ -49,6 +59,16 @@ function run_3d_bench_small
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
 }
+
+ ### 3D Surface reconstruction                                                                                                                                                                                                                
+ function run_3d_toulouse
+ {
+     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+     INPUT_DIR="${GLOBAL_INPUT_DIR}/toulouse_pp/"
+     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+     run_algo_docker
+ }
 
 
 # format data
@@ -63,9 +83,15 @@ function preprocess_data
 # ==== surface reconstruction workflow ====
 ## Preprocess data
 # preprocess_data
+
 ### 3D
 run_3d_bench
+#run_3d_bench_preprocessed
 #run_3d_bench_small
+#run_3d_toulouse
+
+
+
 
 
 

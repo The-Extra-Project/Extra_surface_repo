@@ -28,7 +28,7 @@ function run_algo_multivac
     echo "spark-shell -i ${FILE_SCRIPT}"
     echo "	--master yarn --deploy-mode client "
     echo "	--jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar "
-    echo "	--executor-cores ${MULTIVAC_NUM_CORE} "
+    echo "	--executor-cores ${MULTIVAC_EXECUTOR_CORE} "
     echo "	--executor-memory ${MULTIVAC_EXECUTOR_MEMORY} "
     echo "	--driver-memory ${MULTIVAC_DRIVER_MEMORY} "
     echo "	--num-executors ${MULTIVAC_NUM_EXECUTORS} "
@@ -41,19 +41,8 @@ function run_algo_multivac
     echo "	--conf spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
 
 	#    spark-shell -i  \
-    spark-shell -i  ${FILE_SCRIPT} \
-		--master yarn --deploy-mode client \
-		--jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar \
-		--executor-cores ${MULTIVAC_NUM_CORE} \
-		--executor-memory ${MULTIVAC_EXECUTOR_MEMORY} \
-		--driver-memory ${MULTIVAC_DRIVER_MEMORY} \
-		--num-executors ${MULTIVAC_NUM_EXECUTORS} \
-		--conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}" \
-		--conf "spark.serializer=org.apache.spark.serializer.KryoSerializer"  \
-		--conf "spark.dynamicAllocation.enabled=false" \
-		--conf "spark.cleaner.periodicGC.interval=2min" \
-		--conf "spark.memory.fraction=0.2" \
-		--conf "spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
+#	    spark-shell -i  ${FILE_SCRIPT} \
+            spark-shell   --master yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --executor-cores ${MULTIVAC_EXECUTOR_CORE} 	--executor-memory ${MULTIVAC_EXECUTOR_MEMORY} --driver-memory ${MULTIVAC_DRIVER_MEMORY} --num-executors ${MULTIVAC_NUM_EXECUTORS} --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}" --conf "spark.serializer=org.apache.spark.serializer.KryoSerializer"  --conf "spark.dynamicAllocation.enabled=false" --conf "spark.cleaner.periodicGC.interval=2min" --conf "spark.memory.fraction=0.2" --conf "spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps" 
 
 		#--conf "spark.default.parallelism=${DEFAULT_PARALLELISM}" \
                 #--conf "yarn.nodemanager.pmem-check-enabled=false" \
@@ -80,7 +69,7 @@ function eval_params_loop {
 	for cc in ${LIST_CORES}
 	do
     	    export MULTIVAC_NUM_EXECUTORS="$ee"
-	    export MULTIVAC_NUM_CORE="$cc"
+	    export MULTIVAC_EXECUTOR_CORE="$cc"
 
 	    if [ "$ee $cc" = "7 4" ] || [ "$ee $cc" = "7 3" ] || [ "$ee $cc" = "7 2" ];
 	    then
@@ -91,11 +80,11 @@ function eval_params_loop {
     	    if [ "$ee" == "0" ]; then
 		echo "special case 0000000000000"
     		export MULTIVAC_NUM_EXECUTORS="1"
-    		export MULTIVAC_NUM_CORE="1" 
+    		export MULTIVAC_EXECUTOR_CORE="1" 
     	    fi
 
     	    echo "num executors => $MULTIVAC_NUM_EXECUTORS"
-    	    echo "num cores => $MULTIVAC_NUM_CORE"
+    	    echo "num cores => $MULTIVAC_EXECUTOR_CORE"
     	    run_algo_multivac
 	done
     done
@@ -108,6 +97,7 @@ function run_multivac_church
     export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/preprocessed_small_2/"
     export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church/"
     export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"
+#    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_small.xml"
     run_algo_multivac
 }
 
@@ -140,9 +130,9 @@ function run_multivac_croco
 }
 
 #eval_params_loop
-#run_multivac_church
+run_multivac_church
 #run_multivac_aerial
-run_multivac_full
+#run_multivac_full
 #run_multivac_croco
 
 

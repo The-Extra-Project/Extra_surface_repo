@@ -178,8 +178,16 @@ public :
             //       (!fch->is_infinite() && fchn->is_infinite())) && ch1lab == mode )
             // )
 	    if(
-	       (ch1lab != chnlab) ||  (mode == 0 && (is_on_convex && (ch1lab == 0 || chnlab == 0))))
-		lft.push_back(*fit);
+	       (ch1lab != chnlab) ||  (mode == 0 && (is_on_convex && (ch1lab == 0 || chnlab == 0)))){
+	      // if(tmp_fch->is_infinite()){
+	      // 	w_datas_tri[fch->tile()->id()].format_labs[cccid] = 1;
+	      // 	w_datas_tri[fchn->tile()->id()].format_labs[cccidn] = 0;		
+	      // }else if(tmp_fchn->is_infinite()) {
+	      // 	w_datas_tri[fch->tile()->id()].format_labs[cccid] = 0;
+	      // 	w_datas_tri[fchn->tile()->id()].format_labs[cccidn] = 1;		
+	      // }
+	      lft.push_back(*fit);
+	    }
 
         }
         catch (ddt::DDT_exeption& e)

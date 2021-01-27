@@ -7,8 +7,6 @@ For more information about the architecutre and the source code,
 reffers to the [dev manual](#dev-manual) section
 
 
-
-
 # User manual
 ## Install & compile 
 - Create and edit the file algo-env.sh from the template algo-env.sh.conf 
@@ -115,10 +113,10 @@ Here is parameters that can be added for the surface reconstruction Algorithm
 # Dev Manual
 ## Introduction
 This projet aim to schedule algorithms on the cloud based on Delaunay triangulation.
-For that, the Delauany trinagulation is decomposed in tiles where each tile is overlapped with its neighbors
+For that, the Delauany triangulation is decomposed in tiles where each tile is overlapped with its neighbors.
 
 ![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/dt_struct.png?raw=true)
-*The structure of the distributed triangulation is the folowing, from left to right : First image, the full triangulation. 
+*The structure of the distributed triangulation is the following, from left to right : First image, the full triangulation. 
 Second image shows in color the DT of a supset of the local points of the bottom left corner tile. 
 These extra points, denoted as foreign points are called redundant if they are not adjacent to a local point. Simplices may be categorized as local,  
 mixed or foreign. The final image shows the tile after simplification, by removing redundant foreign points from the local triangulation.*
@@ -137,43 +135,37 @@ Dashed boxes denote geometrical processing transformations (e.g. Ins;Simp;Splay 
 The color of the node represents the Spark persistence level.*
 
 
-Once this delaunay triangulation is performed, several opperation can be done on it.
-
-
-
-
 ### Surface reconstruction : 
 A distributed surface reconstruction algorithm is implanted based on the Inside/Outside segmentation of the space 
-The goal is to label each tets of the triangulation as Inside or Outside.
-
+The goal is to label each tetraedron of the triangulation as Inside or Outside.
 
 
 ### Architecture
 The following chart shows the workflow of the distributed surface reconstruction algorithm
 
 ![fig](https://github.com/lcaraffa/spark-ddt/blob/master/doc/workflow_wasure.png?raw=true)
-*Proposed distributed Delaunay triangulation workflow in Spark. P^r denotes the input point set, accessible through chunks P^r_k, P_i the tiled point, T^0_i\
- the local triangulation of the tile, S^0_{i ->  all} the first broadcasted point set, S_{i ->  j}^n the point set sent from tile i to tile j, Solid (\
-resp. dashed) red arrows show active (resp. inactive) connections between two tiles. C^0_i the finalized cells after the first triangulation and \overline{C}^\infty_i t\
-he unfinalized cells at the end. Dashed boxes denote geometrical processing transformations (e.g. Ins;Simp;Splay  denotes an insertion following by a simplification and s\
-tarsplaying). The color of the node represents the Spark persistence level.*
-
-
+*Proposed distributed Delaunay triangulation workflow in Spark. P^r denotes the input point set, accessible through chunks P^r_k, P_i the tiled point, T^0_i
+ the local triangulation of the tile, S^0_{i ->  all} the first broadcasted point set, S_{i ->  j}^n the point set sent from tile i to tile j, Solid (
+resp. dashed) red arrows show active (resp. inactive) connections between two tiles. C^0_i the finalized cells after the first triangulation and {C}^\infty_i t\
+he unfinalized cells at the end. Dashed boxes denote geometrical processing transformations (e.g. Ins;Simp;Splay  denotes an insertion following by a simplification and 
+starsplaying). The color of the node represents the Spark persistence level.
 
 
 All the communications between executors are preformed by a streaming architecture scheduled with Spark. Data sets are both persisted on memory and disk. Large data sets like input point clouds and finalized cells are stored only on disk (green color in figure~\ref{fig:algorithmflow}) and lightweight data sets like simplified triangulation during the iterative scheme that are likely to have multiple I/O are stored both in memory and disk.% (red color in figure~\ref{fig:algorithmflow}).
 In this section, the implementation choices are detailed.
-For implementing, both \CC and Spark are used.
-On a higher level, Spark provides a fault-tolerant and lazy programming language that distributes efficiently the operations on the cluster according to the data location thanks to the use of resilient distributed data sets ($RDD$).
+For implementing, both c++ and Spark are used. On a higher level, Spark provides a fault-tolerant and lazy programming language 
+that distributes efficiently the operations on the cluster according to the data location thanks to the use of resilient distributed data sets ($RDD$).
+
+
 
 \paragraph{C++}
-\CC is widely used in computational geometry because of the low-level architecture that allows high speed computational time.
-Each geometric operation is implemented with a \CC 
-executable leveraging the CGAL library. Once a triangulation is computed, the \CC sets are encoded with the \emph{Base64} encoding, consequently, the data integrity is guarantied across transformations.
-%This base64 serialization enables to communicate losslessly with a reasonable overhead between Spark and the \CC executable using the plain standard inputs and outputs.
+c++ is widely used in computational geometry because of the low-level architecture that allows high speed computational time.
+Each geometric operation is implemented with a c++ 
+executable leveraging the CGAL library. Once a triangulation is computed, the c++ sets are encoded with the \emph{Base64} encoding, consequently, the data integrity is guarantied across transformations.
+%This base64 serialization enables to communicate losslessly with a reasonable overhead between Spark and the c++ executable using the plain standard inputs and outputs.
 
 %% For a triangulation, it is composed by a vector of double for points coordinate and two vectors of integer for the simplex encoding and the neighbours relations.
-%% In the next \CC call, The stream received by the Spark Scheduler is decoded and the local view of the triangulation rebuilds.
+%% In the next c++ call, The stream received by the Spark Scheduler is decoded and the local view of the triangulation rebuilds.
 
 \paragraph{Spark}
 The Scala interface of Spark is used for the scheduling process.
@@ -181,9 +173,9 @@ Each point set $P_I$ and triangulation $T_I$ are stored in a $RDD$ of size $|I|$
 To implement the shuffling $S_{i -> j}$, the GraphX library~\cite{bib:graphx} is used. An exchange is stored as an edge of a graph with the triplet $RDD[(K_i,K_j,V)])$ where $K_i$ is the key of the source and $K_j$ the key of the target.
 %\paragraph{Transformation}
 %% Spark works with transformation abstraction. All Spark transformations are \emph{lazy}, it means that nothing is computed before an action is called.
-For each $RDD$ transformation that requires geometric processing, the content of a $RDD$ is encoded in base64 and streamed to a \CC
+For each $RDD$ transformation that requires geometric processing, the content of a $RDD$ is encoded in base64 and streamed to a c++
 executable by using the transformation \emph{pipe} operator for Spark $RDD$. 
-Since each serialized value encodes its own key, the \CC thread can interpret and build the local view of the triangulation.
+Since each serialized value encodes its own key, the c++ thread can interpret and build the local view of the triangulation.
 As an example, the local triangulation step (alg~\ref{alg:overall}.\ref{alg:tile}) which is a map function of %% each triangulation is written as:
 
 ```scala
@@ -191,7 +183,7 @@ As an example, the local triangulation step (alg~\ref{alg:overall}.\ref{alg:tile
 ```
 
 
-where ./Delaunay is a \CC executable that takes as input the streamed point cloud and stream a new  triangulation
+where ./Delaunay is a c++ executable that takes as input the streamed point cloud and stream a new  triangulation
 The union operator ($\cup$ in alg:\ref{alg:overall} and $\diamond$ in figure~\ref{fig:algorithmflow}) is a union following by a \emph{ReduceByKey} in Spark.
 As an example, the star splaying step (lines~\ref{alg:star1} and \ref{alg:star2}) can be written as follows:
 \begin{footnotesize}
@@ -200,8 +192,8 @@ As an example, the star splaying step (lines~\ref{alg:star1} and \ref{alg:star2}
  &).&&reduceByKey((a,b)\rightarrow (a \cup b)).pipe(\text{./StarSplay}) 
 \end{alignat*}
 \end{footnotesize}
-Where $\text{./StarSplay}$ is a \CC executable that takes as input the union of the previous step triangulation and the received points, do the insertion, the simplification, extract the stars and produce as output the new triangulation with the new points to send.
-Finally, a filter operator is used to separate the output stream of each \CC call.
+Where $\text{./StarSplay}$ is a c++ executable that takes as input the union of the previous step triangulation and the received points, do the insertion, the simplification, extract the stars and produce as output the new triangulation with the new points to send.
+Finally, a filter operator is used to separate the output stream of each c++ call.
 
 ## Code
 The source code of this project is decomposed in 3  parts :

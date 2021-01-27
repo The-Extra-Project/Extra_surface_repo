@@ -25,6 +25,7 @@ then
 fi
 
 MOUNT_CMD="${MOUNT_CMD} -v /tmp/:/tmp/ -v ${TMP_DIR}:${TMP_DIR} -v ${SPARK_SHARED_DIR}:${SPARK_SHARED_DIR} -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}"
+echo "MOUNT CMD ===> $MOUNT_CMD"
 
 function compile # ./docker_interface.sh  Compile [-jx]
 {

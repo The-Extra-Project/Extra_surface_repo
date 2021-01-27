@@ -304,6 +304,9 @@ int main(int argc, char **argv)
       w_datas_tri[tid].fill_labs(w_datas_tri[tid].format_labs);
 
 
+
+      
+
   
       // ===== Surface extraction =====
       // Extract the surface from the simplex segmentation
@@ -374,22 +377,39 @@ int main(int argc, char **argv)
 
 	    for(auto fit = lft.begin(); fit != lft.end(); ++fit)
 	      {
-		Cell_const_iterator fch = fit->full_cell();
-		int id_cov = fit->index_of_covertex();
 
+			Cell_const_iterator fch = fit->full_cell();
+		int id_cov = fit->index_of_covertex();
+		Cell_const_iterator fchn = fch->neighbor(id_cov);
+		int id_covn = fch->mirror_index(id_cov);
 		int cccid = fch->lid();
 		int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
+
+		if(fch->is_infinite()){
+		  fch = fchn;
+		  id_cov = id_covn;
+		}
+		
+		// Cell_const_iterator fch = fit->full_cell();
+		// int id_cov = fit->index_of_covertex();
+		// Cell_const_iterator fchn = fch->neighbor(id_cov);
+		// int cccid = fch->lid();
+		// int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
 	    
 		const Point& a = fch->vertex((id_cov+1)&3)->point();
 		const Point& b = fch->vertex((id_cov+2)&3)->point();
 		const Point& c = fch->vertex((id_cov+3)&3)->point();
 		const Point& d = fch->vertex((id_cov)&3)->point();
 
-
+		
 	    
 		bool bl =
 		  (CGAL::orientation(a,b,c,d) == 1 && ch1lab == 0) ||
 		  (CGAL::orientation(a,b,c,d) == -1 && ch1lab == 1);
+
+
+
+
 
 		Id ida = (id_cov+1)&3;
 		Id idb = (id_cov+2)&3;
