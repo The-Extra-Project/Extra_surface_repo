@@ -365,8 +365,8 @@ algo_list.foreach{ cur_algo =>
     val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
     input_seg2.unpersist()
     if(((acc_loop == max_opt_it -1) ||
-      acc_loop % stats_mod_it == 0 ||
-      acc_loop == 1 || acc_loop == 0) && do_stats){
+      (do_stats && ( acc_loop % stats_mod_it == 0 ||
+      acc_loop == 1 || acc_loop == 0)))){
       val graph_seg = Graph(kvrdd_seg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
       val rdd_ply_surface = iq.run_pipe_fun_KValue(
         ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
@@ -388,7 +388,7 @@ algo_list.foreach{ cur_algo =>
     ).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
     input_seg2.count()
 
-    if( acc_loop % stats_mod_it == 0 || acc_loop == 1 ){
+    if( (acc_loop % stats_mod_it == 0 || acc_loop == 1) && do_stats ){
       val seg_cmd_full =  set_params(params_wasure, List(("step","seg_global_extract"))).to_command_line
       val input_extract = kvrdd_seg.map(x => (0L,x._2)).reduceByKey(_ ::: _)
       val res_surface = iq.run_pipe_fun_KValue(

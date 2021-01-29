@@ -1,6 +1,8 @@
 #include "wasure_typedefs.hpp"
 #include "write_geojson_wasure.hpp"
 
+#include <unordered_map>
+
 #include "io/stream_api.hpp"
 #include "io/write_stream.hpp"
 #include "io/write_vrt.hpp"
@@ -20,7 +22,30 @@
 // Storing the data
 typedef std::map<Id,wasure_data<Traits> > D_MAP;
 typedef std::map<Id,std::list<wasure_data<Traits>> > D_LMAP;
+typedef typename Traits::Vertex_const_handle     Vertex_const_handle;
+typedef typename Traits::Cell_const_handle     Cell_const_handle;
 
+// recursive functoion for triangulation segmentation
+void seg_tri(Cell_const_handle & cc, int id_seg,int lab_seg,
+	     Vertex_const_handle & vv,
+	     std::unordered_map<int,int> & id_map,Tile_iterator & tile, std::vector<int> & format_labs){
+
+  int cid = tile->lid(cc);
+  int ch1lab = format_labs[cid];
+  auto id_seg_cc = id_map.find(cid);
+  if(ch1lab != lab_seg || id_seg_cc != id_map.end() )
+    return;
+
+  id_map[cid] = id_seg;
+  for(int i = 0; i < 4;i++){
+    auto nn = tile->neighbor(cc,i);
+    int vid = cc->index(vv);
+    if(i == vid)
+      continue;
+    seg_tri(nn,id_seg,lab_seg,vv,id_map,tile,format_labs);
+  }
+  return;
+}
 
 std::string time_in_HH_MM_SS_MMM()
 {
@@ -303,9 +328,55 @@ int main(int argc, char **argv)
 
       w_datas_tri[tid].fill_labs(w_datas_tri[tid].format_labs);
 
+      // // Manifold
+      // auto tri = mrf.tri;
+      // bool is_manifold = false;
+      // auto tile = tri1.get_tile(tid);      
 
+      // std::unordered_map<int,int> id_map;
+      // while(!is_manifold){
+      // 	is_manifold = true;
+      // 	auto cc = tile->cells_begin();
+      // 	int cid = tile->lid(cc);
+      // 	int ch1lab = w_datas_tri[tid].format_labs[cid];
+      // 	int id_seg = 0;	
+      // 	for(auto vv = tile->vertices_begin();
+      // 	    vv != tile->vertices_end();
+      // 	    ++vv){
+      // 	  Vertex_const_handle v = vv;
+      // 	  std::vector<Cell_const_handle> cells;
+      // 	  tile->incident_cells(v,cells);
+      // 	  for(auto cc : cells){
+      // 	    int cid = tile->lid(cc);
+      // 	    auto id_seg_cc = id_map.find(cid);	    
+      // 	    if(id_seg_cc == id_map.end() ){
+      // 	      int ch1lab = w_datas_tri[tid].format_labs[cid];
+      // 	      seg_tri(cc,id_seg++,ch1lab,vv,id_map,tile,w_datas_tri[tid].format_labs);
+      // 	    }
+      // 	  }
+      // 	}
+      // 	if(id_seg < 1){
+      // 	  std::unordered_map<int,int> id_count;
+      // 	  is_manifold = false;
+      // 	  for(auto mit : id_map){
+      // 	    auto nbl = id_count.find(mit.first);
+      // 	    if(nbl == id_map.end()){
+      // 	      id_count[mit.first] = 0;
+      // 	    }
+      // 	    id_count[mit.first]+= 1;
+      // 	  }
+      // 	  int acc_min = 100000;
+      // 	  int acc_id = 0;
+      // 	  for(auto mit : id_count){
+      // 	    if(mit.second < acc_min){
+      // 	      acc_min = mit.second;
+      // 	      acc_id = mit.first;
+      // 	    }
+      // 	  }
+	  
+      // 	}
+      // }
 
-      
 
   
       // ===== Surface extraction =====

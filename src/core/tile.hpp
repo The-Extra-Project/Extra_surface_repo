@@ -185,7 +185,8 @@ public:
 
   inline const Point circumcenter(Cell_const_handle c) const { return traits_.circumcenter(dt_,c); }
   
-  template<typename Unary_op> inline void incident_cells(Vertex_const_handle v, Unary_op op) const { traits_.incident_cells(dt_, v, op); }
+  //template<typename Unary_op> inline void incident_cells(Vertex_const_handle v, Unary_op op) const { traits_.incident_cells(dt_, v, op); }
+  inline void incident_cells(Vertex_const_handle v, std::vector<Cell_const_handle> & cells  ) const { traits_.incident_cells(dt_, v, cells); }
     template<typename Unary_op> inline void finite_adjacent_vertices(Vertex_const_handle v, Unary_op op) const { traits_.finite_adjacent_vertices(dt_, v, op); }
 
 

@@ -749,13 +749,19 @@ struct Cgal_traits_3
         return ofile;
     }
 
-    template<typename Unary_op>
-    void incident_cells(const Delaunay_triangulation& dt, Vertex_const_handle v, Unary_op op) const
+    // template<typename Unary_op>
+    // void incident_cells(const Delaunay_triangulation& dt, Vertex_const_handle v, Unary_op op) const
+    // {
+    //     std::vector<Cell_const_handle> cells;
+    //     cells.reserve(32);
+    //     dt.incident_cells(v, std::back_inserter(cells));
+    //     for(auto c : cells) op(c);
+    // }
+
+    void incident_cells(const Delaunay_triangulation& dt, Vertex_const_handle v, std::vector<Cell_const_handle> & cells) const
     {
-        std::vector<Cell_const_handle> cells;
         cells.reserve(32);
         dt.incident_cells(v, std::back_inserter(cells));
-        for(auto c : cells) op(c);
     }
 
     template<typename Unary_op>
