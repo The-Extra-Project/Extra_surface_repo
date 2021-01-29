@@ -757,6 +757,12 @@ public:
         return facets_end();
     }
 
+    Cell_const_handle locate_cell_point(const Tile& t, Point & pp ) const
+    {
+	auto cc = traits_.locate_cell_point(dt_,pp);
+	return cc;
+    }
+  
   // locate the cell by searching the barycenter with the local function on the oposite delaunay triangulation
   // It it does not work, loop on all the cell
     Cell_const_handle locate_cell(const Tile& t, Cell_const_handle c) const

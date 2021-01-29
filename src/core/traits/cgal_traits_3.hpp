@@ -397,14 +397,20 @@ struct Cgal_traits_3
     }
 
 
-  Cell_const_handle locate_cell(const Delaunay_triangulation& dt,Cell_const_handle c) const
+  Cell_const_handle locate_cell_point(const Delaunay_triangulation& dt,Point & pp) const
   {
-    std::vector<double> coords = get_cell_barycenter_const(c);
-    auto pp = Point(coords[0],coords[1],coords[2]);
     typename Delaunay_triangulation::Locate_type lt;
     int li, lj;
     Cell_handle cc = dt.locate(pp);
     return cc;
+  }
+
+  
+  Cell_const_handle locate_cell(const Delaunay_triangulation& dt,Cell_const_handle c) const
+  {
+    std::vector<double> coords = get_cell_barycenter_const(c);
+    auto pp = Point(coords[0],coords[1],coords[2]);
+    return locate_cell_point(dt,pp);
   }
   
     template<class It> Vertex_handle insert_splay_one(Delaunay_triangulation& dt, Id id, It it, Vertex_handle hint,

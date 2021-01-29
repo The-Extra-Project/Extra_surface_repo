@@ -1155,20 +1155,156 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
 
 
 
-// bool is_local(Cell_const_iterator cci){
-//     int local = 0;
-//     for(int i=0; i<=D+1; ++i)
-//       {
-// 	auto v = cci->vertex(i % (D+1));
-// 	if(i>0)
-// 	  {
-// 	    local += v->is_local();
-// 	  }
-//       }
-//     return local > 0;
-// }
 
 int regularize_slave(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+
+
+    std::cout.setstate(std::ios_base::failbit);
+    DTW tri;
+    Scheduler sch(1);
+    wasure_algo w_algo;
+    int D = Traits::D;
+    D_MAP w_datas_tri;
+
+    log.step("read");
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+        if(hpi.get_lab() == "t")
+        {
+            w_datas_tri[hid] = wasure_data<Traits>();
+            bool do_clean_data = false;
+            bool do_serialize = false;
+	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+        }
+        tri.finalize(sch);
+        hpi.finalize();
+    }
+
+    Tile_iterator  tile_k  = tri.get_tile(tid);
+
+
+    for(auto cit = tile_k->cells_begin();
+	cit != tile_k->cells_end();
+	cit++){
+      if(!tile_k->cell_is_mixed(cit) || tile_k->cell_is_main(cit))
+	continue;
+      Id main_tid = tile_k->cell_main_id(cit);
+      Tile_iterator main_tile = tri.get_tile(main_tid);
+      Id lid1 = tile_k->lid(cit);
+      
+      auto main_cell = main_tile->locate_cell(*tile_k,cit);
+      Id lid2 = main_tile->lid(main_cell);
+      w_datas_tri[tid].replace_attribute(w_datas_tri[main_tid],lid1,lid2);
+    }
+
+
+    Id tid_k = tid;
+    Tile_const_iterator  tilec_k  = tri.get_const_tile(tid);
+    std::map<Id,std::map<Id,SharedData> > shared_data_map;
+    // Loop over each shared cell to extracts id relation
+    // lid_l , lid_l <-> lid_k
+    for( auto cit_k = tilec_k->cells_begin();
+    	 cit_k != tilec_k->cells_end(); ++cit_k )
+      {
+	Cell_const_iterator fch = Cell_const_iterator(tilec_k,tilec_k, tilec_k, cit_k);
+	if(!tile_k->cell_is_mixed(cit_k) || tile_k->cell_is_infinite(cit_k))
+	  continue;
+	Id lid_k = tile_k->lid(cit_k);
+	int D = tile_k->current_dimension();
+	// Loop on shared tiles
+	std::unordered_set<Id> idSet ;	  
+	for(int i=0; i<=D; ++i)
+    	    {
+    	      // Select only id != tid_k and new ids
+    	      Id tid_l = tile_k->id(tile_k->vertex(cit_k,i));
+	      if ((idSet.find(tid_l) != idSet.end()) || tid_l == tid_k ){
+	      	continue;
+	      }
+	      idSet.insert(tid_l);
+    	      if(tid_l == tid_k)
+    		continue;
+    	      Tile_iterator tile_l = tri.get_tile(tid_l);
+	      // If 
+	      auto cit_l = tile_l->locate_cell(*tile_k,cit_k);
+	      Id lid_l = tile_l->lid(cit_l);	      
+ 	      if(shared_data_map.find(tid_l) == shared_data_map.end())
+		shared_data_map[tid_l] = std::map<Id,SharedData>();
+
+	      // The current data structure => local_id of the shared tet, lag and tau
+	      shared_data_map[tid_l][lid_k] = std::make_tuple(lid_l,0,1,0);
+	    }
+      }
+
+
+
+
+
+    std::cerr << "regularize" << std::endl;
+    std::cout.clear();
+    //  log.step("Write header");
+    ddt::stream_data_header oth("t","z",tid);
+    std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
+    if(params.dump_ply)
+        oth.write_into_file(filename,".ply");
+    oth.write_header(std::cout);
+    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    std::cerr << "stream dumped" << std::endl;
+    oth.finalize();
+    std::cout << std::endl;
+
+
+    // Dum edges
+    for(auto ee : shared_data_map){
+      Id tid2 = ee.first;
+      if(tid2 == tid)
+	continue;
+      ddt::stream_data_header hto("e","z",std::vector<int> {tid,tid2});
+      std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid) + "_nid" + std::to_string(tid2));
+      //hto.write_into_file(filename,".pts");
+      if(params.dump_ply)
+    	hto.write_into_file(filename,".ply");
+      hto.write_header(std::cout);
+      write_id_double_serialized(ee.second,hto.get_output_stream());
+      hto.finalize();
+      std::cout << std::endl;
+    }
+
+    
+    return 0;
+
+
+
+    
+    // for(auto tit = tri.tiles_begin();
+    // 	tit != tri.tiles_end();
+    // 	tit++){
+    //   if(tit->id() <= tid)
+    // 	continue;
+    //   // for(auto vit = tit->vertices_begin();
+    //   // 	  vit != tit->vertices_end();
+    //   // 	  vit++){
+    //   // }
+
+    //   for(auto cit = tit->cells_begin();
+    // 	  cit != tit->cells_end();
+    // 	  cit++){
+    // 	if(!tit->cell_is_mixed(cit) || !tit->cell_is_main(cit))
+    // 	  continue;
+    // 	auto main_cit = tit->locate_cell(
+
+	
+    //   }
+    // }
+}
+
+
+
+
+int regularize_slave_send(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 {
 
 
