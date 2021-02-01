@@ -26,6 +26,7 @@ typedef std::map<Id,std::list<wasure_data<Traits>> > D_LMAP;
 
 
 typedef std::tuple<Id,double,double,double>                                SharedData;
+typedef std::tuple<Id,double,double,double,double,double,double>           SharedDataDst;
 typedef Id                                EdgeData;
 
 
@@ -48,7 +49,6 @@ int write_id_double_serialized(const std::map<Id,SharedData>  & lp, std::ostream
 	std::cerr << std::get<3>(pp.second) << " ";
 	std::cerr << std::endl;
       }
-
     }
     serialize_b64_vect(outputv,ofile);
     return 0;
@@ -56,6 +56,18 @@ int write_id_double_serialized(const std::map<Id,SharedData>  & lp, std::ostream
 
 
 
+std::istream & read_id_dst_serialized(std::map<Id,SharedDataDst> & lp, std::istream & ifile, bool do_print = false)
+{
+  do_print = false;
+  std::vector<double> input_v;
+  deserialize_b64_vect(input_v,ifile);
+  int nbe = 7;
+  for(int n = 0; n< input_v.size()/nbe;n++){
+    Id id1 = input_v[n*nbe];
+    lp[id1] = std::make_tuple(input_v[n*nbe+1],input_v[n*nbe+2],input_v[n*nbe+3],input_v[n*nbe+4],input_v[n*nbe+5],input_v[n*nbe+6],input_v[n*nbe+7]);
+  }					     
+  return ifile;
+}
 
 
 std::istream & read_id_double_serialized(std::map<Id,SharedData> & lp, std::istream & ifile, bool do_print = false)
@@ -67,7 +79,6 @@ std::istream & read_id_double_serialized(std::map<Id,SharedData> & lp, std::istr
   for(int n = 0; n< input_v.size()/nbe;n++){
     Id id1 = input_v[n*nbe];
     lp[id1] = std::make_tuple(input_v[n*nbe+1],input_v[n*nbe+2],input_v[n*nbe+3],input_v[n*nbe+4]);
-
     if(do_print){
       std::cerr << "READ10_TUPLE_" << id1 << " ";
       std::cerr << std::get<0>(lp[id1]) << " ";
@@ -1327,6 +1338,8 @@ int regularize_slave_send(Id tid,wasure_params & params,int nb_dat,ddt::logging_
             bool do_clean_data = false;
             bool do_serialize = false;
 	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+
+	    w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
         }
         tri.finalize(sch);
         hpi.finalize();
@@ -1353,6 +1366,8 @@ int regularize_slave_send(Id tid,wasure_params & params,int nb_dat,ddt::logging_
     Id tid_k = tid;
     Tile_const_iterator  tilec_k  = tri.get_const_tile(tid);
     std::map<Id,std::map<Id,SharedData> > shared_data_map;
+    std::map<Id,std::map<Id,SharedDataDst> > edges_data_map;
+    std::vector<std::vector<double>> & v_dst = w_datas_tri[tid].format_dst;
     // Loop over each shared cell to extracts id relation
     // lid_l , lid_l <-> lid_k
     for( auto cit_k = tilec_k->cells_begin();
@@ -1377,13 +1392,12 @@ int regularize_slave_send(Id tid,wasure_params & params,int nb_dat,ddt::logging_
     		continue;
     	      Tile_iterator tile_l = tri.get_tile(tid_l);
 	      // If 
-	      auto cit_l = tile_l->locate_cell(*tile_k,cit_k);
-	      Id lid_l = tile_l->lid(cit_l);	      
- 	      if(shared_data_map.find(tid_l) == shared_data_map.end())
-		shared_data_map[tid_l] = std::map<Id,SharedData>();
+
+ 	      if(edges_data_map.find(tid_l) == edges_data_map.end())
+		edges_data_map[tid_l] = std::map<Id,SharedDataDst>();
 
 	      // The current data structure => local_id of the shared tet, lag and tau
-	      shared_data_map[tid_l][lid_k] = std::make_tuple(lid_l,0,1,0);
+	      edges_data_map[tid_l][lid_k] = std::make_tuple(lid_l,0,0,0,0,0,0);
 	    }
       }
 
@@ -1405,22 +1419,18 @@ int regularize_slave_send(Id tid,wasure_params & params,int nb_dat,ddt::logging_
     std::cout << std::endl;
 
 
-    // Dum edges
-    for(auto ee : shared_data_map){
+    for(auto ee : edges_data_map){
       Id tid2 = ee.first;
-      if(tid2 == tid)
-	continue;
-      ddt::stream_data_header hto("e","z",std::vector<int> {tid,tid2});
-      std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid) + "_nid" + std::to_string(tid2));
+      ddt::stream_data_header hto("f","z",std::vector<int> {tid_1,tid2});
+      std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1) + "_nid" + std::to_string(tid2));
       //hto.write_into_file(filename,".pts");
       if(params.dump_ply)
     	hto.write_into_file(filename,".ply");
       hto.write_header(std::cout);
-      write_id_double_serialized(ee.second,hto.get_output_stream());
+      write_id_double_serialized(ee.second,hto.get_output_stream(),tid_1 ==3);
       hto.finalize();
       std::cout << std::endl;
     }
-
     
     return 0;
 
