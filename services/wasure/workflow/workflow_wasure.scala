@@ -330,7 +330,7 @@ graph_tri.vertices.unpersist();
 println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 val algo_list = List("seg_lagrange_weight","belief");
-
+"'"&
 // Only for stats
 var stats_list_1 = new ListBuffer[(Int,(Float,Float))]()
 var stats_list_2 = new ListBuffer[(Int,(Float,Float))]()
