@@ -1188,10 +1188,8 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
 
 
 
-int regularize_slave(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+int regularize_slave_focal(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 {
-
-
     std::cout.setstate(std::ios_base::failbit);
     DTW tri;
     Scheduler sch(1);
@@ -1199,6 +1197,7 @@ int regularize_slave(Id tid,wasure_params & params,int nb_dat,ddt::logging_strea
     int D = Traits::D;
     D_MAP w_datas_tri;
 
+    std::map<Id,std::map<Id,SharedDataDst> > edges_dst_map;    
     log.step("read");
     for(int i = 0; i < nb_dat; i++)
     {
@@ -1212,13 +1211,20 @@ int regularize_slave(Id tid,wasure_params & params,int nb_dat,ddt::logging_strea
             bool do_serialize = false;
 	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
         }
+	if(hpi.get_lab() == "f")
+        {
+	  Id eid1 = hpi.get_id(0);
+	  Id eid2 = hpi.get_id(1);
+	  edges_dst_map[eid1] = std::map<Id,SharedDataDst>();	  
+	  std::map<Id,SharedDataDst>  & lp = edges_dst_map[eid1];
+	  read_id_dst_serialized(lp, hpi.get_input_stream(),tid == 3);
+        }
+
         tri.finalize(sch);
         hpi.finalize();
     }
 
     Tile_iterator  tile_k  = tri.get_tile(tid);
-
-
     for(auto cit = tile_k->cells_begin();
 	cit != tile_k->cells_end();
 	cit++){
@@ -1232,7 +1238,6 @@ int regularize_slave(Id tid,wasure_params & params,int nb_dat,ddt::logging_strea
       Id lid2 = main_tile->lid(main_cell);
       w_datas_tri[tid].replace_attribute(w_datas_tri[main_tid],lid1,lid2);
     }
-
 
     Id tid_k = tid;
     Tile_const_iterator  tilec_k  = tri.get_const_tile(tid);
@@ -1270,8 +1275,6 @@ int regularize_slave(Id tid,wasure_params & params,int nb_dat,ddt::logging_strea
 	      shared_data_map[tid_l][lid_k] = std::make_tuple(lid_l,0,1,0);
 	    }
       }
-
-
 
 
 
@@ -1335,12 +1338,8 @@ int regularize_slave(Id tid,wasure_params & params,int nb_dat,ddt::logging_strea
 
 
 
-
-
 int regularize_slave_send(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 {
-
-
     std::cout.setstate(std::ios_base::failbit);
     DTW tri;
     Scheduler sch(1);
@@ -3509,9 +3508,13 @@ int main(int argc, char **argv)
             {
                 rv = preprocess(tile_id,params,nb_dat);
             }
-	    else if(params.algo_step == std::string("regularize_slave"))
+	    else if(params.algo_step == std::string("regularize_slave_focal"))
             {
-	      rv = regularize_slave(tile_id,params,nb_dat,log);
+	      rv = regularize_slave_focal(tile_id,params,nb_dat,log);
+            }
+	    else if(params.algo_step == std::string("regularize_slave_send"))
+            {
+	      rv = regularize_slave_send(tile_id,params,nb_dat,log);
             }
             else if(params.algo_step == std::string("dst"))
             {

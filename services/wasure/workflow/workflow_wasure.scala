@@ -212,7 +212,7 @@ val id_cmd = List(build_dir + "/bin/identity-exe");
 // Wausre surface reconstruction commands
 val dim_cmd =  set_params(params_wasure, List(("step","dim"))).to_command_line
 val dst_cmd =  set_params(params_wasure, List(("step","dst"))).to_command_line
-val regularize_slave_cmd =  set_params(params_wasure, List(("step","regularize_slave"))).to_command_line
+val regularize_slave_focal_cmd =  set_params(params_wasure, List(("step","regularize_slave_focal"))).to_command_line
 val extract_graph_cmd =  set_params(params_wasure, List(("step","extract_graph"))).to_command_line
 val fill_graph_cmd =  set_params(params_wasure, List(("step","fill_graph"))).to_command_line
 val ext_cmd =  set_params(params_wasure, List(("step","extract_surface"))).to_command_line
@@ -313,7 +313,7 @@ val graph_dst = Graph(kvrdd_dst, graph_tri.edges, List("")).partitionBy(EdgePart
 
 println("============= Regularize ===============")
 val res_regularize = iq.run_pipe_fun_KValue(
-  regularize_slave_cmd ++ List("--label", "regularize_slave"),
+  regularize_slave_focal_cmd ++ List("--label", "regularize_slave_focal"),
   iq.aggregate_value_clique(graph_dst, 1), "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
 val kvrdd_reg = iq.get_kvrdd(res_regularize,"t");
 val kvrdd_shr = iq.get_edgrdd(res_regularize,"e")
