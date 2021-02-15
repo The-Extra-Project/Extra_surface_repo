@@ -1197,7 +1197,6 @@ int regularize_slave_focal(Id tid,wasure_params & params,int nb_dat,ddt::logging
     int D = Traits::D;
     D_MAP w_datas_tri;
 
-    std::map<Id,std::map<Id,SharedDataDst> > edges_dst_map;    
     log.step("read");
     for(int i = 0; i < nb_dat; i++)
     {
@@ -1211,15 +1210,6 @@ int regularize_slave_focal(Id tid,wasure_params & params,int nb_dat,ddt::logging
             bool do_serialize = false;
 	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
         }
-	if(hpi.get_lab() == "f")
-        {
-	  Id eid1 = hpi.get_id(0);
-	  Id eid2 = hpi.get_id(1);
-	  edges_dst_map[eid1] = std::map<Id,SharedDataDst>();	  
-	  std::map<Id,SharedDataDst>  & lp = edges_dst_map[eid1];
-	  read_id_dst_serialized(lp, hpi.get_input_stream(),tid == 3);
-        }
-
         tri.finalize(sch);
         hpi.finalize();
     }
@@ -1313,27 +1303,7 @@ int regularize_slave_focal(Id tid,wasure_params & params,int nb_dat,ddt::logging
 
 
 
-    
-    // for(auto tit = tri.tiles_begin();
-    // 	tit != tri.tiles_end();
-    // 	tit++){
-    //   if(tit->id() <= tid)
-    // 	continue;
-    //   // for(auto vit = tit->vertices_begin();
-    //   // 	  vit != tit->vertices_end();
-    //   // 	  vit++){
-    //   // }
-
-    //   for(auto cit = tit->cells_begin();
-    // 	  cit != tit->cells_end();
-    // 	  cit++){
-    // 	if(!tit->cell_is_mixed(cit) || !tit->cell_is_main(cit))
-    // 	  continue;
-    // 	auto main_cit = tit->locate_cell(
-
-	
-    //   }
-    // }
+ 
 }
 
 
@@ -1347,6 +1317,7 @@ int regularize_slave_send(Id tid_1,wasure_params & params,int nb_dat,ddt::loggin
     int D = Traits::D;
     D_MAP w_datas_tri;
 
+    std::map<Id,std::map<Id,SharedDataDst> > edges_dst_map;    
     log.step("read");
     for(int i = 0; i < nb_dat; i++)
     {
@@ -1366,28 +1337,23 @@ int regularize_slave_send(Id tid_1,wasure_params & params,int nb_dat,ddt::loggin
         hpi.finalize();
     }
 
-    Tile_iterator  tile_1  = tri.get_tile(tid_1);
-
-
-    for(auto cit = tile_1->cells_begin();
-	cit != tile_1->cells_end();
-	cit++){
-      if(!tile_1->cell_is_mixed(cit) || tile_1->cell_is_main(cit))
-	continue;
-      Id main_tid = tile_1->cell_main_id(cit);
-      Tile_iterator main_tile = tri.get_tile(main_tid);
-      Id lid1 = tile_1->lid(cit);
+    // Tile_iterator  tile_1  = tri.get_tile(tid_1);
+    // for(auto cit = tile_1->cells_begin();
+    // 	cit != tile_1->cells_end();
+    // 	cit++){
+    //   if(!tile_1->cell_is_mixed(cit) || tile_1->cell_is_main(cit))
+    // 	continue;
+    //   Id main_tid = tile_1->cell_main_id(cit);
+    //   Tile_iterator main_tile = tri.get_tile(main_tid);
+    //   Id lid1 = tile_1->lid(cit);
       
-      auto main_cell = main_tile->locate_cell(*tile_1,cit);
-      Id lid2 = main_tile->lid(main_cell);
-      w_datas_tri[tid_1].replace_attribute(w_datas_tri[main_tid],lid1,lid2);
-    }
-
+    //   auto main_cell = main_tile->locate_cell(*tile_1,cit);
+    //   Id lid2 = main_tile->lid(main_cell);
+    //   w_datas_tri[tid_1].replace_attribute(w_datas_tri[main_tid],lid1,lid2);
+    // }
 
 
     Tile_const_iterator  tilec_1  = tri.get_const_tile(tid_1);
-    std::map<Id,std::map<Id,SharedData> > shared_data_map;
-    std::map<Id,std::map<Id,SharedDataDst> > edges_data_map;
     std::vector<std::vector<double>> & v_dst = w_datas_tri[tid_1].format_dst;
     // Loop over each shared cell to extracts id relation
     // lid_2 , lid_2 <-> lid_1
@@ -1395,6 +1361,7 @@ int regularize_slave_send(Id tid_1,wasure_params & params,int nb_dat,ddt::loggin
     	 cit_1 != tilec_1->cells_end(); ++cit_1 )
       {
 	Cell_const_iterator fch = Cell_const_iterator(tilec_1,tilec_1, tilec_1, cit_1);
+	std::vector<double> bary = tile_1->get_cell_barycenter(cit_1);
 	if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))
 	  continue;
 	Id lid_1 = tile_1->lid(cit_1);
@@ -1414,11 +1381,11 @@ int regularize_slave_send(Id tid_1,wasure_params & params,int nb_dat,ddt::loggin
     	      Tile_iterator tile_2 = tri.get_tile(tid_2);
 	      // If 
 
- 	      if(edges_data_map.find(tid_2) == edges_data_map.end())
-		edges_data_map[tid_2] = std::map<Id,SharedDataDst>();
+ 	      if(edges_dst_map.find(tid_2) == edges_dst_map.end())
+		edges_dst_map[tid_2] = std::map<Id,SharedDataDst>();
 
 	      // The current data structure => local_id of the shared tet, lag and tau
-	      edges_data_map[tid_2][lid_1] = std::make_tuple(lid_1,0,0,0,0,0,0);
+	      edges_dst_map[tid_2][lid_1] = std::make_tuple(lid_1,bary[0],bary[1],bary[2],v_dst[lid_1][0],v_dst[lid_1][1],v_dst[lid_1][2]);
 	    }
       }
 
@@ -1440,7 +1407,7 @@ int regularize_slave_send(Id tid_1,wasure_params & params,int nb_dat,ddt::loggin
     std::cout << std::endl;
 
 
-    for(auto ee : edges_data_map){
+    for(auto ee : edges_dst_map){
       Id tid_2 = ee.first;
       ddt::stream_data_header hto("f","z",std::vector<int> {tid_1,tid_2});
       std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1) + "_nid" + std::to_string(tid_2));
@@ -1455,31 +1422,125 @@ int regularize_slave_send(Id tid_1,wasure_params & params,int nb_dat,ddt::loggin
     
     return 0;
 
-
-
-    
-    // for(auto tit = tri.tiles_begin();
-    // 	tit != tri.tiles_end();
-    // 	tit++){
-    //   if(tit->id() <= tid)
-    // 	continue;
-    //   // for(auto vit = tit->vertices_begin();
-    //   // 	  vit != tit->vertices_end();
-    //   // 	  vit++){
-    //   // }
-
-    //   for(auto cit = tit->cells_begin();
-    // 	  cit != tit->cells_end();
-    // 	  cit++){
-    // 	if(!tit->cell_is_mixed(cit) || !tit->cell_is_main(cit))
-    // 	  continue;
-    // 	auto main_cit = tit->locate_cell(
-
-	
-    //   }
-    // }
 }
 
+
+
+
+
+
+int regularize_slave_recieve(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+    std::cout.setstate(std::ios_base::failbit);
+    DTW tri;
+    Scheduler sch(1);
+    wasure_algo w_algo;
+    int D = Traits::D;
+    D_MAP w_datas_tri;
+
+    std::map<Id,std::map<Id,SharedDataDst> > edges_dst_map;    
+    log.step("read");
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+        if(hpi.get_lab() == "t")
+        {
+            w_datas_tri[hid] = wasure_data<Traits>();
+            bool do_clean_data = false;
+            bool do_serialize = false;
+	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+        }
+	if(hpi.get_lab() == "f")
+        {
+	  Id eid1 = hpi.get_id(0);
+	  Id eid2 = hpi.get_id(1);
+	  edges_dst_map[eid1] = std::map<Id,SharedDataDst>();	  
+	  std::map<Id,SharedDataDst>  & lp = edges_dst_map[eid1];
+	  read_id_dst_serialized(lp, hpi.get_input_stream(),tid == 3);
+        }
+
+        tri.finalize(sch);
+        hpi.finalize();
+    }
+
+
+
+    Id tid_k = tid;
+    Tile_const_iterator  tilec_k  = tri.get_const_tile(tid);
+    std::map<Id,std::map<Id,SharedData> > shared_data_map;
+    // Loop over each shared cell to extracts id relation
+    // lid_l , lid_l <-> lid_k
+    for( auto cit_k = tilec_k->cells_begin();
+    	 cit_k != tilec_k->cells_end(); ++cit_k )
+      {
+	Cell_const_iterator fch = Cell_const_iterator(tilec_k,tilec_k, tilec_k, cit_k);
+	if(!tilec_k->cell_is_mixed(cit_k) || tilec_k->cell_is_infinite(cit_k))
+	  continue;
+	Id lid_k = tilec_k->lid(cit_k);
+	int D = tilec_k->current_dimension();
+	// Loop on shared tiles
+	std::unordered_set<Id> idSet ;	  
+	for(int i=0; i<=D; ++i)
+    	    {
+    	      // Select only id != tid_k and new ids
+    	      Id tid_l = tilec_k->id(tilec_k->vertex(cit_k,i));
+	      if ((idSet.find(tid_l) != idSet.end()) || tid_l == tid_k ){
+	      	continue;
+	      }
+	      idSet.insert(tid_l);
+    	      if(tid_l == tid_k)
+    		continue;
+    	      Tile_iterator tile_l = tri.get_tile(tid_l);
+	      // If 
+	      auto cit_l = tile_l->locate_cell(*tilec_k,cit_k);
+	      Id lid_l = tile_l->lid(cit_l);	      
+ 	      if(shared_data_map.find(tid_l) == shared_data_map.end())
+		shared_data_map[tid_l] = std::map<Id,SharedData>();
+
+	      // The current data structure => local_id of the shared tet, lag and tau
+	      shared_data_map[tid_l][lid_k] = std::make_tuple(lid_l,0,1,0);
+	    }
+      }
+
+
+
+    std::cerr << "regularize" << std::endl;
+    std::cout.clear();
+    //  log.step("Write header");
+    ddt::stream_data_header oth("t","z",tid);
+    std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
+    if(params.dump_ply)
+        oth.write_into_file(filename,".ply");
+    oth.write_header(std::cout);
+    ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
+    std::cerr << "stream dumped" << std::endl;
+    oth.finalize();
+    std::cout << std::endl;
+
+
+    // Dum edges
+    for(auto ee : shared_data_map){
+      Id tid2 = ee.first;
+      if(tid2 == tid)
+	continue;
+      ddt::stream_data_header hto("e","z",std::vector<int> {tid,tid2});
+      std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid) + "_nid" + std::to_string(tid2));
+      //hto.write_into_file(filename,".pts");
+      if(params.dump_ply)
+    	hto.write_into_file(filename,".ply");
+      hto.write_header(std::cout);
+      write_id_double_serialized(ee.second,hto.get_output_stream());
+      hto.finalize();
+      std::cout << std::endl;
+    }
+
+    
+    return 0;
+
+
+}
 
 
 
@@ -3515,6 +3576,10 @@ int main(int argc, char **argv)
 	    else if(params.algo_step == std::string("regularize_slave_send"))
             {
 	      rv = regularize_slave_send(tile_id,params,nb_dat,log);
+            }
+	    else if(params.algo_step == std::string("regularize_slave_recieve"))
+            {
+	      rv = regularize_slave_recieve(tile_id,params,nb_dat,log);
             }
             else if(params.algo_step == std::string("dst"))
             {
