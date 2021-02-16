@@ -80,7 +80,7 @@ std::istream & read_id_dst_serialized(std::map<Id,SharedDataDst> & lp, std::istr
   do_print = false;
   std::vector<double> input_v;
   deserialize_b64_vect(input_v,ifile);
-  int nbe = 7;
+  int nbe = 8;
   for(int n = 0; n< input_v.size()/nbe;n++){
     Id id1 = input_v[n*nbe];
     // id - bary - dst
@@ -1308,7 +1308,7 @@ int regularize_slave_focal(Id tid,wasure_params & params,int nb_dat,ddt::logging
 
 
 
-int regularize_slave_send(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+int regularize_slave_extract(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 {
     std::cout.setstate(std::ios_base::failbit);
     DTW tri;
@@ -1337,21 +1337,6 @@ int regularize_slave_send(Id tid_1,wasure_params & params,int nb_dat,ddt::loggin
         hpi.finalize();
     }
 
-    // Tile_iterator  tile_1  = tri.get_tile(tid_1);
-    // for(auto cit = tile_1->cells_begin();
-    // 	cit != tile_1->cells_end();
-    // 	cit++){
-    //   if(!tile_1->cell_is_mixed(cit) || tile_1->cell_is_main(cit))
-    // 	continue;
-    //   Id main_tid = tile_1->cell_main_id(cit);
-    //   Tile_iterator main_tile = tri.get_tile(main_tid);
-    //   Id lid1 = tile_1->lid(cit);
-      
-    //   auto main_cell = main_tile->locate_cell(*tile_1,cit);
-    //   Id lid2 = main_tile->lid(main_cell);
-    //   w_datas_tri[tid_1].replace_attribute(w_datas_tri[main_tid],lid1,lid2);
-    // }
-
 
     Tile_const_iterator  tilec_1  = tri.get_const_tile(tid_1);
     std::vector<std::vector<double>> & v_dst = w_datas_tri[tid_1].format_dst;
@@ -1361,17 +1346,17 @@ int regularize_slave_send(Id tid_1,wasure_params & params,int nb_dat,ddt::loggin
     	 cit_1 != tilec_1->cells_end(); ++cit_1 )
       {
 	Cell_const_iterator fch = Cell_const_iterator(tilec_1,tilec_1, tilec_1, cit_1);
-	std::vector<double> bary = tile_1->get_cell_barycenter(cit_1);
-	if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))
+	std::vector<double> bary = tilec_1->get_cell_barycenter(cit_1);
+	if(!tilec_1->cell_is_mixed(cit_1) || tilec_1->cell_is_infinite(cit_1))
 	  continue;
-	Id lid_1 = tile_1->lid(cit_1);
-	int D = tile_1->current_dimension();
+	Id lid_1 = tilec_1->lid(cit_1);
+	int D = tilec_1->current_dimension();
 	// Loop on shared tiles
 	std::unordered_set<Id> idSet ;	  
 	for(int i=0; i<=D; ++i)
     	    {
     	      // Select only id != tid_1 and new ids
-    	      Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
+    	      Id tid_2 = tilec_1->id(tilec_1->vertex(cit_1,i));
 	      if ((idSet.find(tid_2) != idSet.end()) || tid_2 == tid_1 ){
 	      	continue;
 	      }
@@ -1429,7 +1414,7 @@ int regularize_slave_send(Id tid_1,wasure_params & params,int nb_dat,ddt::loggin
 
 
 
-int regularize_slave_recieve(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 {
     std::cout.setstate(std::ios_base::failbit);
     DTW tri;
@@ -1437,7 +1422,8 @@ int regularize_slave_recieve(Id tid,wasure_params & params,int nb_dat,ddt::loggi
     wasure_algo w_algo;
     int D = Traits::D;
     D_MAP w_datas_tri;
-
+    Traits  traits;
+    
     std::map<Id,std::map<Id,SharedDataDst> > edges_dst_map;    
     log.step("read");
     for(int i = 0; i < nb_dat; i++)
@@ -1451,6 +1437,7 @@ int regularize_slave_recieve(Id tid,wasure_params & params,int nb_dat,ddt::loggi
             bool do_clean_data = false;
             bool do_serialize = false;
 	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+	    w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,true);
         }
 	if(hpi.get_lab() == "f")
         {
@@ -1465,45 +1452,58 @@ int regularize_slave_recieve(Id tid,wasure_params & params,int nb_dat,ddt::loggi
         hpi.finalize();
     }
 
-
-
+    
     Id tid_k = tid;
-    Tile_const_iterator  tilec_k  = tri.get_const_tile(tid);
+    Tile_const_iterator  tile_k  = tri.get_const_tile(tid);
     std::map<Id,std::map<Id,SharedData> > shared_data_map;
+    std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
     // Loop over each shared cell to extracts id relation
     // lid_l , lid_l <-> lid_k
-    for( auto cit_k = tilec_k->cells_begin();
-    	 cit_k != tilec_k->cells_end(); ++cit_k )
+    for( auto cit_k = tile_k->cells_begin();
+    	 cit_k != tile_k->cells_end(); ++cit_k )
       {
-	Cell_const_iterator fch = Cell_const_iterator(tilec_k,tilec_k, tilec_k, cit_k);
-	if(!tilec_k->cell_is_mixed(cit_k) || tilec_k->cell_is_infinite(cit_k))
+	Cell_const_iterator fch = Cell_const_iterator(tile_k,tile_k, tile_k, cit_k);
+	if(!tile_k->cell_is_mixed(cit_k) || tile_k->cell_is_infinite(cit_k))
 	  continue;
-	Id lid_k = tilec_k->lid(cit_k);
-	int D = tilec_k->current_dimension();
+	Id lid_k = tile_k->lid(cit_k);
+	int D = tile_k->current_dimension();
 	// Loop on shared tiles
-	std::unordered_set<Id> idSet ;	  
+	std::unordered_set<Id> idSet ;
+	Id cmid = tile_k->cell_main_id(cit_k);
 	for(int i=0; i<=D; ++i)
     	    {
     	      // Select only id != tid_k and new ids
-    	      Id tid_l = tilec_k->id(tilec_k->vertex(cit_k,i));
+    	      Id tid_l = tile_k->id(tile_k->vertex(cit_k,i));
 	      if ((idSet.find(tid_l) != idSet.end()) || tid_l == tid_k ){
 	      	continue;
 	      }
 	      idSet.insert(tid_l);
     	      if(tid_l == tid_k)
     		continue;
-    	      Tile_iterator tile_l = tri.get_tile(tid_l);
-	      // If 
-	      auto cit_l = tile_l->locate_cell(*tilec_k,cit_k);
-	      Id lid_l = tile_l->lid(cit_l);	      
+
+	      auto edm_l = edges_dst_map[tid_l][lid_k];
+	      Id lid_l = std::get<1>(edm_l);
+
+	      std::vector<double> bary{std::get<1>(edm_l),std::get<2>(edm_l),std::get<3>(edm_l)};
+	      std::vector<double> dstv{std::get<4>(edm_l),std::get<5>(edm_l),std::get<6>(edm_l)};
+	      auto pp_bary = traits.make_point(bary.begin());
+	      //	      pvect.push_back(traits.make_point(bary.begin()));
+	      auto main_cell = tile_k->locate_cell_point(*tile_k,pp_bary);
+	      
  	      if(shared_data_map.find(tid_l) == shared_data_map.end())
 		shared_data_map[tid_l] = std::map<Id,SharedData>();
 
 	      // The current data structure => local_id of the shared tet, lag and tau
+
 	      shared_data_map[tid_l][lid_k] = std::make_tuple(lid_l,0,1,0);
+	      if(cmid == tid_l){
+		for(int i = 0 ; i < 3; i++)
+		  format_dst[lid_k][i] = dstv[i];
+
+	      }
 	    }
       }
-
+    w_datas_tri[tid].fill_dst(w_datas_tri[tid].format_dst);
 
 
     std::cerr << "regularize" << std::endl;
@@ -3573,13 +3573,13 @@ int main(int argc, char **argv)
             {
 	      rv = regularize_slave_focal(tile_id,params,nb_dat,log);
             }
-	    else if(params.algo_step == std::string("regularize_slave_send"))
+	    else if(params.algo_step == std::string("regularize_slave_extract"))
             {
-	      rv = regularize_slave_send(tile_id,params,nb_dat,log);
+	      rv = regularize_slave_extract(tile_id,params,nb_dat,log);
             }
-	    else if(params.algo_step == std::string("regularize_slave_recieve"))
+	    else if(params.algo_step == std::string("regularize_slave_insert"))
             {
-	      rv = regularize_slave_recieve(tile_id,params,nb_dat,log);
+	      rv = regularize_slave_insert(tile_id,params,nb_dat,log);
             }
             else if(params.algo_step == std::string("dst"))
             {

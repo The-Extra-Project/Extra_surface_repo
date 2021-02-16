@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 ### Start workflow in local mode 
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
 source ${DDT_MAIN_DIR}/algo-env.sh
@@ -95,8 +94,8 @@ function preprocess_data
 # preprocess_data
 
 ### 3D
-#run_3d_bench_small
-run_3d_bench
+run_3d_bench_small
+#run_3d_bench
 #run_3d_church
 #run_3d_bench_preprocessed
 #run_3d_bench_small

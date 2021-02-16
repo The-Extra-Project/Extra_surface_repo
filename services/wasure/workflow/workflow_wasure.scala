@@ -213,6 +213,8 @@ val id_cmd = List(build_dir + "/bin/identity-exe");
 val dim_cmd =  set_params(params_wasure, List(("step","dim"))).to_command_line
 val dst_cmd =  set_params(params_wasure, List(("step","dst"))).to_command_line
 val regularize_slave_focal_cmd =  set_params(params_wasure, List(("step","regularize_slave_focal"))).to_command_line
+val regularize_slave_extract_cmd =  set_params(params_wasure, List(("step","regularize_slave_extract"))).to_command_line
+val regularize_slave_insert_cmd =  set_params(params_wasure, List(("step","regularize_slave_insert"))).to_command_line
 val extract_graph_cmd =  set_params(params_wasure, List(("step","extract_graph"))).to_command_line
 val fill_graph_cmd =  set_params(params_wasure, List(("step","fill_graph"))).to_command_line
 val ext_cmd =  set_params(params_wasure, List(("step","extract_surface"))).to_command_line
@@ -311,10 +313,29 @@ kvrdd_points.unpersist();
 val kvrdd_dst = iq.get_kvrdd(res_dst,"t");
 val graph_dst = Graph(kvrdd_dst, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
 
+
 println("============= Regularize ===============")
+// Focal regularize
+// val res_regularize = iq.run_pipe_fun_KValue(
+//   regularize_slave_focal_cmd ++ List("--label", "regularize_slave_focal"),
+//   iq.aggregate_value_clique(graph_dst, 1), "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
+
+// Message passing regularize
+val res_regularize_extract = iq.run_pipe_fun_KValue(
+  regularize_slave_extract_cmd ++ List("--label", "regularize_slave_extract"),
+  kvrdd_dst, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
+val rdd_shared_edges = iq.get_edgrdd(res_regularize_extract,"f")
+val input_insert = (
+          rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_dst
+).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES")
 val res_regularize = iq.run_pipe_fun_KValue(
-  regularize_slave_focal_cmd ++ List("--label", "regularize_slave_focal"),
-  iq.aggregate_value_clique(graph_dst, 1), "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
+  regularize_slave_insert_cmd ++ List("--label", "regularize_slave_insert"),
+  kvrdd_dst, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
+
+input_extract.count()
+
+
+
 val kvrdd_reg = iq.get_kvrdd(res_regularize,"t");
 val kvrdd_shr = iq.get_edgrdd(res_regularize,"e")
 val graph_reg = Graph(kvrdd_reg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
@@ -338,7 +359,7 @@ val do_stats = true
 
 
 var loop_acc = 0;
-// Loop on different algo 
+// Loop on different algo
 algo_list.foreach{ cur_algo =>
   //= Init filename and parmas
   val coef_mult  = 1000000L
@@ -356,7 +377,6 @@ algo_list.foreach{ cur_algo =>
   input_seg2.persist(slvl_loop)
   input_seg2.count()
   var acc_loop = 0;
-
 
   if(cur_algo == "belief"){
     println("==== Segmentation with lambda:" + ll + " coef_mult:" + coef_mult +  "  ====")
@@ -399,80 +419,80 @@ algo_list.foreach{ cur_algo =>
       dump_json(params_scala,ply_dir + "/params_scala.json",sc);
     }
     wasure_algo.partition2ply(cur_output_dir, loop_acc.toString,sc);
-  }
+  }else{
 
+    while (acc_loop < max_opt_it) {
+      val t0_loop = System.nanoTime()
+      val acc_loop_str = "%03d".format(acc_loop)
+      val res_seg = iq.run_pipe_fun_KValue(
+        seg_cmd ++ List("--label", "seg" + acc_loop_str),
+        input_seg2, cur_algo, do_dump = false).persist(slvl_loop)
+      res_seg.count()
+      val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
+      input_seg2.unpersist()
+      if(((acc_loop == max_opt_it -1) ||
+        (do_stats && ( acc_loop % stats_mod_it == 0 ||
+          acc_loop == 1 || acc_loop == 0)))){
+        val graph_seg = Graph(kvrdd_seg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
+        val rdd_ply_surface = iq.run_pipe_fun_KValue(
+          ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
+          iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
 
-  while (acc_loop < max_opt_it) {
-    val t0_loop = System.nanoTime()
-    val acc_loop_str = "%03d".format(acc_loop)
-    val res_seg = iq.run_pipe_fun_KValue(
-      seg_cmd ++ List("--label", "seg" + acc_loop_str),
-      input_seg2, cur_algo, do_dump = false).persist(slvl_loop)
-    res_seg.count()
-    val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
-    input_seg2.unpersist()
-    if(((acc_loop == max_opt_it -1) ||
-      (do_stats && ( acc_loop % stats_mod_it == 0 ||
-      acc_loop == 1 || acc_loop == 0)))){
-      val graph_seg = Graph(kvrdd_seg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
-      val rdd_ply_surface = iq.run_pipe_fun_KValue(
-        ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
-        iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
-
-      val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_gc_" + loop_acc.toString + "_" + acc_loop_str
-      ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl)
-      wasure_algo.partition2ply(cur_output_dir,loop_acc.toString,sc);
-    }
-    val rdd_local_edges = iq.get_edgrdd(res_seg,"e")
-    val rdd_shared_edges = iq.get_edgrdd(res_seg,"f")
-    val rdd_stats  = iq.get_kvrdd(res_seg,"s")
-    var stats_1 = rdd_stats.map(x => x._2(0).split(" ").takeRight(2)).map(x => (x(0).toFloat,x(1).toFloat)).reduce( (x,y) => (x._1+y._1,x._2+y._2))
-    var stats_2 = stats_1;
-
-    input_seg2 = (
-      rdd_local_edges.map(e => (e.srcId, e.attr)) union
-        rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_seg
-    ).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
-    input_seg2.count()
-
-    if( (acc_loop % stats_mod_it == 0 || acc_loop == 1) && do_stats ){
-      val seg_cmd_full =  set_params(params_wasure, List(("step","seg_global_extract"))).to_command_line
-      val input_extract = kvrdd_seg.map(x => (0L,x._2)).reduceByKey(_ ::: _)
-      val res_surface = iq.run_pipe_fun_KValue(
-        seg_cmd_full ++ List("--label", "seg"),
-        input_extract , "seg_lagrange", do_dump = false)
-      val rdd_ply  = res_surface.filter(_(0) == 'p');
-      val rdd_stats  = iq.get_kvrdd(res_surface,"s")
-      stats_2 = rdd_stats.map(x => x._2(0).split(" ").takeRight(2)).map(x => (x(0).toFloat,x(1).toFloat)).reduce( (x,y) => (x._1+y._1,x._2+y._2))
-      rdd_stats.collect()
-      if(acc_loop == 0){
-        val ply_dir = cur_output_dir + "/plyglob_" + ext_name + "_gc_" + loop_acc.toString + "_" + acc_loop_str + "_global3"
-        ddt_algo.saveAsPly(rdd_ply,ply_dir,plot_lvl)
+        val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_gc_" + loop_acc.toString + "_" + acc_loop_str
+        ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl)
         wasure_algo.partition2ply(cur_output_dir,loop_acc.toString,sc);
       }
+      val rdd_local_edges = iq.get_edgrdd(res_seg,"e")
+      val rdd_shared_edges = iq.get_edgrdd(res_seg,"f")
+      val rdd_stats  = iq.get_kvrdd(res_seg,"s")
+      var stats_1 = rdd_stats.map(x => x._2(0).split(" ").takeRight(2)).map(x => (x(0).toFloat,x(1).toFloat)).reduce( (x,y) => (x._1+y._1,x._2+y._2))
+      var stats_2 = stats_1;
+
+      input_seg2 = (
+        rdd_local_edges.map(e => (e.srcId, e.attr)) union
+          rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_seg
+      ).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
+      input_seg2.count()
+
+      if( (acc_loop % stats_mod_it == 0 || acc_loop == 1) && do_stats ){
+        val seg_cmd_full =  set_params(params_wasure, List(("step","seg_global_extract"))).to_command_line
+        val input_extract = kvrdd_seg.map(x => (0L,x._2)).reduceByKey(_ ::: _)
+        val res_surface = iq.run_pipe_fun_KValue(
+          seg_cmd_full ++ List("--label", "seg"),
+          input_extract , "seg_lagrange", do_dump = false)
+        val rdd_ply  = res_surface.filter(_(0) == 'p');
+        val rdd_stats  = iq.get_kvrdd(res_surface,"s")
+        stats_2 = rdd_stats.map(x => x._2(0).split(" ").takeRight(2)).map(x => (x(0).toFloat,x(1).toFloat)).reduce( (x,y) => (x._1+y._1,x._2+y._2))
+        rdd_stats.collect()
+        if(acc_loop == 0){
+          val ply_dir = cur_output_dir + "/plyglob_" + ext_name + "_gc_" + loop_acc.toString + "_" + acc_loop_str + "_global3"
+          ddt_algo.saveAsPly(rdd_ply,ply_dir,plot_lvl)
+          wasure_algo.partition2ply(cur_output_dir,loop_acc.toString,sc);
+        }
+      }
+
+      val t1_loop = System.nanoTime()
+
+      println("[it " + acc_loop_str + "]")
+      ddt_algo.update_time(params_scala,"opt_loop" + loop_acc.toString);
+      if( acc_loop % stats_mod_it == 0 || acc_loop == 1){
+        val t1 = ( acc_loop,stats_1)
+        val t2 = ( acc_loop,stats_2)
+        stats_list_1 += t1
+        stats_list_2 += t2
+        println("   stats -> " + floatFormat.format(100*stats_1._1/stats_1._2.toFloat) + "% "
+          + stats_1 + " \t --- " + floatFormat.format(100*stats_2._1/stats_2._2.toFloat) + "% " + stats_2)
+        wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_conv_1.txt",stats_list_1,sc)
+        wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_gtdiff_2.txt",stats_list_2,sc)
+      }
+      println("")
+      res_seg.unpersist()
+      acc_loop = acc_loop + 1;
     }
 
-    val t1_loop = System.nanoTime()
-
-    println("[it " + acc_loop_str + "]")
-    ddt_algo.update_time(params_scala,"opt_loop" + loop_acc.toString);
-    if( acc_loop % stats_mod_it == 0 || acc_loop == 1){
-      val t1 = ( acc_loop,stats_1)
-      val t2 = ( acc_loop,stats_2)
-      stats_list_1 += t1
-      stats_list_2 += t2
-      println("   stats -> " + floatFormat.format(100*stats_1._1/stats_1._2.toFloat) + "% "
-        + stats_1 + " \t --- " + floatFormat.format(100*stats_2._1/stats_2._2.toFloat) + "% " + stats_2)
-      wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_conv_1.txt",stats_list_1,sc)
-      wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_gtdiff_2.txt",stats_list_2,sc)
-    }
-    println("")
-    res_seg.unpersist()
-    acc_loop = acc_loop + 1;
+    stats_list_1.clear()
+    stats_list_2.clear()
   }
-
-  stats_list_1.clear()
-  stats_list_2.clear()
 }
 
 
