@@ -1180,8 +1180,6 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
     std::cout << std::endl;
-
-
     return 0;
 }
 
@@ -1363,8 +1361,6 @@ int regularize_slave_extract(Id tid_1,wasure_params & params,int nb_dat,ddt::log
 	      idSet.insert(tid_2);
     	      if(tid_2 == tid_1)
     		continue;
-    	      Tile_iterator tile_2 = tri.get_tile(tid_2);
-	      // If 
 
  	      if(edges_dst_map.find(tid_2) == edges_dst_map.end())
 		edges_dst_map[tid_2] = std::map<Id,SharedDataDst>();
@@ -1459,50 +1455,90 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
     std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
     // Loop over each shared cell to extracts id relation
     // lid_l , lid_l <-> lid_k
-    for( auto cit_k = tile_k->cells_begin();
-    	 cit_k != tile_k->cells_end(); ++cit_k )
-      {
-	Cell_const_iterator fch = Cell_const_iterator(tile_k,tile_k, tile_k, cit_k);
-	if(!tile_k->cell_is_mixed(cit_k) || tile_k->cell_is_infinite(cit_k))
-	  continue;
-	Id lid_k = tile_k->lid(cit_k);
-	int D = tile_k->current_dimension();
-	// Loop on shared tiles
-	std::unordered_set<Id> idSet ;
-	Id cmid = tile_k->cell_main_id(cit_k);
-	for(int i=0; i<=D; ++i)
-    	    {
-    	      // Select only id != tid_k and new ids
-    	      Id tid_l = tile_k->id(tile_k->vertex(cit_k,i));
-	      if ((idSet.find(tid_l) != idSet.end()) || tid_l == tid_k ){
-	      	continue;
-	      }
-	      idSet.insert(tid_l);
-    	      if(tid_l == tid_k)
-    		continue;
+    std::cerr << "RECIEVE BARY" << std::endl; 
+    for(auto ee : edges_dst_map){
+      Id tid_l = ee.first;
+      for(auto ee_map : ee.second){
+	auto edm_l = ee_map.second;
+	Id lid_l = std::get<0>(edm_l);
+	std::vector<double> bary{std::get<1>(edm_l),std::get<2>(edm_l),std::get<3>(edm_l)};
+	std::vector<double> dstv{std::get<4>(edm_l),std::get<5>(edm_l),std::get<6>(edm_l)};
 
-	      auto edm_l = edges_dst_map[tid_l][lid_k];
-	      Id lid_l = std::get<1>(edm_l);
+	auto pp_bary = traits.make_point(bary.begin());
+	auto main_cell = tile_k->locate_cell_point(*tile_k,pp_bary);
+	
+	Id cmid = tile_k->cell_main_id(main_cell);
+	Id lid_k = tile_k->lid(main_cell);
+	
+	if(shared_data_map.find(tid_l) == shared_data_map.end())
+	  shared_data_map[tid_l] = std::map<Id,SharedData>();
 
-	      std::vector<double> bary{std::get<1>(edm_l),std::get<2>(edm_l),std::get<3>(edm_l)};
-	      std::vector<double> dstv{std::get<4>(edm_l),std::get<5>(edm_l),std::get<6>(edm_l)};
-	      auto pp_bary = traits.make_point(bary.begin());
-	      //	      pvect.push_back(traits.make_point(bary.begin()));
-	      auto main_cell = tile_k->locate_cell_point(*tile_k,pp_bary);
-	      
- 	      if(shared_data_map.find(tid_l) == shared_data_map.end())
-		shared_data_map[tid_l] = std::map<Id,SharedData>();
+	// The current data structure => local_id of the shared tet, lag and tau
 
-	      // The current data structure => local_id of the shared tet, lag and tau
+	shared_data_map[tid_l][lid_k] = std::make_tuple(lid_l,0,1,0);
 
-	      shared_data_map[tid_l][lid_k] = std::make_tuple(lid_l,0,1,0);
-	      if(cmid == tid_l){
-		for(int i = 0 ; i < 3; i++)
-		  format_dst[lid_k][i] = dstv[i];
-
-	      }
-	    }
+	std::cerr << "baryy:";
+	for(int i = 0; i < 3; i++){
+	  std::cerr << bary[i] << " ";
+	}
+	std::cerr << " - ";
+	for(int i = 0; i < 3; i++){
+	  std::cerr << dstv[i] << " ";
+	}
+	std::cerr << " - " << cmid  << " - " << tid_k << " - " << tid_l << std::endl;
+	
+	// if main
+	if(cmid == tid_l){
+	  for(int i = 0 ; i < 3; i++)
+	    format_dst[lid_k][i] = dstv[i];
+	}	
       }
+    }
+    
+    // for( auto cit_k = tile_k->cells_begin();
+    // 	 cit_k != tile_k->cells_end(); ++cit_k )
+    //   {
+    // 	Cell_const_iterator fch = Cell_const_iterator(tile_k,tile_k, tile_k, cit_k);
+    // 	if(!tile_k->cell_is_mixed(cit_k) || tile_k->cell_is_infinite(cit_k))
+    // 	  continue;
+    // 	Id lid_k = tile_k->lid(cit_k);
+    // 	int D = tile_k->current_dimension();
+    // 	// Loop on shared tiles
+    // 	std::unordered_set<Id> idSet ;
+    // 	Id cmid = tile_k->cell_main_id(cit_k);
+    // 	for(int i=0; i<=D; ++i)
+    // 	    {
+    // 	      // Select only id != tid_k and new ids
+    // 	      Id tid_l = tile_k->id(tile_k->vertex(cit_k,i));
+    // 	      if ((idSet.find(tid_l) != idSet.end()) || tid_l == tid_k ){
+    // 	      	continue;
+    // 	      }
+    // 	      idSet.insert(tid_l);
+    // 	      if(tid_l == tid_k)
+    // 		continue;
+
+    // 	      auto edm_l = edges_dst_map[tid_l][lid_k];
+    // 	      Id lid_l = std::get<1>(edm_l);
+
+    // 	      std::vector<double> bary{std::get<1>(edm_l),std::get<2>(edm_l),std::get<3>(edm_l)};
+    // 	      std::vector<double> dstv{std::get<4>(edm_l),std::get<5>(edm_l),std::get<6>(edm_l)};
+    // 	      auto pp_bary = traits.make_point(bary.begin());
+    // 	      //	      pvect.push_back(traits.make_point(bary.begin()));
+    // 	      auto main_cell = tile_k->locate_cell_point(*tile_k,pp_bary);
+	      
+    // 	      if(shared_data_map.find(tid_l) == shared_data_map.end())
+    // 		shared_data_map[tid_l] = std::map<Id,SharedData>();
+
+    // 	      // The current data structure => local_id of the shared tet, lag and tau
+
+    // 	      shared_data_map[tid_l][lid_k] = std::make_tuple(lid_l,0,1,0);
+    // 	      if(cmid == tid_l){
+    // 		for(int i = 0 ; i < 3; i++)
+    // 		  format_dst[lid_k][i] = dstv[i];
+
+    // 	      }
+    // 	    }
+    //   }
     w_datas_tri[tid].fill_dst(w_datas_tri[tid].format_dst);
 
 

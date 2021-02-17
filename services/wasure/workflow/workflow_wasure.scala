@@ -315,24 +315,24 @@ val graph_dst = Graph(kvrdd_dst, graph_tri.edges, List("")).partitionBy(EdgePart
 
 
 println("============= Regularize ===============")
-// Focal regularize
-// val res_regularize = iq.run_pipe_fun_KValue(
-//   regularize_slave_focal_cmd ++ List("--label", "regularize_slave_focal"),
-//   iq.aggregate_value_clique(graph_dst, 1), "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
+Focal regularize
+val res_regularize = iq.run_pipe_fun_KValue(
+  regularize_slave_focal_cmd ++ List("--label", "regularize_slave_focal"),
+  iq.aggregate_value_clique(graph_dst, 1), "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
 
 // Message passing regularize
-val res_regularize_extract = iq.run_pipe_fun_KValue(
-  regularize_slave_extract_cmd ++ List("--label", "regularize_slave_extract"),
-  kvrdd_dst, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
-val rdd_shared_edges = iq.get_edgrdd(res_regularize_extract,"f")
-val input_insert = (
-          rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_dst
-).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES")
-val res_regularize = iq.run_pipe_fun_KValue(
-  regularize_slave_insert_cmd ++ List("--label", "regularize_slave_insert"),
-  kvrdd_dst, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
+// val res_regularize_extract = iq.run_pipe_fun_KValue(
+//   regularize_slave_extract_cmd ++ List("--label", "regularize_slave_extract"),
+//   kvrdd_dst, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
+// val rdd_shared_edges = iq.get_edgrdd(res_regularize_extract,"f")
+// val input_insert = (
+//           rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_dst
+// ).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES")
+// val res_regularize = iq.run_pipe_fun_KValue(
+//   regularize_slave_insert_cmd ++ List("--label", "regularize_slave_insert"),
+//   input_insert, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
 
-input_extract.count()
+
 
 
 
