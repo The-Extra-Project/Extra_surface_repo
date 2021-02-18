@@ -81,7 +81,7 @@ std::istream & read_id_dst_serialized(std::map<Id,SharedDataDst> & lp, std::istr
   std::vector<double> input_v;
   deserialize_b64_vect(input_v,ifile);
   int nbe = 8;
-  for(int n = 0; n< input_v.size()/nbe;n++){
+  for(int n = 0; n < input_v.size()/nbe;n++){
     Id id1 = input_v[n*nbe];
     // id - bary - dst
     lp[id1] = std::make_tuple(input_v[n*nbe+1],input_v[n*nbe+2],input_v[n*nbe+3],input_v[n*nbe+4],input_v[n*nbe+5],input_v[n*nbe+6],input_v[n*nbe+7]);
@@ -1359,8 +1359,6 @@ int regularize_slave_extract(Id tid_1,wasure_params & params,int nb_dat,ddt::log
 	      	continue;
 	      }
 	      idSet.insert(tid_2);
-    	      if(tid_2 == tid_1)
-    		continue;
 
  	      if(edges_dst_map.find(tid_2) == edges_dst_map.end())
 		edges_dst_map[tid_2] = std::map<Id,SharedDataDst>();
@@ -1477,15 +1475,15 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
 
 	shared_data_map[tid_l][lid_k] = std::make_tuple(lid_l,0,1,0);
 
-	std::cerr << "baryy:";
-	for(int i = 0; i < 3; i++){
-	  std::cerr << bary[i] << " ";
-	}
-	std::cerr << " - ";
-	for(int i = 0; i < 3; i++){
-	  std::cerr << dstv[i] << " ";
-	}
-	std::cerr << " - " << cmid  << " - " << tid_k << " - " << tid_l << std::endl;
+	// std::cerr << "baryy:";
+	// for(int i = 0; i < 3; i++){
+	//   std::cerr << bary[i] << " ";
+	// }
+	// std::cerr << " - ";
+	// for(int i = 0; i < 3; i++){
+	//   std::cerr << dstv[i] << " ";
+	// }
+	// std::cerr << " - " << cmid  << " - " << tid_k << " - " << tid_l << std::endl;
 	
 	// if main
 	if(cmid == tid_l){
@@ -2798,7 +2796,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	      
     	      // Get curent lambda for the cell lid in the edge tid_2
     	      double new_lagrange = 0;
-	      double cur_tau = mrf.get_volume_reco(fch);
+	      double cur_tau = mrf.get_volume_reco(fch) * params.coef_mult;
 	      Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
 	      double v_diff = 0;
 		
