@@ -14,7 +14,7 @@
       <nb_samples>1</nb_samples>
 
       <algo_opt>seg_lagrange_weight,belief</algo_opt>
-      <lambda>0.1,0.01,0.001</lambda>
+      <lambda>1,0.1</lambda>
       <max_opt_it>10</max_opt_it>
       <StorageLevel>MEMORY_ONLY</StorageLevel> 
       <!-- Meta paramexters -->
