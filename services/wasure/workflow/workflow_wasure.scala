@@ -370,7 +370,6 @@ coef_mult_list.foreach{ coef_mult =>
     //= Init filename and parmas
     //val coef_mult  =   "110000000000".toLong
     //  val coef_mult  =   "110000000000".toLong
-    val coef_mult = 0.1;
     val ll = lambda_list.head
     params_wasure("lambda") = collection.mutable.Set(ll)
     params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)

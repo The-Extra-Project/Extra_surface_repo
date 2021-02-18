@@ -388,10 +388,10 @@ var loop_acc = 0;
 
 
 //val coef_mult_list = List("110000000000".toLong,"110000000".toLong,"110000".toLong)
-var coef_mult_list = List("110000000000".toLong)
+var coef_mult_list = List("110000000000")
 
 
-
+val algo_list = List("seg_lagrange_weight");
 val lambda_list = List("0.0015")
 algo_list.foreach{ cur_algo =>
   if(cur_algo == "seg_lagrange_weight"){
@@ -404,9 +404,9 @@ algo_list.foreach{ cur_algo =>
   //val coef_mult  =   "110000000000".toLong
  // val ll = lambda_list.head
   params_wasure("lambda") = collection.mutable.Set(ll)
-  params_wasure("coef_mult") = collection.mutable.Set(coef_mult.toString)
+  params_wasure("coef_mult") = collection.mutable.Set(coef_mult)
   val datestring = dateFormatter.format(Calendar.getInstance().getTime());
-  val ext_name = test_name + "_" + cur_algo + "_" + loop_acc + "_ll_" + ll + "_cm_" + fmt.format(coef_mult) + "_" + fmt.format(max_opt_it) + "_" + cur_algo + "_"  + datestring;
+  val ext_name = test_name + "_" + cur_algo + "_" + loop_acc + "_ll_" + ll + "_cm_" + coef_mult + "_" + fmt.format(max_opt_it) + "_" + cur_algo + "_"  + datestring;
   loop_acc+=1;
 
   //val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
