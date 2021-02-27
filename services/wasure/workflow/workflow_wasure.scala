@@ -367,7 +367,7 @@ var loop_acc = 0;
 
 //val coef_mult_list = List("110000000000".toLong,"110000000".toLong,"110000".toLong)
 var coef_mult_list = List("110000000000")
-
+// vcppp faot ieitii
 
  val algo_list = params_scala("algo_opt").toList
 algo_list.foreach{ cur_algo =>

@@ -464,11 +464,11 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
       w_datas.dmap[w_datas.flags_name].extract_full_uint8_vect(w_datas.format_flags,false);
 
       int acc = 0;
-      for(auto ff : w_datas.format_flags){
-        std::cerr << "flags:" << ff << std::endl;
-	// if(acc++ > 50)
-	//   break;
-      }
+      // for(auto ff : w_datas.format_flags){
+      //   std::cerr << "flags:" << ff << std::endl;
+      // 	// if(acc++ > 50)
+      // 	//   break;
+      // }
       //      exit(10);
 	
       std::cerr << "center ok" << std::endl;
