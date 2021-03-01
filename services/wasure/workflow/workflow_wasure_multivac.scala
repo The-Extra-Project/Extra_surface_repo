@@ -323,6 +323,7 @@ val stats_kvrdd = kvrdd_simplex_id(stats_tri,sc)
 val graph_stats = Graph(stats_kvrdd, graph_tri.edges, List(""));
 val input_dst = (graph_tri_gid.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
 input_dst.persist(slvl_glob);
+input_dst.count()
 graph_tri.vertices.unpersist()
 graph_tri.edges.unpersist()
 //val input_dst = (graph_tri.vertices).union(graph_pts.vertices).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
@@ -349,14 +350,22 @@ println("============= Regularize ===============")
 val res_regularize_extract = iq.run_pipe_fun_KValue(
   regularize_slave_extract_cmd ++ List("--label", "regularize_slave_extract"),
   kvrdd_dst, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
+res_regularize_extract.count()
+
+
 val rdd_shared_edges = iq.get_edgrdd(res_regularize_extract,"f")
 val input_insert = (
   rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_dst
 ).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES")
-val res_regularize = iq.run_pipe_fun_KValue(
+input_insert.count()
+res_regularize_extract.unpersist()
+kvrdd_dst.unpersist()
+
+val res_regularize = iq.run_pipe_fun_KValue(  
   regularize_slave_insert_cmd ++ List("--label", "regularize_slave_insert"),
   input_insert, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
-
+res_regularize.count()
+input_insert.unpersist()
 
 
 val kvrdd_reg = iq.get_kvrdd(res_regularize,"t");

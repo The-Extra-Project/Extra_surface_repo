@@ -765,12 +765,12 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
     Tile_iterator  tile1  = tri.get_tile(tid);
     int nbs = tile1->number_of_cells();//w_datas_tri[tid].nb_simplex_uint8_vect();
     int accll = 0;
-    for(auto pp : w_data_full.format_flags){
-      std::cerr << "formatflag :"<< pp <<  std::endl;
-      if(accll++ > 100)
-	break;
-      // 	exit(1);
-    }
+    // for(auto pp : w_data_full.format_flags){
+    //   std::cerr << "formatflag :"<< pp <<  std::endl;
+    //   if(accll++ > 100)
+    // 	break;
+    //   // 	exit(1);
+    // }
 
     if(w_data_full.format_flags.size() == 0){
       for(int ss = 0; ss < nbs ; ss++)
