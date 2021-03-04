@@ -372,7 +372,7 @@ var coef_mult_list = List("110000000000")
  val algo_list = params_scala("algo_opt").toList
 algo_list.foreach{ cur_algo =>
   if(cur_algo == "seg_lagrange_weight"){
-    coef_mult_list  = List("0.0001","0.01","1")
+    coef_mult_list  = List("1","0.01","0.001","0.0001")
   }else{
     coef_mult_list = List("110000000000","110000000","110000")
   }

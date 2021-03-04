@@ -55,7 +55,7 @@ function run_3d_bench_small
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_small/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d_octree.xml"
     run_algo_docker
 }
 
@@ -69,6 +69,17 @@ function run_3d_bench_small
      run_algo_docker
  }
 
+ ### 3D Surface reconstruction                                                                                                                                                                                                                
+ function run_aerial
+ {
+     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+     INPUT_DIR="${GLOBAL_INPUT_DIR}/aerial/aerial_small_pp/"
+     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+     run_algo_docker
+ }
+
+ 
 function run_3d_church
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
@@ -94,12 +105,13 @@ function preprocess_data
 # preprocess_data
 
 ### 3D
-#run_3d_bench_small
+run_3d_bench_small
 #run_3d_bench
+#run_aerial
 #run_3d_church
 #run_3d_bench_preprocessed
 #run_3d_bench_small
-run_3d_toulouse
+#run_3d_toulouse
 
 
 

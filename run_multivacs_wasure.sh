@@ -96,7 +96,7 @@ function run_multivac_church
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
     export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/preprocessed_small_2/"
     export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church/"
-   export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"
+   export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_large.xml"
 #    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_bp.xml"
 #    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_small.xml"
     run_algo_multivac
@@ -133,8 +133,8 @@ function run_multivac_croco
 #run_multivac_aerial
 #eval_params_loop
 #run_multivac_church
-#run_multivac_aerial
-run_multivac_full
+run_multivac_aerial
+#run_multivac_full
 #run_multivac_croco
 
 

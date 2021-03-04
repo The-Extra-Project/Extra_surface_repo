@@ -136,7 +136,7 @@ val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
 val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt
 val adaptative_scale = params_scala.get_param("adaptative_scale", "false").toBoolean
-val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
+val max_opt_it = params_scala.get_param("max_opt_it", "10").toInt
 val stats_mod_it = params_scala.get_param("stats_mod_it", (max_opt_it-1).toString).toInt
 
 
@@ -388,7 +388,7 @@ val algo_list = params_scala("algo_opt").toList
 // Only for stats
 var stats_list_1 = new ListBuffer[(Int,(Float,Float))]()
 var stats_list_2 = new ListBuffer[(Int,(Float,Float))]()
-val do_stats = false
+val do_stats = true
 
 
 val test_name = "coef_mult_lag"
@@ -404,9 +404,10 @@ var coef_mult_list = List("110000000000")
 
 algo_list.foreach{ cur_algo =>
   if(cur_algo == "seg_lagrange_weight"){
-    coef_mult_list  = List("0.0001","0.001","0.01","0.1")
+    coef_mult_list  = List("0.1")
   }else{
-    coef_mult_list = List("110000000000","110000000","110000")
+    /    coef_mult_list = List("110000000")
+//    coef_mult_list = List("110000000000","110000000","110000")
   }
   lambda_list.foreach{ ll =>
     coef_mult_list.foreach{ coef_mult =>

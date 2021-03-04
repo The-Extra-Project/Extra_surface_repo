@@ -461,13 +461,12 @@ wasure_algo::compute_svd(int K_T, const  ANNidxArray & nnIdx, const std::vector<
     for(int d2 = 0; d2 < D; d2++){
       coords_norm[d2] = ev(d2,d1);
     }
-
     pts_norms.push_back(traits.make_point(coords_norm));
   }
 
   for(int d = 0; d < D; d++){
     coords_scale[d] = sv(d);
-    if(coords_scale[d] <= 0)
+    if(coords_scale[d] <= 0 || std::isnan(coords_scale[d]))
       coords_scale[d] = 0.000001;
   }
 }
@@ -475,14 +474,14 @@ wasure_algo::compute_svd(int K_T, const  ANNidxArray & nnIdx, const std::vector<
 
 
 int 
-wasure_algo::compute_dim(  std::vector<Point> & points, std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales){
+wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales){
   int D = Traits::D;  
 
   int nbp = points.size();
   double eps = 0;
   int K_T = 150;
-  if(K_T > points.size() -1)
-    K_T = points.size() - 1;
+  if(K_T > points.size() -2)
+    K_T = points.size() - 2;
 
   int K_T_min = 3;
   // if(K_T_min > points.size() -1)
@@ -518,6 +517,22 @@ wasure_algo::compute_dim(  std::vector<Point> & points, std::vector<std::vector<
     Point p1 = *pit;
     std::vector<Point> pts_norms;
     std::vector<double> coords_scale(D);
+
+
+    for(int d1 = 0; d1 < D; d1++){
+      double coords_norm[Traits::D];
+      for(int d2 = 0; d2 < D; d2++){
+	if(d1 != d2)
+	  coords_norm[d2] = 0;
+	else
+	  coords_norm[d2] = 1;
+	
+      }
+      pts_norms.push_back(traits.make_point(coords_norm));
+      coords_scale[d1] = 1;
+    }
+
+    
     double entropy = 1000000000;
     for(int d = 0; d < D; d++)
       queryPt[d] = p1[d];
@@ -553,7 +568,7 @@ wasure_algo::compute_dim(  std::vector<Point> & points, std::vector<std::vector<
     // -----------------------------
     // ------- Dump values ---------
     // -----------------------------
-    if(pts_norms.size() < D){
+    if(pts_norms.size() < D ){
       std::cerr << "error !! " << "dim:" << D << " kt:" << K_T << " entropy:" << entropy  << std::endl;
 
       std::vector<Point> loc_pts;
@@ -589,7 +604,7 @@ wasure_algo::compute_dim(  std::vector<Point> & points, std::vector<std::vector<
 
 
 int 
-wasure_algo::compute_dim_with_simp(  std::vector<Point> & points, std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales,std::vector<Point> & simp,double pscale){
+wasure_algo::compute_dim_with_simp(std::vector<Point> & points, std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales,std::vector<Point> & simp,double pscale){
   int D = Traits::D;  
 
   std::vector<double> entropy_vect;
