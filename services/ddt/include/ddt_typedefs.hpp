@@ -2,7 +2,7 @@
 #define DDT_TYPEDEFS_H
 
 
-typedef int Id;
+typedef long int Id;
 typedef int FlagV;
 typedef int FlagC;
 

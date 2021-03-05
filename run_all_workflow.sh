@@ -105,8 +105,8 @@ function preprocess_data
 # preprocess_data
 
 ### 3D
-run_3d_bench_small
-#run_3d_bench
+#run_3d_bench_small
+run_3d_bench
 #run_aerial
 #run_3d_church
 #run_3d_bench_preprocessed

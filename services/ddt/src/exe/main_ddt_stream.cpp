@@ -1827,9 +1827,9 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 
   std::cout.setstate(std::ios_base::failbit);
   int D = Traits::D;
-  int ND = params.nbt_side;
-  int NP = params.nbp;
-  int NT = pow(ND,D);
+  Id ND = params.nbt_side;
+  Id NP = params.nbp;
+  Id NT = pow(ND,D);
   double range = 1000.;
   ddt::Bbox<Traits::D> bbox;
   std::stringstream ss;
@@ -1841,7 +1841,8 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
   std::map<Id,ddt_data<Traits> > datas_map;
   std::map<Id,std::vector<Point> > vp_map;
   Traits traits;
-    
+
+  bool do_debug = true;
   for(int i = 0; i < nb_dat; i++)
     {
       std::vector<Point> vp_in;    
@@ -1888,6 +1889,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 
 
       std::cerr << "start tiling" << std::endl;
+
       for(; count != 0; --count)
 	{
 	  Point  p;
@@ -1896,7 +1898,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	  else
 	    p = w_datas.get_pts(count);
 
-	  
+
 	  bool is_out = false;
 	  for(int d = 0; d < D; d++)
 	    {
@@ -1906,8 +1908,9 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	  if(is_out)
 	    continue;
 
-	  int pp = part(p);
+	  Id pp = part(p);
 	  Id id = Id(pp % NT);
+
 
 	  if(false){
 	    std::vector<double> coords(Traits::D);
@@ -1966,7 +1969,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
       {
 	Id id = myPair.first;
 	int nb_out = datas_map[id].nb_pts_uint8_vect ();
-	std::cerr << "nbout" << nb_out << std::endl;
+	std::cerr << "id: " << id << "nbout:" << nb_out << std::endl;
 	if(nb_out < params.min_ppt)
 	  {
 	    continue;
@@ -1978,16 +1981,24 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	   oqh.write_into_file(filename,".ply");
 	oqh.write_header(std::cout);
 
-	if(params.dump_ply)
-	  datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n');
-	else
-	  datas_map[id].write_serialized_stream(oqh.get_output_stream());
+	//datas_out.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
 
-	oqh.finalize();
-	std::cout << std::endl;
-	och.write_header(std::cout);
-	och.get_output_stream() << nb_out;
+	if(false){
+	  datas_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
+	}else{
+	
+	  if(params.dump_ply)
+	    datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n');
+	  else
+	    datas_map[id].write_serialized_stream(oqh.get_output_stream());
+
+	  oqh.finalize();
+	  std::cout << std::endl;
+	  och.write_header(std::cout);
+	  och.get_output_stream() << nb_out;
+	}
 	och.finalize();
+
 	std::cout << std::endl;
       }
   }
@@ -2077,13 +2088,8 @@ int main(int argc, char **argv)
       if(sah.is_void())
 	return 0;
 
-      if(loop_acc == 0)
-	{
-	  std::cerr << "================= CPP PIPE LOG =======================" << std::endl;
-	  std::cerr << "     cpp_label_" << params.slabel << std::endl;
-	  std::cerr << "     cpp_step_" << params.algo_step << std::endl;
-	}
-      loop_acc++;
+
+
 
       Id tile_id = ((Id)sah.tile_id);
 
@@ -2094,6 +2100,19 @@ int main(int argc, char **argv)
       ddt::logging_stream log(params.algo_step, params.log_level);
       bool do_dump_log = false;
       std::cerr << " ------------  [LOOP DATA LOG] ===> " << tile_id << "_" << params.algo_step << std::endl;
+
+      if(loop_acc == 1)
+	{
+	          std::cerr << " ======================================================= " << std::endl;
+        std::cerr << "     [MAIN_DDT_STREAM_LOG] stream  : " << params.slabel << std::endl;
+        std::cerr << "     [MAIN_DDT_STREAM_LOG] tile_id : " << tile_id <<  std::endl;
+        std::cerr << "     [MAIN_DDT_STREAM_LOG] step    : " << params.algo_step << std::endl;
+        std::cerr << "     [MAIN_DDT_STREAM_LOG] acc     : " << loop_acc << std::endl;
+	std::cerr << "     [MAIN_DDT_STREAM_LOG] nb dat  : " << nb_dat << std::endl;
+        std::cerr << " ======================================================= " << std::endl;
+	  std::cerr << "================= CPP PIPE LOG =======================" << std::endl;
+	}
+      loop_acc++;      
       try
 	{
 	  if(params.algo_step == std::string("generate_points_random_uniform"))

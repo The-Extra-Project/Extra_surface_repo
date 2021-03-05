@@ -277,6 +277,7 @@ println("======== Tiling =============")
 kvrdd_points = ddt_algo.compute_tiling_2(kvrdd_inputs,iq,params_ddt,params_scala);
 nb_leaf = params_scala("nb_leaf").head.toInt;
 
+
 var rep_merge = ((if((nb_leaf) < spark_core_max) spark_core_max else  nb_leaf));
 var rep_loop = nb_leaf;
 if(ndtree_depth > 8){
@@ -294,6 +295,14 @@ val res_dim = iq.run_pipe_fun_KValue(
   kvrdd_points, "dim", do_dump = false).persist(slvl_glob)
 val kvrdd_dim = iq.get_kvrdd(res_dim,"z");
 val kvrdd_simp = iq.get_kvrdd(res_dim,"x").reduceByKey((u,v) => u ::: v,rep_loop);
+
+// Debug tiling
+if(false){
+  val tile_cmd =  set_params(params_ddt, List(("step","tile_ply"))).to_command_line
+  val ply_dir = cur_output_dir + "/ply_tiling"
+  ddt_algo.saveAsPly(res_dim,ply_dir,1)
+}
+
 
 
 var input_ddt = kvrdd_points;
@@ -406,7 +415,7 @@ algo_list.foreach{ cur_algo =>
   if(cur_algo == "seg_lagrange_weight"){
     coef_mult_list  = List("0.1")
   }else{
-    /    coef_mult_list = List("110000000")
+      coef_mult_list = List("110000000")
 //    coef_mult_list = List("110000000000","110000000","110000")
   }
   lambda_list.foreach{ ll =>

@@ -453,7 +453,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
       hpi.finalize();
       std::cerr << "finalize" << std::endl;
 
-      log.step("compute");
+      //      log.step("compute");
       // w_datas.extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
       // w_datas.extract_ptsvect(w_datas.center_name,w_datas.format_centers,false);
       w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(w_datas.format_points,false);
@@ -564,7 +564,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
     
   std::cerr << "start tessel" << std::endl;
   if(params.pscale < 1){
-  w_algo.tessel_adapt(w_datas_full.format_points,
+    w_algo.tessel_adapt(w_datas_full.format_points,
 		      p_simp_full,
 		      w_datas_full.format_egv,
 		      w_datas_full.format_sigs,
@@ -641,6 +641,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
     std::cout << std::endl;
 
   }
+  bool do_debug = false;
   if(p_simp_full.size() > 0)
     {
       ddt::stream_data_header oxh("x","z",tid);
@@ -649,13 +650,17 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
       datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(p_simp_full);
 
       std::string ply_name(params.output_dir +  "/simp_id_" + std::to_string(tid) + "_simp");
-      if(params.dump_ply)
-	oxh.write_into_file(ply_name,".ply");
-      oxh.write_header(std::cout);
-      if(params.dump_ply)
-	datas_out.write_ply_stream(oxh.get_output_stream());
-      else
-	datas_out.write_serialized_stream(oxh.get_output_stream());
+      if(!do_debug){
+	if(params.dump_ply)
+	  oxh.write_into_file(ply_name,".ply");
+	oxh.write_header(std::cout);
+	if(params.dump_ply)
+	  datas_out.write_ply_stream(oxh.get_output_stream());
+	else
+	  datas_out.write_serialized_stream(oxh.get_output_stream());
+      }else{
+	datas_out.write_ply_stream(oxh.get_output_stream(),PLY_CHAR);
+      }
       oxh.finalize();
       std::cout << std::endl;
     }
@@ -3578,6 +3583,7 @@ int main(int argc, char **argv)
         srand(params.seed*tile_id);
         ddt::logging_stream log(std::to_string(tile_id) + "_" + params.algo_step, params.log_level);
 
+	if(acc == 0){
         std::cerr << " ======================================================= " << std::endl;
         std::cerr << "     [MAIN_DDT_STREAM_LOG] stream  : " << params.slabel << std::endl;
         std::cerr << "     [MAIN_DDT_STREAM_LOG] tile_id : " << tile_id <<  std::endl;
@@ -3585,6 +3591,7 @@ int main(int argc, char **argv)
         std::cerr << "     [MAIN_DDT_STREAM_LOG] acc     : " << acc++ << std::endl;
 	std::cerr << "     [MAIN_DDT_STREAM_LOG] nb dat  : " << nb_dat << std::endl;
         std::cerr << " ======================================================= " << std::endl;
+	}
         try
         {
             if(params.algo_step == std::string("hello"))
