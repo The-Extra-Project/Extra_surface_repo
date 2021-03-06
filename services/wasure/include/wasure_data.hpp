@@ -516,6 +516,41 @@ public :
     }
 
 
+      void fill_flags(std::vector<int> & format_flags,bool do_clear = true)
+    {
+        ddt_data<Traits>::dmap[flags_name] = typename ddt_data<Traits>::Data_ply(flags_name,"face",1,1,tinyply::Type::INT32);
+        std::vector<int> raw_flags;
+        for(int i = 0 ; i < format_flags.size(); i++)
+        {
+            raw_flags.push_back(format_flags[i]);
+        }
+
+        ddt_data<Traits>::dmap[flags_name].fill_full_uint8_vect(raw_flags);
+        ddt_data<Traits>::dmap[flags_name].do_exist = true;
+
+        if(do_clear)
+        {
+            format_flags.clear();
+        }
+        raw_flags.clear();
+    }
+
+    void extract_flags(std::vector<int> & format_flags,bool do_clear = true)
+    {
+        int D = Traits::D;
+        std::vector<int> raw_flags;
+        ddt_data<Traits>::dmap[flags_name].extract_raw_uint8_vect(raw_flags,false);
+
+        uint num_s = ddt_data<Traits>::dmap[flags_name].get_nbe_shpt_vect();
+        for(int i = 0 ; i < raw_flags.size(); i++)
+        {
+            format_flags.push_back(raw_flags[i]);
+        }
+        if(do_clear)
+            raw_flags.clear();
+    }
+
+
 
 
 

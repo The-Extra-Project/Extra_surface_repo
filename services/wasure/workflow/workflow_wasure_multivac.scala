@@ -397,7 +397,7 @@ val algo_list = params_scala("algo_opt").toList
 // Only for stats
 var stats_list_1 = new ListBuffer[(Int,(Float,Float))]()
 var stats_list_2 = new ListBuffer[(Int,(Float,Float))]()
-val do_stats = true
+val do_stats = false
 
 
 val test_name = "coef_mult_lag"
@@ -413,7 +413,7 @@ var coef_mult_list = List("110000000000")
 
 algo_list.foreach{ cur_algo =>
   if(cur_algo == "seg_lagrange_weight"){
-    coef_mult_list  = List("0.1")
+    coef_mult_list  = List("0.91")
   }else{
       coef_mult_list = List("110000000")
 //    coef_mult_list = List("110000000000","110000000","110000")

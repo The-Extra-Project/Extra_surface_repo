@@ -459,17 +459,16 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
       w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(w_datas.format_points,false);
       std::cerr << "xyz ok" << std::endl;
       w_datas.dmap[w_datas.center_name].extract_full_uint8_vect(w_datas.format_centers,false);
-
       std::cerr << "flags" << std::endl;
-      w_datas.dmap[w_datas.flags_name].extract_full_uint8_vect(w_datas.format_flags,false);
+      // w_datas.dmap[w_datas.flags_name].extract_full_uint8_vect(w_datas.format_flags,false);
 
       int acc = 0;
-      // for(auto ff : w_datas.format_flags){
-      //   std::cerr << "flags:" << ff << std::endl;
-      // 	// if(acc++ > 50)
-      // 	//   break;
-      // }
-      //      exit(10);
+      for(auto ff : w_datas.format_flags){
+        std::cerr << "flags:" << ff << std::endl;
+      	if(acc++ > 50)
+      	  break;
+      }
+
 	
       std::cerr << "center ok" << std::endl;
       std::vector<Point> p_simp;    
@@ -749,18 +748,14 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
 	  std::cerr << "extract centers" << std::endl;
 	  wpt.dmap[wpt.center_name].extract_full_uint8_vect(wpt.format_centers,false);
 	  w_data_full.format_centers.insert(w_data_full.format_centers.end(),wpt.format_centers.begin(),wpt.format_centers.end());
-	  std::cerr << "extract flagss" << std::endl;
-	  wpt.dmap[wpt.flags_name].extract_full_uint8_vect(wpt.format_flags,false);
-	  w_data_full.format_flags.insert(w_data_full.format_flags.end(),wpt.format_flags.begin(),wpt.format_flags.end());
 	  std::cerr << "extract sig" << std::endl;
-	  //wpt.dmap[w_data_full.sig_name].extract_full_uint8_vect(w_data_full.format_sigs,false);
 	  wpt.extract_sigs(w_data_full.format_sigs,false);
 	  std::cerr << "extract egv" << std::endl;
 	  wpt.extract_egv(w_data_full.format_egv,false);
-	  //wpt.dmap[w_data_full.egv_name].extract_full_uint8_vect(w_data_full.format_egv,false);
-
-
-
+	  std::cerr << "extract flagss" << std::endl;
+	  // wpt.dmap[wpt.flags_name].extract_full_uint8_vect(wpt.format_flags,false);
+	  // w_data_full.format_flags.insert(w_data_full.format_flags.end(),wpt.format_flags.begin(),wpt.format_flags.end());
+	  std::cerr << "EXTRACT DONE!" << std::endl;
 	  //wpt.extract_ptsvect(w_data_full.center_name,w_data_full.format_centers,false);
 	  //wpt.extract_ptsvect(w_data_full.xyz_name,w_data_full.format_points,false);
 
@@ -770,12 +765,12 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
     Tile_iterator  tile1  = tri.get_tile(tid);
     int nbs = tile1->number_of_cells();//w_datas_tri[tid].nb_simplex_uint8_vect();
     int accll = 0;
-    // for(auto pp : w_data_full.format_flags){
-    //   std::cerr << "formatflag :"<< pp <<  std::endl;
-    //   if(accll++ > 100)
-    // 	break;
-    //   // 	exit(1);
-    // }
+    for(auto pp : w_data_full.format_flags){
+      std::cerr << "formatflag :"<< pp <<  std::endl;
+      if(accll++ > 100)
+    	break;
+      // 	exit(1);
+    }
 
     if(w_data_full.format_flags.size() == 0){
       for(int ss = 0; ss < nbs ; ss++)

@@ -466,8 +466,10 @@ wasure_algo::compute_svd(int K_T, const  ANNidxArray & nnIdx, const std::vector<
 
   for(int d = 0; d < D; d++){
     coords_scale[d] = sv(d);
-    if(coords_scale[d] <= 0 || std::isnan(coords_scale[d]))
-      coords_scale[d] = 0.000001;
+    if(coords_scale[d] <= 0.0001 || std::isnan(coords_scale[d]))
+      coords_scale[d] = 0.0001;
+    if(coords_scale[d] > 1000000)
+      coords_scale[d] = 1000000;
   }
 }
 
@@ -480,8 +482,8 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
   int nbp = points.size();
   double eps = 0;
   int K_T = 150;
-  if(K_T > points.size() -2)
-    K_T = points.size() - 2;
+  if(K_T > points.size() -1)
+    K_T = points.size() -1;
 
   int K_T_min = 3;
   // if(K_T_min > points.size() -1)
@@ -1125,8 +1127,11 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   }
   std::sort(v_scale.begin(), v_scale.end());
 
-  if(params.adaptative_scale)
+  if(params.adaptative_scale){
     params.min_scale = get_min_scale(v_scale);
+    // for(auto ss : v_scale)
+    //   std::cerr << "sss:" << ss << std::endl;
+  }
   else
     params.min_scale = -1;
   std::cerr << "min_scale:" << params.min_scale << std::endl;
@@ -1137,8 +1142,6 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   bool do_debug = false;
   std::cerr << "    dst computation" << std::endl;
 
-
-  
 
 
 
@@ -1312,7 +1315,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 	  std::vector<double> pts_coefs = compute_base_coef(Pt3d,PtSample,pts_norms,D);
 
 	  if(((int)format_flags[idx]) > 0){
-	    //coef_conf = coef_conf*0.2;
+	    coef_conf = coef_conf*0.2;
 	  }
 	  compute_dst_mass_norm(pts_coefs,pts_scales,coef_conf,pdf_smooth,pdf_smooth,pe2, po2,pu2);
 	}else if(params.mode == std::string("conflict")){
