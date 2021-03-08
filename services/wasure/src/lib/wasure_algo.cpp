@@ -1127,13 +1127,13 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   }
   std::sort(v_scale.begin(), v_scale.end());
 
-  if(params.adaptative_scale){
+  if(params.dst_scale < 0){
     params.min_scale = get_min_scale(v_scale);
     // for(auto ss : v_scale)
     //   std::cerr << "sss:" << ss << std::endl;
   }
   else
-    params.min_scale = -1;
+    params.min_scale = params.dst_scale;
   std::cerr << "min_scale:" << params.min_scale << std::endl;
 
   // ---------------------------------------
@@ -1314,9 +1314,11 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 	  get_params_surface_dst(pts_scales,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
 	  std::vector<double> pts_coefs = compute_base_coef(Pt3d,PtSample,pts_norms,D);
 
-	  if(((int)format_flags[idx]) > 0){
-	    coef_conf = coef_conf*0.2;
-	  }
+	  // if(params.dst_scale > 0){
+	    // if(((int)format_flags[idx]) > 0){
+	    //   coef_conf = coef_conf;
+	    // }
+	  // }
 	  compute_dst_mass_norm(pts_coefs,pts_scales,coef_conf,pdf_smooth,pdf_smooth,pe2, po2,pu2);
 	}else if(params.mode == std::string("conflict")){
 	  // get_params_surface_dst(pts_scales,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);

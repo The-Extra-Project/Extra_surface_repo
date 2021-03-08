@@ -14,7 +14,7 @@
 class wasure_params
 {
 public :
-  wasure_params() : verbose_flag(0),nbp(0),log_level(2),show_ghost(false),dump_ply(false),area_processed(0),coef_mult(1),adaptative_scale(false),
+  wasure_params() : verbose_flag(0),nbp(0),log_level(2),show_ghost(false),dump_ply(false),area_processed(0),coef_mult(1),dst_scale(-1),
 		    input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),slabel(std::string("")),mode("surface"),rat_ray_sample(0.5),pscale(1),nb_samples(1),lambda(1),nb_labs(2),graph_type(0),tau(0.5),skip_app_header(false)
     {
 
@@ -22,8 +22,8 @@ public :
 
     };
     int verbose_flag,seed,nbp,log_level,id_padding,graph_type,area_processed;
-  bool show_ghost,skip_app_header,dump_ply,process_only_shared,adaptative_scale;
-  double lambda,terr,rat_ray_sample,rat_extra_pts,min_scale,pscale,coef_mult,tau;
+  bool show_ghost,skip_app_header,dump_ply,process_only_shared;
+  double lambda,terr,rat_ray_sample,rat_extra_pts,min_scale,pscale,coef_mult,tau,dst_scale;
     int nb_samples,max_it,nb_labs,nb_threads;
     int center_type,tile_id;
   bool use_weight = true;
@@ -71,12 +71,13 @@ public :
             {"lambda",  required_argument, 0, 'c'},
             {"coef_mult",  required_argument, 0, 'k'},
             {"rat_ray_sample",  required_argument, 0, 'u'},
+	    {"dst_scale", required_argument, 0, 't'},
             {"bbox",  required_argument, 0, 'b'},
             {"dim",  required_argument, 0, 'd'},
             {"nb_samples",  required_argument, 0, 'j'},
             {"area_processed",  required_argument, 0, 'p'},
             {"pscale", required_argument,0, 'f'},
-	    {"adaptative_scale", no_argument, 0, 't'},
+
             {"show_ghost", no_argument,0, 'g'},
 	    {"dump_debug",  no_argument, 0, 'q'},
             {"skip_app_header", no_argument,0, 'e'},
@@ -89,7 +90,7 @@ public :
 
         int option_index = 0;
 
-        while ((cc = getopt_long(argc, argv, "s:a:c:k:n:i:d:u:m:o:f:j:l:b:p:r:w:gtqexh",long_options,&option_index)) != -1)
+        while ((cc = getopt_long(argc, argv, "s:a:c:k:n:i:d:u:m:o:f:j:l:b:p:r:w:t:gqexh",long_options,&option_index)) != -1)
         {
             switch (cc)
             {
@@ -148,7 +149,8 @@ public :
                 graph_type = atoi(optarg);
                 break;
             case 't':
-	      adaptative_scale = true;
+	      dst_scale = atof(optarg);
+
                 break;
             case 'j':
                 nb_samples = atoi(optarg);

@@ -45,6 +45,10 @@ public :
     }
 
 
+    tinyply::Type get_type(){
+      return type;
+    }
+
     bool is_init() const {
       return(uint8_vect.size() > 0);
     }
@@ -104,6 +108,9 @@ public :
     int get_vsize() const {
       return vsize;
     }
+
+    
+    
     int get_vnbb() const {
       return vsize*tinyply::PropertyTable[type].stride;
     }
@@ -232,7 +239,7 @@ public :
       do_exist = bb;
     }
 
-    int get_dim(){
+    int get_dim() const{
       return D;
     }
     
@@ -522,8 +529,8 @@ public :
       tinyply::Type tt;
       ss >> dn_size;
       std::cerr << "---" << std::endl;
+      std::string nnn;
       for(int i = 0; i < dn_size; i++){
-	std::string nnn;
 	ss >> nnn;
 	std::cerr << nnn << "-";
 	data_name.push_back(nnn);
@@ -533,7 +540,7 @@ public :
       ss >> vs;
       int ttti;
       ss >> ttti;
-      std::cerr << "     read stats:" <<  tt_name << " " << vs << " " << ttti << " " << std::endl;
+      std::cerr << "     read stats:" << nnn << " " << tt_name << " " << vs << " " << ttti << " " << std::endl;
       dmap[data_name] = Data_ply(data_name,tt_name,dim,vs,static_cast<tinyply::Type>(ttti));
       dmap[data_name].set_exist(true);
       deserialize_b64_vect(dmap[data_name].uint8_vect,ss);

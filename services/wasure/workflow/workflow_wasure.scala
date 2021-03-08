@@ -129,7 +129,7 @@ val pscale = params_scala.get_param("pscale", "1").toFloat
 val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
 val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt
-val adaptative_scale = params_scala.get_param("adaptative_scale", "false").toBoolean
+val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
 val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
 val stats_mod_it = params_scala.get_param("stats_mod_it", (max_opt_it-1).toString).toInt
 
@@ -163,6 +163,7 @@ val params_wasure =  set_params(params_new,List(
   ("dim",params_scala("dim").head),
   ("bbox",params_scala("bbox").head),
   ("lambda",params_scala("lambda").head),
+  ("dst_scale",params_scala("dst_scale").head),
   ("pscale",params_scala("pscale").head),
   ("rat_ray_sample",params_scala("rat_ray_sample").head),
   ("nb_samples",params_scala("nb_samples").head),
@@ -177,8 +178,6 @@ if(false){
   params_ddt("dump_ply") = collection.mutable.Set("")
   params_wasure("dump_ply") = collection.mutable.Set("")
 }
-if(adaptative_scale)
-  params_wasure("adaptative_scale") =  collection.mutable.Set("")
 if(do_dump_debug)
     params_wasure("dump_debug") = collection.mutable.Set("")
 
@@ -372,7 +371,7 @@ var coef_mult_list = List("110000000000")
  val algo_list = params_scala("algo_opt").toList
 algo_list.foreach{ cur_algo =>
   if(cur_algo == "seg_lagrange_weight"){
-    coef_mult_list  = List("1","0.01","0.001","0.0001")
+    coef_mult_list  = List("0.01","0.001","0.0001")
   }else{
     coef_mult_list = List("110000000000","110000000","110000")
   }

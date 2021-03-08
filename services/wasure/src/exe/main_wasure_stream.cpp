@@ -459,9 +459,9 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
       w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(w_datas.format_points,false);
       std::cerr << "xyz ok" << std::endl;
       w_datas.dmap[w_datas.center_name].extract_full_uint8_vect(w_datas.format_centers,false);
-      std::cerr << "flags" << std::endl;
-      // w_datas.dmap[w_datas.flags_name].extract_full_uint8_vect(w_datas.format_flags,false);
-
+      std::cerr << "centers ok " << std::endl;
+      w_datas.extract_flags(w_datas.format_flags,false);
+      std::cerr << "flags ok " << std::endl;
       int acc = 0;
       for(auto ff : w_datas.format_flags){
         std::cerr << "flags:" << ff << std::endl;
@@ -748,14 +748,15 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
 	  std::cerr << "extract centers" << std::endl;
 	  wpt.dmap[wpt.center_name].extract_full_uint8_vect(wpt.format_centers,false);
 	  w_data_full.format_centers.insert(w_data_full.format_centers.end(),wpt.format_centers.begin(),wpt.format_centers.end());
+	  std::cerr << "extract flags" << std::endl;
+	  //	  wpt.dmap[wpt.flags_name].extract_full_uint8_vect(wpt.format_flags,false);
+	  wpt.extract_flags(wpt.format_flags,false);
+	  w_data_full.format_flags.insert(w_data_full.format_flags.end(),wpt.format_flags.begin(),wpt.format_flags.end());
 	  std::cerr << "extract sig" << std::endl;
 	  wpt.extract_sigs(w_data_full.format_sigs,false);
 	  std::cerr << "extract egv" << std::endl;
 	  wpt.extract_egv(w_data_full.format_egv,false);
-	  std::cerr << "extract flagss" << std::endl;
-	  // wpt.dmap[wpt.flags_name].extract_full_uint8_vect(wpt.format_flags,false);
-	  // w_data_full.format_flags.insert(w_data_full.format_flags.end(),wpt.format_flags.begin(),wpt.format_flags.end());
-	  std::cerr << "EXTRACT DONE!" << std::endl;
+	  // std::cerr << "extract flagss" << std::endl;
 	  //wpt.extract_ptsvect(w_data_full.center_name,w_data_full.format_centers,false);
 	  //wpt.extract_ptsvect(w_data_full.xyz_name,w_data_full.format_points,false);
 
