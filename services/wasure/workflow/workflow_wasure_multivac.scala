@@ -136,7 +136,7 @@ val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
 val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt
 val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
-val max_opt_it = params_scala.get_param("max_opt_it", "10").toInt
+val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
 val stats_mod_it = params_scala.get_param("stats_mod_it", (max_opt_it-1).toString).toInt
 
 
@@ -412,7 +412,7 @@ var coef_mult_list = List("110000000000")
 
 algo_list.foreach{ cur_algo =>
   if(cur_algo == "seg_lagrange_weight"){
-    coef_mult_list  = List("0.01")
+    coef_mult_list  = List("0.01","0.0001")
   }else{
       coef_mult_list = List("110000000")
 //    coef_mult_list = List("110000000000","110000000","110000")

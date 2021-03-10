@@ -1314,11 +1314,11 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 	  get_params_surface_dst(pts_scales,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
 	  std::vector<double> pts_coefs = compute_base_coef(Pt3d,PtSample,pts_norms,D);
 
-	  // if(params.dst_scale > 0){
-	    // if(((int)format_flags[idx]) > 0){
-	    //   coef_conf = coef_conf;
-	    // }
-	  // }
+	  if(params.dst_scale > 0){
+	    if(((int)format_flags[idx]) > 0){
+	      coef_conf = 0.2*coef_conf;
+	    }
+	  }
 	  compute_dst_mass_norm(pts_coefs,pts_scales,coef_conf,pdf_smooth,pdf_smooth,pe2, po2,pu2);
 	}else if(params.mode == std::string("conflict")){
 	  // get_params_surface_dst(pts_scales,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
