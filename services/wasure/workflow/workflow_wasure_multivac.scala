@@ -119,6 +119,7 @@ val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop
 // General Algo params
 val bbox = params_scala.get_param("bbox", "")
 val do_profile = params_scala.get_param("do_profile", "false").toBoolean;
+val do_stats = params_scala.get_param("do_stats", "false").toBoolean;
 val plot_lvl = params_scala.get_param("plot_lvl", "1").toInt;
 val regexp_filter = params_scala.get_param("regexp_filter", "");
 val max_ppt = params_scala.get_param("max_ppt", "10000").toInt
@@ -408,21 +409,18 @@ var loop_acc = 0;
 var coef_mult_list = List("110000000000")
 
 
- val algo_list = params_scala("algo_opt").toList
-
+val algo_list = params_scala("algo_opt").toList
 algo_list.foreach{ cur_algo =>
   if(cur_algo == "seg_lagrange_weight"){
-    coef_mult_list  = List("0.01","0.0001")
+    coef_mult_list  = List("0.0001")
   }else{
-      coef_mult_list = List("110000000")
-//    coef_mult_list = List("110000000000","110000000","110000")
+    coef_mult_list = List("110000000000","110000000","110000")
   }
   lambda_list.foreach{ ll =>
     coef_mult_list.foreach{ coef_mult =>
-
       //= Init filename and parmas
       //val coef_mult  =   "110000000000".toLong
-      // val ll = lambda_list.head
+      //  val coef_mult  =   "110000000000".toLong
       params_wasure("lambda") = collection.mutable.Set(ll)
       params_wasure("coef_mult") = collection.mutable.Set(coef_mult)
       val datestring = dateFormatter.format(Calendar.getInstance().getTime());
@@ -485,7 +483,8 @@ algo_list.foreach{ cur_algo =>
           val acc_loop_str = "%03d".format(acc_loop)
           val res_seg = iq.run_pipe_fun_KValue(
             seg_cmd ++ List("--label", "seg" + acc_loop_str),
-            input_seg2, cur_algo, do_dump = false).persist(slvl_loop)
+            input_seg2
+              ,cur_algo, do_dump = false).persist(slvl_loop)
           res_seg.count()
           val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
           input_seg2.unpersist()
@@ -534,7 +533,8 @@ algo_list.foreach{ cur_algo =>
 
           println("[it " + acc_loop_str + "]")
           ddt_algo.update_time(params_scala,"opt_loop" + loop_acc.toString);
-          if( acc_loop % stats_mod_it == 0 || acc_loop == 1){
+          if( (acc_loop % stats_mod_it == 0 || acc_loop == 1)  && acc_loop != 0 &&
+             stats_1._2.toFloat != 0 && stats_2._2.toFloat != 0){
             val t1 = ( acc_loop,stats_1)
             val t2 = ( acc_loop,stats_2)
             stats_list_1 += t1

@@ -55,7 +55,7 @@ function run_3d_bench_small
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_small/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d_octree.xml"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
 }
 
@@ -85,7 +85,7 @@ function run_3d_church
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     INPUT_DIR="~/shared_spark/inputs/church/preprocessed_small_2/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d_buggy.xml"
     run_algo_docker
 }
 
