@@ -48,13 +48,13 @@ function run_3d_bench_preprocess
     DEBUG_FLAG=""
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
-    OUTPUT_DIR="${DDT_MAIN_DIR}/datas/outputs/${FUNCNAME[0]}/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     run_algo_docker
 
     DEBUG_FLAG="-d"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     INPUT_DIR="${OUTPUT_DIR}"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    OUTPUT_DIR="${OUTPUT_DIR}"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d_gen.xml"
     run_algo_docker
 }
