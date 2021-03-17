@@ -421,6 +421,10 @@ object params_parser {
           ).repartition(nb_file/10+1).setName("KVRDD_INPUT")
 
       }
+      case _ => {
+        println(" ERROR : DATATYPE " + datatype + " does not exists")
+        println(" ERROR : DATATYPE " + datatype + " does not exists")
+      }
       // case "filestream" => {
       //   println("")
       //   println("======== LOAD DATA filestream =============")

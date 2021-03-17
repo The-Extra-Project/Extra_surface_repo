@@ -43,6 +43,7 @@ import dataset_processing._;
 import bash_funcs._
 import strings_opt._;
 import params_parser._;
+import spark_ddt.util.params_parser.params_map
 import files_opt._;
 import geojson_export._;
 // Belief propagation
@@ -77,10 +78,12 @@ if (output_dir.isEmpty ||  input_dir.isEmpty )
 }
 
 // Get Params list from xml
-val param_list = parse_xml_datasets(env_xml)
+var params_scala = new Hash_StringSeq with mutable.MultiMap[String, String]
+if (fs.exists(new Path(env_xml))){
+  val param_list = parse_xml_datasets(env_xml)
+  params_scala = param_list(0) // We only process 1 set of parameter in this workflow
+}
 val df_par = sc.defaultParallelism;
-val params_scala = param_list(0) // We only process 1 set of parameter in this workflow
-
 
 // ===============================================
 // ==== Scala and param initialization ===========
@@ -88,17 +91,31 @@ val params_scala = param_list(0) // We only process 1 set of parameter in this w
 //  Se for instance the xml documentation / Algorithm params for the effect
 
 // System params
-val dim = params_scala.get_param("dim", "2").toInt
+val dim = params_scala.get_param("dim", "3").toInt
 //val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-D" + dim.toString)
 val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-" + dim.toString)
 val build_dir = global_build_dir + "/" + ddt_kernel_dir
-val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
+val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "MEMORY_ONLY"))
 val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "MEMORY_AND_DISK_SER"))
+val max_ppt_per_tile = 100000
+
 
 // General Algo params
 val bbox = params_scala.get_param("bbox", "")
 val spark_core_max = params_scala.get_param("spark_core_max", df_par.toString).toInt
 val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(100000).toString);
+
+// Wasure Algo params
+val wasure_mode = params_scala.get_param("mode", "surface")
+val pscale = params_scala.get_param("pscale", "0.05").toFloat
+val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
+val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
+val min_ppt = params_scala.get_param("min_ppt", "5").toInt
+val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
+val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
+val dst_scale = params_scala.get_param("lambda", "0.1").toFloat
+val max_opt_it = params_scala.get_param("max_opt_it", "10").toInt
+
 
 
 // Set the iq library on
@@ -118,6 +135,8 @@ val params_wasure =  set_params(params_new,List(
 fs.mkdirs(new Path( output_dir),new FsPermission("777"))
 params_scala("output_dir") = collection.mutable.Set(output_dir)
 params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)
+
+
 
 println("")
 println("=======================================================")
@@ -139,6 +158,12 @@ val ss_reg = regexp_filter.r
 val nb_ply = fs.listStatus(new Path(input_dir)).map(x => fs.listStatus(x.getPath)).reduce(_ ++ _).map(_.getPath).filter(
   x => ((x.toString endsWith ".ply")) && ((ss_reg).findFirstIn(x.toString).isDefined)
 ).size
+
+if(nb_ply == 0){
+  println("!! ERROR: 0 PLY FOUND !!")
+  println("!! ERROR: 0 PLY FOUND !!")
+}
+
 // List of input ply filepath
 val ply_input = getListOfFiles(input_dir).filter(
   x => ((x.toString endsWith ".ply") && ((ss_reg).findFirstIn(x.toString).isDefined)))
@@ -151,4 +176,27 @@ val struct_inputs = iq.run_pipe_fun_KValue(
   kvrdd_inputs
     , "struct", do_dump = false)
 struct_inputs.collect
+val kvrdd_bbox = iq.get_kvrdd(struct_inputs,"s").persist(slvl_loop);
+val bba =   kvrdd_bbox.map(x => x._2.head.split("z").tail.head.split(" ").filter(!_.isEmpty).map(x => x.toFloat)).reduce(
+  (x,y) => Array(Math.min(x(0),y(0)),Math.max(x(1),y(1)),Math.min(x(2),y(2)),Math.max(x(3),y(3)),Math.min(x(4),y(4)),Math.max(x(5),y(5)), x(6)+y(6)))
+val smax =   Math.max(Math.max(bba(1)-bba(0),bba(1)-bba(0)),bba(1)-bba(0))
+val tot_nbp = bba(6)
+val ndtree_depth = (Math.log(tot_nbp/max_ppt_per_tile)/Math.log(3)).round 
+
+// Dump xml
+
+params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + bba(4) + "x" + (bba(4) + smax))
+params_scala("ndtree_depth") = collection.mutable.Set(ndtree_depth.toString)
+params_scala("datatype") = collection.mutable.Set("filestream")
+
+val params_scala_dump = params_scala.filter(x => !x._2.head.isEmpty && x._1 != "do_expand" && x._1 != "output_dir" )
+
+val xml_output_string =  ("<env>\n\t<datasets>\n\t\t<generated>\n" +
+  params_scala_dump.map(x => "\t\t\t<" + x._1 + ">" + x._2.head + "</" + x._1 + ">").reduce( _ + "\n" + _ ) +
+  "\n\t\t</generated>\n\t</datasets>\n</env>\n")
+val path_name = new Path(output_dir + "/wasure_metadata_3d_gen.xml" );
+val output = fs.create(path_name);
+val os = new BufferedOutputStream(output)
+os.write((xml_output_string).getBytes)
+os.close()
 

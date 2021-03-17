@@ -126,12 +126,14 @@ val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(10
 
 // Surface reconstruction prarams
 val wasure_mode = params_scala.get_param("mode", "surface")
-val pscale = params_scala.get_param("pscale", "1").toFloat
+val pscale = params_scala.get_param("pscale", "0.05").toFloat
 val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
 val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt
 val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
+val dst_scale = params_scala.get_param("lambda", "0.1").toFloat
 val max_opt_it = params_scala.get_param("max_opt_it", "2").toInt
+val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
 val stats_mod_it = params_scala.get_param("stats_mod_it", (max_opt_it-1).toString).toInt
 
 
@@ -350,7 +352,7 @@ graph_tri.vertices.unpersist();
 
 println("============= Optimiation ===============")
 //val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
-val lambda_list = params_scala("lambda").map(_.toDouble).toList..map(fmt.format(_))
+val lambda_list = params_scala("lambda").map(_.toDouble).toList.map(fmt.format(_))
 // val algo_list = List("seg_lagrange_weight","belief");
 
 

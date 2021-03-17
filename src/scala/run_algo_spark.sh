@@ -177,14 +177,14 @@ case "$SPARK_CONF" in
             exit 1;
         fi
 	echo "===================="
-	if [ "$DEBUG_MODE" = true ] ; then
-	    echo "OUTPUT_DATA_DIR=\"${OUTPUT_DATA_DIR}\"  exists" 
-	    read -p "do yo want to clear it? [y/n] " -n 1 -r
-	    if [[ $REPLY =~ ^[Yy]$ ]]
-	    then
-		rm -rf  ${OUTPUT_DATA_DIR}/*
-	    fi
-	fi
+	# if [ "$DEBUG_MODE" = true ] ; then
+	#     echo "OUTPUT_DATA_DIR=\"${OUTPUT_DATA_DIR}\"  exists" 
+	#     read -p "do yo want to clear it? [y/n] " -n 1 -r
+	#     if [[ $REPLY =~ ^[Yy]$ ]]
+	#     then
+	# 	rm -rf  ${OUTPUT_DATA_DIR}/*
+	#     fi
+	# fi
 	run_master
         ;;
     "slave")

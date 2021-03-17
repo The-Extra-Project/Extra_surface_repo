@@ -19,6 +19,10 @@ DO_RUN=true
 # FILESCRIPT : Scala algorithm
 function run_algo_docker
 {
+
+    if [ -z "$PARAMS" ]; then PARAMS="void.xml"
+    fi
+    
     echo ""
     echo "##  ------  ${FUNCNAME[1]}  ------" 
     CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c 4 -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
@@ -30,24 +34,42 @@ function run_algo_docker
 
 
 ### 3D Surface reconstruction 
-function run_3d_bench
+function run_3d_bench_raw
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d_ori.xml"
+    run_algo_docker
+}
+
+function run_3d_bench_preprocess
+{
+    DEBUG_FLAG=""
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
+    OUTPUT_DIR="${DDT_MAIN_DIR}/datas/outputs/${FUNCNAME[0]}/"
+    run_algo_docker
+
+    DEBUG_FLAG="-d"
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+    INPUT_DIR="${OUTPUT_DIR}"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d_gen.xml"
+    run_algo_docker
+}
+
+
+### 3D Surface reconstruction 
+function run_3d_yanis
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_yanis/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
 }
 
-### 3D Surface reconstruction 
-function run_3d_bench_preprocessed
-{
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_preprocessed/"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
-    run_algo_docker
-}
 
 ### 3D Surface reconstruction 
 function run_3d_bench_small
@@ -95,9 +117,8 @@ function run_3d_church
 function preprocess_data
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
-    OUTPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_preprocessed/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_yanis/"
+    OUTPUT_DIR="${DDT_MAIN_DIR}/datas/3d_yanis_processed/"
     run_algo_docker    
 }
 # ==== surface reconstruction workflow ====
@@ -106,9 +127,12 @@ function preprocess_data
 
 ### 3D
 #run_3d_bench_small
-#run_3d_bench
+run_3d_bench_raw
+#run_3d_bench_preprocess
+#run_3d_yanis
+
 #run_aerial
-run_3d_church
+#run_3d_church
 #run_3d_bench_preprocessed
 #run_3d_bench_small
 #run_3d_toulouse

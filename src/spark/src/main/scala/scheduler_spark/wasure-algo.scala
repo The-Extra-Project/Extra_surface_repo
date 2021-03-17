@@ -48,6 +48,8 @@ import geojson_export._;
 
 object wasure_algo {
 
+
+
 def dump_it_stats(stats_filename : String, stats_list : ListBuffer[(Int, (Float, Float))], sc : SparkContext){
   val fs = FileSystem.get(sc.hadoopConfiguration);
   val path_name = new Path(stats_filename);

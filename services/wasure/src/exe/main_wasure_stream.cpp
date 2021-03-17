@@ -214,6 +214,9 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
     std::map<Id,wasure_data<Traits> > datas_map;
     std::map<Id,std::string > fname_map;
 
+    ddt::Bbox<Traits::D> full_bbox;
+    int full_nbp = 0;
+    
     for(int i = 0; i < nb_dat; i++)
     {
         ddt::stream_data_header hpi;
@@ -236,18 +239,28 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
         std::vector<bool> do_keep(count,false);
 	fname_map[hid] = get_bname(hpi.get_file_name());
 
-	
+
+
+	std::vector<double> doubleVect;
 	if(datas_map[hid].dmap[datas_map[hid].xyz_name].type == tinyply::Type::FLOAT64){
-	  datas_map[hid].dmap[datas_map[hid].xyz_name].shpt_vect2uint8_vect();
+	  datas_map[hid].dmap[datas_map[hid].xyz_name].extract_full_shpt_vect(doubleVect,false);
 	}else{
 	  std::vector<float> v_fxyz;
 	  datas_map[hid].dmap[datas_map[hid].xyz_name].extract_full_shpt_vect(v_fxyz,false);
-	  std::vector<double> doubleVec(v_fxyz.begin(),v_fxyz.end());
-
+	  doubleVect.insert(doubleVect.end(),v_fxyz.begin(),v_fxyz.end());
 	  datas_map[hid].dmap[datas_map[hid].xyz_name].type = tinyply::Type::FLOAT64;
-	  datas_map[hid].dmap[datas_map[hid].xyz_name].fill_full_uint8_vect(doubleVec);
+
 	}
 
+
+	for(int n = 0; n < doubleVect.size(); n+=D){
+	  auto pp = traits.make_point(doubleVect.begin() + n);
+	  full_bbox += pp;
+	  full_nbp++;
+	}
+
+	std::cerr << "bbox_preprocess:" << full_bbox << std::endl;
+	datas_map[hid].dmap[datas_map[hid].xyz_name].fill_full_uint8_vect(doubleVect);
 
 	// if(true){
 	//   count = datas_map[hid].nb_pts_uint8_vect();
@@ -387,14 +400,21 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	if(true){
 	  ddt::stream_data_header oqh("p","f",id);
 	  std::string filename(params.output_dir + "/" + fname_map[id]);
-	  oqh.write_into_file(filename,".ply");
+	  oqh.write_into_file(filename,"_visu.ply");
 	  oqh.write_header(std::cout);
 	  datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n',true);
 	  oqh.finalize();
 	  std::cout << std::endl;
 	}
-
     }
+    	// Dump stats
+	ddt::stream_data_header sth("s","z",0);
+	sth.write_header(std::cout); 
+	std::cout <<  full_bbox << " " << full_nbp;
+	sth.finalize();
+	std::cout << std::endl;
+
+
     return 0;
 }
 
@@ -749,9 +769,8 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
 	  wpt.dmap[wpt.center_name].extract_full_uint8_vect(wpt.format_centers,false);
 	  w_data_full.format_centers.insert(w_data_full.format_centers.end(),wpt.format_centers.begin(),wpt.format_centers.end());
 	  std::cerr << "extract flags" << std::endl;
-	  //	  wpt.dmap[wpt.flags_name].extract_full_uint8_vect(wpt.format_flags,false);
-	  wpt.extract_flags(wpt.format_flags,false);
-	  w_data_full.format_flags.insert(w_data_full.format_flags.end(),wpt.format_flags.begin(),wpt.format_flags.end());
+	  // wpt.extract_flags(wpt.format_flags,false);
+	  // w_data_full.format_flags.insert(w_data_full.format_flags.end(),wpt.format_flags.begin(),wpt.format_flags.end());
 	  std::cerr << "extract sig" << std::endl;
 	  wpt.extract_sigs(w_data_full.format_sigs,false);
 	  std::cerr << "extract egv" << std::endl;

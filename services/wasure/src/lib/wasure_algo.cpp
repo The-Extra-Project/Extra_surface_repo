@@ -427,7 +427,7 @@ wasure_algo::simplify(std::vector<Point> & points, std::vector<bool> & do_keep, 
 void
 wasure_algo::compute_svd(int K_T, const  ANNidxArray & nnIdx, const std::vector<Point> & points,std::vector<Point> & pts_norms, std::vector<double> &coords_scale){
   int D = Traits::D;  
-
+  
   std::vector<Point> loc_pts;
 
   for(int i = 0; i < K_T; i++){
@@ -463,13 +463,11 @@ wasure_algo::compute_svd(int K_T, const  ANNidxArray & nnIdx, const std::vector<
     }
     pts_norms.push_back(traits.make_point(coords_norm));
   }
-
+  double v_min = 0.0000001;
   for(int d = 0; d < D; d++){
     coords_scale[d] = sv(d);
-    if(coords_scale[d] <= 0.0001 || std::isnan(coords_scale[d]))
-      coords_scale[d] = 0.0001;
-    if(coords_scale[d] > 1000000)
-      coords_scale[d] = 1000000;
+    if(coords_scale[d] <= v_min || std::isnan(coords_scale[d]))
+      coords_scale[d] = v_min;
   }
 }
 
@@ -1122,19 +1120,24 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   kdTree = new ANNkd_tree(dataPts,npts,D);
 
   std::vector<double> v_scale(scales.size());
+  std::cerr << "print_scale:";
   for(int i = 0; i < scales.size() ; i++){
     v_scale[i] = scales[i][D-1];
+    std::cerr << v_scale[i] << " ";
   }
   std::sort(v_scale.begin(), v_scale.end());
 
+  std::cerr << "dst_scale : " << params.dst_scale << std::endl;
   if(params.dst_scale < 0){
-    params.min_scale = get_min_scale(v_scale);
+    //    params.min_scale = get_min_scale(v_scale);
+    params.min_scale = -1;
     // for(auto ss : v_scale)
     //   std::cerr << "sss:" << ss << std::endl;
   }
-  else
+  else{
     params.min_scale = params.dst_scale;
-  std::cerr << "min_scale:" << params.min_scale << std::endl;
+  }
+
 
   // ---------------------------------------
   //           DST computation
