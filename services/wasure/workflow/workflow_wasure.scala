@@ -131,7 +131,8 @@ val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
 val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt
 val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
-val dst_scale = params_scala.get_param("lambda", "0.1").toFloat
+val lambda = params_scala.get_param("lambda", "0.1").toFloat
+val coef_mult = params_scala.get_param("coef_mult", "1").toFloat
 val max_opt_it = params_scala.get_param("max_opt_it", "2").toInt
 val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
 val stats_mod_it = params_scala.get_param("stats_mod_it", ((max_opt_it)/3).toString).toInt
@@ -351,8 +352,9 @@ graph_tri.vertices.unpersist();
 
 
 println("============= Optimiation ===============")
-//val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
+
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.map(fmt.format(_))
+val coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 // val algo_list = List("seg_lagrange_weight","belief");
 
 
@@ -368,15 +370,11 @@ var loop_acc = 0;
 
 
 //val coef_mult_list = List("110000000000".toLong,"110000000".toLong,"110000".toLong)
-var coef_mult_list = List("110000000000")
 // vcppp faot ieitii
 
 val algo_list = params_scala("algo_opt").toList
 algo_list.foreach{ cur_algo =>
-  if(cur_algo == "seg_lagrange_weight"){
-    coef_mult_list  = List("1000","100","10","1","0.1")
-//    coef_mult_list  = List("10")
-  }else{
+  if(cur_algo != "seg_lagrange_weight"){
     coef_mult_list = List("110000000000","110000000","110000")
   }
   lambda_list.foreach{ ll =>

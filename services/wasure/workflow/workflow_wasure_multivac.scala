@@ -137,6 +137,8 @@ val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
 val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt
 val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
+val lambda = params_scala.get_param("lambda", "0.1").toFloat
+val coef_mult = params_scala.get_param("coef_mult", "1").toFloat
 val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
 val stats_mod_it = params_scala.get_param("stats_mod_it", ((max_opt_it)/3).toString).toInt
 
@@ -253,7 +255,7 @@ val fill_graph_cmd =  set_params(params_wasure, List(("step","fill_graph"))).to_
 val ext_cmd =  set_params(params_wasure, List(("step","extract_surface"))).to_command_line
 val tri2geojson_wasure_cmd =  set_params(params_wasure, List(("step","tri2geojson"))).to_command_line
 val wasure_ply2geojson_cmd =  set_params(params_wasure, List(("step","ply2geojson"))).to_command_line
-3
+
 
 // =================================================
 // ============  Parsing and init data ===========
@@ -391,6 +393,7 @@ graph_tri.vertices.unpersist();
 
 println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
+val coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 //val algo_list = List("belief");
 
 val algo_list = params_scala("algo_opt").toList
@@ -411,11 +414,8 @@ var coef_mult_list = List("110000000000")
 
 val algo_list = params_scala("algo_opt").toList
 algo_list.foreach{ cur_algo =>
-  if(cur_algo == "seg_lagrange_weight"){
-    coef_mult_list  = List("10")
-    coef_mult_list  = List("1000","100","10","1","0.1")
-  }else{
-    coef_mult_list = List("110000000000","110000000","110000")
+  if(cur_algo != "seg_lagrange_weight"){
+    coef_mult_list  = List("0.1")
   }
   lambda_list.foreach{ ll =>
     coef_mult_list.foreach{ coef_mult =>
