@@ -374,7 +374,8 @@ var coef_mult_list = List("110000000000")
 val algo_list = params_scala("algo_opt").toList
 algo_list.foreach{ cur_algo =>
   if(cur_algo == "seg_lagrange_weight"){
-    coef_mult_list  = List("0.0001")
+    coef_mult_list  = List("1000","100","10","1","0.1")
+//    coef_mult_list  = List("10")
   }else{
     coef_mult_list = List("110000000000","110000000","110000")
   }
@@ -450,8 +451,9 @@ algo_list.foreach{ cur_algo =>
 	  val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
 	  input_seg2.unpersist()
 
+          val do_it_stats = (acc_loop % stats_mod_it == 0 || acc_loop == 1 || acc_loop == max_opt_it -1) && do_stats
 	  // Extract the surface : Last iteration
-	  if(acc_loop == max_opt_it -1){
+	  if(acc_loop == max_opt_it -1 || do_it_stats ){
 	    val graph_seg = Graph(kvrdd_seg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
 	    val rdd_ply_surface = iq.run_pipe_fun_KValue(
 	      ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
@@ -473,7 +475,7 @@ algo_list.foreach{ cur_algo =>
 	  ).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
 	  input_seg2.count()
 
-          val do_it_stats = (acc_loop % stats_mod_it == 0 || acc_loop == 1) && do_stats
+
 	  // Compute the global surface and compare
 	  if(do_it_stats){
 	    val seg_cmd_full =  set_params(params_wasure, List(("step","seg_global_extract"))).to_command_line
@@ -491,8 +493,6 @@ algo_list.foreach{ cur_algo =>
 	      wasure_algo.partition2ply(cur_output_dir,loop_acc.toString,sc);
 	    }
 	  }
-
-
 	  val t1_loop = System.nanoTime();
 	  println("[it " + acc_loop_str + "]");
 	  ddt_algo.update_time(params_scala,"opt_loop" + loop_acc.toString);
@@ -508,8 +508,6 @@ algo_list.foreach{ cur_algo =>
           println("")
 	  acc_loop = acc_loop + 1;
 	}
-
-
       }
       if(do_stats){
         wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_conv_1.txt",stats_list_1,sc);
@@ -520,6 +518,3 @@ algo_list.foreach{ cur_algo =>
     }
   }
 }
-
-
-

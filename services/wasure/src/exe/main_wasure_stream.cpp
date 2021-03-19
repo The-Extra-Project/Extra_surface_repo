@@ -2816,7 +2816,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	      
     	      // Get curent lambda for the cell lid in the edge tid_2
     	      double new_lagrange = 0;
-	      double cur_tau = mrf.get_volume_reco(fch) * params.lambda ; //params.coef_mult;
+	      double cur_tau = mrf.get_volume_reco(fch) * params.lambda * params.coef_mult;
 	      Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
 	      double v_diff = 0;
 		
