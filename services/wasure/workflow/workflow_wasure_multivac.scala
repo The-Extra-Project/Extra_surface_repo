@@ -393,7 +393,7 @@ graph_tri.vertices.unpersist();
 
 println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
-val coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
+var coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 //val algo_list = List("belief");
 
 val algo_list = params_scala("algo_opt").toList
@@ -409,8 +409,6 @@ var loop_acc = 0;
 
 
 //val coef_mult_list = List("110000000000".toLong,"110000000".toLong,"110000".toLong)
-var coef_mult_list = List("110000000000")
-
 
 val algo_list = params_scala("algo_opt").toList
 algo_list.foreach{ cur_algo =>

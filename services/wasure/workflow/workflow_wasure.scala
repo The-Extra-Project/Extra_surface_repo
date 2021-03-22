@@ -354,7 +354,7 @@ graph_tri.vertices.unpersist();
 println("============= Optimiation ===============")
 
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.map(fmt.format(_))
-val coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
+var coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
 // val algo_list = List("seg_lagrange_weight","belief");
 
 
