@@ -640,6 +640,7 @@ void PlyFile::PlyFileImpl::write_header(std::ostream & os, char nl_header)
 
     for (const auto & comment : comments) os << "comment " << comment << nl_header;
 
+
     for (auto & e : elements)
     {
         os << "element " << e.name << " " << e.size << nl_header;

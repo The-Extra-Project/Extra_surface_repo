@@ -1610,7 +1610,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
     int D = Traits::D;
 
     D_MAP w_datas_tri;
-
+    ddt_data<Traits> datas_out;
     log.step("read");
     for(int i = 0; i < nb_dat; i++)
     {
@@ -1688,6 +1688,9 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
 		const Point& c = fch->vertex((id_cov+3)&3)->point();
 		const Point& d = fch->vertex((id_cov)&3)->point();
 
+		datas_out.bbox += a;
+		datas_out.bbox += b;
+		datas_out.bbox += c;
 		bool bl =
 		  (CGAL::orientation(a,b,c,d) == 1 && chnlab == 0) ||
 		  (CGAL::orientation(a,b,c,d) == -1 && chnlab == 1);
@@ -1734,7 +1737,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
         std::vector<Point>  format_points;
         std::vector<int> v_simplex;
         std::map<Vertex_const_iterator, uint> vertex_map;
-        ddt_data<Traits> datas_out;
+
 
         int acc = 0;
         for(auto fit = lft.begin(); fit != lft.end(); ++fit)
@@ -1792,7 +1795,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
         datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
         datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(format_points);
         datas_out.dmap[datas_out.simplex_name].fill_full_uint8_vect(v_simplex);
-	datas_out.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
+	datas_out.write_ply_stream(oth.get_output_stream(),PLY_CHAR,false,false,true);
 	
 	
         break;

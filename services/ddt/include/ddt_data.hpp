@@ -547,11 +547,20 @@ public :
     }
   }
   
-  void write_ply_stream( std::ostream & ss,char nl_char = '\n',bool is_binary = false,bool do_elem_newline = false)
+  void write_ply_stream( std::ostream & ss,char nl_char = '\n',bool is_binary = false,bool do_elem_newline = false,bool do_export_bbox = false)
   {
     try
       {
 	tinyply::PlyFile file_out;
+
+	std::vector<std::string> & comments_string = file_out.get_comments();
+
+	if(do_export_bbox){
+	std::stringstream ss;
+	ss << "bbox " << bbox;
+	comments_string.push_back(ss.str());
+	}
+	
 	for ( const auto &ee : dmap ) {
 	  if(dmap[ee.first].part == "vertex"){
 	    if(ee.second.do_exist){
@@ -963,6 +972,7 @@ public :
   int D = Traits::D;
   std::string stream_lab;
   std::map<std::vector<std::string>, Data_ply > dmap;
+  ddt::Bbox<Traits::D> bbox;
   std::vector<std::string> xyz_name,
     vtileid_name,
     ctileid_name,
