@@ -1,6 +1,7 @@
 project (tinyply)
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.5)
+#cmake_minimum_required(VERSION 3.12)
 # src CMakeLists.txt
 
 SET(GLOBAL_BUILD_DIR "$ENV{GLOBAL_BUILD_DIR}")

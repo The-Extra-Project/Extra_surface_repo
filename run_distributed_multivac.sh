@@ -1,5 +1,4 @@
 #!/bin/bash
-
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
 source ${DDT_MAIN_DIR}/algo-env.sh
 GLOBAL_OUTPUT_DIR="${HOME}/shared_spark/tests_outputs/"

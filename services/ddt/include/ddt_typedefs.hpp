@@ -42,7 +42,7 @@ typedef ddt::DDT<Traits> DDT;
 typedef ddt::grid_partitioner<Traits> Grid_partitioner;
 
 
-typedef Traits::Random_points_in_box Random_points;
+//typedef Traits::Random_points_in_box Random_points;
 typedef typename DDT::Tile_const_iterator  Tile_const_iterator ;
 typedef typename DDT::Tile_iterator  Tile_iterator ;
 

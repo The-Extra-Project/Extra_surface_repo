@@ -235,14 +235,14 @@ struct Cgal_traits_3
         return Point(*x,*y,*z);
     }
 
-    struct Random_points_in_box : CGAL::Random_points_in_cube_3<Point>
-    {
-        Random_points_in_box(int d, double g, CGAL::Random& rnd = CGAL::get_default_random()) : CGAL::Random_points_in_cube_3<Point>(g,rnd)
-        {
-            CGAL_assertion(d==3);
-        }
-        Random_points_in_box(double g, CGAL::Random& rnd = CGAL::get_default_random()) : CGAL::Random_points_in_cube_3<Point>(g,rnd) {}
-    };
+    // struct Random_points_in_box : CGAL::Random_points_in_cube_3<Point>
+    // {
+    //     Random_points_in_box(int d, double g, CGAL::Random& rnd = CGAL::get_default_random()) : CGAL::Random_points_in_cube_3<Point>(g,rnd)
+    //     {
+    //         CGAL_assertion(d==3);
+    //     }
+    //     Random_points_in_box(double g, CGAL::Random& rnd = CGAL::get_default_random()) : CGAL::Random_points_in_cube_3<Point>(g,rnd) {}
+    // };
 
     Delaunay_triangulation triangulation(int dimension) const
     {
@@ -552,39 +552,39 @@ struct Cgal_traits_3
         return v;
     }
 
-    template<class It, class Out> void insert_simplified(Delaunay_triangulation& dt, Id id, It begin, It end, Out out) const
-    {
-        std::vector<std::size_t> indices;
-        std::vector<Point> points;
-        std::vector<Id> infos;
-        std::size_t index=0;
-        for (It it=begin; it!=end; ++it)
-        {
-            points.push_back( it->first  );
-            infos.push_back ( it->second );
-            indices.push_back(index++);
-        }
+    // template<class It, class Out> void insert_simplified(Delaunay_triangulation& dt, Id id, It begin, It end, Out out) const
+    // {
+    //     std::vector<std::size_t> indices;
+    //     std::vector<Point> points;
+    //     std::vector<Id> infos;
+    //     std::size_t index=0;
+    //     for (It it=begin; it!=end; ++it)
+    //     {
+    //         points.push_back( it->first  );
+    //         infos.push_back ( it->second );
+    //         indices.push_back(index++);
+    //     }
 
-        typedef typename CGAL::Pointer_property_map<Point>::type Pmap;
-        typedef CGAL::Spatial_sort_traits_adapter_3<K,Pmap> Search_traits;
+    //     typedef typename CGAL::Pointer_property_map<Point>::type Pmap;
+    //     typedef CGAL::Spatial_sort_traits_adapter_3<K,Pmap> Search_traits;
 
-        spatial_sort(indices.begin(),
-                     indices.end(),
-                     Search_traits(make_property_map(points), dt.geom_traits()));
+    //     spatial_sort(indices.begin(),
+    //                  indices.end(),
+    //                  Search_traits(make_property_map(points), dt.geom_traits()));
 
 
-        // sort begin/end ?
-        Vertex_handle hint;
-        for(auto it = indices.begin(); it != indices.end() ; ++it)
-        {
-            Vertex_handle v = insert_simplified_one(dt, id, infos[*it], points[*it], hint);
-            if (v != Vertex_handle())
-            {
-                hint = v;
-                *out++ = v;
-            }
-        }
-    }
+    //     // sort begin/end ?
+    //     Vertex_handle hint;
+    //     for(auto it = indices.begin(); it != indices.end() ; ++it)
+    //     {
+    //         Vertex_handle v = insert_simplified_one(dt, id, infos[*it], points[*it], hint);
+    //         if (v != Vertex_handle())
+    //         {
+    //             hint = v;
+    //             *out++ = v;
+    //         }
+    //     }
+    // }
 
     template<class It> inline void insert(Delaunay_triangulation& dt, It begin, It end) const
     {

@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <set>
 #include <map>
+#include <list>
 #include "bbox.hpp"
 #include "ddt_exeptions.hpp"
 

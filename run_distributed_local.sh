@@ -70,6 +70,22 @@ function run_3d_yanis
     run_algo_docker
 }
 
+function run_3d_yanis_2
+{
+    DEBUG_FLAG=""
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_yanis_2/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    # run_algo_docker
+
+    DEBUG_FLAG="-d"
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+    INPUT_DIR="${OUTPUT_DIR}"
+    OUTPUT_DIR="${OUTPUT_DIR}"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d_gen.xml"
+    run_algo_docker
+}
+
 
 ### 3D Surface reconstruction 
 function run_3d_bench_small
@@ -130,6 +146,7 @@ function preprocess_data
 run_3d_bench_raw
 #run_3d_bench_preprocess
 #run_3d_yanis
+#run_3d_yanis_2
 
 #run_aerial
 #run_3d_church

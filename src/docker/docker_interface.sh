@@ -71,7 +71,23 @@ function compile # ./docker_interface.sh  Compile [-jx]
 
 function build # Build docker container
 {
-    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-18-10 ${DDT_MAIN_DIR}
+    echo "name_img_base => ${NAME_IMG_BASE}"
+    case ${NAME_IMG_BASE} in
+	"ddt_img_base")
+	    echo "START 19"
+	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-18-10 ${DDT_MAIN_DIR}
+	    ;;
+
+	"ddt_img_base_16_04")
+	    echo "START 16 04"
+	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-16-04 ${DDT_MAIN_DIR}
+	    ;;
+	*)
+	    echo "ERROR NO IMAGE"
+
+	    ;;
+    esac
+
 }
 
 function kill_container { # ./docker_interface.sh kill_container : kill all container related to wasure

@@ -63,7 +63,7 @@ val conf = new SparkConf().setAppName("DDT")
 val fs = FileSystem.get(sc.hadoopConfiguration);
 
 // Checkpoint
-val do_checkpoint = true
+val do_checkpoint = false
 val checkpoint_dir_string = "/home/laurent/shared_spark/checkpoint/"
 val checkpoint_dir_path = new Path(checkpoint_dir_string)
 if(do_checkpoint){
