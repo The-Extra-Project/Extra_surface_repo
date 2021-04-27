@@ -29,9 +29,9 @@
 
 #include "conf_header/conf.hpp"
 
-#ifdef DDT_USE_HDFS
-#include "hdfs.h"
-#endif
+// #ifdef DDT_USE_HDFS
+// #include "hdfs.h"
+// #endif
 
 #define MAXBUFLEN (10000000)
 #define SPARK_BUF_SIZE (65536)
@@ -248,66 +248,66 @@ std::string time_in_HH_MM_SS_MMM()
 
 
 
-tSize read_buffer_hdfs(std::string filename,char * buffer,ddt::logging_stream * log)
-{
+// tSize read_buffer_hdfs(std::string filename,char * buffer,ddt::logging_stream * log)
+// {
 
-    // hdfsConnect will take time the first call, fast after
-    if(log != NULL) log->step("[read]hdfs_connect");
+//     // hdfsConnect will take time the first call, fast after
+//     if(log != NULL) log->step("[read]hdfs_connect");
 
-    hdfsFS fs = hdfsConnect("default", 0);
-    const char* readPath = filename.c_str();
+//     hdfsFS fs = hdfsConnect("default", 0);
+//     const char* readPath = filename.c_str();
 
-    if(log != NULL) log->step("[read]hdfs_openfile");
-    hdfsFile readFile = hdfsOpenFile(fs, readPath, O_RDONLY,0, 0, 0);
+//     if(log != NULL) log->step("[read]hdfs_openfile");
+//     hdfsFile readFile = hdfsOpenFile(fs, readPath, O_RDONLY,0, 0, 0);
 
-    if(!readFile)
-    {
-        std::cerr << "Failed to open [" << std::string(readPath) << "] for writing!" << std::endl;
-    }
+//     if(!readFile)
+//     {
+//         std::cerr << "Failed to open [" << std::string(readPath) << "] for writing!" << std::endl;
+//     }
 
-    tSize tot_read_bytes = 0;
-    int i = 0;
+//     tSize tot_read_bytes = 0;
+//     int i = 0;
 
-    if(log != NULL) log->step("[read]hdfs_totbytes");
-    while(tot_read_bytes % SPARK_BUF_SIZE == 0)
-    {
-        tot_read_bytes += hdfsRead(fs, readFile, (buffer+(i++)*SPARK_BUF_SIZE), MAXBUFLEN);
-    }
+//     if(log != NULL) log->step("[read]hdfs_totbytes");
+//     while(tot_read_bytes % SPARK_BUF_SIZE == 0)
+//     {
+//         tot_read_bytes += hdfsRead(fs, readFile, (buffer+(i++)*SPARK_BUF_SIZE), MAXBUFLEN);
+//     }
 
-    if(log != NULL) log->step("[read]hdfs_close");
-    hdfsCloseFile(fs, readFile);
+//     if(log != NULL) log->step("[read]hdfs_close");
+//     hdfsCloseFile(fs, readFile);
 
-    return tot_read_bytes;
-}
+//     return tot_read_bytes;
+// }
 
 
-tSize write_buffer_hdfs(std::string filename,const char * buffer,ddt::logging_stream * log)
-{
+// tSize write_buffer_hdfs(std::string filename,const char * buffer,ddt::logging_stream * log)
+// {
 
-    // Connect is fast if called before
-    if(log != NULL) log->step("[write]hdfs_connect");
+//     // Connect is fast if called before
+//     if(log != NULL) log->step("[write]hdfs_connect");
 
-    hdfsFS fs = hdfsConnect("default", 0);
-    const char* writePath = filename.c_str();
+//     hdfsFS fs = hdfsConnect("default", 0);
+//     const char* writePath = filename.c_str();
 
-    if(log != NULL) log->step("[write]hdfs_open");
-    hdfsFile writeFile = hdfsOpenFile(fs, writePath, O_WRONLY|O_CREAT, 0, 0, 0);
-    if(!writeFile)
-    {
-        std::cerr << "Failed to open [" << writePath <<  "] for writing" << std::endl;
-    }
+//     if(log != NULL) log->step("[write]hdfs_open");
+//     hdfsFile writeFile = hdfsOpenFile(fs, writePath, O_WRONLY|O_CREAT, 0, 0, 0);
+//     if(!writeFile)
+//     {
+//         std::cerr << "Failed to open [" << writePath <<  "] for writing" << std::endl;
+//     }
 
-    if(log != NULL) log->step("[write]hdfs_flush");
-    tSize num_written_bytes = hdfsWrite(fs, writeFile, (void*)buffer, strlen(buffer)+1);
-    if (hdfsFlush(fs, writeFile))
-    {
-        std::cerr <<  "Failed to 'flush' " << writePath << std::endl;;
-    }
+//     if(log != NULL) log->step("[write]hdfs_flush");
+//     tSize num_written_bytes = hdfsWrite(fs, writeFile, (void*)buffer, strlen(buffer)+1);
+//     if (hdfsFlush(fs, writeFile))
+//     {
+//         std::cerr <<  "Failed to 'flush' " << writePath << std::endl;;
+//     }
 
-    if(log != NULL) log->step("[write]hdfs_close");
-    hdfsCloseFile(fs, writeFile);
-    return num_written_bytes;
-}
+//     if(log != NULL) log->step("[write]hdfs_close");
+//     hdfsCloseFile(fs, writeFile);
+//     return num_written_bytes;
+// }
 
 
 
@@ -379,22 +379,22 @@ void stream_data_header::finalize()
             if (res!=0) std::cerr << "chmod 777 " << filename << " failed" << std::endl;
         }
     }
-    else if(is_hdfs())
-    {
-        if(ifile != NULL)
-        {
-            delete ifile;
-        }
-        if(ofile != NULL)
-        {
-            if(log != NULL) log->step("[write]hdfs_create_buffer");
-            std::string str =  ofile->str();
-            const char* buffer_out = str.c_str();
-            write_buffer_hdfs(filename,buffer_out,log);
-            if(log != NULL) log->step("[write]hdfs_finalize");
-            delete ofile;
-        }
-    }
+    // else if(is_hdfs())
+    // {
+    //     if(ifile != NULL)
+    //     {
+    //         delete ifile;
+    //     }
+    //     if(ofile != NULL)
+    //     {
+    //         if(log != NULL) log->step("[write]hdfs_create_buffer");
+    //         std::string str =  ofile->str();
+    //         const char* buffer_out = str.c_str();
+    //         write_buffer_hdfs(filename,buffer_out,log);
+    //         if(log != NULL) log->step("[write]hdfs_finalize");
+    //         delete ofile;
+    //     }
+    // }
     else
     {
         if(ifile != NULL)
@@ -491,14 +491,14 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
     }
     else if (is_hdfs())
     {
-        ist >> filename;
-        if(log != NULL) log->step("[read]hdfs_create_buffer");
-        char * buffer_in = new  char[MAXBUFLEN+1];
-        int nbr = read_buffer_hdfs(filename,buffer_in,log);
-        ifile = new std::stringstream();
-        if(log != NULL) log->step("[read]hdfs_buffer_stringstream");
-        (*ifile) << buffer_in;
-        delete []buffer_in;
+        // ist >> filename;
+        // if(log != NULL) log->step("[read]hdfs_create_buffer");
+        // char * buffer_in = new  char[MAXBUFLEN+1];
+        // int nbr = read_buffer_hdfs(filename,buffer_in,log);
+        // ifile = new std::stringstream();
+        // if(log != NULL) log->step("[read]hdfs_buffer_stringstream");
+        // (*ifile) << buffer_in;
+        // delete []buffer_in;
     }
     else if (is_stream())
       {

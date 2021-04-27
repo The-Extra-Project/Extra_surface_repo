@@ -10,7 +10,6 @@ include_directories(SYSTEM ${GRAPHCUT_INCLUDE_DIR})
 include_directories(SYSTEM ${CIMG_INCLUDE_DIR})
 include_directories(SYSTEM ${QPBO_INCLUDE_DIR})
 include_directories(SYSTEM ${GLOBAL_BUILD_DIR})
-include_directories(SYSTEM ${HDFS_INCLUDE_DIR})
 include_directories(SYSTEM ${DOUBLE_CONV_INCLUDE_DIR})
 include_directories(../../../ddt/include/)
 find_package(ZLIB)
@@ -26,7 +25,6 @@ target_link_libraries(wasure-stream-exe
   ddt
   tbmrf
   ${WASURE_EXE_LIB_DEP}
-  ${HDFS_LIBRARIES}
   ${DOUBLE_CONV_LIBRARIES}
   )
 
@@ -44,7 +42,7 @@ set(spark-wasure_SOURCES
 #   tbmrf
 #   ${QPBO_LIBRARIES}
 #   ${WASURE_EXE_LIB_DEP}
-#   ${HDFS_LIBRARIES}
+
 #   ${DOUBLE_CONV_LIBRARIES}
 #   )
 
@@ -89,7 +87,6 @@ include_directories("../../../extern/opengm/include/")
 #   ddt
 #   tbmrf
 #   ${WASURE_EXE_LIB_DEP}
-#   ${HDFS_LIBRARIES}
 #   ${DOUBLE_CONV_LIBRARIES}
 #   )
 

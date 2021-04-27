@@ -12,7 +12,7 @@ function cnes_run_algo
 
     ## GOOOD
     # spark-shell  --master spark://${NODE_NAME}:7077 yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}"  --properties-file spark-defaults.conf
-    spark-shell  --master spark://${NODE_NAME}:7077 yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}"  --files spark-defaults.conf,log4j-driver.properties,log4j-executor.properties --conf "spark.driver.extraJavaOptions=-Djava.security.auth.login.config=spark-defaults.conf -Dlog4j.configuration=file:log4j-driver.properties -Dvm.logging.level=DEBUG -Dvm.logging.name=SparkStreaming-1" --conf "spark.executor.extraJavaOptions=-Djava.security.auth.login.config=spark-defaults.conf -Dlog4j.configuration=file:log4j-executor.properties -Dvm.logging.level=DEBUG -Dvm.logging.name=SparkStreaming-1" 
+    spark-shell  --master spark://${NODE_NAME}:7077 yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}"  
     #--conf "spark.executor.extraJavaOptions='-Dlog4j.configuration=log4j.properties'" --driver-java-options "-Dlog4j.configuration=file:/home/ad/caraffl/code/spark-ddt/log4j-cnes.properties"
     #spark-shell --master spark://${NODE_NAME}:7077
 }
@@ -50,6 +50,12 @@ function cnes_init_spark
 }
 # Start Spark
 
+function cnes_singularity
+{
+    module load singularity
+    singularity run ~/wasure.simg
+    export LD_LIBRARY_PATH=${DDT_MAIN_DIR}/build/build-spark-Release-3/lib:$LD_LIBRARY_PATH    
+}
 
 function kill_spark
 {

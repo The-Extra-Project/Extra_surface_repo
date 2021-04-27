@@ -134,7 +134,6 @@ class IQlibSched(
   def print_rdde_vdat(record: KValue, f: String => Unit) = {
     f(record._1 + " " + record._2.size + " ")
     for (e <- record._2) { f(e + " ") }
-
   }
 
   def run_pipe_fun_KValue(fun: Seq[String], rdd: RDD[KValue], txt: String = "rdd", do_dump: Boolean = false): RDD[VData] = {

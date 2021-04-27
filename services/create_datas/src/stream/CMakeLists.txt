@@ -10,7 +10,6 @@ include_directories(SYSTEM ${ANN_INCLUDE_DIR})
 include_directories(SYSTEM ${GRAPHCUT_INCLUDE_DIR})
 include_directories(SYSTEM ${CIMG_INCLUDE_DIR})
 include_directories(SYSTEM ${GLOBAL_BUILD_DIR})
-include_directories(SYSTEM ${HDFS_INCLUDE_DIR})
 include_directories(SYSTEM ${DOUBLE_CONV_INCLUDE_DIR})
 include_directories(../../../ddt-spark/include)
 
@@ -24,7 +23,6 @@ target_link_libraries(create_data-stream-exe
   # intern dependencies
   ddt
   ${CREATE_DATA_EXE_LIB_DEP}
-  ${HDFS_LIBRARIES}
     ${CIMG_LIB}
   )
 
