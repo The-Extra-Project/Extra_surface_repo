@@ -704,7 +704,8 @@ object params_parser {
   }
 
   implicit class cparam(pmap: params_map) {
-    def to_command_line = {pmap("exec_path").toList ++ pmap.map{
+    def to_command_line = {
+      pmap("exec_path").head.split(" ").toList  ++ pmap.map{
       case(k,v)=> (if(k != "exec_path") List("--" + k, v.head) else List(""))
     }.reduce(_ ++ _)}.toList
 

@@ -90,6 +90,14 @@ function build # Build docker container
 
 }
 
+
+function build_cnes # Build docker container
+{
+
+    docker build ${PROXY_CMD} ${NO_CACHE} -t  ddt_img_cnes -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-cnes ${DDT_MAIN_DIR}
+}
+
+
 function kill_container { # ./docker_interface.sh kill_container : kill all container related to wasure
     echo "kill all container: ${CONTAINER_NAME_EXAMPLE}"
     docker rm -f ${CONTAINER_NAME_SHELL} 2>/dev/null
