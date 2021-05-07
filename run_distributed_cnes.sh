@@ -17,7 +17,7 @@ function cnes_run_algo
 
 function run_multivac_church
 {
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac.scala"
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac_generic.scala"
     export INPUT_DATA_DIR="/work/scratch/caraffl/datas/church/preprocessed_small_2/"
     export OUTPUT_DATA_DIR="/work/scratch/caraffl/output/church/"
     export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"

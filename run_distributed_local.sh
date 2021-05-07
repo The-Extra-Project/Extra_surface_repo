@@ -36,7 +36,7 @@ function run_algo_docker
 ### 3D Surface reconstruction 
 function run_3d_bench_raw
 {
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d_ori.xml"
