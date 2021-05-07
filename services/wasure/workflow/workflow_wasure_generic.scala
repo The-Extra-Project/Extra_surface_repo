@@ -361,8 +361,8 @@ graph_tri.vertices.unpersist();
 
 println("============= Optimiation ===============")
 
-val lambda_list = params_scala("lambda").map(_.toDouble).toList.map(fmt.format(_))
-var coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
+val lambda_list = params_scala("lambda").map(_.toDouble).toList.map(fmt.format(_).replace(',','.'))
+var coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_).replace(',','.'))
 // val algo_list = List("seg_lagrange_weight","belief");
 
 
@@ -400,7 +400,7 @@ algo_list.foreach{ cur_algo =>
       params_wasure("lambda") = collection.mutable.Set(ll)
       params_wasure("coef_mult") = collection.mutable.Set(coef_mult)
       val datestring = dateFormatter.format(Calendar.getInstance().getTime());
-      val ext_name = test_name + "_" + cur_algo + "_" + loop_acc + "_ll_" + ll + "_cm_" + coef_mult + "_" + fmt.format(max_opt_it) + "_" + cur_algo + "_"  + datestring;
+      val ext_name = test_name + "_" + cur_algo + "_" + loop_acc + "_ll_" + ll + "_cm_" + coef_mult + "_" + fmt.format(max_opt_it).replace(',','.') + "_" + cur_algo + "_"  + datestring;
       loop_acc+=1;
 
       //val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
