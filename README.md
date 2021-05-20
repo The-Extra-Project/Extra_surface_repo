@@ -110,6 +110,14 @@ Here is parameters that can be added for the surface reconstruction Algorithm
 
 ```
 
+
+
+# Run wasure on AI4Geo cluster
+go into your $HOME dir
+copy the main rep of WASURe in $HOME/code/
+
+
+
 # Dev Manual
 ## Introduction
 This projet aim to schedule algorithms on the cloud based on Delaunay triangulation.

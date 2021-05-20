@@ -418,7 +418,7 @@ object params_parser {
 
         kvrdd_inputs_struct = sc.textFile(input_dir + "*.stream").zipWithIndex.map(
           e => (e._2.toLong,List("z 1 " + e._2.toString + " z " +  e._1.toString))
-          ).repartition(nb_file/10+1).setName("KVRDD_INPUT")
+          ).repartition(nb_file).setName("KVRDD_INPUT")
 
       }
       case _ => {

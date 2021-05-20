@@ -33,7 +33,7 @@ function run_algo_multivac
     echo "	--num-executors ${MULTIVAC_NUM_EXECUTORS} "
     echo "	--conf spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}"
     echo "	--conf spark.default.parallelism=${DEFAULT_PARALLELISM}"
-    echo "	--conf spark.serializer=org.apache.spark.serializer.KryoSerializer"  
+     echo "	--conf spark.serializer=org.apache.spark.serializer.KryoSerializer"  
     echo "	--conf spark.dynamicAllocation.enabled=false "
     echo "	--conf spark.cleaner.periodicGC.interval=2min "
     echo "	--conf spark.memory.fraction=0.2 "
@@ -130,9 +130,9 @@ function run_multivac_croco
 
 #run_multivac_aerial
 #eval_params_loop
-run_multivac_church
+#run_multivac_church
 #run_multivac_aerial
-#run_multivac_full
+run_multivac_full
 #run_multivac_croco
 
 

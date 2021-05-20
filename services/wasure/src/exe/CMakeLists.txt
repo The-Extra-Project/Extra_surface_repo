@@ -68,6 +68,16 @@ target_link_libraries(test_graph-exe
   )
 
 
+set(spark-wasure_SOURCES
+  main_test_yanis.cpp
+  )
+add_executable(test_yanis-exe ${spark-wasure_SOURCES})
+set_property(TARGET test_yanis-exe PROPERTY CXX_STANDARD 11)
+target_link_libraries(test_yanis-exe
+  ${WASURE_EXE_LIB_DEP}
+  )
+
+
 
 
 include_directories("../../../extern/opengm/include/")

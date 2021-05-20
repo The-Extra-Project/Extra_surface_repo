@@ -57,6 +57,7 @@ import strings_opt._;
 import params_parser._;
 import files_opt._;
 
+
 //=============================================
 //==== Configuration and file sysyem init  ====
 val conf = new SparkConf().setAppName("DDT")
@@ -149,10 +150,22 @@ fs.mkdirs(new Path(cur_output_dir),new FsPermission("777"))
 // Set the iq library on
 val iq = new IQlibSched(slvl_glob,slvl_loop)
 val cpp_exec_path = current_plateform.toLowerCase match {
-  case "cnes"  =>     "/home/ad/caraffl/exe/singularity exec /home/ad/caraffl/wasure_4.simg " + build_dir + "/bin/"
+  case "cnes"  =>     "/softs/rh7/singularity/3.5.3/bin/singularity exec " + build_dir + "/wasure_singularity.simg " + build_dir + "/bin/"
   case "multivacs"  =>   ""
   case _  => build_dir + "/bin/"
 }
+
+
+if ( current_plateform.toLowerCase == "cnes"){
+  import org.apache.log4j.PropertyConfigurator
+  PropertyConfigurator.configure(ddt_main_dir + "/log4j-executor.properties.v3" )
+}
+
+// val cpp_exec_path = current_plateform.toLowerCase match {
+//   case "cnes"  =>     "/home/ad/caraffl/exe/singularity exec /home/ad/caraffl/wasure_4.simg " + build_dir + "/bin/"
+//   case "multivacs"  =>   ""
+//   case _  => build_dir + "/bin/"
+// }
 
 
 
@@ -200,9 +213,10 @@ val floatFormat = new DecimalFormat("#.###")
 val nbt_side = math.pow(2,ndtree_depth)
 val tot_nbt = scala.math.pow(nbt_side,dim).toInt;
 val nbp_per_tile = nbp/tot_nbt;
-val rep_value = ((if((tot_nbt) < sc.defaultParallelism) sc.defaultParallelism else  (tot_nbt).toInt))
+// val rep_value = ((if((tot_nbt) < sc.defaultParallelism) sc.defaultParallelism else  (tot_nbt).toInt))
+val rep_value = 100
 var nb_leaf = tot_nbt;
-
+params_scala("rep_value") = collection.mutable.Set(rep_value.toString)
 params_ddt("output_dir") = collection.mutable.Set(cur_output_dir)
 params_scala("output_dir") = collection.mutable.Set(cur_output_dir)
 params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)

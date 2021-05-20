@@ -97,7 +97,6 @@ object ddt_algo {
     val dim = params_scala("dim").head.toInt
     val t0_init = params_scala("t0").head.toLong
 
-
     val nbt = new nd_tree(dim,10,iq)
     val id_pad = nbt.nb_nodes(ndtree_depth-1);
 
