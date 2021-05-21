@@ -116,7 +116,7 @@ val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop
 // General Algo params
 val bbox = params_scala.get_param("bbox", "")
 val do_profile = params_scala.get_param("do_profile", "false").toBoolean;
-val do_stats = params_scala.get_param("do_stats", "false").toBoolean;
+val do_stats = false // params_scala.get_param("do_stats", "false").toBoolean;
 val plot_lvl = params_scala.get_param("plot_lvl", "1").toInt;
 val regexp_filter = params_scala.get_param("regexp_filter", "");
 val max_ppt = params_scala.get_param("max_ppt", "10000").toInt
@@ -148,6 +148,8 @@ val cur_output_dir ={output_dir  + sc.applicationId + "_" + datestring + "_"+ pa
 fs.mkdirs(new Path(cur_output_dir),new FsPermission("777"))
 
 // Preprocessing steps
+// 3 platform acutally
+// CNES, ISC, and local computer
 
 var env_map: scala.collection.immutable.Map[String, String] = Map("" -> "")
 current_plateform.toLowerCase match {
@@ -156,6 +158,7 @@ current_plateform.toLowerCase match {
     PropertyConfigurator.configure(ddt_main_dir + "/log4j-executor.properties.v3" )
   }
   case "multivac" => {
+    val hdfs_files_dir = get_bash_variable("HDFS_FILES_DIR");
     val exec_path_list = List("ddt-stream-exe","wasure-stream-exe");
     val lib_list = List(
       "ddt-stream-exe","libboost_system.so.1.67.0",
@@ -182,7 +185,7 @@ current_plateform.toLowerCase match {
 
 val cpp_exec_path = current_plateform.toLowerCase match {
   case "cnes"  =>     "/softs/rh7/singularity/3.5.3/bin/singularity exec " + build_dir + "/wasure_singularity.simg " + build_dir + "/bin/"
-  case "multivacs"  =>   "" // Empty string
+  case "multivac"  =>   "" // Empty string
   case _  => build_dir + "/bin/"
 }
 
@@ -190,10 +193,6 @@ val cpp_exec_path = current_plateform.toLowerCase match {
 
 // Set the iq library on
 val iq = new IQlibSched(slvl_glob,slvl_loop,env_map)
-
-
-
-
 
 // val cpp_exec_path = current_plateform.toLowerCase match {
 //   case "cnes"  =>     "/home/ad/caraffl/exe/singularity exec /home/ad/caraffl/wasure_4.simg " + build_dir + "/bin/"

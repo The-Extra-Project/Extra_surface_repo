@@ -40,9 +40,10 @@ function run_algo_multivac
     echo "	--conf spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
 
     export CURRENT_PLATEFORM="multivac"
+    echo "cur plateform ==> $CURRENT_PLATEFORM"
 	#    spark-shell -i  \
 #	    spark-shell -i  ${FILE_SCRIPT} \
-            spark-shell   --master yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --executor-cores ${MULTIVAC_EXECUTOR_CORE} 	--executor-memory ${MULTIVAC_EXECUTOR_MEMORY} --driver-memory ${MULTIVAC_DRIVER_MEMORY} --num-executors ${MULTIVAC_NUM_EXECUTORS} --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}" --conf "spark.serializer=org.apache.spark.serializer.KryoSerializer"  --conf "spark.dynamicAllocation.enabled=false" --conf "spark.cleaner.periodicGC.interval=2min" --conf "spark.memory.fraction=0.2" --conf "spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps" 
+    spark-shell   --master yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --executor-cores ${MULTIVAC_EXECUTOR_CORE} 	--executor-memory ${MULTIVAC_EXECUTOR_MEMORY} --driver-memory ${MULTIVAC_DRIVER_MEMORY} --num-executors ${MULTIVAC_NUM_EXECUTORS} --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}" --conf "spark.serializer=org.apache.spark.serializer.KryoSerializer"  --conf "spark.dynamicAllocation.enabled=false" --conf "spark.cleaner.periodicGC.interval=2min" --conf "spark.memory.fraction=0.2" --conf "spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps" 
 
 		#--conf "spark.default.parallelism=${DEFAULT_PARALLELISM}" \
                 #--conf "yarn.nodemanager.pmem-check-enabled=false" \
