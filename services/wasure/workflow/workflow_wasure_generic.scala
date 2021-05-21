@@ -84,7 +84,7 @@ val current_plateform = get_bash_variable("CURRENT_PLATEFORM");
 val global_build_dir = get_bash_variable("GLOBAL_BUILD_DIR");
 
 // Check if we have
-if (output_dir.isEmpty ||  input_dir.isEmpty || !Files.exists(Paths.get(env_xml)))
+if (output_dir.isEmpty ||  input_dir.isEmpty || !fs.exists(Paths.get(env_xml)))
 {
   System.err.println("ERROR")
   System.err.println("Bash variable are empy or ")
@@ -93,7 +93,8 @@ if (output_dir.isEmpty ||  input_dir.isEmpty || !Files.exists(Paths.get(env_xml)
 }
 
 // Get Params list from xml
-val param_list = parse_xml_datasets(env_xml)
+val xml_string = sc.wholeTextFiles(env_xml).collect()(0)._2
+var param_list = parse_xml_datasets_string(xml_string)
 val df_par = sc.defaultParallelism;
 val params_scala = param_list(0) // We only process 1 set of parameter in this workflow
 
@@ -146,20 +147,53 @@ val datestring = dateFormatter.format(Calendar.getInstance().getTime());
 val cur_output_dir ={output_dir  + sc.applicationId + "_" + datestring + "_"+ params_scala("name").head }
 fs.mkdirs(new Path(cur_output_dir),new FsPermission("777"))
 
+// Preprocessing steps
 
-// Set the iq library on
-val iq = new IQlibSched(slvl_glob,slvl_loop)
+var env_map: scala.collection.immutable.Map[String, String] = Map("" -> "")
+current_plateform.toLowerCase match {
+  case "cnes" => {
+    import org.apache.log4j.PropertyConfigurator
+    PropertyConfigurator.configure(ddt_main_dir + "/log4j-executor.properties.v3" )
+  }
+  case "multivac" => {
+    val exec_path_list = List("ddt-stream-exe","wasure-stream-exe");
+    val lib_list = List(
+      "ddt-stream-exe","libboost_system.so.1.67.0",
+      "libboost_filesystem.so.1.67.0","libCGAL.so.13",
+      "libddt.so","libstdc++.so.6","libm.so.6","libtbmrf.so"
+    )
+
+    var inc_dir = sc.parallelize(List("")).map(
+      x => (SparkFiles.get("libCGAL.so.13").split("/").dropRight(1).reduce(_ ++ "/" ++ _)).dropRight(1)
+    ).collect()(0).split("_").dropRight(1).reduce(_ ++ "_" ++ _) + "_"
+    var inc_dir_list = (1 to 100).map(inc_dir  + "%06d".format(_)).reduce(_ ++ ":" ++ _)
+
+    exec_path_list.map(x => sc.addFile(hdfs_files_dir + x))
+    lib_list.map(x => sc.addFile(hdfs_files_dir + x))
+    println("===> SC DEFAUT PAR :" + sc.defaultParallelism)
+
+    env_map = Map(
+      "CLASSPATH" -> sys.env("CLASSPATH"),
+      "LD_LIBRARY_PATH" -> (inc_dir_list + ":/usr/lib/jvm/java-8-oracle/jre/lib/amd64/server:/opt/cloudera/parcels/CDH/lib/")
+    )
+  }
+  case "local" => {}
+}
+
 val cpp_exec_path = current_plateform.toLowerCase match {
   case "cnes"  =>     "/softs/rh7/singularity/3.5.3/bin/singularity exec " + build_dir + "/wasure_singularity.simg " + build_dir + "/bin/"
-  case "multivacs"  =>   ""
+  case "multivacs"  =>   "" // Empty string
   case _  => build_dir + "/bin/"
 }
 
 
-if ( current_plateform.toLowerCase == "cnes"){
-  import org.apache.log4j.PropertyConfigurator
-  PropertyConfigurator.configure(ddt_main_dir + "/log4j-executor.properties.v3" )
-}
+
+// Set the iq library on
+val iq = new IQlibSched(slvl_glob,slvl_loop,env_map)
+
+
+
+
 
 // val cpp_exec_path = current_plateform.toLowerCase match {
 //   case "cnes"  =>     "/home/ad/caraffl/exe/singularity exec /home/ad/caraffl/wasure_4.simg " + build_dir + "/bin/"

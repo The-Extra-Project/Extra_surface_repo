@@ -4,11 +4,13 @@ source ${DDT_MAIN_DIR}/algo-env.sh
 GLOBAL_OUTPUT_DIR="${HOME}/shared_spark/tests_outputs/"
 DO_RUN=true
 
+
+
 function cnes_run_algo
 {
     ## WORKS!!
     # spark-shell  --master spark://${NODE_NAME}:7077 yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}"  
-    
+
     spark-shell  --master spark://${NODE_NAME}:7077 yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}" -Dlog4j.configuration=log4j-driver.properties --files log4j-driver.properties,log4j-executor.properties  --conf spark.executor.extraJavaOptions=-Dlog4j.debug=true  --conf spark.executor.extraJavaOptions=-Dlog4j.configuration=file:./log4j-executor.properties  --conf spark.yarn.app.container.log.dir=/home/ad/caraffl/code/spark-ddt
     
     ## GOOOD
