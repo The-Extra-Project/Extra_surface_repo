@@ -21,10 +21,6 @@
 
 typedef std::map<Id,wasure_data<Traits> > D_MAP;
 typedef std::map<Id,std::list<wasure_data<Traits>> > D_LMAP;
-
-
-
-
 typedef std::tuple<Id,double,double,double>                                SharedData;
 typedef std::tuple<Id,double,double,double,double,double,double>           SharedDataDst;
 typedef Id                                EdgeData;
@@ -3054,7 +3050,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
     // Dump stats
     ddt::stream_data_header sth("s","z",tid_1);
     sth.write_header(std::cout);
-    std::cout << "[diff:tot] " << acc_diff << " " << acc_tot;
+    std::cout << "[diff:tot] " << acc_diff << " " << acc_tot ;
     sth.finalize();
     std::cout << std::endl;
 
@@ -3182,10 +3178,6 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
 	    std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
 	    if(w_datas_tri[hid].dmap[w_datas_tri[hid].labseg_name].do_exist){
 	      w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
-	      std::vector<int> format_labs_new(format_labs);
-	      v_map[hid] = format_labs_new;
-
-	      std::fill(format_labs.begin(), format_labs.end(), 0);
 	    }
             else
 	      {
@@ -3203,6 +3195,23 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
         hpi.finalize();
     }
 
+    tbmrf_reco<DTW,D_MAP> mrf_ori(params.nb_labs,&tri,&w_datas_tri);
+    mrf_ori.lambda = params.lambda;
+    mrf_ori.set_mode(-1);
+    double energy_largrange = mrf_ori.get_energy(tri,w_datas_tri);
+    
+    // Clean new struct
+    for (auto it = w_datas_tri.begin(); it != w_datas_tri.end(); it++)
+      {
+	int hid = it->first;    // string (key)
+	std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
+	std::vector<int> format_labs_new(format_labs);
+	v_map[hid] = format_labs_new;
+	std::fill(format_labs.begin(), format_labs.end(), 0);
+      }
+
+
+    
     // ===== Init the id of each cell
     log.step("compute");
     std::cerr << "seg_step5" << std::endl;
@@ -3210,7 +3219,7 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     mrf.lambda = params.lambda;
     mrf.set_mode(-1);
     mrf.opt_gc(1,tri,w_datas_tri);
-
+    double energy_full = mrf.get_energy(tri,w_datas_tri);
     std::cerr << "seg_setp6 stats" << std::endl;
     // Stats and finalizing
     int acc_tot = 0;
@@ -3329,7 +3338,7 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     ddt::stream_data_header sth("s","z",tid);
     sth.write_header(std::cout);
     //std::cout << "[diff:tot] " << acc_diff << " " << acc_tot << " " << wacc_diff << " " << wacc_tot;
-    std::cout << "[diff:tot] " << wacc_diff << " " << wacc_tot;
+    std::cout << "[diff:tot:e_ori:e_new] " << wacc_diff << " " << wacc_tot << " " << energy_largrange << " " << energy_full;
     sth.finalize();
     std::cout << std::endl;
 

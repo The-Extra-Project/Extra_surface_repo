@@ -455,6 +455,111 @@ public :
         ////std::cerr << "alpha exp finish" << std::endl;
     }
 
+
+    double get_energy(DTW & tri,D_MAP & data_map)
+    {
+
+      
+      // recupération nb cells (== nb sommets du graph) et nb triangles (nb edges du graph)
+        int  N =   tri.number_of_cells();
+        int NF = 0;
+        for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+        {
+            NF++;
+        }
+
+	double acc_energy = 0;
+        double e0,e1;
+        int acc = 0;
+
+	// ID map est une structure map d'un pointeur de tetraèdre => id
+	// ou id = indice des tétraèdres dans le du graph local.
+        std::map<Cell_const_iterator,int> id_map;
+        std::cerr << "init cell " << std::endl;
+        for( auto cit = tri.cells_begin();
+                cit != tri.cells_end(); ++cit )
+        {
+	  // incrémentaiton de l'indice
+            id_map[cit] = acc++;
+	    // Construction du noeud.
+        }
+
+
+	// Création des aretes (termes unaires) entre  (S => noeuds) et (noeuds => T)
+	// On boucle sur les main => local + shared (id min)
+        for( auto cit = tri.cells_begin();
+                cit != tri.cells_end(); ++cit )
+        {
+            Cell_const_iterator fch = *cit;
+
+	    // recupération de l'id local du tétraèdre dans le graph
+            int cid = id_map[cit];
+	    // Lid : l'id local (mais dans la structure "data"
+	    int cccid = cit->lid();
+	    // En théorie lcurr = 0, mais ici on a une fonction générique.
+            int lcurr = data_map[fch->tile()->id()].format_labs[cccid];
+	    // Lcurr = 0 et lAlpha = 1 dans le cas binaire.
+            acc_energy+=get_score_linear(fch,lcurr,data_map);
+
+
+        }
+
+	// Ajout des termes quadratiques (on boucle sur les triangles main)
+        std::cerr << " ~~~~~ score facet " << std::endl;
+        DATA_TYPE E[4];
+        for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+        {
+	  // is infinite => pour faire sauter les triangles infinis
+            if(fit->is_infinite())
+            {
+                continue;
+            }
+
+            try
+            {
+	      // recuperation des 2 tetraèdres de la facet
+                Cell_const_iterator tmp_fch = fit.full_cell();
+                int tmp_idx = fit.index_of_covertex();
+                Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+
+                if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
+		   !tri.tile_is_loaded(tmp_fchn->main_id()))
+                    continue;
+
+                Cell_const_iterator fch = tmp_fch->main();
+                int idx = tmp_idx;
+                Cell_const_iterator fchn = tmp_fchn->main();
+
+
+                int c1Id = id_map[fch];
+                int cnId = id_map[fchn];
+
+		int cccid = fch->lid();
+                int cccidn = fchn->lid();
+                double surface = get_surface(tmp_fch,tmp_idx);
+                double coef = lambda*surface;
+
+		
+                int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
+                int chnlab = data_map[fchn->tile()->id()].format_labs[cccidn];
+		acc_energy+= coef*fabs(ch1lab - chnlab);
+		
+
+            }
+            catch (...)
+            {
+                continue;
+            }
+        }
+
+
+
+	return acc_energy;
+
+    }
+
+
+  
   // cherche l'ensemble des labels qui minimisent la fonction d'énergie définie par "get_score_linear & get_score_quad"
   // Lalpha (ici label 1),
   // Tri, la structure de la triangulation de Delaunay

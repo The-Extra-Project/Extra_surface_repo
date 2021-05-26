@@ -116,7 +116,7 @@ val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop
 // General Algo params
 val bbox = params_scala.get_param("bbox", "")
 val do_profile = params_scala.get_param("do_profile", "false").toBoolean;
-val do_stats = false // params_scala.get_param("do_stats", "false").toBoolean;
+val do_stats = params_scala.get_param("do_stats", "false").toBoolean;
 val plot_lvl = params_scala.get_param("plot_lvl", "1").toInt;
 val regexp_filter = params_scala.get_param("regexp_filter", "");
 val max_ppt = params_scala.get_param("max_ppt", "10000").toInt
@@ -416,6 +416,7 @@ var coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_
 // Only for stats
 var stats_list_1 = new ListBuffer[(Int,(Float,Float))]()
 var stats_list_2 = new ListBuffer[(Int,(Float,Float))]()
+var stats_list_3 = new ListBuffer[(Int,(Float,Float))]()
 
 
 
@@ -510,7 +511,7 @@ algo_list.foreach{ cur_algo =>
           val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
           input_seg2.unpersist()
 
-          val do_it_stats = false // (((acc_loop % stats_mod_it) == 0 || acc_loop == 1 || acc_loop == max_opt_it -1) && do_stats)
+          val do_it_stats = (((acc_loop % stats_mod_it) == 0 || acc_loop == 1 || acc_loop == max_opt_it -1) && do_stats)
 
           // Extract the surface : Last iteration
           if(acc_loop == max_opt_it -1 || do_it_stats ){
@@ -526,8 +527,10 @@ algo_list.foreach{ cur_algo =>
           val rdd_local_edges = iq.get_edgrdd(res_seg,"e");
           val rdd_shared_edges = iq.get_edgrdd(res_seg,"f")
           val rdd_stats  = iq.get_kvrdd(res_seg,"s")
+          // Sum the stats between all the tiles
           var stats_1 = rdd_stats.map(x => x._2(0).split(" ").takeRight(2)).map(x => (x(0).toFloat,x(1).toFloat)).reduce( (x,y) => (x._1+y._1,x._2+y._2))
-          var stats_2 = stats_1;
+          var stats_2 = (0F,0F);
+          var stats_3 = (0F,0F);
 
           input_seg2 = (
             rdd_local_edges.map(e => (e.srcId, e.attr)) union
@@ -544,7 +547,9 @@ algo_list.foreach{ cur_algo =>
               input_extract , "seg_lagrange", do_dump = false)
             val rdd_ply  = res_surface.filter(_(0) == 'p');
             val rdd_stats  = iq.get_kvrdd(res_surface,"s")
-            stats_2 = rdd_stats.map(x => x._2(0).split(" ").takeRight(2)).map(x => (x(0).toFloat,x(1).toFloat)).reduce( (x,y) => (x._1+y._1,x._2+y._2))
+            val stats_collect = rdd_stats.map(x => x._2(0).split("]").tail(0).split(" ").filter(_.nonEmpty).map(_.toFloat)).collect()(0)
+            stats_2 = (stats_collect(0),stats_collect(1))
+            stats_3 = (stats_collect(2),stats_collect(3))
             rdd_stats.collect()
             if(acc_loop == 0){
               val ply_dir = cur_output_dir + "/plyglob_" + ext_name + "_gc_" + loop_acc.toString + "_" + acc_loop_str + "_global3"
@@ -560,8 +565,11 @@ algo_list.foreach{ cur_algo =>
           println("   % overlap -> " + floatFormat.format(100*stats_1._1/stats_1._2.toFloat) + "% " + stats_1 );
           if(do_it_stats){
             val t2 = ( acc_loop,stats_2)
+            val t3 = ( acc_loop,stats_3)
             stats_list_2 += t2;
+            stats_list_3 += t3;
             println("   % GC      -> " + floatFormat.format(100*stats_2._1/stats_2._2.toFloat) + "% " + stats_2 );
+            println("   % Energy  -> " + stats_3  );
           }
           res_seg.unpersist()
           println("")
@@ -571,9 +579,11 @@ algo_list.foreach{ cur_algo =>
       if(do_stats){
         wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_conv_1.txt",stats_list_1,sc);
         wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_gtdiff_2.txt",stats_list_2,sc);
+        wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_energy_2.txt",stats_list_3,sc);
       }
       stats_list_1.clear()
       stats_list_2.clear()
+      stats_list_3.clear()
     }
   }
 }

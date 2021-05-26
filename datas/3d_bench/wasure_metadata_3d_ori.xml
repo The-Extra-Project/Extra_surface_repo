@@ -2,7 +2,7 @@
   <datasets>
     <austin>
       <plot_lvl>1</plot_lvl>
-      <do_stats>false</do_stats>
+      <do_stats>true</do_stats>
       <datatype>files</datatype>
       <dim>3</dim>
       <ndtree_depth>2</ndtree_depth>
@@ -16,7 +16,7 @@
       <algo_opt>seg_lagrange_weight</algo_opt>
       <lambda>0.1</lambda>
       <coef_mult>10</coef_mult>
-      <max_opt_it>100</max_opt_it>
+      <max_opt_it>30</max_opt_it>
       <StorageLevel>MEMORY_ONLY</StorageLevel> 
       <!-- Meta paramexters -->
       <do_process>true</do_process>
