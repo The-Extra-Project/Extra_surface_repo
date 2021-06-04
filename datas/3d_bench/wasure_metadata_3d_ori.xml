@@ -2,7 +2,7 @@
   <datasets>
     <austin>
       <plot_lvl>1</plot_lvl>
-      <do_stats>true</do_stats>
+      <do_stats>false</do_stats>
       <datatype>files</datatype>
       <dim>3</dim>
       <ndtree_depth>2</ndtree_depth>

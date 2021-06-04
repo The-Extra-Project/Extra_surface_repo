@@ -82,15 +82,17 @@ val env_xml = get_bash_variable("PARAM_PATH");
 val ddt_main_dir = get_bash_variable("DDT_MAIN_DIR");
 val current_plateform = get_bash_variable("CURRENT_PLATEFORM");
 val global_build_dir = get_bash_variable("GLOBAL_BUILD_DIR");
+val executor_cores = get_bash_variable("MULTIVAC_EXECUTOR_CORE");
+val num_executors = get_bash_variable("MULTIVAC_NUM_EXECUTORS");
 
-// Check if we have
-if (output_dir.isEmpty ||  input_dir.isEmpty || !fs.exists(Paths.get(env_xml)))
-{
-  System.err.println("ERROR")
-  System.err.println("Bash variable are empy or ")
-  System.err.println("File params " + env_xml +  " does not exist")
-  System.exit(1)
-}
+// // Check if we have
+// if (output_dir.isEmpty ||  input_dir.isEmpty || !fs.exists(Paths.get(env_xml)))
+// {
+//   System.err.println("ERROR")
+//   System.err.println("Bash variable are empy or ")
+//   System.err.println("File params " + env_xml +  " does not exist")
+//   System.exit(1)
+// }
 
 // Get Params list from xml
 val xml_string = sc.wholeTextFiles(env_xml).collect()(0)._2
@@ -111,12 +113,13 @@ val dim = params_scala.get_param("dim", "2").toInt
 val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-" + dim.toString)
 val build_dir = global_build_dir + "/" + ddt_kernel_dir
 val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
-val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "MEMORY_AND_DISK_SER"))
+val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "DISK_ONLY"))
 
 // General Algo params
 val bbox = params_scala.get_param("bbox", "")
 val do_profile = params_scala.get_param("do_profile", "false").toBoolean;
-val do_stats = params_scala.get_param("do_stats", "false").toBoolean;
+//val do_stats = params_scala.get_param("do_stats", "false").toBoolean;
+val do_stats = false;
 val plot_lvl = params_scala.get_param("plot_lvl", "1").toInt;
 val regexp_filter = params_scala.get_param("regexp_filter", "");
 val max_ppt = params_scala.get_param("max_ppt", "10000").toInt
@@ -136,9 +139,10 @@ val min_ppt = params_scala.get_param("min_ppt", "50").toInt
 val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
 val lambda = params_scala.get_param("lambda", "0.1").toFloat
 val coef_mult = params_scala.get_param("coef_mult", "1").toFloat
-val max_opt_it = params_scala.get_param("max_opt_it", "10").toInt
+val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
 val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
 val stats_mod_it = params_scala.get_param("stats_mod_it", ((max_opt_it)/3).toString).toInt
+
 
 
 val fmt = new java.text.DecimalFormat("##0.##############")
@@ -239,8 +243,8 @@ if(false){
 if(do_dump_debug)
   params_wasure("dump_debug") = collection.mutable.Set("")
 
-val fmt = new java.text.DecimalFormat("##0.##############")
-val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
+
+
 val floatFormat = new DecimalFormat("#.###")
 
 val nbt_side = math.pow(2,ndtree_depth)
@@ -253,7 +257,10 @@ params_scala("rep_value") = collection.mutable.Set(rep_value.toString)
 params_ddt("output_dir") = collection.mutable.Set(cur_output_dir)
 params_scala("output_dir") = collection.mutable.Set(cur_output_dir)
 params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)
+params_scala("executor_cores") =  collection.mutable.Set(executor_cores)
+params_scala("num_executors") =  collection.mutable.Set(num_executors)
 params_ddt("nbt_side") =  collection.mutable.Set(nbt_side.toString)
+
 
 println("")
 println("=======================================================")
@@ -314,8 +321,6 @@ params_scala("dump_mode") = collection.mutable.Set("NONE")
 
 
 println("======== Dimenstionnality =============")
-val t0 = System.nanoTime()
-params_scala("t0") = collection.mutable.Set(t0.toString)
 val res_dim = iq.run_pipe_fun_KValue(
   dim_cmd ++ List("--label", "dim"),
   kvrdd_points, "dim", do_dump = false).persist(slvl_glob)
@@ -343,13 +348,15 @@ val graph_tri_gid = Graph(kvrdd_tri_gid, graph_tri.edges, defaultV)
 graph_tri_gid.vertices.setName("graph_tri_gid");
 graph_tri_gid.edges.setName("graph_tri_gid");
 
-val graph_pts = Graph(kvrdd_dim.reduceByKey( (u,v) => u ::: v), graph_tri.edges, List(""));
+val graph_pts = Graph(kvrdd_dim.reduceByKey( (u,v) => u ::: v,rep_merge), graph_tri.edges, List(""));
 graph_pts.vertices.setName("graph_pts");
 graph_pts.edges.setName("graph_pts");
 val stats_kvrdd = kvrdd_simplex_id(stats_tri,sc)
 val graph_stats = Graph(stats_kvrdd, graph_tri.edges, List(""));
-val input_dst = (graph_tri_gid.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
+val input_dst = (graph_tri_gid.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _,rep_merge).setName("input_dst");
 input_dst.persist(slvl_glob);
+intput_dst.count()
+res_dim.unpersist()
 graph_tri.vertices.unpersist()
 graph_tri.edges.unpersist()
 //val input_dst = (graph_tri.vertices).union(graph_pts.vertices).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
@@ -365,7 +372,7 @@ val res_dst = iq.run_pipe_fun_KValue(
   dst_cmd ++ List("--label", "dst"),
   input_dst, "dst", do_dump = false).persist(slvl_glob).setName("res_dst");
 res_dst.count
-res_dim.unpersist()
+
 input_dst.unpersist()
 kvrdd_points.unpersist();
 val kvrdd_dst = iq.get_kvrdd(res_dst,"t");
@@ -382,6 +389,8 @@ println("============= Regularize ===============")
 val res_regularize_extract = iq.run_pipe_fun_KValue(
   regularize_slave_extract_cmd ++ List("--label", "regularize_slave_extract"),
   kvrdd_dst, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
+res_regularize_extract.count()
+res_dst.unpersist()
 val rdd_shared_edges = iq.get_edgrdd(res_regularize_extract,"f")
 val input_insert = (
   rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_dst
@@ -389,8 +398,8 @@ val input_insert = (
 val res_regularize = iq.run_pipe_fun_KValue(
   regularize_slave_insert_cmd ++ List("--label", "regularize_slave_insert"),
   input_insert, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
-
-
+res_regularize.count()
+res_regularize_extract.unpersist()
 
 
 
@@ -410,6 +419,7 @@ println("============= Optimiation ===============")
 
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.map(fmt.format(_).replace(',','.'))
 var coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_).replace(',','.'))
+val algo_list = params_scala("algo_opt").toList
 // val algo_list = List("seg_lagrange_weight","belief");
 
 
@@ -421,7 +431,7 @@ var stats_list_3 = new ListBuffer[(Int,(Float,Float))]()
 
 
 val test_name = "coef_mult_lag"
-var loop_acc = 0;
+var algo_id_acc = 0;
 // Loop on different algo
 
 
@@ -435,7 +445,7 @@ var loop_acc = 0;
  */
 
 
-val algo_list = params_scala("algo_opt").toList
+
 algo_list.foreach{ cur_algo =>
   if(cur_algo != "seg_lagrange_weight"){
     coef_mult_list = List("110000000000","110000000","110000")
@@ -448,8 +458,8 @@ algo_list.foreach{ cur_algo =>
       params_wasure("lambda") = collection.mutable.Set(ll)
       params_wasure("coef_mult") = collection.mutable.Set(coef_mult)
       val datestring = dateFormatter.format(Calendar.getInstance().getTime());
-      val ext_name = test_name + "_" + cur_algo + "_" + loop_acc + "_ll_" + ll + "_cm_" + coef_mult + "_" + fmt.format(max_opt_it).replace(',','.') + "_" + cur_algo + "_"  + datestring;
-      loop_acc+=1;
+      val ext_name = test_name + "_" + cur_algo + "_" + algo_id_acc + "_ll_" + ll + "_cm_" + coef_mult + "_" + fmt.format(max_opt_it).replace(',','.') + "_" + cur_algo + "_"  + datestring;
+      algo_id_acc+=1;
 
       //val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
       val seg_cmd =  set_params(params_wasure, List(("step",cur_algo))).to_command_line;
@@ -493,12 +503,12 @@ algo_list.foreach{ cur_algo =>
           val rdd_ply_surface = iq.run_pipe_fun_KValue(
             ext_cmd ++ List("--label","ext_spark"  +  ext_name),
             iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
-          val ply_dir = cur_output_dir + "/ply" + ext_name + "_edges_" + loop_acc.toString
+          val ply_dir = cur_output_dir + "/ply" + ext_name + "_edges_" + algo_id_acc.toString
           ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl)
           dump_json(params_wasure,ply_dir + "/params_wasure.json",sc);
           dump_json(params_scala,ply_dir + "/params_scala.json",sc);
         }
-        wasure_algo.partition2ply(cur_output_dir, loop_acc.toString,sc);
+        wasure_algo.partition2ply(cur_output_dir, algo_id_acc.toString,sc);
       }else{
         while (acc_loop < max_opt_it) {
           val t0_loop = System.nanoTime()
@@ -520,9 +530,9 @@ algo_list.foreach{ cur_algo =>
               ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
               iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
 
-            val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_gc_" + loop_acc.toString + "_" + acc_loop_str
+            val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str
             ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
-            wasure_algo.partition2ply(cur_output_dir,loop_acc.toString,sc);
+            wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
           }
           val rdd_local_edges = iq.get_edgrdd(res_seg,"e");
           val rdd_shared_edges = iq.get_edgrdd(res_seg,"f")
@@ -537,7 +547,7 @@ algo_list.foreach{ cur_algo =>
               rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_seg
           ).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
           input_seg2.count()
-
+          res_seg.unpersist()
           // Compute the global surface and compare
           if(do_it_stats){
             val seg_cmd_full =  set_params(params_wasure, List(("step","seg_global_extract"))).to_command_line
@@ -552,14 +562,14 @@ algo_list.foreach{ cur_algo =>
             stats_3 = (stats_collect(2),stats_collect(3))
             rdd_stats.collect()
             if(acc_loop == 0){
-              val ply_dir = cur_output_dir + "/plyglob_" + ext_name + "_gc_" + loop_acc.toString + "_" + acc_loop_str + "_global3"
+              val ply_dir = cur_output_dir + "/plyglob_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str + "_global3"
               ddt_algo.saveAsPly(rdd_ply,ply_dir,plot_lvl)
-              wasure_algo.partition2ply(cur_output_dir,loop_acc.toString,sc);
+              wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
             }
           }
           val t1_loop = System.nanoTime();
           println("[it " + acc_loop_str + "]");
-          ddt_algo.update_time(params_scala,"opt_loop" + loop_acc.toString);
+          ddt_algo.update_time(params_scala,"opt_loop" + algo_id_acc.toString);
           val t1 = ( acc_loop,stats_1)
           stats_list_1 += t1;
           println("   % overlap -> " + floatFormat.format(100*stats_1._1/stats_1._2.toFloat) + "% " + stats_1 );
@@ -571,15 +581,15 @@ algo_list.foreach{ cur_algo =>
             println("   % GC      -> " + floatFormat.format(100*stats_2._1/stats_2._2.toFloat) + "% " + stats_2 );
             println("   % Energy  -> " + stats_3  );
           }
-          res_seg.unpersist()
+
           println("")
           acc_loop = acc_loop + 1;
         }
       }
       if(do_stats){
-        wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_conv_1.txt",stats_list_1,sc);
-        wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_gtdiff_2.txt",stats_list_2,sc);
-        wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_energy_2.txt",stats_list_3,sc);
+        wasure_algo.dump_it_stats(cur_output_dir + "/" + ext_name + "_stats_conv_1.csv",stats_list_1,sc);
+        wasure_algo.dump_it_stats(cur_output_dir + "/" + ext_name + "_stats_gtdiff_2.csv",stats_list_2,sc);
+        wasure_algo.dump_it_stats(cur_output_dir + "/" + ext_name + "_stats_energy_2.csv",stats_list_3,sc);
       }
       stats_list_1.clear()
       stats_list_2.clear()
@@ -587,3 +597,6 @@ algo_list.foreach{ cur_algo =>
     }
   }
 }
+ddt_algo.update_time(params_scala,"final");
+dump_json(params_scala,cur_output_dir + "/full_workflow_params.json",sc);
+System.exit(0)

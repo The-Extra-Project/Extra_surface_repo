@@ -348,9 +348,8 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	    }
 	  }
 	}
-	std::cerr << "yo2" << std::endl;	
-        // w_algo.simplify(w_datas.format_points,do_keep,0.02);
-        // std::cerr << "start tiling" << std::endl;
+	// std::cerr << "yo2" << std::endl;	
+        // w_algo.simplify(datas_map[hid],do_keep,0.02);
         // int curr_tid = 0;
         // int nb_keep = 0;
         // for(int ii = 0; ii < count ; ii++)
@@ -479,11 +478,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
       w_datas.extract_flags(w_datas.format_flags,false);
       std::cerr << "flags ok " << std::endl;
       int acc = 0;
-      for(auto ff : w_datas.format_flags){
-        std::cerr << "flags:" << ff << std::endl;
-      	if(acc++ > 50)
-      	  break;
-      }
+
 
 	
       std::cerr << "center ok" << std::endl;
@@ -781,12 +776,7 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
     Tile_iterator  tile1  = tri.get_tile(tid);
     int nbs = tile1->number_of_cells();//w_datas_tri[tid].nb_simplex_uint8_vect();
     int accll = 0;
-    for(auto pp : w_data_full.format_flags){
-      std::cerr << "formatflag :"<< pp <<  std::endl;
-      if(accll++ > 100)
-    	break;
-      // 	exit(1);
-    }
+
 
     if(w_data_full.format_flags.size() == 0){
       for(int ss = 0; ss < nbs ; ss++)
@@ -1785,7 +1775,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
 	    acc++;
         }
 
-        std::cerr << format_points.size() << std::endl;
+
 
         datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
         datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
@@ -2041,7 +2031,7 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
 	    acc++;
         }
 
-        std::cerr << format_points.size() << std::endl;
+
 
         datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
         datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
@@ -2214,7 +2204,7 @@ int extract_surface_area_old(Id tid,wasure_params & params,int nb_dat,ddt::loggi
             }
         }
 
-        std::cerr << format_points.size() << std::endl;
+
 
         datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
         datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
@@ -3046,7 +3036,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
     }
 
 
-    
+
     // Dump stats
     ddt::stream_data_header sth("s","z",tid_1);
     sth.write_header(std::cout);

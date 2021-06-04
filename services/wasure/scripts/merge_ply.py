@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('--ply_dir', default='',
                         help='give the input ply dir')
     parser.add_argument('--bbox', default='',
-                        help='give the output  dir')
+                        help='give bbox')
     parser.add_argument('--mode', default='intersect',
                         help='give the output  dir')
 

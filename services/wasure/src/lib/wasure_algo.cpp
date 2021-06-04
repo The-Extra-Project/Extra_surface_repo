@@ -1123,7 +1123,6 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   std::cerr << "print_scale:";
   for(int i = 0; i < scales.size() ; i++){
     v_scale[i] = scales[i][D-1];
-    std::cerr << v_scale[i] << " ";
   }
   std::sort(v_scale.begin(), v_scale.end());
 
