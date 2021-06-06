@@ -286,7 +286,6 @@ val ext_cmd =  set_params(params_wasure, List(("step","extract_surface"))).to_co
 val tri2geojson_wasure_cmd =  set_params(params_wasure, List(("step","tri2geojson"))).to_command_line
 val wasure_ply2geojson_cmd =  set_params(params_wasure, List(("step","ply2geojson"))).to_command_line
 
-
 // =================================================
 // ============  Parsing and init data ===========
 var kvrdd_points: RDD[KValue] = sc.parallelize(List((0L,List(""))));
@@ -300,7 +299,6 @@ var kvrdd_inputs = format_data(
   sc ,
   iq
 )
-
 
 // =========== Start of the algorithm ==============
 val t0 = System.nanoTime()
@@ -319,14 +317,12 @@ params_scala("rep_loop") = collection.mutable.Set(rep_loop.toString)
 params_scala("rep_merge") = collection.mutable.Set(rep_merge.toString)
 params_scala("dump_mode") = collection.mutable.Set("NONE")
 
-
 println("======== Dimenstionnality =============")
 val res_dim = iq.run_pipe_fun_KValue(
   dim_cmd ++ List("--label", "dim"),
   kvrdd_points, "dim", do_dump = false).persist(slvl_glob)
 val kvrdd_dim = iq.get_kvrdd(res_dim,"z");
 val kvrdd_simp = iq.get_kvrdd(res_dim,"x").reduceByKey((u,v) => u ::: v,rep_loop);
-
 
 var input_ddt = kvrdd_points;
 // If we have a simplified point cloud, do the delaunay triangulation of the simplfied point cloud
@@ -342,23 +338,24 @@ val (graph_tri,log_tri,stats_tri)  = ddt_algo.compute_ddt(
   params_scala = params_scala
 );
 
-
 val kvrdd_tri_gid = ddt_algo.update_global_ids(graph_tri.vertices,stats_tri,iq, params_ddt,sc)
-val graph_tri_gid = Graph(kvrdd_tri_gid, graph_tri.edges, defaultV)
+val graph_tri_gid = Graph(kvrdd_tri_gid, graph_tri.edges, defaultV).partitionBy(EdgePartition1D,rep_merge);
 graph_tri_gid.vertices.setName("graph_tri_gid");
 graph_tri_gid.edges.setName("graph_tri_gid");
 
-val graph_pts = Graph(kvrdd_dim.reduceByKey( (u,v) => u ::: v,rep_merge), graph_tri.edges, List(""));
+val graph_pts = Graph(kvrdd_dim.reduceByKey( (u,v) => u ::: v,rep_merge), graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);;
 graph_pts.vertices.setName("graph_pts");
 graph_pts.edges.setName("graph_pts");
 val stats_kvrdd = kvrdd_simplex_id(stats_tri,sc)
 val graph_stats = Graph(stats_kvrdd, graph_tri.edges, List(""));
-val input_dst = (graph_tri_gid.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _,rep_merge).setName("input_dst");
+//val input_dst = (graph_ tri_gid.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _,rep_merge).setName("input_dst");
+val input_dst = (graph_ tri_gid.vertices).union(graph_pts.vertices).union(graph_stats.vertices).reduceByKey(_ ::: _,rep_merge).setName("input_dst");
 input_dst.persist(slvl_glob);
-intput_dst.count()
+input_dst.count()
 res_dim.unpersist()
 graph_tri.vertices.unpersist()
 graph_tri.edges.unpersist()
+graph_pts.vertices.unpersist();
 //val input_dst = (graph_tri.vertices).union(graph_pts.vertices).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
 
 val datastruct_identity_cmd =  set_params(params_ddt, List(("step","datastruct_identity"))).to_command_line
@@ -377,7 +374,8 @@ input_dst.unpersist()
 kvrdd_points.unpersist();
 val kvrdd_dst = iq.get_kvrdd(res_dst,"t");
 val graph_dst = Graph(kvrdd_dst, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
-
+graph_dst.vertices.setName("graph_tri_gid");
+graph_dst.edges.setName("graph_tri_gid");
 
 println("============= Regularize ===============")
 // // Focal regularize
@@ -401,19 +399,11 @@ val res_regularize = iq.run_pipe_fun_KValue(
 res_regularize.count()
 res_regularize_extract.unpersist()
 
-
-
 val kvrdd_reg = iq.get_kvrdd(res_regularize,"t");
 val kvrdd_shr = iq.get_edgrdd(res_regularize,"e")
 val graph_reg = Graph(kvrdd_reg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
 graph_reg.vertices.setName("graph_reg");
 graph_reg.edges.setName("graph_reg");
-
-
-graph_pts.vertices.unpersist();
-graph_tri_gid.vertices.unpersist();
-graph_tri.vertices.unpersist();
-
 
 println("============= Optimiation ===============")
 
@@ -428,12 +418,9 @@ var stats_list_1 = new ListBuffer[(Int,(Float,Float))]()
 var stats_list_2 = new ListBuffer[(Int,(Float,Float))]()
 var stats_list_3 = new ListBuffer[(Int,(Float,Float))]()
 
-
-
 val test_name = "coef_mult_lag"
 var algo_id_acc = 0;
 // Loop on different algo
-
 
 //val coef_mult_list = List("110000000000".toLong,"110000000".toLong,"110000".toLong)
 // vcppp faot ieitii
@@ -443,8 +430,6 @@ var algo_id_acc = 0;
  val coef_mult = coef_mult_list.head
  val cur_algo = algo_list.head
  */
-
-
 
 algo_list.foreach{ cur_algo =>
   if(cur_algo != "seg_lagrange_weight"){

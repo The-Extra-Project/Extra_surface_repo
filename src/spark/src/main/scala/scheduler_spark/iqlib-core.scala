@@ -264,7 +264,7 @@ class IQlibSched(
     aggregate_edge(graph).mapValues(ee => ee.attr);
   }
 
-  def aggregate_value_clique(graph: TGraph, deg: Int): RDD[KValue] = {
+  def aggregate_value_clique(graph: TGraph, deg: Int,rep_value : Int): RDD[KValue] = {
 
 
     def msgFunTvertIni(triplet: EdgeContext[Value, Value, Value]) {
@@ -276,7 +276,7 @@ class IQlibSched(
     val res1: VertexRDD[Value] = graph.aggregateMessages[Value](msgFunTvertIni, reduceFunTvertIni)
     deg match {
       case 0 => graph.vertices.setName("aggregated")
-      case _ => graph.vertices.union(res1).reduceByKey(_ ::: _).setName("aggregated")
+      case _ => graph.vertices.union(res1).reduceByKey(_ ::: _, rep_value).setName("aggregated")
     }
   }
 
