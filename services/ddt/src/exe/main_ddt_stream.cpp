@@ -2005,6 +2005,234 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
   return 0;
 }
 
+
+// ========================= Data tiling section ============================
+// tile ply
+int tile_ply_2(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
+{
+
+  std::cout.setstate(std::ios_base::failbit);
+  int D = Traits::D;
+  Id ND = params.nbt_side;
+  Id NP = params.nbp;
+  Id NT = pow(ND,D);
+  double range = 1000.;
+
+
+  ddt::Bbox<Traits::D> bbox;
+  std::stringstream ss;
+  ss << params.bbox_string;
+  ss >> bbox;
+  Grid_partitioner part(bbox, ND);
+  std::cerr << "read : " << std::endl;
+  log.step("read");
+  std::map<Id,ddt_data<Traits> > datas_map;
+  std::map<Id,ddt_data<Traits> > datas_map_crown;
+  std::map<Id,std::vector<Point> > vp_map;
+  Traits traits;
+
+  double eps_side[Traits::D];
+  for(int d = 0; d > D; d++)
+    eps_side[d] = ((bbox.max(d) - bbox.min(d))/params.nbt_side)*0.1;
+  
+  bool do_debug = true;
+  for(int i = 0; i < nb_dat; i++)
+    {
+      std::vector<Point> vp_in;    
+      ddt::stream_data_header hpi;
+
+      int count;
+      hpi.parse_header(std::cin);
+      Id hid = hpi.get_id(0);
+      //datas_map[hid].dmap[datas_map[hid].xyz_name] = ddt_data<Traits>::Data_ply(datas_map[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+      //      ddt_data<Traits> & w_datas = datas_map[hid];
+      ddt_data<Traits>  w_datas;// = ddt_data<Traits>::Data_ply(datas_map[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+      if(hpi.get_lab() == "p")
+      	{
+      	  w_datas.read_ply_stream(hpi.get_input_stream());
+      	  count = w_datas.nb_pts_shpt_vect();
+	  w_datas.dmap[w_datas.xyz_name].extract_full_shpt_vect(vp_in,false);
+	  w_datas.shpt2uint8();
+      	}
+      // if(hpi.get_lab() == "g")
+      // 	{
+      // 	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+      // 	  count = w_datas.nb_pts_shpt_vect();
+      // 	}
+
+      if(hpi.get_lab() == "z" )
+	{
+	  //	  ddt::read_point_set_serialized(vp_in, hpi.get_input_stream(),traits);
+	  std::cerr << " ======= read serialized ====== " << std::endl;
+	  std::cerr << "extract" << std::endl;
+	  //	  w_datas.extract_ptsvect(w_datas.xyz_name,vp_in,false);
+
+	  w_datas.read_serialized_stream(hpi.get_input_stream());
+	  w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(vp_in,false);
+	  std::cerr << "done" << std::endl;
+	  count = vp_in.size();
+	  std::cerr << "==== count:" << count << std::endl;
+
+	}
+      
+
+      hpi.finalize();
+      std::cerr << "hpi finalized" << std::endl;
+      std::cerr << "start tiling" << std::endl;
+
+      for(; count != 0; --count)
+	{
+	  Point  p;
+	  if(vp_in.size() > 0)
+	    p = vp_in[count];
+	  else
+	    p = w_datas.get_pts(count);
+
+	  bool is_out = false;
+	  for(int d = 0; d < D; d++)
+	    {
+	      if(p[d] < bbox.min(d) || p[d] > bbox.max(d))
+		is_out = true;
+	    }
+	  if(is_out)
+	    continue;
+	  
+	  Id pp = part(p);
+	  Id id = Id(pp % NT);
+
+	  
+	  
+
+	  if(false){
+	    std::vector<double> coords(Traits::D);
+	    for(int d = 0 ; d < D; d++){
+	      double range = bbox.max(d) - bbox.min(d);
+	      coords[d] = p[d];
+	    }
+	    vp_map[id].emplace_back(traits.make_point(coords.begin()));
+	  }else{
+	    auto it = datas_map.find(id);
+	    
+	    if(it==datas_map.end())
+	      {
+		datas_map[id] = ddt_data<Traits>(w_datas.dmap);
+	      }
+	    datas_map[id].copy_point(w_datas,count);
+
+
+	    // Adding crown
+	    std::vector<double> coords1(Traits::D);
+	    std::vector<double> coords2(Traits::D);
+	    for(int d1 = 0; d1 < D; d1++){
+	      for(int d2 = 0 ; d2 < D; d2++)
+		coords1[d2] = coords2[d2] = 0;
+	      for(int d2 = 0 ; d2 < D; d2++){
+		if(d1 != d2)
+		  coords1[d2] = coords2[d2] = p[d2];
+		else{
+		  coords1[d2] = p[d2] + eps_side[d2];
+		  coords2[d2] = p[d2] - eps_side[d2];
+		}
+	      }
+	      auto np1 = traits.make_point(coords1.begin());
+	      auto np2 = traits.make_point(coords2.begin());
+
+	      Id pp1 = part(np1);
+	      Id id1 = Id(pp1 % NT);
+	      Id pp2 = part(np2);
+	      Id id2 = Id(pp2 % NT);
+	      if(id1 != id){
+		auto it1 = datas_map_crown.find(id1);
+		if(it1==datas_map_crown.end())
+		  datas_map_crown[id1] = ddt_data<Traits>(w_datas.dmap);
+		datas_map_crown[id1].copy_point(w_datas,count);
+	      }
+	      if(id2 != id){
+		auto it2 = datas_map_crown.find(id2);
+		if(it2==datas_map_crown.end())
+		  datas_map_crown[id2] = ddt_data<Traits>(w_datas.dmap);
+		datas_map_crown[id2].copy_point(w_datas,count);
+	      }
+	    }
+
+	    
+	  }
+	}
+    }
+  std::cout.clear();
+  std::cerr << "count finalized" << std::endl;
+
+  log.step("write");
+  if(false){
+
+    for ( const auto &myPair : vp_map ) {
+      Id id = myPair.first;
+      std::vector<Point> & vp = vp_map[id];
+      int nb_out = vp.size();
+      std::cerr << "vp : NBOUT:" << nb_out << std::endl;
+      if(nb_out < params.min_ppt){
+	std::cerr <<  " === !!!!! WARNING !!!! === "  << std::endl;
+	std::cerr <<  "skiping tile : " << id << std::endl;
+	continue;
+      }
+
+      ddt::stream_data_header oqh("z","z",id),och("c","s",id);
+      oqh.write_header(std::cout);
+      ddt_data<Traits> w_datas;
+      w_datas.dmap[w_datas.xyz_name].fill_full_uint8_vect(vp);
+      w_datas.write_serialized_stream(oqh.get_output_stream());
+      //ddt::write_point_set_serialized(vp,oqh.get_output_stream(),D);
+      oqh.finalize();
+      std::cout << std::endl;
+      och.write_header(std::cout);
+      och.get_output_stream() << nb_out;
+      och.finalize();
+      std::cout << std::endl;
+    }
+    
+  }else{
+    std::cerr << "ddddmappp" << std::endl;
+    for ( const auto &myPair : datas_map )
+      {
+	Id id = myPair.first;
+	int nb_out = datas_map[id].nb_pts_uint8_vect ();
+	std::cerr << "id: " << id << "nbout:" << nb_out << std::endl;
+	if(nb_out < params.min_ppt)
+	  {
+	    continue;
+	  }
+
+	ddt::stream_data_header oqh("z","z",id),och("c","z",id);
+	std::string filename(params.output_dir + "/tile_" + params.slabel +"_id_"+ std::to_string(tid) + "_" + std::to_string(id));
+	if(params.dump_ply)
+	   oqh.write_into_file(filename,".ply");
+	oqh.write_header(std::cout);
+
+	//datas_out.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
+
+	if(false){
+	  datas_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
+	}else{
+	
+	  if(params.dump_ply)
+	    datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n');
+	  else
+	    datas_map[id].write_serialized_stream(oqh.get_output_stream());
+
+	  oqh.finalize();
+	  std::cout << std::endl;
+	  och.write_header(std::cout);
+	  och.get_output_stream() << nb_out;
+	}
+	och.finalize();
+
+	std::cout << std::endl;
+      }
+  }
+  return 0;
+}
+
+
 // OK
 int dump_ply_binary(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 {
@@ -2142,7 +2370,7 @@ int main(int argc, char **argv)
 		  std::cerr << "ERROR, no bbox " << std::endl;
 		  return 1;
 		}
-	      rv = tile_ply(tile_id,params,nb_dat,log);
+	      rv = tile_ply_2(tile_id,params,nb_dat,log);
 	      do_dump_log = false;
 	    }
 	  else if(params.algo_step == std::string("ply2geojson"))

@@ -339,32 +339,33 @@ val (graph_tri,log_tri,stats_tri)  = ddt_algo.compute_ddt(
   params_scala = params_scala
 );
 
+graph_tri.vertices.setName("graph_tri");
+graph_tri.edges.setName("graph_tri");
+
 val kvrdd_tri_gid = ddt_algo.update_global_ids(graph_tri.vertices,stats_tri,iq, params_ddt,sc)
 val graph_tri_gid = Graph(kvrdd_tri_gid, graph_tri.edges, defaultV).partitionBy(EdgePartition1D,rep_merge);
 graph_tri_gid.vertices.setName("graph_tri_gid");
 graph_tri_gid.edges.setName("graph_tri_gid");
 
-// Use grpah only if aggregate value 
-// val graph_pts = Graph(kvrdd_dim.reduceByKey( (u,v) => u ::: v,rep_merge), graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);;
-// graph_pts.vertices.setName("graph_pts");
-// graph_pts.edges.setName("graph_pts");
-
+val graph_pts = Graph(kvrdd_dim.reduceByKey( (u,v) => u ::: v,rep_merge), graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);;
+graph_pts.vertices.setName("graph_pts");
+graph_pts.edges.setName("graph_pts");
 val stats_kvrdd = kvrdd_simplex_id(stats_tri,sc)
 val graph_stats = Graph(stats_kvrdd, graph_tri.edges, List(""));
-//val input_dst = (graph_tri_gid.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _,rep_merge).setName("input_dst");
-val input_dst = (graph_tri_gid.vertices).union(kvrdd_dim).union(graph_stats.vertices).reduceByKey(_ ::: _,rep_merge).setName("input_dst");
+val input_dst = (graph_tri_gid.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _,rep_merge).setName("input_dst");
+//val input_dst = (graph_ tri_gid.vertices).union(graph_pts.vertices).union(graph_stats.vertices).reduceByKey(_ ::: _,rep_merge).setName("input_dst");
 input_dst.persist(slvl_glob);
 input_dst.count()
 res_dim.unpersist()
 graph_tri.vertices.unpersist()
 graph_tri.edges.unpersist()
-//graph_pts.vertices.unpersist();
+graph_pts.vertices.unpersist();
 //val input_dst = (graph_tri.vertices).union(graph_pts.vertices).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
 
-// val datastruct_identity_cmd =  set_params(params_ddt, List(("step","datastruct_identity"))).to_command_line
-// val struct_inputs_id = iq.run_pipe_fun_KValue(
-//   datastruct_identity_cmd ++ List("--label", "struct"),
-//   graph_pts.vertices, "struct", do_dump = false)
+val datastruct_identity_cmd =  set_params(params_ddt, List(("step","datastruct_identity"))).to_command_line
+val struct_inputs_id = iq.run_pipe_fun_KValue(
+  datastruct_identity_cmd ++ List("--label", "struct"),
+  graph_pts.vertices, "struct", do_dump = false)
 
 
 println("============= Simplex score computation ===============")
@@ -376,9 +377,9 @@ res_dst.count
 input_dst.unpersist()
 kvrdd_points.unpersist();
 val kvrdd_dst = iq.get_kvrdd(res_dst,"t");
-// val graph_dst = Graph(kvrdd_dst, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
-// graph_dst.vertices.setName("graph_tri_gid");
-// graph_dst.edges.setName("graph_tri_gid");
+val graph_dst = Graph(kvrdd_dst, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
+graph_dst.vertices.setName("graph_tri_gid");
+graph_dst.edges.setName("graph_tri_gid");
 
 println("============= Regularize ===============")
 // // Focal regularize

@@ -14,7 +14,7 @@
 class wasure_params
 {
 public :
-  wasure_params() : verbose_flag(0),nbp(0),log_level(2),show_ghost(false),dump_ply(false),area_processed(0),coef_mult(1),dst_scale(-1),
+  wasure_params() : verbose_flag(0),nbp(0),log_level(2),nbt_side(-1),dump_ply(false),area_processed(0),coef_mult(1),dst_scale(-1),
 		    input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),slabel(std::string("")),mode("surface"),rat_ray_sample(0.5),pscale(1),nb_samples(1),lambda(1),nb_labs(2),graph_type(0),tau(0.5),skip_app_header(false)
     {
 
@@ -25,7 +25,7 @@ public :
   bool show_ghost,skip_app_header,dump_ply,process_only_shared;
   double lambda,terr,rat_ray_sample,rat_extra_pts,min_scale,pscale,coef_mult,tau,dst_scale;
     int nb_samples,max_it,nb_labs,nb_threads;
-    int center_type,tile_id;
+  int center_type,tile_id,nbt_side;
   bool use_weight = true;
   bool dump_debug  = false;
 
@@ -57,40 +57,39 @@ public :
         int cc;
         int errflg = 2;
         static struct option long_options[] =
-        {
-            // /* These options set a flag. */
-            {"step",  required_argument, 0, 's'},
-            {"nbp",  required_argument, 0, 'n'},
-	    {"filename",  required_argument, 0, 'o'},
-            {"graph_type",  required_argument, 0, 'i'},
-            {"seed",  required_argument, 0, 'a'},
-            {"input_dir",  required_argument, 0, 'r'},
-            {"mode",  required_argument, 0, 'm'},
-            {"output_dir",  required_argument, 0, 'w'},
-            {"label",  required_argument, 0, 'l'},
-            {"lambda",  required_argument, 0, 'c'},
-            {"coef_mult",  required_argument, 0, 'k'},
-            {"rat_ray_sample",  required_argument, 0, 'u'},
-	    {"dst_scale", required_argument, 0, 't'},
-            {"bbox",  required_argument, 0, 'b'},
-            {"dim",  required_argument, 0, 'd'},
-            {"nb_samples",  required_argument, 0, 'j'},
-            {"area_processed",  required_argument, 0, 'p'},
-            {"pscale", required_argument,0, 'f'},
-
-            {"show_ghost", no_argument,0, 'g'},
-	    {"dump_debug",  no_argument, 0, 'q'},
-            {"skip_app_header", no_argument,0, 'e'},
-            {"dump_ply", no_argument,0, 'x'},
-            {"verbose", no_argument, &verbose_flag, 1},
-            {"help",  no_argument, 0, 'h'},
-            {0, 0, 0, 0}
-        };
+	  {
+	   // /* These options set a flag. */
+	   {"seed",  required_argument, 0, 'a'},
+	   {"bbox",  required_argument, 0, 'b'},
+	   {"lambda",  required_argument, 0, 'c'},
+	   {"dim",  required_argument, 0, 'd'},
+	   {"skip_app_header", no_argument,0, 'e'},
+	   {"pscale", required_argument,0, 'f'},
+	   {"step",  required_argument, 0, 's'},
+	   {"nbp",  required_argument, 0, 'n'},
+	   {"filename",  required_argument, 0, 'o'},
+	   {"graph_type",  required_argument, 0, 'i'},
+	   {"input_dir",  required_argument, 0, 'r'},
+	   {"mode",  required_argument, 0, 'm'},
+	   {"output_dir",  required_argument, 0, 'w'},
+	   {"label",  required_argument, 0, 'l'},
+	   {"coef_mult",  required_argument, 0, 'k'},
+	   {"rat_ray_sample",  required_argument, 0, 'u'},
+	   {"dst_scale", required_argument, 0, 't'},
+	   {"nb_samples",  required_argument, 0, 'j'},
+	   {"area_processed",  required_argument, 0, 'p'},
+	   {"nbt_side", required_argument ,0, 'g'},
+	   {"dump_debug",  no_argument, 0, 'q'},
+	   {"dump_ply", no_argument,0, 'x'},
+	   {"verbose", no_argument, &verbose_flag, 1},
+	   {"help",  no_argument, 0, 'h'},
+	   {0, 0, 0, 0}
+	  };
 
 
         int option_index = 0;
 
-        while ((cc = getopt_long(argc, argv, "s:a:c:k:n:i:d:u:m:o:f:j:l:b:p:r:w:t:gqexh",long_options,&option_index)) != -1)
+        while ((cc = getopt_long(argc, argv, "s:a:c:k:n:i:d:u:m:o:f:j:l:b:p:r:w:t:g:qexh",long_options,&option_index)) != -1)
         {
             switch (cc)
             {
@@ -156,7 +155,7 @@ public :
                 nb_samples = atoi(optarg);
                 break;
             case 'g':
-                show_ghost=true;
+                nbt_side = atoi(optarg);
                 break;
             case 'e':
                 skip_app_header=true;

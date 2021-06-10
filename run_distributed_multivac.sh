@@ -33,7 +33,7 @@ function run_algo_multivac
     echo "	--num-executors ${MULTIVAC_NUM_EXECUTORS} "
     echo "	--conf spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}"
     echo "	--conf spark.default.parallelism=${DEFAULT_PARALLELISM}"
-     echo "	--conf spark.serializer=org.apache.spark.serializer.KryoSerializer"  
+    echo "	--conf spark.serializer=org.apache.spark.serializer.KryoSerializer"  
     echo "	--conf spark.dynamicAllocation.enabled=false "
     echo "	--conf spark.cleaner.periodicGC.interval=2min "
     echo "	--conf spark.memory.fraction=0.2 "
@@ -42,7 +42,7 @@ function run_algo_multivac
     export CURRENT_PLATEFORM="multivac"
     echo "cur plateform ==> $CURRENT_PLATEFORM"
 	#    spark-shell -i  ${FILE_SCRIPT}\
-	    spark-shell  -i  ${FILE_SCRIPT} --master yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --executor-cores ${MULTIVAC_EXECUTOR_CORE} 	--executor-memory ${MULTIVAC_EXECUTOR_MEMORY} --driver-memory ${MULTIVAC_DRIVER_MEMORY} --num-executors ${MULTIVAC_NUM_EXECUTORS} --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}" --conf "spark.serializer=org.apache.spark.serializer.KryoSerializer"  --conf "spark.dynamicAllocation.enabled=false" --conf "spark.cleaner.periodicGC.interval=2min" --conf "spark.memory.fraction=0.2" --conf "spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps" 
+	    spark-shell  --master yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --executor-cores ${MULTIVAC_EXECUTOR_CORE} 	--executor-memory ${MULTIVAC_EXECUTOR_MEMORY} --driver-memory ${MULTIVAC_DRIVER_MEMORY} --num-executors ${MULTIVAC_NUM_EXECUTORS} --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}" --conf "spark.serializer=org.apache.spark.serializer.KryoSerializer"  --conf "spark.dynamicAllocation.enabled=false" --conf "spark.cleaner.periodicGC.interval=2min" --conf "spark.memory.fraction=0.2" --conf "spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps" 
 
 		#--conf "spark.default.parallelism=${DEFAULT_PARALLELISM}" \
                 #--conf "yarn.nodemanager.pmem-check-enabled=false" \
@@ -113,7 +113,7 @@ function run_multivac_full
 
 function run_multivac_full_v2
 {
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic_v3.scala"
     export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/toulouse_v2_pp/"
     export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/toulouse_v2_pp/"
     export PARAM_PATH="${INPUT_DATA_DIR}/wasure_metadata_3d.xml"    

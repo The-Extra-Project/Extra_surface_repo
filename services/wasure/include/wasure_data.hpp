@@ -8,7 +8,7 @@
 
 using namespace tinyply;
 
-
+typedef typename ddt_data<Traits>::Data_ply Data_ply;
 template<typename Traits>
 class wasure_data : public ddt_data<Traits>
 {
@@ -23,17 +23,25 @@ public :
         init_wasure_map();
     }
 
+  wasure_data<Traits>(std::map<std::vector<std::string>, Data_ply > & init_dmap)  {
+    init_name();
+    for ( const auto &ee : init_dmap ) {
+      ddt_data<Traits>::dmap[ee.first] =  Data_ply(ee.first,ee.second.part,Traits::D,ee.second.get_vsize(),ee.second.type);	    
+    }
+  }
+
+  
 
     void init_wasure_map()
     {
         int D = Traits::D;
-        ddt_data<Traits>::dmap[center_name] = typename ddt_data<Traits>::Data_ply(center_name,"vertex",D,D,DATA_FLOAT_TYPE);
-        ddt_data<Traits>::dmap[egv_name] = typename ddt_data<Traits>::Data_ply(egv_name,"vertex",D*D,D*D,DATA_FLOAT_TYPE);
-	ddt_data<Traits>::dmap[flags_name] = typename ddt_data<Traits>::Data_ply(flags_name,"vertex",1,1,tinyply::Type::INT32);
-        ddt_data<Traits>::dmap[dst_name] = typename ddt_data<Traits>::Data_ply(dst_name,"face",3,3,DATA_FLOAT_TYPE);
-        ddt_data<Traits>::dmap[labseg_name] = typename ddt_data<Traits>::Data_ply(labseg_name,"face",1,1,tinyply::Type::INT32);
-        ddt_data<Traits>::dmap[gid_name] = typename ddt_data<Traits>::Data_ply(gid_name,"face",1,1,tinyply::Type::INT32);       
-        ddt_data<Traits>::dmap[sig_name] = typename ddt_data<Traits>::Data_ply(sig_name,"vertex",D,D,DATA_FLOAT_TYPE);
+        ddt_data<Traits>::dmap[center_name] = Data_ply(center_name,"vertex",D,D,DATA_FLOAT_TYPE);
+        ddt_data<Traits>::dmap[egv_name] = Data_ply(egv_name,"vertex",D*D,D*D,DATA_FLOAT_TYPE);
+	ddt_data<Traits>::dmap[flags_name] = Data_ply(flags_name,"vertex",1,1,tinyply::Type::INT32);
+        ddt_data<Traits>::dmap[dst_name] = Data_ply(dst_name,"face",3,3,DATA_FLOAT_TYPE);
+        ddt_data<Traits>::dmap[labseg_name] = Data_ply(labseg_name,"face",1,1,tinyply::Type::INT32);
+        ddt_data<Traits>::dmap[gid_name] = Data_ply(gid_name,"face",1,1,tinyply::Type::INT32);       
+        ddt_data<Traits>::dmap[sig_name] = Data_ply(sig_name,"vertex",D,D,DATA_FLOAT_TYPE);
     }
 
 
@@ -333,7 +341,7 @@ public :
     void fill_egv(std::vector<std::vector<Point> > & format_egv, bool do_clear = true)
     {
         int D = Traits::D;
-        //ddt_data<Traits>::dmap[egv_name] = typename ddt_data<Traits>::Data_ply(egv_name,"vertex",D*D,D*D,DATA_FLOAT_TYPE);
+        //ddt_data<Traits>::dmap[egv_name] = Data_ply(egv_name,"vertex",D*D,D*D,DATA_FLOAT_TYPE);
         std::vector<double> raw_egv;
 
         for(int i = 0 ; i < format_egv.size(); i++)
@@ -389,7 +397,7 @@ public :
     void fill_sigs(std::vector<std::vector<double>>  & format_sigs, bool do_clear = true)
     {
         int D = Traits::D;
-	//        ddt_data<Traits>::dmap[sig_name] = typename ddt_data<Traits>::Data_ply(sig_name,"vertex",D,D,DATA_FLOAT_TYPE);
+	//        ddt_data<Traits>::dmap[sig_name] = Data_ply(sig_name,"vertex",D,D,DATA_FLOAT_TYPE);
 	//ddt_data<Traits>::Data_ply(sig_name,"vertex",D,D,DATA_FLOAT_TYPE);
         std::vector<double> raw_sigs;
         for(int i = 0 ; i < format_sigs.size(); i++)
@@ -457,7 +465,7 @@ public :
     {
         std::cerr << "ii1" << std::endl;
         int D = Traits::D;
-        ddt_data<Traits>::dmap[dst_name] = typename ddt_data<Traits>::Data_ply(dst_name,"face",3,3,DATA_FLOAT_TYPE);
+        ddt_data<Traits>::dmap[dst_name] = Data_ply(dst_name,"face",3,3,DATA_FLOAT_TYPE);
         std::vector<double> raw_dst;
         std::cerr << "ii2 : " << format_dst.size() << std::endl;
         for(int i = 0 ; i < format_dst.size(); i++)
@@ -483,7 +491,7 @@ public :
 
     void fill_labs(std::vector<int> & format_labs,bool do_clear = true)
     {
-        ddt_data<Traits>::dmap[labseg_name] = typename ddt_data<Traits>::Data_ply(labseg_name,"face",1,1,tinyply::Type::INT32);
+        ddt_data<Traits>::dmap[labseg_name] = Data_ply(labseg_name,"face",1,1,tinyply::Type::INT32);
         std::vector<int> raw_labs;
         for(int i = 0 ; i < format_labs.size(); i++)
         {
@@ -518,7 +526,7 @@ public :
 
     //   void fill_flags(std::vector<int> & format_flags,bool do_clear = true)
     // {
-    //     ddt_data<Traits>::dmap[flags_name] = typename ddt_data<Traits>::Data_ply(flags_name,"face",1,1,tinyply::Type::INT32);
+    //     ddt_data<Traits>::dmap[flags_name] = Data_ply(flags_name,"face",1,1,tinyply::Type::INT32);
     //     std::vector<int> raw_flags;
     //     for(int i = 0 ; i < format_flags.size(); i++)
     //     {

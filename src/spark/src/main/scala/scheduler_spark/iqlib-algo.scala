@@ -74,13 +74,13 @@ object ddt_algo {
 
 
 
-  def update_global_ids(kvrdd_finalized_tri : RDD[KValue],kvrdd_stats : RDD[KValue],iq : IQlibSched , params_cpp : params_map, sc : SparkContext) : RDD[KValue] = {
+  def update_global_ids(kvrdd_finalized_tri : RDD[KValue],kvrdd_stats : RDD[KValue],rep_merge : Int,iq : IQlibSched , params_cpp : params_map, sc : SparkContext) : RDD[KValue] = {
 
     val stats_cum = kvrdd_simplex_id(kvrdd_stats,sc);
     val update_global_id_cmd =  set_params(params_cpp, List(("step","update_global_id"))).to_command_line
     val res_tri_gid = iq.run_pipe_fun_KValue(
       update_global_id_cmd,
-      (kvrdd_finalized_tri union stats_cum).reduceByKey(_ ::: _), "ext_gr", do_dump = false).filter(!_.isEmpty())
+      (kvrdd_finalized_tri union stats_cum).reduceByKey(_ ::: _,rep_merge), "ext_gr", do_dump = false).filter(!_.isEmpty())
     val kvrdd_gid_tri = iq.get_kvrdd(res_tri_gid)
     return kvrdd_gid_tri;
   }
@@ -465,9 +465,118 @@ object ddt_algo {
     }
 
     val final_graph = Graph(kvrdd_finalized_tri, kvrdd_finalized_edges, defaultV)
-    final_graph.vertices.setName("graph_pts");
-    final_graph.edges.setName("graph_pts");
+    final_graph.vertices.setName("graph_final_tri");
+    final_graph.edges.setName("graph_");
     return (final_graph,kvrdd_log_list,kvrdd_stats)
+  }
+
+
+
+
+    def compute_ddt_nograph(kvrdd_points: RDD[KValue], iq : IQlibSched , params_cpp : params_map, params_scala : params_map): (RDD[KValue],RDD[TEdge],ListBuffer[RDD[KValue]],RDD[KValue])  = {
+
+    val dim_algo = params_scala("dim").head
+    val rep_loop = params_scala("rep_loop").head.toInt;
+    val rep_merge = params_scala("rep_merge").head.toInt;
+    val plot_lvl = params_scala("plot_lvl").head.toInt;
+    val dump_mode = params_scala("dump_mode").head;
+    val output_dir = params_scala("output_dir").head;
+
+    // C++ function
+    val insert_in_triangulation_fun = set_params(params_cpp,List(("step","insert_in_triangulation"))).to_command_line
+    val ply2geojson_fun =  set_params(params_cpp, List(("step","ply2geojson"))).to_command_line
+    val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
+
+
+    // Algo variables
+    // Olg log system
+    val kvrdd_log_list : ListBuffer[RDD[KValue]] = ListBuffer()
+
+
+    //==== Starts algo ==========
+    kvrdd_points.count
+    val res_tri_local = iq.run_pipe_fun_KValue(
+      insert_in_triangulation_fun ++ List("--label", "tri_tile","--extract_tri_crown",""),
+      kvrdd_points, "insert_in_triangulation", do_dump = false)
+
+
+    res_tri_local.persist(iq.get_storage_level()).setName("KVRDD_RES_TRI_LOCAL")
+    res_tri_local.count
+    update_time(params_scala,"local");
+
+    val kvrdd_pts_crown : RDD[KValue] = iq.get_kvrdd(res_tri_local, "z",txt = "tri_crown").setName("tri_crown")
+    val kvrdd_pts_finalized : RDD[KValue] = iq.get_kvrdd(res_tri_local, "r",txt = "pts_finalized").setName("pts_finalized")
+    kvrdd_pts_crown.coalesce(rep_loop).persist(iq.get_storage_level_loop())
+    val rdd_finalized_ply_local : RDD[VData] = iq.filter_rdd(res_tri_local, "p",txt = "finalized").setName("tri_full")
+    rdd_finalized_ply_local.persist(iq.get_storage_level())
+    val kvrdd_bbox : RDD[KValue] = iq.get_kvrdd(res_tri_local, "q",txt = "tri_full").setName("bbox")
+    val kvrdd_count : RDD[KValue] = iq.get_kvrdd(res_tri_local, "c",txt="stats");
+
+
+    val ll_bbox_pts = kvrdd_bbox.map(x => x.value).reduce(_ ++ _)
+    val llrdd_input_tri = kvrdd_pts_crown.map(x => (x.key, (x.value ++ ll_bbox_pts)))
+    val res_tri_bbox = iq.run_pipe_fun_KValue(
+      insert_in_triangulation_fun ++ List("--extract_edg_nbrs","","--label", "tri_bbox"),
+      llrdd_input_tri, "insert_in_triangulation_bbox", do_dump = false).persist(iq.get_storage_level_loop())
+    res_tri_bbox.count
+    update_time(params_scala,"bbox");
+
+
+    // ============= DO LOOP ==============
+    var kvrdd_cur_tri  : RDD[KValue] = iq.get_kvrdd(res_tri_bbox, "t",txt = "tri_bbox")
+    var rdd_cur_edges = iq.get_edgrdd(res_tri_bbox, "e");
+    val defaultV = (List(""));
+    val (kvrdd_last_tri,kvrdd_last_edges,kvrdd_finalized_ply_list) = {
+        algo_loop(kvrdd_cur_tri,rdd_cur_edges,iq, params_cpp,params_scala);
+    }
+
+    var kvrdd_finalized_tri = kvrdd_last_tri;
+    var kvrdd_stats = kvrdd_last_tri;
+
+    // Insert finalized point into global triangulation (non optimal)
+    var kvrdd_b4_union =  kvrdd_last_tri; 
+    if(dump_mode == "NONE"){
+      kvrdd_b4_union =  (kvrdd_last_tri union kvrdd_pts_finalized).reduceByKey((u,v) => u ::: v)
+    }
+    val res_finalized_tri = iq.run_pipe_fun_KValue(
+      insert_in_triangulation_fun ++ List(
+        "--finalize_tri","",
+        "--send_empty_edges","",
+        "--extract_edg_nbrs","",
+        "--label", "ftri"),
+      kvrdd_b4_union , "merge", do_dump = false);
+    val rdd_finalized_ply_crown : RDD[VData] = iq.filter_rdd(res_finalized_tri, "p",txt = "finalized").setName("tri_full")
+    kvrdd_finalized_tri = iq.get_kvrdd(res_finalized_tri, "t",txt = "merged_tri")
+    kvrdd_stats = iq.get_kvrdd(res_finalized_tri, "s",txt="stats").cache()
+    val kvrdd_finalized_edges =  iq.get_edgrdd(res_finalized_tri, "e");
+    kvrdd_stats.count();
+
+    update_time(params_scala,"ddtdone");
+
+    // Ploting section
+    if(plot_lvl >=2 && dim_algo.toInt == 2){
+      val rdd_json_merged_tri = iq.run_pipe_fun_KValue(
+        tri2geojson_cmd ++ List("--label", "res_merged_tri","--style","tri_main.qml"),
+        kvrdd_finalized_tri, "res_merged_tri", do_dump = false)
+      rdd_json_merged_tri.collect()
+      update_time(params_scala,"plotingdone");
+    }
+
+    // Dumping section
+    if(dump_mode != "NONE"){
+      saveAsPly(rdd_finalized_ply_crown,output_dir + "/rdd_ply_finalized_last",plot_lvl)
+      kvrdd_last_tri.unpersist();
+      update_time(params_scala,"shareddumped");
+      if(true)
+        saveAsPly(rdd_finalized_ply_local,output_dir + "/rdd_ply_finalized_init",plot_lvl)
+      update_time(params_scala,"localdumped");
+      update_time(params_scala,"W:Dumpingdone");
+    }
+
+    // val final_graph = Graph(kvrdd_finalized_tri, kvrdd_finalized_edges, defaultV)
+    // final_graph.vertices.setName("graph_final_tri");
+    // final_graph.edges.setName("graph_");
+    return (kvrdd_finalized_tri, kvrdd_finalized_edges,kvrdd_log_list,kvrdd_stats)
   }
 
 
