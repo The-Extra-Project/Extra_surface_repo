@@ -2017,7 +2017,7 @@ int tile_ply_2(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   Id NP = params.nbp;
   Id NT = pow(ND,D);
   double range = 1000.;
-
+  double ech_input = params.ech_input;
 
   ddt::Bbox<Traits::D> bbox;
   std::stringstream ss;

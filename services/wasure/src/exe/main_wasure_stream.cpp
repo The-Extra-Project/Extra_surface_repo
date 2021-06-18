@@ -208,6 +208,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
     int D = Traits::D;
     int max_ppt = 200000;
     std::map<Id,wasure_data<Traits> > datas_map;
+
     std::map<Id,std::string > fname_map;
 
     ddt::Bbox<Traits::D> full_bbox;
@@ -348,26 +349,26 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	    }
 	  }
 	}
-	// std::cerr << "yo2" << std::endl;	
-        // w_algo.simplify(datas_map[hid],do_keep,0.02);
-        // int curr_tid = 0;
-        // int nb_keep = 0;
-        // for(int ii = 0; ii < count ; ii++)
-        // {
-        //     if(do_keep[ii])
-        //     {
-        //         Id id = Id(nb_keep/max_ppt);
-        //         auto it = datas_map.find(id);
-        //         if(it==datas_map.end())
-        //         {
-        //             datas_map[id] = ddt_data<Traits>(w_datas.dmap);
-        //         }
-        //         datas_map[id].copy_attribute(w_datas,ii,std::string("x"));
-        //         datas_map[id].copy_attribute(w_datas,ii,std::string("x_origin"));
-        //         nb_keep++;
-        //     }
+	std::cerr << "yo2" << std::endl;	
+        w_algo.simplify(datas_map[hid],do_keep,0.02);
+        int curr_tid = 0;
+        int nb_keep = 0;
+        for(int ii = 0; ii < count ; ii++)
+        {
+            if(do_keep[ii])
+            {
+                Id id = Id(nb_keep/max_ppt);
+                auto it = datas_map.find(id);
+                if(it==datas_map.end())
+                {
+                    datas_map[id] = ddt_data<Traits>(w_datas.dmap);
+                }
+                datas_map[id].copy_attribute(w_datas,ii,std::string("x"));
+                datas_map[id].copy_attribute(w_datas,ii,std::string("x_origin"));
+                nb_keep++;
+            }
 
-        // }
+        }
 
     }
 
@@ -392,7 +393,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	  oqh.finalize();
 	  std::cout << std::endl;
 	}
-	if(true){
+	if(false){
 	  ddt::stream_data_header oqh("p","f",id);
 	  std::string filename(params.output_dir + "/" + fname_map[id]);
 	  oqh.write_into_file(filename,"_visu.ply");
@@ -402,12 +403,12 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	  std::cout << std::endl;
 	}
     }
-    	// Dump stats
-	ddt::stream_data_header sth("s","z",0);
-	sth.write_header(std::cout); 
-	std::cout <<  full_bbox << " " << full_nbp;
-	sth.finalize();
-	std::cout << std::endl;
+    // Dump stats
+    ddt::stream_data_header sth("s","z",0);
+    sth.write_header(std::cout); 
+    std::cout <<  full_bbox << " " << full_nbp;
+    sth.finalize();
+    std::cout << std::endl;
 
 
     return 0;

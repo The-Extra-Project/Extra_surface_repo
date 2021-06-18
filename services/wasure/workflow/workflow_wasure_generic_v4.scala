@@ -492,6 +492,11 @@ algo_list.foreach{ cur_algo =>
 
           val do_it_stats = (((acc_loop % stats_mod_it) == 0 || acc_loop == 1 || acc_loop == max_opt_it -1) && do_stats)
 
+          if(acc_loop == max_opt_it -1){
+            ddt_algo.update_time(params_scala,"fina_before_dumping");
+          }
+
+
           // Extract the surface : Last iteration
           if(acc_loop == max_opt_it -1 || do_it_stats ){
             val graph_seg = Graph(kvrdd_seg, kvrdd_tri_edges, List("")).partitionBy(EdgePartition1D,rep_merge);
@@ -503,56 +508,60 @@ algo_list.foreach{ cur_algo =>
             ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
             wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
           }
-          val rdd_local_edges = iq.get_edgrdd(res_seg,"e");
-          val rdd_shared_edges = iq.get_edgrdd(res_seg,"f")
-          val rdd_stats  = iq.get_kvrdd(res_seg,"s")
-          // Sum the stats between all the tiles
-          var stats_1 = rdd_stats.map(x => x._2(0).split(" ").takeRight(2)).map(x => (x(0).toFloat,x(1).toFloat)).reduce( (x,y) => (x._1+y._1,x._2+y._2))
-          var stats_2 = (0F,0F);
-          var stats_3 = (0F,0F);
 
-          input_seg2 = (
-            rdd_local_edges.map(e => (e.srcId, e.attr)) union
-              rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_seg
-          ).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
-          input_seg2.count()
-          res_seg.unpersist()
-          // Compute the global surface and compare
-          if(do_it_stats){
-            val seg_cmd_full =  set_params(params_wasure, List(("step","seg_global_extract"))).to_command_line
-            val input_extract = kvrdd_seg.map(x => (0L,x._2)).reduceByKey(_ ::: _)
-            val res_surface = iq.run_pipe_fun_KValue(
-              seg_cmd_full ++ List("--label", "seg"),
-              input_extract , "seg_lagrange", do_dump = false)
-            val rdd_ply  = res_surface.filter(_(0) == 'p');
-            val rdd_stats  = iq.get_kvrdd(res_surface,"s")
-            val stats_collect = rdd_stats.map(x => x._2(0).split("]").tail(0).split(" ").filter(_.nonEmpty).map(_.toFloat)).collect()(0)
-            stats_2 = (stats_collect(0),stats_collect(1))
-            stats_3 = (stats_collect(2),stats_collect(3))
-            rdd_stats.collect()
-            if(acc_loop == 0){
-              val ply_dir = cur_output_dir + "/plyglob_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str + "_global3"
-              ddt_algo.saveAsPly(rdd_ply,ply_dir,plot_lvl)
-              wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
+
+          if(acc_loop != max_opt_it -1){
+            val rdd_local_edges = iq.get_edgrdd(res_seg,"e");
+            val rdd_shared_edges = iq.get_edgrdd(res_seg,"f")
+            val rdd_stats  = iq.get_kvrdd(res_seg,"s")
+            // Sum the stats between all the tiles
+            var stats_1 = rdd_stats.map(x => x._2(0).split(" ").takeRight(2)).map(x => (x(0).toFloat,x(1).toFloat)).reduce( (x,y) => (x._1+y._1,x._2+y._2))
+            var stats_2 = (0F,0F);
+            var stats_3 = (0F,0F);
+
+            input_seg2 = (
+              rdd_local_edges.map(e => (e.srcId, e.attr)) union
+                rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_seg
+            ).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
+            input_seg2.count()
+            res_seg.unpersist()
+            // Compute the global surface and compare
+            if(do_it_stats){
+              val seg_cmd_full =  set_params(params_wasure, List(("step","seg_global_extract"))).to_command_line
+              val input_extract = kvrdd_seg.map(x => (0L,x._2)).reduceByKey(_ ::: _)
+              val res_surface = iq.run_pipe_fun_KValue(
+                seg_cmd_full ++ List("--label", "seg"),
+                input_extract , "seg_lagrange", do_dump = false)
+              val rdd_ply  = res_surface.filter(_(0) == 'p');
+              val rdd_stats  = iq.get_kvrdd(res_surface,"s")
+              val stats_collect = rdd_stats.map(x => x._2(0).split("]").tail(0).split(" ").filter(_.nonEmpty).map(_.toFloat)).collect()(0)
+              stats_2 = (stats_collect(0),stats_collect(1))
+              stats_3 = (stats_collect(2),stats_collect(3))
+              rdd_stats.collect()
+              if(acc_loop == 0){
+                val ply_dir = cur_output_dir + "/plyglob_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str + "_global3"
+                ddt_algo.saveAsPly(rdd_ply,ply_dir,plot_lvl)
+                wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
+              }
             }
-          }
-          val t1_loop = System.nanoTime();
-          println("[it " + acc_loop_str + "]");
-          ddt_algo.update_time(params_scala,"opt_loop" + algo_id_acc.toString);
-          val t1 = ( acc_loop,stats_1)
-          stats_list_1 += t1;
-          println("   % overlap -> " + floatFormat.format(100*stats_1._1/stats_1._2.toFloat) + "% " + stats_1 );
-          if(do_it_stats){
-            val t2 = ( acc_loop,stats_2)
-            val t3 = ( acc_loop,stats_3)
-            stats_list_2 += t2;
-            stats_list_3 += t3;
-            println("   % GC      -> " + floatFormat.format(100*stats_2._1/stats_2._2.toFloat) + "% " + stats_2 );
-            println("   % Energy  -> " + stats_3  );
-          }
+            val t1_loop = System.nanoTime();
+            println("[it " + acc_loop_str + "]");
+            ddt_algo.update_time(params_scala,"opt_loop" + algo_id_acc.toString);
+            val t1 = ( acc_loop,stats_1)
+            stats_list_1 += t1;
+            println("   % overlap -> " + floatFormat.format(100*stats_1._1/stats_1._2.toFloat) + "% " + stats_1 );
+            if(do_it_stats){
+              val t2 = ( acc_loop,stats_2)
+              val t3 = ( acc_loop,stats_3)
+              stats_list_2 += t2;
+              stats_list_3 += t3;
+              println("   % GC      -> " + floatFormat.format(100*stats_2._1/stats_2._2.toFloat) + "% " + stats_2 );
+              println("   % Energy  -> " + stats_3  );
+            }
 
-          println("")
-          acc_loop = acc_loop + 1;
+            println("")
+            acc_loop = acc_loop + 1;
+          }
         }
       }
       if(do_stats){
@@ -566,6 +575,6 @@ algo_list.foreach{ cur_algo =>
     }
   }
 }
-ddt_algo.update_time(params_scala,"final");
+ddt_algo.update_time(params_scala,"final_after_dumping");
 dump_json(params_scala,cur_output_dir + "/full_workflow_params.json",sc);
 System.exit(0)

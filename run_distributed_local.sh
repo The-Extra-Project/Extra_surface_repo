@@ -8,7 +8,7 @@ GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/inputs/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
-DEBUG_FLAG="-d"
+#DEBUG_FLAG="-d"
 DO_RUN=true
 
 
@@ -33,7 +33,7 @@ function run_algo_docker
 }
 
 ### Evaluation
-function run_3d_evaluation
+function run_3d_evaluation_tiling
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
@@ -42,12 +42,23 @@ function run_3d_evaluation
     FILES="${INPUT_DIR}/wasure_metadata_3d_octree*.xml"
     for f in $FILES
     do
-	PARAMS="${INPUT_DIR}/wasure_metadata_3d_eval_1.xml"
+	PARAMS="${f}"
 	run_algo_docker
     done
     
  #   run_algo_docker
 }
+
+### 3D Surface reconstruction 
+function run_3d_evaluation_coef_mult
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d_eval_1.xml"
+    run_algo_docker
+}
+
 
 
 ### 3D Surface reconstruction 
@@ -159,19 +170,23 @@ function preprocess_data
 function preprocess_toulouse
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    INPUT_DIR="/home/laurent/shared_spark/inputs/toulouse_cc/"
-    OUTPUT_DIR="/home/laurent/tmp/toulouse_v1_pp/"
+    INPUT_DIR="/mnt/samsung_T5/Toulouse_cc_1_2"
+    OUTPUT_DIR="/mnt/samsung_T5/Toulouse_pp_1_2"
     run_algo_docker    
 }
 
 # ==== surface reconstruction workflow ====
 ## Preprocess data
-#preprocess_toulouse
+preprocess_toulouse
+
+# Evaluation
+#run_3d_evaluation_tiling
+#run_3d_evaluation_coef_mult
+
 
 ### 3D
-#run_3d_evaluation
 #run_3d_bench_small
-run_3d_bench_raw
+#run_3d_bench_raw
 #run_3d_bench_preprocess
 #run_3d_yanis
 #run_3d_yanis_2
