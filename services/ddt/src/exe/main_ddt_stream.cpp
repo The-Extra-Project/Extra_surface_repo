@@ -234,7 +234,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
         }
       else
         {
-	  if(params.dump_mode == "NONE")
+	  if(params.dump_mode == "NONE" && true)
             {
 	      for(int d = 0; d < D+1; d++)
                 {
@@ -256,7 +256,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   // ==== Stat dumping section ======
   std::cout.clear();
 
-  if(params.dump_mode == "NONE")
+  if(params.dump_mode == "NONE" && true)
     {
       std::vector<Point_id_id> vvp_finalized;
       for(auto vv : vh_finalized)
@@ -306,7 +306,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 
   // if dump_mode > 0 we dump ply
   // The if it's note the case, we'll extract a soup of simplex
-  if(params.dump_mode != "NONE" ){
+  if(params.dump_mode != "NONE" && false ){
     //      ddt::stream_data_header oph("p","s",tid);
     //      oph.write_header(std::cout);
     ddt::filter_cell<Traits_raw> filt(tri_bbox);
@@ -635,7 +635,7 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
       oth.finalize();
       std::cout << std::endl;
     }
-
+  
   // If finalized, dump the number of simplex for global graph algorithms
   if(is_finalized)
     {
@@ -2017,7 +2017,7 @@ int tile_ply_2(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   Id NP = params.nbp;
   Id NT = pow(ND,D);
   double range = 1000.;
-  double ech_input = params.ech_input;
+
 
   ddt::Bbox<Traits::D> bbox;
   std::stringstream ss;
@@ -2088,6 +2088,7 @@ int tile_ply_2(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 	  else
 	    p = w_datas.get_pts(count);
 
+
 	  bool is_out = false;
 	  for(int d = 0; d < D; d++)
 	    {
@@ -2096,6 +2097,8 @@ int tile_ply_2(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 	    }
 	  if(is_out)
 	    continue;
+
+
 	  
 	  Id pp = part(p);
 	  Id id = Id(pp % NT);
@@ -2112,50 +2115,37 @@ int tile_ply_2(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 	    vp_map[id].emplace_back(traits.make_point(coords.begin()));
 	  }else{
 	    auto it = datas_map.find(id);
+
+	    // // Adding crown
+	    // std::vector<double> coords1(Traits::D);
+	    // std::vector<double> coords2(Traits::D);
+
+	    // for(int d1 = 0; d1 < D; d1++){
+	    //   for(int d2 = 0 ; d2 < D; d2++){
+	    // 	if(d1 != d2)
+	    // 	  coords1[d2] = coords2[d2] = p[d];
+	    // 	else{
+	    // 	  coords1[d] = p[d] + eps;
+	    // 	  coords2[d] = p[d] - eps;
+	    // 	}
+	    //   }
+	    //   auto np1 = traits.make_point(coords1.begin());
+	    //   auto np2 = traits.make_point(coords2.begin());
+
+	    //   Id pp1 = part(np1);
+	    //   Id id1 = Id(pp1 % NT);
+	    //   Id pp2 = part(np2);
+	    //   Id id2 = Id(pp2 % NT);
+	    //   if(id2 != id){
+
+	    //   }
+	    // }
 	    
 	    if(it==datas_map.end())
 	      {
 		datas_map[id] = ddt_data<Traits>(w_datas.dmap);
 	      }
 	    datas_map[id].copy_point(w_datas,count);
-
-
-	    // Adding crown
-	    std::vector<double> coords1(Traits::D);
-	    std::vector<double> coords2(Traits::D);
-	    for(int d1 = 0; d1 < D; d1++){
-	      for(int d2 = 0 ; d2 < D; d2++)
-		coords1[d2] = coords2[d2] = 0;
-	      for(int d2 = 0 ; d2 < D; d2++){
-		if(d1 != d2)
-		  coords1[d2] = coords2[d2] = p[d2];
-		else{
-		  coords1[d2] = p[d2] + eps_side[d2];
-		  coords2[d2] = p[d2] - eps_side[d2];
-		}
-	      }
-	      auto np1 = traits.make_point(coords1.begin());
-	      auto np2 = traits.make_point(coords2.begin());
-
-	      Id pp1 = part(np1);
-	      Id id1 = Id(pp1 % NT);
-	      Id pp2 = part(np2);
-	      Id id2 = Id(pp2 % NT);
-	      if(id1 != id){
-		auto it1 = datas_map_crown.find(id1);
-		if(it1==datas_map_crown.end())
-		  datas_map_crown[id1] = ddt_data<Traits>(w_datas.dmap);
-		datas_map_crown[id1].copy_point(w_datas,count);
-	      }
-	      if(id2 != id){
-		auto it2 = datas_map_crown.find(id2);
-		if(it2==datas_map_crown.end())
-		  datas_map_crown[id2] = ddt_data<Traits>(w_datas.dmap);
-		datas_map_crown[id2].copy_point(w_datas,count);
-	      }
-	    }
-
-	    
 	  }
 	}
     }

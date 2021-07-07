@@ -206,10 +206,10 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
     Traits  traits;
     wasure_algo w_algo;
     int D = Traits::D;
-    int max_ppt = 200000;
+    int max_ppt = 300000;
     std::map<Id,wasure_data<Traits> > datas_map;
-
     std::map<Id,std::string > fname_map;
+    std::map<Id,std::string > fname_map2;
 
     ddt::Bbox<Traits::D> full_bbox;
     int full_nbp = 0;
@@ -349,26 +349,26 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	    }
 	  }
 	}
-	std::cerr << "yo2" << std::endl;	
-        w_algo.simplify(datas_map[hid],do_keep,0.02);
-        int curr_tid = 0;
-        int nb_keep = 0;
-        for(int ii = 0; ii < count ; ii++)
-        {
-            if(do_keep[ii])
-            {
-                Id id = Id(nb_keep/max_ppt);
-                auto it = datas_map.find(id);
-                if(it==datas_map.end())
-                {
-                    datas_map[id] = ddt_data<Traits>(w_datas.dmap);
-                }
-                datas_map[id].copy_attribute(w_datas,ii,std::string("x"));
-                datas_map[id].copy_attribute(w_datas,ii,std::string("x_origin"));
-                nb_keep++;
-            }
+	// std::cerr << "yo2" << std::endl;	
+        // w_algo.simplify(datas_map[hid],do_keep,0.02);
+        // int curr_tid = 0;
+        // int nb_keep = 0;
+        // for(int ii = 0; ii < count ; ii++)
+        // {
+        //     if(do_keep[ii])
+        //     {
+        //         Id id = Id(nb_keep/max_ppt);
+        //         auto it = datas_map.find(id);
+        //         if(it==datas_map.end())
+        //         {
+        //             datas_map[id] = ddt_data<Traits>(w_datas.dmap);
+        //         }
+        //         datas_map[id].copy_attribute(w_datas,ii,std::string("x"));
+        //         datas_map[id].copy_attribute(w_datas,ii,std::string("x_origin"));
+        //         nb_keep++;
+        //     }
 
-        }
+        // }
 
     }
 
@@ -376,29 +376,59 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
     std::cout.clear();
     std::cerr << "count finalized" << std::endl;
 
-
+    //    if(false){
+    std::map<Id,wasure_data<Traits> > datas_map_splitted;
+    Id new_id = 0;
     for ( const auto &myPair : datas_map )
-    {
+    {      
         Id id = myPair.first;
         int nb_out = datas_map[id].nb_pts_uint8_vect();
+	std::cerr << "start looping on data :"  << nb_out << std::endl;
+	for(int n = 0; n < nb_out; n++)
+	  {
+	    
+	    if(n % max_ppt == 0){
+
+	      new_id++;
+	      fname_map2[new_id] = fname_map[id];
+	      std::cerr << "new id : " << new_id << std::endl;
+	      auto it = datas_map_splitted.find(new_id);
+	      if(it==datas_map_splitted.end())
+	      {
+		std::cerr << "add" << std::endl;
+		datas_map_splitted[new_id] = wasure_data<Traits>(datas_map[id].dmap);
+
+	      }
+	    }
+
+	    datas_map_splitted[new_id].copy_attribute(datas_map[id],n,std::string("x"));
+	    datas_map_splitted[new_id].copy_attribute(datas_map[id],n,std::string("x_origin"));
+	    datas_map_splitted[new_id].copy_attribute(datas_map[id],n,std::string("flags"));
+	  }
+	
+    }
+    //}
+    std::cerr << "Dump result" << std::endl;
+    for ( const auto &myPair : datas_map_splitted )
+    {
+        Id id = myPair.first;
+        int nb_out = datas_map_splitted[id].nb_pts_uint8_vect();
 
 
-
+	std::string filename(params.output_dir + "/" + fname_map2[id] + "_" + std::to_string(id));
 	if(true){
 	  ddt::stream_data_header oqh("p","f",id);
-	  std::string filename(params.output_dir + "/" + fname_map[id]);
 	  oqh.write_into_file(filename,".stream");
 	  oqh.write_header(std::cout);
-	  datas_map[id].write_serialized_stream(oqh.get_output_stream());
+	  datas_map_splitted[id].write_serialized_stream(oqh.get_output_stream());
 	  oqh.finalize();
 	  std::cout << std::endl;
 	}
-	if(false){
+	if(true){
 	  ddt::stream_data_header oqh("p","f",id);
-	  std::string filename(params.output_dir + "/" + fname_map[id]);
 	  oqh.write_into_file(filename,"_visu.ply");
 	  oqh.write_header(std::cout);
-	  datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n',true);
+	  datas_map_splitted[id].write_ply_stream(oqh.get_output_stream(),'\n',true);
 	  oqh.finalize();
 	  std::cout << std::endl;
 	}

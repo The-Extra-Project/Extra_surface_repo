@@ -288,7 +288,7 @@ if(ndtree_depth > 8){
 }
 params_scala("rep_loop") = collection.mutable.Set(rep_loop.toString)
 params_scala("rep_merge") = collection.mutable.Set(rep_merge.toString)
-params_scala("dump_mode") = collection.mutable.Set("NONE")
+params_scala("dump_mode") = collection.mutable.Set("TRUE")
 
 
 println("======== Dimenstionnality =============")

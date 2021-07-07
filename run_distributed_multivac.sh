@@ -42,7 +42,7 @@ function run_algo_multivac
     export CURRENT_PLATEFORM="multivac"
     echo "cur plateform ==> $CURRENT_PLATEFORM"
 #	    spark-shell -i  ${FILE_SCRIPT}\
-	    spark-shell  -i  ${FILE_SCRIPT} --master yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --executor-cores ${MULTIVAC_EXECUTOR_CORE} 	--executor-memory ${MULTIVAC_EXECUTOR_MEMORY} --driver-memory ${MULTIVAC_DRIVER_MEMORY} --num-executors ${MULTIVAC_NUM_EXECUTORS} --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}" --conf "spark.serializer=org.apache.spark.serializer.KryoSerializer"  --conf "spark.dynamicAllocation.enabled=false" --conf "spark.cleaner.periodicGC.interval=2min" --conf "spark.memory.fraction=0.2" --conf "spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps" 
+	    spark-shell   --master yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --executor-cores ${MULTIVAC_EXECUTOR_CORE} 	--executor-memory ${MULTIVAC_EXECUTOR_MEMORY} --driver-memory ${MULTIVAC_DRIVER_MEMORY} --num-executors ${MULTIVAC_NUM_EXECUTORS} --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}" --conf "spark.serializer=org.apache.spark.serializer.KryoSerializer"  --conf "spark.dynamicAllocation.enabled=false" --conf "spark.cleaner.periodicGC.interval=2min" --conf "spark.memory.fraction=0.2" --conf "spark.executor.extraJavaOptions=-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps" 
 
 		#--conf "spark.default.parallelism=${DEFAULT_PARALLELISM}" \
                 #--conf "yarn.nodemanager.pmem-check-enabled=false" \
@@ -57,11 +57,13 @@ export HDFS_FILES_DIR="hdfs:/user/lcaraffa/tmp/"
 function eval_params_loop {
     date_name="$(date +%Y_%m_%d_%H_%M)"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
-    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/preprocessed_small_2/"
-    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church_eval_${date_name}/"
-    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"
-    export LIST_EXECUTORS=" 7 4 1"
+    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/preprocessed_small_3/"
+    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church_eval_new_${date_name}/"
+    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_eval.xml"
+    export LIST_EXECUTORS=" 7 4 2 1"
     export LIST_CORES="4 3 2 1"
+    # export LIST_EXECUTORS="1"
+    # export LIST_CORES="1"
 
     
     for ee in ${LIST_EXECUTORS}
@@ -88,7 +90,7 @@ function run_multivac_church
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
     export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/preprocessed_small_2/"
     export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church/"
-    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"
+    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_visu.xml"
     #export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_large.xml"
     run_algo_multivac
 }
@@ -112,11 +114,11 @@ function run_multivac_full
 }
 
 
-function run_multivac_full_v3
+function run_multivac_full_v4
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
-    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/toulouse_v3_pp/"
-    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/toulouse_v3_pp/"
+    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/toulouse_v4_pp/"
+    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/toulouse_v4_pp/"
     export PARAM_PATH="${INPUT_DATA_DIR}/wasure_metadata_3d.xml"    
     run_algo_multivac
 }
@@ -137,7 +139,7 @@ function run_multivac_croco
 #run_multivac_aerial
 #
 #run_multivac_full_v3
-run_multivac_full_v3
+run_multivac_full_v4
 #run_multivac_croco
 
 

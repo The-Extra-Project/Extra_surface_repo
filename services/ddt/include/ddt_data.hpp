@@ -823,7 +823,7 @@ public :
 	if(ee.second.do_exist){
 	  int vnbb =  ee.second.get_vnbb();
 	  for(int i = 0 ; i < vnbb; i++){
-	    dmap[ee.first].uint8_vect.push_back(wd.dmap[ee.first].shpt_vect->buffer.get()[id*vnbb+i]);
+	    dmap[ee.first].uint8_vect.push_back(wd.dmap[ee.first].uint8_vect[id*vnbb+i]);
 	  }
 	  dmap[ee.first].do_exist = true;
 	}
@@ -831,6 +831,7 @@ public :
     }
   }
 
+  
 
   
 

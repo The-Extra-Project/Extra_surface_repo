@@ -8,7 +8,7 @@ GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/inputs/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
-#DEBUG_FLAG="-d"
+DEBUG_FLAG="-d"
 DO_RUN=true
 
 
@@ -170,14 +170,17 @@ function preprocess_data
 function preprocess_toulouse
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    INPUT_DIR="/mnt/samsung_T5/Toulouse_cc_1_2"
-    OUTPUT_DIR="/mnt/samsung_T5/Toulouse_pp_1_2"
-    run_algo_docker    
+
+    INPUT_DIR="/mnt/ssd/las_focal_0_cc/"
+    OUTPUT_DIR="/mnt/ssd/las_focal_0_pp/"
+
+    run_algo_docker
 }
+
 
 # ==== surface reconstruction workflow ====
 ## Preprocess data
-preprocess_toulouse
+#preprocess_toulouse
 
 # Evaluation
 #run_3d_evaluation_tiling
@@ -186,7 +189,7 @@ preprocess_toulouse
 
 ### 3D
 #run_3d_bench_small
-#run_3d_bench_raw
+run_3d_bench_raw
 #run_3d_bench_preprocess
 #run_3d_yanis
 #run_3d_yanis_2

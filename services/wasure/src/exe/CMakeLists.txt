@@ -80,6 +80,7 @@ target_link_libraries(test_yanis-exe
 
 
 
+
 include_directories("../../../extern/opengm/include/")
 # add_executable(example-grid-potts grid_potts.cxx)
 # find_library(RT_LIBRARY rt)

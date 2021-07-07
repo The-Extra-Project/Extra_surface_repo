@@ -9,7 +9,7 @@ MAINTAINER Laurent Caraffa "caraffa.laurent@gmail.com"
 
 
 
-# Generals
+# Genebrals
 RUN apt-get update &&  apt-get install -y cmake nano sudo gdb libboost-all-dev g++ wget  --assume-yes
 
 #Lidar format dps
