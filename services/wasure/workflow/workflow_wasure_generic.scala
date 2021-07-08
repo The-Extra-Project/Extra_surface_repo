@@ -139,7 +139,7 @@ val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
 val lambda = params_scala.get_param("lambda", "0.1").toFloat
 val coef_mult = params_scala.get_param("coef_mult", "1").toFloat
 //val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
-val max_opt_it = 50
+val max_opt_it = 30
 val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
 val stats_mod_it = params_scala.get_param("stats_mod_it", ((max_opt_it)/2).toString).toInt
 
@@ -486,7 +486,7 @@ algo_list.foreach{ cur_algo =>
           val t0_loop = System.nanoTime()
           val acc_loop_str = "%03d".format(acc_loop)
           val res_seg = iq.run_pipe_fun_KValue(
-            seg_cmd ++ List("--label", "seg" + acc_loop_str),
+            seg_cmd ++ List("--label", "seg" + acc_loop_str) ++ (if(acc_loop == max_opt_it-1) List("--do_finalize") else List()),
             input_seg2
               ,cur_algo, do_dump = false).persist(slvl_loop)
           res_seg.count()
@@ -499,7 +499,6 @@ algo_list.foreach{ cur_algo =>
             ddt_algo.update_time(params_scala,"final_before_dumping");
           }
 
-
           // Extract the surface : Last iteration
           if(acc_loop == max_opt_it -1 || do_it_stats ){
             val graph_seg = Graph(kvrdd_seg, kvrdd_tri_edges, List("")).partitionBy(EdgePartition1D,rep_merge);
@@ -510,21 +509,21 @@ algo_list.foreach{ cur_algo =>
               val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str
               ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
               wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
-            }else{
+            }
+            if(true){
               val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
                 ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge" + ext_name),
                 graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false)
               val rdd_ply_surface_vertex = iq.run_pipe_fun_KValue(
                 ext_cmd_vertex ++ List("--label","ext_spark_ll_v2_tile" + ext_name),
                 graph_seg.vertices, "seg", do_dump = false)
-              val ply_dir_edges = cur_output_dir + "/ply" + ext_name + "_edges"
-              val ply_dir_vertex = cur_output_dir + "/ply" + ext_name + "_vertex"
+              val ply_dir_edges = cur_output_dir + "/ply" + ext_name + "_edges_" + acc_loop_str
+              val ply_dir_vertex = cur_output_dir + "/ply" + ext_name + "_vertex_" + acc_loop_str
               ddt_algo.saveAsPly(rdd_ply_surface_edges,ply_dir_edges,plot_lvl)
               ddt_algo.saveAsPly(rdd_ply_surface_vertex,ply_dir_vertex,plot_lvl)
               wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
             }
           }
-
 
           if(acc_loop != max_opt_it -1){
             val rdd_local_edges = iq.get_edgrdd(res_seg,"e");

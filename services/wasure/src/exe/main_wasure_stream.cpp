@@ -3374,39 +3374,69 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 
     std::cerr << "seg_step7_lagrange" << std::endl;
     edges_data_map.clear();
+    
     // ==== Build new edges =====
+    if(!params.do_finalize){
+      for( auto cit_1 = tile_1->cells_begin();
+	   cit_1 != tile_1->cells_end(); ++cit_1 )
+	{
+	  Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
+	  // lagrangian only on mixed cell
+	  if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))
+	    continue;
+	  Id lid_1 = tile_1->lid(cit_1);
+	  int lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
+	  int D = tile_1->current_dimension();
+	  std::unordered_set<Id> idSet ;	  
+	  for(int i=0; i<=D; ++i)
+	    {
+	      // Select only id != tid_1
+	      Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
+	      Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
+	      if (idSet.find(tid_2) != idSet.end()){
+		continue;
+	      }
+	      idSet.insert(tid_2);
+	      if(tid_2 == tid_1)
+		continue;
 
-    for( auto cit_1 = tile_1->cells_begin();
-    	 cit_1 != tile_1->cells_end(); ++cit_1 )
-      {
-	Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
-	// lagrangian only on mixed cell
-	if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))
-	  continue;
-	Id lid_1 = tile_1->lid(cit_1);
-	int lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
-	int D = tile_1->current_dimension();
-	std::unordered_set<Id> idSet ;	  
-	for(int i=0; i<=D; ++i)
-	  {
-	    // Select only id != tid_1
-	    Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
-	    Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
-	    if (idSet.find(tid_2) != idSet.end()){
-	      continue;
+
+	      if(edges_data_map.find(tid_2) == edges_data_map.end())
+		edges_data_map[tid_2] = std::map<Id,SharedData>();
+	      //  send to the neighbor tile the value of the tets at LID_1 
+	      edges_data_map[tid_2][lid_1] = std::make_tuple(lid_1,((double)lab_1),0,0);
+
 	    }
-	    idSet.insert(tid_2);
-	    if(tid_2 == tid_1)
-	      continue;
+	}
+    }else{
+      for( auto cit_1 = tile_1->cells_begin();
+	   cit_1 != tile_1->cells_end(); ++cit_1 )
+	{
+	  Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
+	  // lagrangian only on mixed cell
+	  if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))
+	    continue;
+	  Id lid_1 = tile_1->lid(cit_1);
+	  int lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
+	  int D = tile_1->current_dimension();
+	  std::unordered_set<Id> idSet ;	  
+	  for(int i=0; i<=D; ++i)
+	    {
+	      // Select only id != tid_1
+	      Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
+	      Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
+	      if (idSet.find(tid_2) != idSet.end()){
+		continue;
+	      }
+	      idSet.insert(tid_2);
+	      if(tid_2 < tid_1)
+		w_datas_tri[tid_1].format_labs[lid_1] = lid_2;
+	      
 
+	    }
+	}
 
-	    if(edges_data_map.find(tid_2) == edges_data_map.end())
-	      edges_data_map[tid_2] = std::map<Id,SharedData>();
-	    //  send to the neighbor tile the value of the tets at LID_1 
-	    edges_data_map[tid_2][lid_1] = std::make_tuple(lid_1,((double)lab_1),0,0);
-
-	  }
-      }    
+    }
     log.step("finalize");
     w_datas_tri[tid_1].fill_labs(w_datas_tri[tid_1].format_labs);
 

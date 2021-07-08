@@ -28,7 +28,7 @@ public :
   int center_type,tile_id,nbt_side;
   bool use_weight = true;
   bool dump_debug  = false;
-
+  bool do_finalize = false;
   std::string bbox_string,input_dir,output_dir,algo_step,slabel,mode,filename;
     std::ostream& operator<<(std::ostream& os)
     {
@@ -81,6 +81,7 @@ public :
 	   {"nbt_side", required_argument ,0, 'g'},
 	   {"dump_debug",  no_argument, 0, 'q'},
 	   {"dump_ply", no_argument,0, 'x'},
+	   {"do_finalize", no_argument,0, 'z'},
 	   {"verbose", no_argument, &verbose_flag, 1},
 	   {"help",  no_argument, 0, 'h'},
 	   {0, 0, 0, 0}
@@ -89,7 +90,7 @@ public :
 
         int option_index = 0;
 
-        while ((cc = getopt_long(argc, argv, "s:a:c:k:n:i:d:u:m:o:f:j:l:b:p:r:w:t:g:qexh",long_options,&option_index)) != -1)
+        while ((cc = getopt_long(argc, argv, "s:a:c:k:n:i:d:u:m:o:f:j:l:b:p:r:w:t:g:qexzh",long_options,&option_index)) != -1)
         {
             switch (cc)
             {
@@ -162,6 +163,9 @@ public :
                 break;
             case 'x':
                 dump_ply=true;
+                break;
+	    case 'z':
+                do_finalize=true;
                 break;
             case 'h':
                 break;
