@@ -35,7 +35,7 @@ def merge_ply(inputs) :
     output_name="merged"
     if do_bbox :
         bb1 = [float(i) for i in inputs["bbox"].split(" ")]
-        output_name = output_anem + ("bbox_" +
+        output_name = output_name + ("bbox_" +
                                      str(int(bb1[0])) + "x" + str(int(bb1[1])) + "_" +
                                      str(int(bb1[2])) + "x" + str(int(bb1[3])) + "_" +
                                      str(int(bb1[4])) + "x" + str(int(bb1[5])) )

@@ -142,7 +142,7 @@ val coef_mult = params_scala.get_param("coef_mult", "1").toFloat
 val max_opt_it = 30
 val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
 val stats_mod_it = params_scala.get_param("stats_mod_it", ((max_opt_it)/2).toString).toInt
-
+val stats_mod_it = 1
 // params_scala("dump_mode") = collection.mutable.Set("TRIANGLE_SOUP")
 params_scala("dump_mode") = collection.mutable.Set("NONE")
 val fmt = new java.text.DecimalFormat("##0.##############")

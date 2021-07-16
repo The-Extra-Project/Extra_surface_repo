@@ -114,7 +114,6 @@ void wasure_algo::tessel_adapt(std::vector<Point> & points,std::vector<Point> & 
     int li, lj;
     // DTW::Face f(D-1);
     // Facet ft;
-
     // DTW::Locate_type lt;
     
     auto loc = tri.locate(p1,lt, li, lj);

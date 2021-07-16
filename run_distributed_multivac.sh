@@ -85,6 +85,17 @@ function eval_params_loop {
 }
 
 
+function run_multivac_tau0
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+    export INPUT_DATA_DIR="hdfs:/user/lcaraffa/datas/church/preprocessed_small_3/"
+    export OUTPUT_DATA_DIR="hdfs:/user/lcaraffa/output/church/"
+    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_tau.xml"
+    #export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_large.xml"
+    run_algo_multivac
+}
+
+
 function run_multivac_church
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
@@ -139,7 +150,9 @@ function run_multivac_croco
 #run_multivac_aerial
 #
 #run_multivac_full_v3
-run_multivac_full_v4
+#run_multivac_full_v4
+
+run_multivac_tau0
 #run_multivac_croco
 
 
