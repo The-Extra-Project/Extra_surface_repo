@@ -8,7 +8,7 @@ GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/inputs/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
-#DEBUG_FLAG="-d"
+DEBUG_FLAG="-d"
 DO_RUN=true
 
 
@@ -93,8 +93,8 @@ function run_3d_bench_preprocess
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     run_algo_docker
 
-    DEBUG_FLAG="-d"
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+    DEBUG_FLAG=""
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
     INPUT_DIR="${OUTPUT_DIR}"
     OUTPUT_DIR="${OUTPUT_DIR}"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d_gen.xml"
@@ -175,8 +175,8 @@ function run_3d_church
 function preprocess_data
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_yanis/"
-    OUTPUT_DIR="${DDT_MAIN_DIR}/datas/3d_yanis_processed/"
+    INPUT_DIR="/home/laurent/shared_spark/inputs/toulouse_lidar_fullHD_V2/"
+    OUTPUT_DIR="/home/laurent/shared_spark/inputs/toulouse_lidar_fullHD_V3/"
     run_algo_docker    
 }
 
@@ -193,7 +193,7 @@ function preprocess_toulouse
 
 
 # ==== surface reconstruction workflow ====
-## Preprocess data
+#preprocess_data
 #preprocess_toulouse
 
 # Evaluation
@@ -203,8 +203,8 @@ function preprocess_toulouse
 
 ### 3D
 #run_3d_bench_small
-run_3d_bench_raw
-#run_3d_bench_preprocess
+#run_3d_bench_raw
+run_3d_bench_preprocess
 #run_3d_yanis
 #run_3d_yanis_2
 

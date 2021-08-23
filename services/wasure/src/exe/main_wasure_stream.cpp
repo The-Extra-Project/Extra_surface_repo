@@ -424,7 +424,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	  oqh.finalize();
 	  std::cout << std::endl;
 	}
-	if(true){
+	if(false){
 	  ddt::stream_data_header oqh("p","f",id);
 	  oqh.write_into_file(filename,"_visu.ply");
 	  oqh.write_header(std::cout);

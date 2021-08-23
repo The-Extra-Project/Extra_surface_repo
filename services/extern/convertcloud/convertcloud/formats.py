@@ -1,5 +1,6 @@
 import numpy as np
-
+import io
+import struct
 class Field:
     def __init__(self, name):
         self.name = name

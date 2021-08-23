@@ -2,6 +2,7 @@ import convertcloud as cvc
 import numpy as np
 import argparse
 import os
+import io
 
 def convert_ply(inputs) :
     list_name = []

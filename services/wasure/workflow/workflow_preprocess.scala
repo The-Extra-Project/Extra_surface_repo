@@ -108,14 +108,15 @@ val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(10
 // Wasure Algo params
 val wasure_mode = params_scala.get_param("mode", "surface")
 val pscale = params_scala.get_param("pscale", "0.05").toFloat
-val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
+val nb_samples = params_scala.get_param("nb_samples", "1").toFloat
 val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "5").toInt
 val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
 val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
-val dst_scale = params_scala.get_param("lambda", "0.1").toFloat
-val max_opt_it = params_scala.get_param("max_opt_it", "10").toInt
-
+val lambda = params_scala.get_param("lambda", "0.1").toFloat
+val max_opt_it = params_scala.get_param("max_opt_it", "15").toInt
+val do_stats = params_scala.get_param("do_stats", "false").toBoolean
+val coef_mult = params_scala.get_param("coef_mult", "10").toFloat
 
 
 // Set the iq library on
@@ -182,12 +183,15 @@ val bba =   kvrdd_bbox.map(x => x._2.head.split("z").tail.head.split(" ").filter
 val smax =   Math.max(Math.max(bba(1)-bba(0),bba(1)-bba(0)),bba(1)-bba(0))
 val tot_nbp = bba(6)
 val ndtree_depth = (Math.log(tot_nbp/max_ppt_per_tile)/Math.log(3)).round 
+val lambda = params_scala.get_param("lambda", "0.1").toFloat
+
 
 // Dump xml
 
 params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + bba(4) + "x" + (bba(4) + smax))
 params_scala("ndtree_depth") = collection.mutable.Set(ndtree_depth.toString)
 params_scala("datatype") = collection.mutable.Set("filestream")
+params_scala("max_ppt") = collection.mutable.Set(max_ppt.toString)
 
 val params_scala_dump = params_scala.filter(x => !x._2.head.isEmpty && x._1 != "do_expand" && x._1 != "output_dir" )
 
