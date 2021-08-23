@@ -1,4 +1,4 @@
-# Distributed Delaunay triangulation & surface reconstruction on Spark / hadoopw
+# Distributed Delaunay triangulation & surface reconstruction on Spark / hadoop !!
 This project aims to process algorithm based on Delaunay triangulation on distributed infrastructures .
 We use Apache Spark for the cloud infrastructure.
 
