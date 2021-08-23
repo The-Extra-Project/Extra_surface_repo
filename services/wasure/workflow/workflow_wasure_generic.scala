@@ -100,8 +100,6 @@ var param_list = parse_xml_datasets_string(xml_string)
 val df_par = sc.defaultParallelism;
 val params_scala = param_list(0) // We only process 1 set of parameter in this workflow
 
-
-
 // ===============================================
 // ==== Scala and param initialization ===========
 // Param scala is mutable, get params set the default value to the collection if it's empty
@@ -390,8 +388,8 @@ val graph_reg = Graph(kvrdd_reg, kvrdd_tri_edges, List("")).partitionBy(EdgePart
 graph_reg.vertices.setName("graph_reg");
 graph_reg.edges.setName("graph_reg");
 
-println("============= Optimiation ===============")
 
+println("============= Optimiation ===============")
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.map(fmt.format(_).replace(',','.'))
 var coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_).replace(',','.'))
 val algo_list = params_scala("algo_opt").toList
@@ -510,7 +508,7 @@ algo_list.foreach{ cur_algo =>
               ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
               wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
             }
-            if(true){
+            if(false){
               val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
                 ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge" + ext_name),
                 graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false)

@@ -56,26 +56,26 @@ target_link_libraries(opt-qpbo-exe
   )
 
 
-set(spark-wasure_SOURCES
-  main_test_graph.cpp
-  )
-add_executable(test_graph-exe ${spark-wasure_SOURCES})
-set_property(TARGET test_graph-exe PROPERTY CXX_STANDARD 11)
-target_link_libraries(test_graph-exe
-  ${QPBO_LIBRARIES}
-  ${GRAPHCUT_LIBRARIES}
-  ${WASURE_EXE_LIB_DEP}
-  )
+# set(spark-wasure_SOURCES
+#   main_test_graph.cpp
+#   )
+# add_executable(test_graph-exe ${spark-wasure_SOURCES})
+# set_property(TARGET test_graph-exe PROPERTY CXX_STANDARD 11)
+# target_link_libraries(test_graph-exe
+#   ${QPBO_LIBRARIES}
+#   ${GRAPHCUT_LIBRARIES}
+#   ${WASURE_EXE_LIB_DEP}
+#   )
 
 
-set(spark-wasure_SOURCES
-  main_test_yanis.cpp
-  )
-add_executable(test_yanis-exe ${spark-wasure_SOURCES})
-set_property(TARGET test_yanis-exe PROPERTY CXX_STANDARD 11)
-target_link_libraries(test_yanis-exe
-  ${WASURE_EXE_LIB_DEP}
-  )
+# set(spark-wasure_SOURCES
+#   main_test_yanis.cpp
+#   )
+# add_executable(test_yanis-exe ${spark-wasure_SOURCES})
+# set_property(TARGET test_yanis-exe PROPERTY CXX_STANDARD 11)
+# target_link_libraries(test_yanis-exe
+#   ${WASURE_EXE_LIB_DEP}
+#   )
 
 
 

@@ -8,7 +8,7 @@ GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/inputs/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
-DEBUG_FLAG="-d"
+#DEBUG_FLAG="-d"
 DO_RUN=true
 
 
@@ -19,10 +19,8 @@ DO_RUN=true
 # FILESCRIPT : Scala algorithm
 function run_algo_docker
 {
-
     if [ -z "$PARAMS" ]; then PARAMS="void.xml"
     fi
-    
     echo ""
     echo "##  ------  ${FUNCNAME[1]}  ------" 
     CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c 4 -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
@@ -32,7 +30,25 @@ function run_algo_docker
     fi
 }
 
-### Evaluation
+### EVAL BENCHMARK
+function run_full_eval
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+    FILES="/mnt/samsung_T5b/bench_pts_processed/*"
+    OUTPUT="/mnt/samsung_T5b/bench_pts_meshed/"
+    PARAMS="${DDT_MAIN_DIR}/datas/3d_bench/wasure_bench.xml"
+    for ff in $FILES
+    do
+	bname="$(basename -- $ff)"
+	INPUT_DIR="${ff}/"
+	OUTPUT_DIR="${OUTPUT}${bname}/"
+	echo $OUTPUT_DIR
+	run_algo_docker
+	#mkdir -p ${OUTPUT_DIR}
+    done
+}
+
+### Evaluation FIG 1 
 function run_3d_evaluation_tiling
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
@@ -48,8 +64,6 @@ function run_3d_evaluation_tiling
     
  #   run_algo_docker
 }
-
-### 3D Surface reconstruction 
 function run_3d_evaluation_coef_mult
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
@@ -171,8 +185,8 @@ function preprocess_toulouse
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
 
-    INPUT_DIR="/mnt/ssd/las_focal_0_cc/"
-    OUTPUT_DIR="/mnt/ssd/las_focal_0_pp/"
+    INPUT_DIR="/mnt/samsung_T5b/Toulouse_cc_3"
+    OUTPUT_DIR="/mnt/samsung_T5b/Toulouse_pp_3"
 
     run_algo_docker
 }
@@ -185,7 +199,7 @@ function preprocess_toulouse
 # Evaluation
 #run_3d_evaluation_tiling
 #run_3d_evaluation_coef_mult
-
+#run_full_eval
 
 ### 3D
 #run_3d_bench_small
