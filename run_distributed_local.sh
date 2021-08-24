@@ -9,7 +9,6 @@ BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
 DEBUG_FLAG="-d"
-DO_RUN=true
 
 
 ### Run spark-shell with a given script,params and input dir.
@@ -25,10 +24,9 @@ function run_algo_docker
     echo "##  ------  ${FUNCNAME[1]}  ------" 
     CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c 4 -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
     echo ${CMD}
-    if [ "$DO_RUN" = true ] ; then
-	eval ${CMD}
-    fi
 }
+
+
 
 ### EVAL BENCHMARK
 function run_full_eval
@@ -112,21 +110,6 @@ function run_3d_yanis
     run_algo_docker
 }
 
-function run_3d_yanis_2
-{
-    DEBUG_FLAG=""
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_yanis_2/"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    # run_algo_docker
-
-    DEBUG_FLAG="-d"
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="${OUTPUT_DIR}"
-    OUTPUT_DIR="${OUTPUT_DIR}"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d_gen.xml"
-    run_algo_docker
-}
 
 
 ### 3D Surface reconstruction 
