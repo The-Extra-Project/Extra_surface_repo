@@ -158,8 +158,9 @@ set(libddt_SOURCES
   ${CPP_CORE_LOCAL_DIR}/traits/cgal_traits_d.hpp
   ${CPP_CORE_LOCAL_DIR}/traits/traits.hpp
   )
+
 add_library( libddt SHARED ${libddt_SOURCES} )
-set_property( TARGET libddt PROPERTY CXX_STANDARD 20)
+set_property( TARGET libddt PROPERTY CXX_STANDARD 20)  
 set_target_properties( libddt PROPERTIES PREFIX "" )
 
 

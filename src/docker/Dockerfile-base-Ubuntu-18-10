@@ -7,6 +7,7 @@ MAINTAINER Laurent Caraffa "caraffa.laurent@gmail.com"
 #ENV http_proxy http://192.168.4.9:3128
 #ENV https_proxy http://192.168.4.9:3128
 
+ENV DEBIAN_FRONTEND noninteractive
 
 
 # Genebrals

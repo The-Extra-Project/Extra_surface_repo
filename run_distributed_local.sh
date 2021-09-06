@@ -185,14 +185,14 @@ function preprocess_toulouse
 
 ### 3D
 #run_3d_bench_small
-#run_3d_bench_raw
+run_3d_bench_raw
 #run_3d_bench_preprocess
 #run_3d_yanis
 #run_3d_yanis_2
 
 #run_aerial
 #run_aerial_las
-run_3d_church
+#run_3d_church
 #run_3d_bench_preprocessed
 #run_3d_bench_small
 #run_3d_toulouse

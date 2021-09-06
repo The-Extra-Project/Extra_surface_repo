@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 
 set (CMAKE_CXX_STANDARD 20)
 
+
 # --------- Includes -----------
 include(${CGAL_USE_FILE})
 include_directories(${INCLUDE_DIR})

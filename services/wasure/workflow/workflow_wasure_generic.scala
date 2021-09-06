@@ -162,6 +162,12 @@ current_plateform.toLowerCase match {
   case "multivac" => {
     val hdfs_files_dir = get_bash_variable("HDFS_FILES_DIR");
     val exec_path_list = List("ddt-stream-exe","wasure-stream-exe");
+    // val lib_list = List(
+    //   "libboost_system.so.1.71.0",
+    //   "libboost_filesystem.so.1.71.0","libc.so.6",
+    //   "libddt.so","libgcc_s.so.1","libgmp.so.10","libm.so.6","libpthread.so.0","libstdc++.so.6","libtbmrf.so"
+    // )
+
     val lib_list = List(
       "ddt-stream-exe","libboost_system.so.1.67.0",
       "libboost_filesystem.so.1.67.0","libCGAL.so.13",

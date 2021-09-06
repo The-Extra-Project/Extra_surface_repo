@@ -73,23 +73,19 @@ function build # Build docker container
 {
     echo "name_img_base => ${NAME_IMG_BASE}"
     case ${NAME_IMG_BASE} in
-	"ddt_img_base")
-	    echo "START 19"
-	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-18-10 ${DDT_MAIN_DIR}
+	"ddt_img_base_18_04")
+	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-18-04 ${DDT_MAIN_DIR}
 	    ;;
 
 	"ddt_img_base_21_10")
-	    echo "START 21_10"
 	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-21-10 ${DDT_MAIN_DIR}
 	    ;;
 
 	"ddt_img_base_20_04")
-	    echo "START 20_04"
 	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-20-04 ${DDT_MAIN_DIR}
 	    ;;
 	*)
 	    echo "ERROR NO IMAGE"
-
 	    ;;
     esac
 
