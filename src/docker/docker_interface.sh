@@ -78,9 +78,9 @@ function build # Build docker container
 	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-18-10 ${DDT_MAIN_DIR}
 	    ;;
 
-	"ddt_img_base_devel")
-	    echo "START 21_04"
-	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-devel ${DDT_MAIN_DIR}
+	"ddt_img_base_21_10")
+	    echo "START 21_10"
+	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-21-10 ${DDT_MAIN_DIR}
 	    ;;
 
 	"ddt_img_base_20_04")

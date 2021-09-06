@@ -14,10 +14,13 @@ KERNEL=build-spark-Release-D2
 KERNEL=build-spark-Release-2
 KERNEL=build-spark-Release-3
 rm -rf /home/lcaraffa/tmp/*
+cp -rf /home/lcaraffa/code/spark-ddt/build/${KERNEL}/depts/*
 cp -rf /home/lcaraffa/code/spark-ddt/build/${KERNEL}/lib/* /home/lcaraffa/tmp/
 cp -rf /home/lcaraffa/code/spark-ddt/build/${KERNEL}/*.so /home/lcaraffa/tmp/
 cp -rf /home/lcaraffa/code/spark-ddt/build/${KERNEL}/bin/* /home/lcaraffa/tmp/
-cp -rf /home/lcaraffa/lib/* /home/lcaraffa/tmp/
+
+## Useful for old version 
+#cp -rf /home/lcaraffa/lib/* /home/lcaraffa/tmp/
 
 hadoop fs -rm -r /user/lcaraffa/tmp/
 hadoop fs -put -f /home/lcaraffa/tmp/ /user/lcaraffa/

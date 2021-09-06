@@ -12,6 +12,7 @@ if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" VERSION_GREATER 2.6)
   endif()
 endif()
 
+set (CMAKE_CXX_STANDARD 20)
 
 set(CPP_CORE_LOCAL_DIR "src/core/")
 set(SERVICE_LOCAL_DIR "services/")
@@ -82,7 +83,7 @@ else()
   endif()
 endif()
 
-add_definitions("-Wunused -O3 -std=gnu++11")
+add_definitions("-Wunused -O3")
 if(DDT_DEBUG)
   add_definitions("-DDDT_DEBUG=1")
 endif()
@@ -158,7 +159,7 @@ set(libddt_SOURCES
   ${CPP_CORE_LOCAL_DIR}/traits/traits.hpp
   )
 add_library( libddt SHARED ${libddt_SOURCES} )
-set_property( TARGET libddt PROPERTY CXX_STANDARD 11)
+set_property( TARGET libddt PROPERTY CXX_STANDARD 20)
 set_target_properties( libddt PROPERTIES PREFIX "" )
 
 

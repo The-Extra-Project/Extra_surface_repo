@@ -146,13 +146,13 @@ function run_multivac_croco
 
 #run_multivac_aerial
 #eval_params_loop
-#run_multivac_church
+run_multivac_church
 #run_multivac_aerial
 #
 #run_multivac_full_v3
 #run_multivac_full_v4
 
-run_multivac_tau0
+#run_multivac_tau0
 #run_multivac_croco
 
 

@@ -4,7 +4,7 @@
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
 source ${DDT_MAIN_DIR}/algo-env.sh
 GLOBAL_OUTPUT_DIR="${SPARK_SHARED_DIR}/outputs/"
-GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/inputs/"
+GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/datas/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
@@ -23,7 +23,7 @@ function run_algo_docker
     echo ""
     echo "##  ------  ${FUNCNAME[1]}  ------" 
     CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c 4 -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
-    echo ${CMD}
+    exec ${CMD}
 }
 
 
@@ -115,7 +115,7 @@ function run_3d_yanis
 ### 3D Surface reconstruction 
 function run_3d_bench_small
 {
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_small/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
@@ -125,7 +125,7 @@ function run_3d_bench_small
  ### 3D Surface reconstruction                                                                                                                                                                                                                
  function run_3d_toulouse
  {
-     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
      INPUT_DIR="${GLOBAL_INPUT_DIR}/toulouse_pp/"
      OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
      PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
@@ -133,22 +133,22 @@ function run_3d_bench_small
  }
 
  ### 3D Surface reconstruction                                                                                                                                                                                                                
- function run_aerial
+ function run_aerial_las
  {
-     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-     INPUT_DIR="${GLOBAL_INPUT_DIR}/aerial/aerial_small_pp/"
+     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+     INPUT_DIR="${DDT_MAIN_DIR}/datas/toulouse_aerial_focal_0_stream/"
      OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+     PARAMS="${INPUT_DIR}/wasure_metadata_3d_gen.xml"
      run_algo_docker
  }
 
  
 function run_3d_church
 {
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    INPUT_DIR="~/shared_spark/inputs/church/preprocessed_small_2/"
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+    INPUT_DIR="${GLOBAL_INPUT_DIR}/toulouse_church/preprocessed_small_2/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d_buggy.xml"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
 }
 
@@ -158,8 +158,8 @@ function run_3d_church
 function preprocess_data
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    INPUT_DIR="/home/laurent/shared_spark/inputs/toulouse_lidar_fullHD_V2/"
-    OUTPUT_DIR="/home/laurent/shared_spark/inputs/toulouse_lidar_fullHD_V3/"
+    INPUT_DIR="/home/laurent/datas/toulouse_aerial_focal_0_ply_bin/"
+    OUTPUT_DIR="/home/laurent/datas/toulouse_aerial_focal_0_stream/"
     run_algo_docker    
 }
 
@@ -167,7 +167,6 @@ function preprocess_data
 function preprocess_toulouse
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-
     INPUT_DIR="/mnt/samsung_T5b/Toulouse_cc_3"
     OUTPUT_DIR="/mnt/samsung_T5b/Toulouse_pp_3"
 
@@ -187,12 +186,13 @@ function preprocess_toulouse
 ### 3D
 #run_3d_bench_small
 #run_3d_bench_raw
-run_3d_bench_preprocess
+#run_3d_bench_preprocess
 #run_3d_yanis
 #run_3d_yanis_2
 
 #run_aerial
-#run_3d_church
+#run_aerial_las
+run_3d_church
 #run_3d_bench_preprocessed
 #run_3d_bench_small
 #run_3d_toulouse

@@ -206,7 +206,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
     Traits  traits;
     wasure_algo w_algo;
     int D = Traits::D;
-    int max_ppt = 50000000;
+    int max_ppt = 200000;
     std::map<Id,wasure_data<Traits> > datas_map;
     std::map<Id,std::string > fname_map;
     std::map<Id,std::string > fname_map2;
