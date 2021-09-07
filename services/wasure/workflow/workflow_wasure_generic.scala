@@ -155,10 +155,11 @@ fs.mkdirs(new Path(cur_output_dir),new FsPermission("777"))
 
 var env_map: scala.collection.immutable.Map[String, String] = Map("" -> "")
 current_plateform.toLowerCase match {
-  case "cnes" => {
-    import org.apache.log4j.PropertyConfigurator
-    PropertyConfigurator.configure(ddt_main_dir + "/log4j-executor.properties.v3" )
-  }
+  // case "cnes" => {
+  //   println("void")
+  //   import org.apache.log4j.PropertyConfigurator
+  //   PropertyConfigurator.configure(ddt_main_dir + "/log4j-executor.properties.v3" )
+  // }
   case "multivac" => {
     val hdfs_files_dir = get_bash_variable("HDFS_FILES_DIR");
     val exec_path_list = List("ddt-stream-exe","wasure-stream-exe");
@@ -193,6 +194,7 @@ current_plateform.toLowerCase match {
 
 val cpp_exec_path = current_plateform.toLowerCase match {
   case "cnes"  =>     "/softs/rh7/singularity/3.5.3/bin/singularity exec " + build_dir + "/wasure_singularity.simg " + build_dir + "/bin/"
+  case "singularity"  =>     "singularity exec " + build_dir + "/wasure_singularity.simg " + build_dir + "/bin/"
   case "multivac"  =>   "" // Empty string
   case _  => build_dir + "/bin/"
 }
