@@ -4,4 +4,4 @@
 #PBS -l walltime=00:40:00
 
 module load spark
-pbs-launch-spark -n 8 -m 20000M
+pbs-launch-spark -n 5 -m 18000M

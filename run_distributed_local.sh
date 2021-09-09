@@ -137,7 +137,7 @@ function run_3d_bench_small
  function run_aerial_las
  {
      FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
-     INPUT_DIR="${DDT_MAIN_DIR}/datas/toulouse_aerial_focal_0_stream/"
+     INPUT_DIR="/home/laurent/shared_spark/datas/toulouse_aerial_focal_0_ply_stream/"
      OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
      PARAMS="${INPUT_DIR}/wasure_metadata_3d_gen.xml"
      run_algo_docker
@@ -159,8 +159,8 @@ function run_3d_church
 function preprocess_data
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    INPUT_DIR="/home/laurent/datas/toulouse_aerial_focal_0_ply_bin/"
-    OUTPUT_DIR="/home/laurent/datas/toulouse_aerial_focal_0_stream/"
+    INPUT_DIR="/home/laurent/shared_spark/datas/toulouse_aerial_focal_0_ply_bin/"
+    OUTPUT_DIR="/home/laurent/shared_spark/datas/toulouse_aerial_focal_0_ply_stream/"
     run_algo_docker    
 }
 
@@ -186,13 +186,13 @@ function preprocess_toulouse
 
 ### 3D
 #run_3d_bench_small
-run_3d_bench_raw
+#run_3d_bench_raw
 #run_3d_bench_preprocess
 #run_3d_yanis
 #run_3d_yanis_2
 
 #run_aerial
-#run_aerial_las
+run_aerial_las
 #run_3d_church
 #run_3d_bench_preprocessed
 #run_3d_bench_small
