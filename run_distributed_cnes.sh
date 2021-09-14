@@ -33,7 +33,7 @@ function run_cnes_church
     cnes_run_algo
 }
 
-function run_cnes_toulouse
+function run_cnes_aerial
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac_generic.scala"
     export INPUT_DATA_DIR="/work/scratch/caraffl/datas/toulouse_aerial_focal_0_ply_stream/"
@@ -44,6 +44,19 @@ function run_cnes_toulouse
 #    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_small.xml"
     cnes_run_algo
 }
+
+function run_cnes_toulouse
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac_generic.scala"
+    export INPUT_DATA_DIR="/work/scratch/caraffl/datas/toulouse_v4_pp/"
+    export OUTPUT_DATA_DIR="/work/scratch/caraffl/output/toulouse_v4_pp/"
+    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"
+    export GLOBAL_BUILD_DIR="${DDT_MAIN_DIR}/build/"
+#    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_bp.xml"
+#    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_small.xml"
+    cnes_run_algo
+}
+
 
 
 
@@ -56,7 +69,7 @@ function cnes_load_spark
 # Init
 function cnes_init_spark
 {
-    OUTPUT=$(qsub ${DDT_MAIN_DIR}/services/pbs/start_cluster_v1.sh)
+    OUTPUT=$(qsub ${DDT_MAIN_DIR}/services/pbs/start_cluster_v2.sh)
     echo "cluster start => $OUTPUT"
     QSUB_ID="${OUTPUT%.*}"
     echo "QSUB ID => $QSUB_ID"

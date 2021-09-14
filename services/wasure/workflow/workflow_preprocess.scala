@@ -122,10 +122,18 @@ val coef_mult = params_scala.get_param("coef_mult", "10").toFloat
 // Set the iq library on
 val iq = new IQlibSched(slvl_glob,slvl_loop)
 
+val cpp_exec_path = current_plateform.toLowerCase match {
+  case "cnes"  =>     "/softs/rh7/singularity/3.5.3/bin/singularity exec " + build_dir + "/ddt_img_cnes.simg " + build_dir + "/bin/"
+  case "singularity"  =>     "singularity exec " + build_dir + "/ddt_img_cnes.simg " + build_dir + "/bin/"
+  case "multivac"  =>   "" // Empty string
+  case _  => build_dir + "/bin/"
+}
+
+
 // Set the c++ command line object
 val params_new = new Hash_StringSeq with mutable.MultiMap[String, String]
 val params_wasure =  set_params(params_new,List(
-  ("exec_path", build_dir + "/bin/wasure-stream-exe"),
+  ("exec_path", cpp_exec_path + "wasure-stream-exe"),
   ("dim",params_scala("dim").head),
   ("bbox",params_scala("bbox").head),
   ("input_dir",input_dir),

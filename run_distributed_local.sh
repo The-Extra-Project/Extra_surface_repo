@@ -23,7 +23,7 @@ function run_algo_docker
     echo ""
     echo "##  ------  ${FUNCNAME[1]}  ------"
     #    export CURRENT_PLATEFORM="singularity"
-    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c 4 -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
+    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c 1 -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
     exec ${CMD}
 }
 
@@ -159,8 +159,8 @@ function run_3d_church
 function preprocess_data
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    INPUT_DIR="/home/laurent/shared_spark/datas/toulouse_aerial_focal_0_ply_bin/"
-    OUTPUT_DIR="/home/laurent/shared_spark/datas/toulouse_aerial_focal_0_ply_stream/"
+    INPUT_DIR="/home/laurent/shared_spark/datas/toulouse_aerial_focal_2_ply_bin/"
+    OUTPUT_DIR="/home/laurent/shared_spark/datas/toulouse_aerial_focal_2_ply_stream/"
     run_algo_docker    
 }
 
@@ -186,13 +186,13 @@ function preprocess_toulouse
 
 ### 3D
 #run_3d_bench_small
-#run_3d_bench_raw
+run_3d_bench_raw
 #run_3d_bench_preprocess
 #run_3d_yanis
 #run_3d_yanis_2
 
 #run_aerial
-run_aerial_las
+#run_aerial_las
 #run_3d_church
 #run_3d_bench_preprocessed
 #run_3d_bench_small
