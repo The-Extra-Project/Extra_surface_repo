@@ -1857,6 +1857,10 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
             bool do_serialize = false;
 	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
 	    w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,true);
+
+	    // if(w_datas_tri[hid].dmap[w_datas_tri[hid].labseg_name].do_exist){
+	    //   w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,true);
+	    // }
         }
 	if(hpi.get_lab() == "f")
         {
@@ -1876,6 +1880,7 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
     Tile_const_iterator  tile_k  = tri.get_const_tile(tid);
     std::map<Id,std::map<Id,SharedData> > shared_data_map;
     std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
+    //    std::vector<std::vector<double>>  & format_labs = w_datas_tri[tid].format_labs; ;
     // Loop over each shared cell to extracts id relation
     // lid_l , lid_l <-> lid_k
     std::cerr << "RECIEVE BARY" << std::endl; 
@@ -2277,9 +2282,25 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
             int tmp_idx = fit.index_of_covertex();
             Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
 
-
-
-
+	    bool do_debug = false;
+	    for(int i=0; i<=D; ++i){
+	      auto pp = tmp_fch->vertex(i)->point();
+	      if(std::fabs(pp[0] - (-14.26)) < 0.02 &&
+		 std::fabs(pp[1] - 0.98    )  < 0.02  &&
+		 std::fabs(pp[2] - 0.70    ) < 0.02){
+		do_debug = true;
+	      }
+	    }
+	    if(do_debug){
+	      std::cerr << "DEBUG AY0" << std::endl;
+	      for(int i=0; i<=D; ++i){
+		std::cerr << tmp_fch->vertex(i)->point() << std::endl;
+	      }
+	      for(int i=0; i<=D; ++i){
+		std::cerr << tmp_fchn->vertex(i)->point() << std::endl;
+	      }
+	    }
+	    
 	    if(params.area_processed == 2  ){
 	      bool is_edge =  false;
 	      if((tmp_fch->has_id(lid[0]) && tmp_fchn->has_id(lid[1])) ||
@@ -2338,6 +2359,11 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
 
             int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
             int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];
+
+	    if(do_debug){
+	      std::cerr << "lab:" << ch1lab << " " << chnlab << std::endl;
+	    }
+	    
             if(
                 (ch1lab != chnlab)
 	       ){
@@ -2358,6 +2384,7 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
         catch (ddt::DDT_exeption& e)
         {
             std::cerr << "!! WARNING !!!" << std::endl;
+	    std::cerr << "params.area_processed : " << params.area_processed << std::endl;
             std::cerr << "Exception catched : " << e.what() << std::endl;
             continue;
         }
@@ -3191,7 +3218,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
     	  if(!is_first){
 	    lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
 	  }
-
+	  
 	  int D = tile_1->current_dimension();
     	  // Loop on shared tiles
 
@@ -3237,6 +3264,8 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 		//    		TODO : Compute the new lambda
 
 
+
+
 		if(lab_2 != lab_1)
 		  acc_diff++;
 		acc_tot++;
@@ -3253,11 +3282,20 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 		// else if(old_diff == v_diff && lab_2 != lab_1)
 		//   cur_tau *=2;
 
+
+		if(params.do_finalize){
+		  Id mid = fch->main_id();
+		  if(tid_2 == mid)
+		    w_datas_tri[tid_1].format_labs[lid_1] = lab_2;
+		}
+		
     	      }else{
 		if(shared_data_map.find(tid_2) == shared_data_map.end())
 		  shared_data_map[tid_2] = std::map<Id,SharedData>();
 	      }
 
+
+	      
     	      shared_data_map[tid_2][lid_1] = std::make_tuple(lid_2,new_lagrange,cur_tau,v_diff);
     	    }
       }
@@ -3265,41 +3303,122 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 
 
     // ============== Debug results ============
-    if(params.dump_debug && false){
+    if(params.dump_debug || params.do_finalize){
+      int D = tile_1->current_dimension();
       Traits  traits;
       std::vector<Point> pvect;
       std::vector<int> v_labs;
       ddt_data<Traits> datas_out;
 
       std::vector<std::string> label_name = {"lab"};
-	
-      datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",3,3,DATA_FLOAT_TYPE);
-      datas_out.dmap[label_name] = ddt_data<Traits>::Data_ply(label_name,"vertex",1,1,tinyply::Type::INT32);
+
+      int acc_nbp = 0;
+      
+      for( auto cit_k = tile_1->cells_begin();
+	   cit_k != tile_1->cells_end(); ++cit_k )
+	{
+	  bool do_keep = false;
+	  if(tile_1->cell_is_infinite(cit_k))
+	    continue;
+
+
+	  for(int i=0; i<=D; ++i){
+	    auto pp = tile_1->vertex(cit_k,i)->point();
+	    if(std::fabs(pp[0] - (-14.26)) < 0.02 &&
+	       std::fabs(pp[1] - 0.98)  < 0.02  &&
+	       std::fabs(pp[2] - 0.70) < 0.02 ){
+	      do_keep = true;
+	    }
+	  }
+
+	  if(do_keep)
+	    acc_nbp++;
+	  
+	}
+      
+      std::ofstream myfile;
+      std::string filename(params.output_dir + "/" + params.slabel + "_" + std::to_string(tid_1) + "_debug.ply");
+      myfile.open (filename);
+      myfile << "ply" <<  std::endl;
+      myfile << "format ascii 1.0" << std::endl;
+      myfile << "element vertex "  << acc_nbp  << std::endl;
+      myfile << "property float x" << std::endl;
+      myfile << "property float y" << std::endl;
+      myfile << "property float z" << std::endl;
+      myfile << "property uchar red " << std::endl;
+      myfile << "property uchar green" << std::endl;
+      myfile << "property uchar blue" << std::endl;
+      myfile << "end_header                " << std::endl;
+
+      
+      // datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",3,3,DATA_FLOAT_TYPE);
+      // datas_out.dmap[label_name] = ddt_data<Traits>::Data_ply(label_name,"vertex",1,1,tinyply::Type::INT32);
+      //      datas_out.dmap[std::vector<std::string>{"] = ddt_data<Traits>::Data_ply(label_name,"vertex",1,1,tinyply::Type::INT32);
       std::string filename_debug(params.output_dir + "/" + params.slabel + "_" + std::to_string(tid_1) + "_debug.ply");
       for( auto cit_k = tile_1->cells_begin();
 	   cit_k != tile_1->cells_end(); ++cit_k )
 	{
 	  Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_k);
-    	  // lagrangian only on mixed cell
-      	  if(!tile_1->cell_is_mixed(cit_k) || tile_1->cell_is_infinite(cit_k))
+	  //  lagrangian only on mixed cell
+      	  // if(!tile_1->cell_is_mixed(cit_k) || tile_1->cell_is_infinite(cit_k))
+      	  //   continue;
+	  if(tile_1->cell_is_infinite(cit_k))
       	    continue;
 
+	  bool do_keep = false;
+	  for(int i=0; i<=D; ++i){
+	    auto pp = tile_1->vertex(cit_k,i)->point();
+	    if(std::fabs(pp[0] - (-14.26)) < 0.02 &&
+	       std::fabs(pp[1] - 0.98)  < 0.02  &&
+	       std::fabs(pp[2] - 0.70) < 0.02){
+	      do_keep = true;
+	    }
+	  }
+	  if(!do_keep)
+	    continue;
+	  
 	  Id lid_1 = tile_1->lid(cit_k);
 	  int lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
+
+	  for(int i=0; i<=D; ++i)
+    	    {
+    	      // Select only id != tid_1
+    	      Id tid_2 = tile_1->id(tile_1->vertex(cit_k,i));
+	      Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
+	      if (edges_data_map[tid_2].find(lid_2) == edges_data_map[tid_2].end()){
+		std::cerr << "EDGES_DATA_MAP NOT FOUND" << std::endl;
+		continue;
+	      }else{
+		std::cerr << "EDGES_DATA_MAP ... FOUND" << std::endl;
+		}
+	    }
+
+
 	  
 	  std::vector<double> bary = tile_1->get_cell_barycenter(cit_k);
+	  for(int d = 0; d < D; d++){
+	    myfile << bary[d] << " ";
+	  }
+	  if(lab_1 == 0)
+	    myfile << "255 0 0 " << std::endl;
+	  else
+	    myfile << "0 255 0 " << std::endl;
+
+
+	  
 	  pvect.push_back(traits.make_point(bary.begin()));
 	  v_labs.push_back(lab_1);
 	}
-      datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(pvect);
-      datas_out.dmap[label_name].fill_full_uint8_vect(v_labs);
-
+      // datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(pvect);
+      // datas_out.dmap[label_name].fill_full_uint8_vect(v_labs);
+      myfile.close();
       std::ofstream ofile;
+
       // ofile.open(filename_debug);
-      // datas_out.write_ply_stream(ofile,'\n',true);
+      // datas_out.write_ply_stream(ofile,'\n',false);
       // ofile.close();
 
-
+      if(false){
       std::ostringstream ss;
       ss  << std::setfill('0') << std::setw(3) << tid_1;
       std::string filename_debug2(params.output_dir + "/" + params.slabel + "_" + ss.str() + "_debug.txt");
@@ -3356,6 +3475,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	  ofile << "conv:" << conv << std::endl;
       }
       ofile.close();
+      }
     }
 
 
@@ -3365,7 +3485,8 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 
     // === Do a graphcut ============
     log.step("compute");
-    mrf.opt_gc_lagrange(1,tri,w_datas_tri,shared_data_map,tid_1,params.use_weight);
+    if(!params.do_finalize)
+      mrf.opt_gc_lagrange(1,tri,w_datas_tri,shared_data_map,tid_1,params.use_weight);
 
 
     log.step("write");
@@ -3373,10 +3494,11 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 
 
     std::cerr << "seg_step7_lagrange" << std::endl;
-    edges_data_map.clear();
+
     
     // ==== Build new edges =====
     if(!params.do_finalize){
+      edges_data_map.clear();
       for( auto cit_1 = tile_1->cells_begin();
 	   cit_1 != tile_1->cells_end(); ++cit_1 )
 	{
@@ -3413,6 +3535,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	   cit_1 != tile_1->cells_end(); ++cit_1 )
 	{
 	  Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
+	  Id mid = fch->main_id();
 	  // lagrangian only on mixed cell
 	  if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))
 	    continue;
@@ -3425,14 +3548,19 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	      // Select only id != tid_1
 	      Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
 	      Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
+	      int lab_2 = std::get<1>(edges_data_map[tid_2][lid_2]);
+
+    	      if(tid_2 == tid_1)
+    		continue;
+	      
 	      if (idSet.find(tid_2) != idSet.end()){
 		continue;
 	      }
 	      idSet.insert(tid_2);
-	      if(tid_2 < tid_1)
-		w_datas_tri[tid_1].format_labs[lid_1] = lid_2;
+	      //	      std::cerr << "DBG2002 " << tid_2 << " " << tid_1 << " " << mid << " " << lid_1 << " " << lid_2 << " " << lab_2 << std::endl;
+	      if(tid_2 == mid)
+		w_datas_tri[tid_1].format_labs[lid_1] = lab_2;
 	      
-
 	    }
 	}
 

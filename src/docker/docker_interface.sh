@@ -92,11 +92,10 @@ function build # Build docker container
 }
 
 
-
 function build_cnes # Build docker container
 {
-
     docker build ${PROXY_CMD} ${NO_CACHE} -t  ddt_img_cnes -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-cnes ${DDT_MAIN_DIR}
+    singularity build ddt_img_cnes.simg docker-daemon://ddt_img_cnes:latest
 }
 
 

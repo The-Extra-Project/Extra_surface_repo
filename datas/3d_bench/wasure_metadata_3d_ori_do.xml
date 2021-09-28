@@ -15,7 +15,7 @@
 
       <algo_opt>seg_lagrange_weight</algo_opt>
       <lambda>0.1</lambda>
-      <coef_mult>10</coef_mult>
+      <coef_mult>5</coef_mult>
       <max_opt_it>30</max_opt_it>
       <StorageLevel>DISK_ONLY</StorageLevel> 
       <!-- Meta paramexters -->

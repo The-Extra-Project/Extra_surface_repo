@@ -137,7 +137,7 @@ val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
 val lambda = params_scala.get_param("lambda", "0.1").toFloat
 val coef_mult = params_scala.get_param("coef_mult", "1").toFloat
 //val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
-val max_opt_it = 30
+val max_opt_it = 10
 val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
 val stats_mod_it = params_scala.get_param("stats_mod_it", ((max_opt_it)/2).toString).toInt
 val stats_mod_it = 1
@@ -515,7 +515,7 @@ algo_list.foreach{ cur_algo =>
               ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
               wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
             }
-            if(false){
+            if(true){
               val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
                 ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge" + ext_name),
                 graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false)
@@ -597,4 +597,4 @@ algo_list.foreach{ cur_algo =>
 }
 ddt_algo.update_time(params_scala,"final_after_dumping");
 dump_json(params_scala,cur_output_dir + "/full_workflow_params.json",sc);
-System.exit(0)
+// System.exit(0)

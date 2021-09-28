@@ -10,8 +10,8 @@ function cnes_run_algo
 {
     ## WORKS!!
     # spark-shell  --master spark://${NODE_NAME}:7077 yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}"  
-
-    spark-shell  --master spark://${NODE_NAME}:7077 yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --driver-memory 10G --executor-memory 15G --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}" -Dlog4j.configuration=log4j-driver.properties --files log4j-driver.properties,log4j-executor.properties  --conf spark.executor.extraJavaOptions=-Dlog4j.debug=true  --conf spark.executor.extraJavaOptions=-Dlog4j.configuration=file:./log4j-executor.properties  --conf spark.yarn.app.container.log.dir=/home/ad/caraffl/code/spark-ddt  --conf "spark.memory.offHeap.enabled=true"   --conf "spark.memory.offHeap.size=10g"
+    echo ":load /home/ad/caraffl/code/spark-ddt/services/wasure/workflow/workflow_wasure_generic.scala"
+    spark-shell -i /home/ad/caraffl/code/spark-ddt/services/wasure/workflow/workflow_wasure_generic.scala --master spark://${NODE_NAME}:7077 yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --driver-memory 10G --executor-memory 15G --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}" -Dlog4j.configuration=log4j-driver.properties --files log4j-driver.properties,log4j-executor.properties  --conf spark.executor.extraJavaOptions=-Dlog4j.debug=true  --conf spark.executor.extraJavaOptions=-Dlog4j.configuration=file:./log4j-executor.properties  --conf spark.yarn.app.container.log.dir=/home/ad/caraffl/code/spark-ddt  --conf "spark.memory.offHeap.enabled=true"   --conf "spark.memory.offHeap.size=10g"
     
     ## GOOOD
     # spark-shell  --master spark://${NODE_NAME}:7077 yarn --deploy-mode client --jars ${DDT_MAIN_DIR}/build/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar --conf "spark.executor.memoryOverhead=${MULTIVAC_MEMORY_OVERHEAD}"  --properties-file spark-defaults.conf
@@ -36,7 +36,7 @@ function run_cnes_church
 function run_cnes_aerial
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac_generic.scala"
-    export INPUT_DATA_DIR="/work/scratch/caraffl/datas/toulouse_aerial_focal_0_ply_stream/"
+    export INPUT_DATA_DIR="/work/scratch/caraffl/datas/toulouse_aerial_focal_2_ply_stream/"
     export OUTPUT_DATA_DIR="/work/scratch/caraffl/output/toulouse/"
     export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_gen.xml"
     export GLOBAL_BUILD_DIR="${DDT_MAIN_DIR}/build/"
@@ -48,9 +48,9 @@ function run_cnes_aerial
 function run_cnes_toulouse
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac_generic.scala"
-    export INPUT_DATA_DIR="/work/scratch/caraffl/datas/toulouse_v4_pp/"
-    export OUTPUT_DATA_DIR="/work/scratch/caraffl/output/toulouse_v4_pp/"
-    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"
+    export INPUT_DATA_DIR="/work/scratch/caraffl/datas/toulouse_full/"
+    export OUTPUT_DATA_DIR="/work/scratch/caraffl/output/toulouse_full/"
+    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_gen.xml"
     export GLOBAL_BUILD_DIR="${DDT_MAIN_DIR}/build/"
 #    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_bp.xml"
 #    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_small.xml"
@@ -82,6 +82,31 @@ function cnes_init_spark
     echo "${NODE_NAME}:8080"
     echo ""
 }
+
+
+# Init
+function cnes_init_spark_v2
+{
+    OUTPUT=$(qsub ${DDT_MAIN_DIR}/services/pbs/start_cluster_v2.sh)
+    echo "cluster start => $OUTPUT"
+    QSUB_ID="${OUTPUT%.*}"
+    echo "QSUB ID => $QSUB_ID"
+    module load spark
+    queue_string='    job_state = Q'
+    while [[ $queue_string == *"job_state = Q"* ]]; do
+	echo "Is in queue"
+	sleep 3
+	queue_string=$(qstat -f ${QSUB_ID}  | grep job_state)
+    done
+    NODE_NAME=$(qstat -f ${QSUB_ID} | grep exec_host | grep -Po  'node[0-9]*' | head -1)
+    echo "Node name => $NODE_NAME"
+    echo ""
+    echo "/!\\ Spark context Web UI available at /!\\"
+    echo "${NODE_NAME}:8080"
+    echo ""
+    run_cnes_toulouse
+}
+
 # Start Spark
 
 function cnes_singularity
@@ -91,6 +116,10 @@ function cnes_singularity
     export LD_LIBRARY_PATH=${DDT_MAIN_DIR}/build/build-spark-Release-3/lib:$LD_LIBRARY_PATH    
 }
 
+function get_first_id
+{
+    qstat | grep ${USER} |  awk '{print $1;}'
+}
 
 function print_current_jobs
 {
