@@ -22,7 +22,7 @@
 typedef std::map<Id,wasure_data<Traits> > D_MAP;
 typedef std::map<Id,std::list<wasure_data<Traits>> > D_LMAP;
 typedef std::tuple<Id,double,double,double>                                SharedData;
-typedef std::tuple<Id,double,double,double,double,double,double>           SharedDataDst;
+typedef std::tuple<Id,Point,Point,Point,Point,double,double,double>           SharedDataDst;
 typedef Id                                EdgeData;
 
 
@@ -58,12 +58,17 @@ int write_id_dst_serialized(const std::map<Id,SharedDataDst>  & lp, std::ostream
     {
       outputv.emplace_back(pp.first);
       outputv.emplace_back(std::get<0>(pp.second));
-      outputv.emplace_back(std::get<1>(pp.second));
-      outputv.emplace_back(std::get<2>(pp.second));
-      outputv.emplace_back(std::get<3>(pp.second));
-      outputv.emplace_back(std::get<4>(pp.second));
+      for(int i = 0; i < 3;i++)
+	outputv.emplace_back(std::get<1>(pp.second)[i]);
+      for(int i = 0; i < 3;i++)
+	outputv.emplace_back(std::get<2>(pp.second)[i]);
+      for(int i = 0; i < 3;i++)
+	outputv.emplace_back(std::get<3>(pp.second)[i]);
+      for(int i = 0; i < 3;i++)
+	outputv.emplace_back(std::get<4>(pp.second)[i]);
       outputv.emplace_back(std::get<5>(pp.second));
       outputv.emplace_back(std::get<6>(pp.second));
+      outputv.emplace_back(std::get<7>(pp.second));
     }
     serialize_b64_vect(outputv,ofile);
     return 0;
@@ -73,14 +78,30 @@ int write_id_dst_serialized(const std::map<Id,SharedDataDst>  & lp, std::ostream
 
 std::istream & read_id_dst_serialized(std::map<Id,SharedDataDst> & lp, std::istream & ifile, bool do_print = false)
 {
+
+  Traits  traits;
   do_print = false;
   std::vector<double> input_v;
   deserialize_b64_vect(input_v,ifile);
-  int nbe = 8;
+  int nbe = 17;
   for(int n = 0; n < input_v.size()/nbe;n++){
     Id id1 = input_v[n*nbe];
+    double coords1[Traits::D];
+    double coords2[Traits::D];
+    double coords3[Traits::D];
+    double coords4[Traits::D];
+    for(int i = 0; i < 3; i++){
+      coords1[i] = input_v[n*nbe+2+i];
+      coords2[i] = input_v[n*nbe+5+i];
+      coords3[i] = input_v[n*nbe+8+i];
+      coords4[i] = input_v[n*nbe+11+i];
+    }
+    auto pp1 = traits.make_point(coords1);
+    auto pp2 = traits.make_point(coords2);
+    auto pp3 = traits.make_point(coords3);
+    auto pp4 = traits.make_point(coords4);
     // id - bary - dst
-    lp[id1] = std::make_tuple(input_v[n*nbe+1],input_v[n*nbe+2],input_v[n*nbe+3],input_v[n*nbe+4],input_v[n*nbe+5],input_v[n*nbe+6],input_v[n*nbe+7]);
+    lp[id1] = std::make_tuple(input_v[n*nbe+1],pp1,pp2,pp3,pp4,input_v[n*nbe+14],input_v[n*nbe+15],input_v[n*nbe+17]);
   }					     
   return ifile;
 }
@@ -1739,7 +1760,8 @@ int regularize_slave_extract(Id tid_1,wasure_params & params,int nb_dat,ddt::log
     wasure_algo w_algo;
     int D = Traits::D;
     D_MAP w_datas_tri;
-
+  Traits  traits;
+  
     std::map<Id,std::map<Id,SharedDataDst> > edges_dst_map;    
     log.step("read");
     for(int i = 0; i < nb_dat; i++)
@@ -1769,7 +1791,8 @@ int regularize_slave_extract(Id tid_1,wasure_params & params,int nb_dat,ddt::log
     	 cit_1 != tilec_1->cells_end(); ++cit_1 )
       {
 	Cell_const_iterator fch = Cell_const_iterator(tilec_1,tilec_1, tilec_1, cit_1);
-	std::vector<double> bary = tilec_1->get_cell_barycenter(cit_1);
+	// std::vector<double> bary = tilec_1->get_cell_barycenter(cit_1);
+	// auto pp_bary = traits.make_point(bary.begin());
 	if(!tilec_1->cell_is_mixed(cit_1) || tilec_1->cell_is_infinite(cit_1))
 	  continue;
 	Id lid_1 = tilec_1->lid(cit_1);
@@ -1788,8 +1811,13 @@ int regularize_slave_extract(Id tid_1,wasure_params & params,int nb_dat,ddt::log
  	      if(edges_dst_map.find(tid_2) == edges_dst_map.end())
 		edges_dst_map[tid_2] = std::map<Id,SharedDataDst>();
 
+	      const Point& a = tilec_1->vertex(cit_1,0)->point();
+	      const Point& b = tilec_1->vertex(cit_1,1)->point();
+	      const Point& c = tilec_1->vertex(cit_1,2)->point();
+	      const Point& d = tilec_1->vertex(cit_1,3)->point();
+	      
 	      // The current data structure => local_id of the shared tet, lag and tau
-	      edges_dst_map[tid_2][lid_1] = std::make_tuple(lid_1,bary[0],bary[1],bary[2],v_dst[lid_1][0],v_dst[lid_1][1],v_dst[lid_1][2]);
+	      edges_dst_map[tid_2][lid_1] = std::make_tuple(lid_1,a,b,c,d,v_dst[lid_1][0],v_dst[lid_1][1],v_dst[lid_1][2]);
 	    }
       }
 
@@ -1889,11 +1917,62 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
       for(auto ee_map : ee.second){
 	auto edm_l = ee_map.second;
 	Id lid_l = std::get<0>(edm_l);
-	std::vector<double> bary{std::get<1>(edm_l),std::get<2>(edm_l),std::get<3>(edm_l)};
-	std::vector<double> dstv{std::get<4>(edm_l),std::get<5>(edm_l),std::get<6>(edm_l)};
 
-	auto pp_bary = traits.make_point(bary.begin());
+
+
+	std::vector<double> dstv{std::get<5>(edm_l),std::get<6>(edm_l),std::get<7>(edm_l)};
+
+	//	auto pp_bary = std::get<1>(edm_l); //traits.make_point(bary.begin());
+
+	std::vector<Point> vpp{
+	  std::get<1>(edm_l),
+	  std::get<2>(edm_l),
+	  std::get<3>(edm_l),
+	  std::get<4>(edm_l)
+	};
+	
+	auto pp1 = std::get<1>(edm_l);
+	auto pp2 = std::get<2>(edm_l);
+	auto pp3 = std::get<3>(edm_l);
+	auto pp4 = std::get<4>(edm_l);
+	std::vector<double> bary{
+	  (pp1[0]+pp2[0]+pp3[0]+pp4[0])/4,
+	  (pp1[1]+pp2[1]+pp3[1]+pp4[1])/4,
+	  (pp1[2]+pp2[2]+pp3[2]+pp4[2])/4
+	};
+	auto pp_bary = traits.make_point(bary.begin());	
 	auto main_cell = tile_k->locate_cell_point(*tile_k,pp_bary);
+
+	bool is_cell_equal = true;
+	for(int d1 = 0; d1 <= D; d1++){
+	  bool is_pts_equal = false;
+	  auto pd1 = vpp[d1];
+	  for(int d2 = 0; d2 <= D; d2++){
+	    auto pd2 = main_cell->vertex(d2)->point();
+	    is_pts_equal = (is_pts_equal || pd1 == pd2);
+	  }
+	  is_cell_equal = is_cell_equal && is_pts_equal;
+	}
+
+	if(is_cell_equal)
+	  std::cerr << "DEBUG_EQUAL_TRUE" << std::endl;
+	else{
+	  std::cerr << "DEBUG_EQUAL_FALSE" << std::endl;
+	  for(int d1 = 0; d1 < D; d1++){
+	    auto pd1 = main_cell->vertex(d1)->point();
+	    std::cerr << pd1 << " ";
+	  }
+	  std::cerr << std::endl;
+	  for(int d1 = 0; d1 < D; d1++){
+	    auto pd1 = vpp[d1];
+	    std::cerr << pd1 << " ";
+	  }
+	  std::cerr << std::endl;
+	  
+	}
+	  
+
+	
 	
 	Id cmid = tile_k->cell_main_id(main_cell);
 	Id lid_k = tile_k->lid(main_cell);
