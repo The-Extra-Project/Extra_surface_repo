@@ -1954,9 +1954,7 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
 	  is_cell_equal = is_cell_equal && is_pts_equal;
 	}
 
-	if(is_cell_equal)
-	  std::cerr << "DEBUG_EQUAL_TRUE" << std::endl;
-	else{
+	if(!is_cell_equal){
 	  std::cerr << "DEBUG_EQUAL_FALSE" << std::endl;
 	  for(int d1 = 0; d1 < D; d1++){
 	    auto pd1 = main_cell->vertex(d1)->point();
@@ -2310,196 +2308,215 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
 int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 {
 
-    std::vector<Facet_const_iterator> lft;
-    std::vector<bool> lbool;
-    std::cout.setstate(std::ios_base::failbit);
-    DTW tri;
-    Scheduler sch(1);
-    wasure_algo w_algo;
-    int D = Traits::D;
+  std::vector<Facet_const_iterator> lft;
+  std::vector<bool> lbool;
+  std::cout.setstate(std::ios_base::failbit);
+  DTW tri;
+  Scheduler sch(1);
+  wasure_algo w_algo;
+  int D = Traits::D;
 
-    D_MAP w_datas_tri;
+  D_MAP w_datas_tri;
     
-    log.step("read");
-    std::vector<Id> lid;
-    for(int i = 0; i < nb_dat; i++)
+  log.step("read");
+  std::vector<Id> lid;
+  for(int i = 0; i < nb_dat; i++)
     {
-        ddt::stream_data_header hpi;
-        hpi.parse_header(std::cin);
-        Id hid = hpi.get_id(0);
-	lid.push_back(hid);
-        if(hpi.get_lab() == "t")
+      ddt::stream_data_header hpi;
+      hpi.parse_header(std::cin);
+      Id hid = hpi.get_id(0);
+      lid.push_back(hid);
+      if(hpi.get_lab() == "t")
         {
-            w_datas_tri[hid] = wasure_data<Traits>();
-            bool do_clean_data = false;
-            bool do_serialize = false;
-	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
-            w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
+	  w_datas_tri[hid] = wasure_data<Traits>();
+	  bool do_clean_data = false;
+	  bool do_serialize = false;
+	  read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+	  w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
         }
-        tri.finalize(sch);
-        hpi.finalize();
+      tri.finalize(sch);
+      hpi.finalize();
     }
 
-    //    w_datas_tri[tid].extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
-    // Cell_const_iterator fch;
+  //    w_datas_tri[tid].extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
+  // Cell_const_iterator fch;
 
-    log.step("compute");
-    int mode = -1;
-    //mode = 1;
-	// if(params.mode.find(std::string("out")) != std::string::npos)
-    mode = 0;
+  log.step("compute");
+  int mode = -1;
+  //mode = 1;
+  // if(params.mode.find(std::string("out")) != std::string::npos)
+  mode = 0;
 
 
-    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+  for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
     {
-        try
-        {
-            if(fit->is_infinite())
-                continue;
 
-            Cell_const_iterator tmp_fch = fit.full_cell();
-            int tmp_idx = fit.index_of_covertex();
-            Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+      if(fit->is_infinite() || (fit->main_id() != lid[0] &&  fit->main_id() != lid[1]))
+	continue;
 
-	    bool do_debug = false;
+      Cell_const_iterator tmp_fch = fit.full_cell();
+      int tmp_idx = fit.index_of_covertex();
+      Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+
+      bool do_debug = false;
+      for(int i=0; i<=D; ++i){
+	auto pp = tmp_fch->vertex(i)->point();
+	if(std::fabs(pp[0] - (-11.15)) < 0.02 &&
+	   std::fabs(pp[1] - 0.26    )  < 0.02  &&
+	   std::fabs(pp[2] - 0.37    ) < 0.02){
+	  do_debug = true;
+	}
+      }
+
+      try
+	{
+	  if(do_debug){
+	    std::cerr << "DEBUG_EXTRACT_SURFACE" << std::endl;
 	    for(int i=0; i<=D; ++i){
-	      auto pp = tmp_fch->vertex(i)->point();
-	      if(std::fabs(pp[0] - (-14.26)) < 0.02 &&
-		 std::fabs(pp[1] - 0.98    )  < 0.02  &&
-		 std::fabs(pp[2] - 0.70    ) < 0.02){
-		do_debug = true;
-	      }
+	      std::cerr << tmp_fch->vertex(i)->point() << std::endl;
 	    }
-	    if(do_debug){
-	      std::cerr << "DEBUG AY0" << std::endl;
-	      for(int i=0; i<=D; ++i){
-		std::cerr << tmp_fch->vertex(i)->point() << std::endl;
-	      }
-	      for(int i=0; i<=D; ++i){
-		std::cerr << tmp_fchn->vertex(i)->point() << std::endl;
-	      }
+	    for(int i=0; i<=D; ++i){
+	      std::cerr << tmp_fchn->vertex(i)->point() << std::endl;
 	    }
+	  }
 	    
-	    if(params.area_processed == 2  ){
-	      bool is_edge =  false;
-	      if((tmp_fch->has_id(lid[0]) && tmp_fchn->has_id(lid[1])) ||
-		 (tmp_fch->has_id(lid[1]) && tmp_fchn->has_id(lid[0]))
-		 ){
-		is_edge = true;
+	  if(params.area_processed == 2  ){
+	    bool is_edge =  false;
+	    if((tmp_fch->has_id(lid[0]) && tmp_fchn->has_id(lid[1])) ||
+	       (tmp_fch->has_id(lid[1]) && tmp_fchn->has_id(lid[0]))
+	       ){
+	      is_edge = true;
 	      // for(auto ii : lid){
 	      // 	if(!tmp_fch->had_id(ii) || !tmp_fchn->had_id(ii) )
 	      // 	is_edge = false;
-	      }
-	      if(!is_edge )
+	    }
+
+	    if(!is_edge )
 		continue;
-	    }
+	  }
 
-	    if(params.area_processed == 1){
-	      if(tmp_fch->is_mixed() || tmp_fchn->is_mixed())
-	    	continue;
-	     }
+	  if(params.area_processed == 1){
+	    if(tmp_fch->is_mixed() || tmp_fchn->is_mixed())
+		continue;
+	  }
 
-	    bool do_keep_local = false;
-            if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
-	       !tri.tile_is_loaded(tmp_fchn->main_id())){
-              //  continue;
-	    }
+	  bool do_keep_local = false;
+	  if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
+	     !tri.tile_is_loaded(tmp_fchn->main_id())){
+	    //  continue;
+	  }
 
 
 	    
-	    // if(
-	    //    (params.area_processed == 1 && (!fit->is_local()))  ||
-	    // 	(params.area_processed == 2 && !fit->is_mixed()))
-            // continue;
+	  // if(
+	  //    (params.area_processed == 1 && (!fit->is_local()))  ||
+	  // 	(params.area_processed == 2 && !fit->is_mixed()))
+	  // continue;
 
-            // if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
-	    //    !tri.tile_is_loaded(tmp_fchn->main_id())){
+	  // if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
+	  //    !tri.tile_is_loaded(tmp_fchn->main_id())){
 
-            //     continue;
-	    // }
-
-
-
-            Cell_const_iterator fch = tmp_fch->main();
-            int id_cov = fit.index_of_covertex();
-            Cell_const_iterator fchn = tmp_fchn->main();
-
-	    if(!tri.tile_is_loaded(tmp_fch->main_id()))
-	      fch = tmp_fch;
-	    if(!tri.tile_is_loaded(tmp_fchn->main_id()))
-	      fchn = tmp_fchn;
+	  //     continue;
+	  // }
 
 
-		
-	    //            Vertex_h_iterator vht;
 
-            int cccid = fch->lid();
-            int cccidn = fchn->lid();
+	  Cell_const_iterator fch = tmp_fch; //tmp_fch->main();
+	  int id_cov = fit.index_of_covertex();
+	  Cell_const_iterator fchn = tmp_fchn; // tmp_fchn->main();
 
-            int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
-            int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];
-
-	    if(do_debug){
-	      std::cerr << "lab:" << ch1lab << " " << chnlab << std::endl;
-	    }
+	  // for(int d1 = 0; d1 <= D; d1++){
+	  //   auto pd1 = fch->vertex(d1)->point();
+	  //   bool is_equal = false;
+	  //   for(int d2 = 0; d2 <= D; d2++){
+	  //     auto pd2 = fchn->vertex(d2)->point();
+	  //     is_equal = is_equal || (pd1 == pd2);
+	  //   }
+	  //   if(!is_equal)
+	  //     id_cov = d1 
 	    
-            if(
-                (ch1lab != chnlab)
-	       ){
-                lft.push_back(*fit);
+	  // }
+	  
+	  // if(!tri.tile_is_loaded(tmp_fch->main_id()))
+	  //   fch = tmp_fch;
+	  // if(!tri.tile_is_loaded(tmp_fchn->main_id()))
+	  //   fchn = tmp_fchn;
+
+	    
+
 		
-		const Point& a = fch->vertex((id_cov+1)&3)->point();
-		const Point& b = fch->vertex((id_cov+2)&3)->point();
-		const Point& c = fch->vertex((id_cov+3)&3)->point();
-		const Point& d = fch->vertex((id_cov)&3)->point();
+	  //            Vertex_h_iterator vht;
 
-		bool bl =
-		  (CGAL::orientation(a,b,c,d) == 1 && chnlab == 0) ||
-		  (CGAL::orientation(a,b,c,d) == -1 && chnlab == 1);
-		lbool.push_back(!bl);
-	    }
+	  int cccid = fch->lid();
+	  int cccidn = fchn->lid();
 
+	  int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
+	  int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];
+
+	  
+	  
+	  if(do_debug){
+	    std::cerr << "lab:" << ch1lab << " " << chnlab << std::endl;
+	  }
+	    
+	  if(
+	     (ch1lab != chnlab)
+	     ){
+	    lft.push_back(*fit);
+		
+	    const Point& a = fch->vertex((id_cov+1)&3)->point();
+	    const Point& b = fch->vertex((id_cov+2)&3)->point();
+	    const Point& c = fch->vertex((id_cov+3)&3)->point();
+	    const Point& d = fch->vertex((id_cov)&3)->point();
+
+	    bool bl =
+	      (CGAL::orientation(a,b,c,d) == 1 && chnlab == 0) ||
+	      (CGAL::orientation(a,b,c,d) == -1 && chnlab == 1);
+	    lbool.push_back(!bl);
+	  }
         }
-        catch (ddt::DDT_exeption& e)
+      catch (ddt::DDT_exeption& e)
         {
-            std::cerr << "!! WARNING !!!" << std::endl;
+	  if(do_debug){
+	    std::cerr << "!! WARNING !!!" << std::endl;
 	    std::cerr << "params.area_processed : " << params.area_processed << std::endl;
-            std::cerr << "Exception catched : " << e.what() << std::endl;
-            continue;
+	    std::cerr << "Exception catched : " << e.what() << std::endl;
+	  }
+	  continue;
         }
     }
 
 
 
 
-    log.step("write");
+  log.step("write");
 
-    std::cerr << "dim done tile : "<< tid << std::endl;
-    std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_surface");
-    std::cout.clear();
+  std::cerr << "dim done tile : "<< tid << std::endl;
+  std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_surface");
+  std::cout.clear();
 
-    ddt::stream_data_header oth("p","z",tid);
-    if(D == 2){
-      oth.write_into_file(ply_name,".geojson");
-      oth.write_header(std::cout);
-    }
-    // else
-    //     oth.write_into_file(ply_name,".ply");
-
-
-    if(lft.size() == 0)
-      return 0;
+  ddt::stream_data_header oth("p","z",tid);
+  if(D == 2){
+    oth.write_into_file(ply_name,".geojson");
+    oth.write_header(std::cout);
+  }
+  // else
+  //     oth.write_into_file(ply_name,".ply");
 
 
-    switch (D)
+  if(lft.size() == 0)
+    return 0;
+
+
+  switch (D)
     {
     case 2 :
-    {
+      {
         wasure::dump_2d_surface_geojson<DTW>(lft,oth.get_output_stream());
         break;
-    }
+      }
     case 3 :
-    {
+      {
 
         std::vector<Point>  format_points;
         std::vector<int> v_simplex;
@@ -2508,26 +2525,26 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
 
         int acc = 0;
         for(auto fit = lft.begin(); fit != lft.end(); ++fit)
-        {
+	  {
             Cell_const_iterator fch = fit->full_cell();
             int id_cov = fit->index_of_covertex();
             for(int i = 0; i < D+1; ++i)
-            {
+	      {
                 if(i != id_cov)
-                {
+		  {
                     Vertex_const_iterator v = fch->vertex(i);
                     if(vertex_map.find(v) == vertex_map.end())
-                    {
+		      {
                         vertex_map[v] = acc++;
                         format_points.push_back(v->point());
-                    }
-                }
-            }
-        }
+		      }
+		  }
+	      }
+	  }
 
 	acc=0;
         for(auto fit = lft.begin(); fit != lft.end(); ++fit)
-        {
+	  {
             Cell_const_iterator fch = fit->full_cell();
             int id_cov = fit->index_of_covertex();
 
@@ -2554,7 +2571,7 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
             //     }
             // }
 	    acc++;
-        }
+	  }
 
 
 
@@ -2566,19 +2583,19 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
 	
 	
         break;
-    }
+      }
     default :             // Note the colon, not a semicolon
-    {
+      {
         return 1;
         break;
+      }
     }
-    }
 
 
-    oth.finalize();
-    std::cout << std::endl;
+  oth.finalize();
+  std::cout << std::endl;
 
-    return 0;
+  return 0;
 }
 
 
@@ -3339,6 +3356,10 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 		cur_tau = std::get<2>(shared_data_map[tid_2][lid_1]);
 		double old_lagrange = new_lagrange;
 		double old_diff = std::get<3>(shared_data_map[tid_2][lid_1]);
+
+		if(edges_data_map[tid_2].find(lid_2) == edges_data_map[tid_2].end())
+		  std::cerr << "EDGES_DATA_MAP_V2 ERROR!" << std::endl;
+		
 		int lab_2 = std::get<1>(edges_data_map[tid_2][lid_2]); 
 		//    		TODO : Compute the new lambda
 
@@ -3396,9 +3417,10 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
       for( auto cit_k = tile_1->cells_begin();
 	   cit_k != tile_1->cells_end(); ++cit_k )
 	{
-	  bool do_keep = false;
-	  if(tile_1->cell_is_infinite(cit_k))
-	    continue;
+	  bool do_keep = true;
+	  if(!tile_1->cell_is_mixed(cit_k) || tile_1->cell_is_infinite(cit_k))
+      	     continue;
+
 
 
 	  for(int i=0; i<=D; ++i){
@@ -3439,12 +3461,12 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	{
 	  Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_k);
 	  //  lagrangian only on mixed cell
-      	  // if(!tile_1->cell_is_mixed(cit_k) || tile_1->cell_is_infinite(cit_k))
+      	   if(!tile_1->cell_is_mixed(cit_k) || tile_1->cell_is_infinite(cit_k))
+      	     continue;
+	  // if(tile_1->cell_is_infinite(cit_k))
       	  //   continue;
-	  if(tile_1->cell_is_infinite(cit_k))
-      	    continue;
 
-	  bool do_keep = false;
+	  bool do_keep = true;
 	  for(int i=0; i<=D; ++i){
 	    auto pp = tile_1->vertex(cit_k,i)->point();
 	    if(std::fabs(pp[0] - (-14.26)) < 0.02 &&
@@ -3463,13 +3485,12 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
     	    {
     	      // Select only id != tid_1
     	      Id tid_2 = tile_1->id(tile_1->vertex(cit_k,i));
+	      if(tid_2 == tid_1)
+    		continue;
 	      Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
 	      if (edges_data_map[tid_2].find(lid_2) == edges_data_map[tid_2].end()){
-		std::cerr << "EDGES_DATA_MAP NOT FOUND" << std::endl;
-		continue;
-	      }else{
-		std::cerr << "EDGES_DATA_MAP ... FOUND" << std::endl;
-		}
+		std::cerr << "EDGES_DATA_MAP_3 NOT FOUND" << std::endl;
+	      }
 	    }
 
 
