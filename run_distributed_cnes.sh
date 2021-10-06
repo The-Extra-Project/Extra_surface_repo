@@ -45,7 +45,19 @@ function run_cnes_aerial
     cnes_run_algo
 }
 
-function run_cnes_toulouse
+function run_cnes_toulouse_v4
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac_generic.scala"
+    export INPUT_DATA_DIR="/work/scratch/caraffl/datas/toulouse_v4_pp/"
+    export OUTPUT_DATA_DIR="/work/scratch/caraffl/output/toulouse_v4_pp/"
+    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d.xml"
+    export GLOBAL_BUILD_DIR="${DDT_MAIN_DIR}/build/"
+#    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_bp.xml"
+#    export PARAM_PATH="${INPUT_DATA_DIR}wasure_metadata_3d_small.xml"
+    cnes_run_algo
+}
+
+function run_cnes_toulouse_full
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_multivac_generic.scala"
     export INPUT_DATA_DIR="/work/scratch/caraffl/datas/toulouse_full/"
@@ -104,7 +116,7 @@ function cnes_init_spark_v2
     echo "/!\\ Spark context Web UI available at /!\\"
     echo "${NODE_NAME}:8080"
     echo ""
-    run_cnes_toulouse
+    run_cnes_toulouse_full
 }
 
 # Start Spark

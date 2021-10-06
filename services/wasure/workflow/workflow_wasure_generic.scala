@@ -507,7 +507,7 @@ algo_list.foreach{ cur_algo =>
           // Extract the surface : Last iteration
           if(acc_loop == max_opt_it -1 || do_it_stats ){
             val graph_seg = Graph(kvrdd_seg, kvrdd_tri_edges, List("")).partitionBy(EdgePartition1D,rep_merge);
-            if(true){
+            if(false){
               val rdd_ply_surface = iq.run_pipe_fun_KValue(
                 ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
                 iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)

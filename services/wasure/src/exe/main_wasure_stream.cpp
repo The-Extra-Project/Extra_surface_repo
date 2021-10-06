@@ -252,7 +252,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 
         hpi.finalize();
 
-        std::cerr << "hpi finalized" << std::endl;
+        //std::cerr << "hpi finalized" << std::endl;
         int count = datas_map[hid].nb_pts_shpt_vect();
         std::vector<bool> do_keep(count,false);
 	fname_map[hid] = get_bname(hpi.get_file_name());
@@ -277,7 +277,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	  full_nbp++;
 	}
 
-	std::cerr << "bbox_preprocess:" << full_bbox << std::endl;
+	//std::cerr << "bbox_preprocess:" << full_bbox << std::endl;
 	datas_map[hid].dmap[datas_map[hid].xyz_name].fill_full_uint8_vect(doubleVect);
 
 	// if(true){
@@ -288,7 +288,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	// }
 
 	if(!datas_map[hid].dmap[datas_map[hid].center_name].do_exist){
-	  std::cerr << "NO CENTER : " << fname_map[hid] << std::endl;
+	  //std::cerr << "NO CENTER : " << fname_map[hid] << std::endl;
 	  datas_map[hid].dmap[datas_map[hid].center_name] = ddt_data<Traits>::Data_ply(datas_map[hid].center_name,"vertex",D,D,DATA_FLOAT_TYPE);
 	  datas_map[hid].dmap[datas_map[hid].flags_name] = ddt_data<Traits>::Data_ply(datas_map[hid].flags_name,"vertex",1,1,tinyply::Type::INT32);
 
@@ -297,7 +297,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	  std::vector<int> v_flags;
 
 	  datas_map[hid].dmap[datas_map[hid].xyz_name].extract_raw_uint8_vect(v_xyz,false);
-	  std::cerr << "extract done " << std::endl;
+	  //std::cerr << "extract done " << std::endl;
 
 	  std::vector<float> v_angle,s_flag,num_r;
 	  
@@ -333,11 +333,11 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	      //v_center.push_back(alt*0.1 + 0.52*);
 
 	    }
-	  std::cerr << "loop done" << std::endl;
+	  //std::cerr << "loop done" << std::endl;
 	  datas_map[hid].dmap[datas_map[hid].center_name].fill_full_uint8_vect(v_center);
 	  datas_map[hid].dmap[datas_map[hid].flags_name].fill_full_uint8_vect(v_flags);
 
-	  std::cerr << "fill done" << std::endl;
+	  //std::cerr << "fill done" << std::endl;
 	  
 	}else{
 	  int count = datas_map[hid].nb_pts_uint8_vect();
@@ -358,10 +358,9 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 
 	}
 
-	std::cerr << "yo" << std::endl;
+	//std::cerr << "yo" << std::endl;
 	for (  auto &ee : datas_map[hid].dmap ) {
 	  if(ee.second.do_exist){
-	    std::cerr << fname_map[hid] << std::endl;
 	    ee.second.print_elems(std::cerr);
 	    if((! datas_map[hid].dmap[ee.first].has_label("x")) &&
 	       (! datas_map[hid].dmap[ee.first].has_label("flags")) &&
@@ -2469,6 +2468,7 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
 	    const Point& c = fch->vertex((id_cov+3)&3)->point();
 	    const Point& d = fch->vertex((id_cov)&3)->point();
 
+ 	    
 	    bool bl =
 	      (CGAL::orientation(a,b,c,d) == 1 && chnlab == 0) ||
 	      (CGAL::orientation(a,b,c,d) == -1 && chnlab == 1);
@@ -2553,6 +2553,15 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
 	    Id idb = (id_cov+2)&3;
 	    Id idc = (id_cov+3)&3;
 
+	    const Point& a = fch->vertex((id_cov+1)&3)->point();
+	    const Point& b = fch->vertex((id_cov+2)&3)->point();
+	    const Point& c = fch->vertex((id_cov+3)&3)->point();
+	    const Point& d = fch->vertex((id_cov)&3)->point();
+
+	    datas_out.bbox += a;
+	    datas_out.bbox += b;
+	    datas_out.bbox += c;
+	    
 	    v_simplex.push_back(vertex_map[fch->vertex(ida)]);
 	    if(!lbool[acc]){
 	      v_simplex.push_back(vertex_map[fch->vertex(idb)]);
@@ -2579,8 +2588,7 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
         datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
         datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(format_points);
         datas_out.dmap[datas_out.simplex_name].fill_full_uint8_vect(v_simplex);
-	datas_out.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
-	
+	datas_out.write_ply_stream(oth.get_output_stream(),PLY_CHAR,false,false,true);
 	
         break;
       }
@@ -3403,7 +3411,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 
 
     // ============== Debug results ============
-    if(params.dump_debug || params.do_finalize){
+    if(params.dump_debug && params.do_finalize){
       int D = tile_1->current_dimension();
       Traits  traits;
       std::vector<Point> pvect;
@@ -4277,15 +4285,15 @@ int main(int argc, char **argv)
         srand(params.seed*tile_id);
         ddt::logging_stream log(std::to_string(tile_id) + "_" + params.algo_step, params.log_level);
 
-	if(acc == 0){
-        std::cerr << " ======================================================= " << std::endl;
-        std::cerr << "     [MAIN_DDT_STREAM_LOG] stream  : " << params.slabel << std::endl;
-        std::cerr << "     [MAIN_DDT_STREAM_LOG] tile_id : " << tile_id <<  std::endl;
-        std::cerr << "     [MAIN_DDT_STREAM_LOG] step    : " << params.algo_step << std::endl;
-        std::cerr << "     [MAIN_DDT_STREAM_LOG] acc     : " << acc++ << std::endl;
-	std::cerr << "     [MAIN_DDT_STREAM_LOG] nb dat  : " << nb_dat << std::endl;
-        std::cerr << " ======================================================= " << std::endl;
-	}
+	// if(acc == 0){
+        // std::cerr << " ======================================================= " << std::endl;
+        // std::cerr << "     [MAIN_DDT_STREAM_LOG] stream  : " << params.slabel << std::endl;
+        // std::cerr << "     [MAIN_DDT_STREAM_LOG] tile_id : " << tile_id <<  std::endl;
+        // std::cerr << "     [MAIN_DDT_STREAM_LOG] step    : " << params.algo_step << std::endl;
+        // std::cerr << "     [MAIN_DDT_STREAM_LOG] acc     : " << acc++ << std::endl;
+	// std::cerr << "     [MAIN_DDT_STREAM_LOG] nb dat  : " << nb_dat << std::endl;
+        // std::cerr << " ======================================================= " << std::endl;
+	// }
         try
         {
             if(params.algo_step == std::string("hello"))

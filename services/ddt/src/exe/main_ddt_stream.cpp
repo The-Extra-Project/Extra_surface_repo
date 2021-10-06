@@ -166,7 +166,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 
   // ==================================
   log.step("[read]parse_data");
-  std::cerr << "parse data" << std::endl;
+  //std::cerr << "parse data" << std::endl;
 
   for(int i = 0; i < nb_dat; i++)
     {
@@ -194,7 +194,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
       hpi.finalize();
     }
 
-  std::cerr << "Do the triangulation : " << vp.size() <<  std::endl;
+  //std::cerr << "Do the triangulation : " << vp.size() <<  std::endl;
   log.step("[process]triangulation");
   tri_raw.insert(vp.begin(),vp.end());
   ddt::Bbox<Traits::D> tri_bbox;
@@ -204,7 +204,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
       tri_bbox += vv;
     }
 
-  std::cerr << "get convex hull pts" << std::endl;
+  //std::cerr << "get convex hull pts" << std::endl;
   log.step("[process]get_convex_hull_pts");
   // ==================================
   std::vector<Vertex_handle_raw> vvhc;
@@ -213,7 +213,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   get_bbox_points_raw(tri_raw,std::back_inserter(vvhc),traits_raw);
 
 
-  std::cerr << "get crow" << std::endl;
+  //std::cerr << "get crow" << std::endl;
   // ==================================
   std::vector<Point>  vp_crown;
   std::set<Vertex_handle_raw>  vh_crown,vh_finalized;
@@ -248,9 +248,9 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   for(auto vv : vh_crown)
     vp_crown.emplace_back(vv->point());
 
-  std::cerr << vvhc.size() << std::endl;
-  std::cerr << vp_crown.size() << std::endl;
-  std::cerr << "get dump" << std::endl;
+  //std::cerr << vvhc.size() << std::endl;
+  //std::cerr << vp_crown.size() << std::endl;
+  //std::cerr << "get dump" << std::endl;
 
 
   // ==== Stat dumping section ======
@@ -268,7 +268,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
       ddt::stream_data_header orh("r","s",tid);
       orh.write_header(std::cout);
       log.step("[write]write_finalized_pts");
-      std::cerr << "finalized_pts_size:" << vvp_finalized.size() << std::endl;
+      //std::cerr << "finalized_pts_size:" << vvp_finalized.size() << std::endl;
       ddt::write_points_id_source_stream<Point_id_id,Point>(vvp_finalized,orh.get_output_stream(),D);
       orh.finalize();
       std::cout << std::endl;
@@ -320,7 +320,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 
 
   }
-  std::cerr << "insert tri done" << std::endl;
+  //std::cerr << "insert tri done" << std::endl;
 
   return 0;
 }
@@ -344,18 +344,18 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
       if(hpi.get_lab() == "t" )
         {
 	  //  log.step("[read]read_triangulation");
-	  std::cerr << " " << std::endl;
-	  std::cerr << "=== Parse tri ===" << std::endl;
+	  //  std::cerr << " " << std::endl;
+	  //  std::cerr << "=== Parse tri ===" << std::endl;
 	  bool do_clean_data = true;
-	  std::cerr << "parse stream tri" << std::endl;
+	  //  std::cerr << "parse stream tri" << std::endl;
 	  read_ddt_stream(tri1, hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
-	  std::cerr << "tri finalized" << std::endl;
+	  //  std::cerr << "tri finalized" << std::endl;
         }
       if(hpi.get_lab() == "d")
         {
 	  //  log.step("[read]read_triangulation");
-	  std::cerr << " " << std::endl;
-	  std::cerr << "=== Parse tri ===" << std::endl;
+	  //std::cerr << " " << std::endl;
+	  //std::cerr << "=== Parse tri ===" << std::endl;
 	  ddt_data<Traits> w_datas;
 	  w_datas.dmap[w_datas.xyz_name].extract_full_shpt_vect(vp,false);
 
@@ -364,8 +364,8 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
       // Parse point only
       if(hpi.get_lab() == "p"  || hpi.get_lab() == "z")
 	{
-	  std::cerr << " " << std::endl;
-	  std::cerr << "=== Parse pts ===" << std::endl;
+	  //std::cerr << " " << std::endl;
+	  //std::cerr << "=== Parse pts ===" << std::endl;
 	  if(hpi.is_serialized()){
 	    std::vector<Point> rvp;
 	    //ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
@@ -404,11 +404,11 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
       // Parse point and Id
       if(hpi.get_lab() == "q" || hpi.get_lab() == "r" || hpi.get_lab() == "e")
         {
-	  std::cerr << " " << std::endl;
-	  std::cerr << "=== Parse q ===" << std::endl;
+	  //std::cerr << " " << std::endl;
+	  //std::cerr << "=== Parse q ===" << std::endl;
 	  ddt::read_points_id_source_serialized(vpis, hpi.get_input_stream(), traits);
         }
-      std::cerr << "parsing done" << std::endl;
+      //std::cerr << "parsing done" << std::endl;
       hpi.finalize();
     }
   return 0;
@@ -421,12 +421,12 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
 {
 
   std::cout.setstate(std::ios_base::failbit);
-  std::cerr << "seg_step0" << std::endl;
+  //std::cerr << "seg_step0" << std::endl;
 
   DDT tri; 
   Scheduler sch(1);
 
-  std::cerr << "seg_step1" << std::endl;
+  //std::cerr << "seg_step1" << std::endl;
   //  D_MAP w_datas_tri;
 
 
@@ -449,14 +449,14 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
         }
       if(hpi.get_lab() == "s")
         {
-	  std::cerr << "[parse id] Start : " << hid << std::endl;
+	  //std::cerr << "[parse id] Start : " << hid << std::endl;
 	  std::vector<int> vv(3);
 	  for(int d = 0; d < 3; d++)
             {
 	      hpi.get_input_stream() >> vv[d];
             }
 	  tile_ids[hid] = vv;
-	  std::cerr << "[parse id] Done : " << hid << std::endl;
+	  //std::cerr << "[parse id] Done : " << hid << std::endl;
         }
       hpi.finalize();
 
@@ -473,10 +473,10 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
 
   Tile_iterator tci = tri.get_tile(tid);
   tci->init_local_id_tile();
-  std::cerr << "[local id] Start" << std::endl;
+  //std::cerr << "[local id] Start" << std::endl;
   //  tri.init_local_id();
 
-  std::cerr << "[local id] Done" << std::endl;
+  //std::cerr << "[local id] Done" << std::endl;
   std::cout.clear();
   ddt::stream_data_header oth("t","s",tid);
   oth.serialize(true);
@@ -518,13 +518,13 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
 
 
   // ======== Parse input datas section  ===========
-  std::cerr << "PARSE: " << tid <<  std::endl;
+  //std::cerr << "PARSE: " << tid <<  std::endl;
   log.step("[read]Start_parse_data");
   parse_datas(tri1,vp,vpis,nb_dat,tid,log,params);
 
-  std::cerr << "PROCESSING:" << tid <<  std::endl;
-  std::cerr << "vpis size:" << vpis.size() << std::endl;
-  std::cerr << "vp   size:" << vp.size() << std::endl;
+  //std::cerr << "PROCESSING:" << tid <<  std::endl;
+  //std::cerr << "vpis size:" << vpis.size() << std::endl;
+  //std::cerr << "vp   size:" << vp.size() << std::endl;
 
   // ======== Processing Section ===========
   // inserting stats stats
@@ -537,7 +537,7 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
       log.step("[process]insert");
       tri1.init(tid);
       Tile_iterator tci = tri1.get_tile(tid);
-      std::cerr << "start_insert_pts" << std::endl;
+      //std::cerr << "start_insert_pts" << std::endl;
       nbi1 = tci->insert(vp,false);
       vp.clear();
     }
@@ -548,7 +548,7 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
       Tile_iterator tci = tri1.get_tile(tid);
       nbi1 += tci->insert_points_id_id(vpis,tid,do_insert_local);
       vpis.clear();
-      std::cerr << "insert_id_id done" << std::endl;
+      //std::cerr << "insert_id_id done" << std::endl;
     }
 
 
@@ -653,7 +653,7 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
   if(params.extract_edg_nbrs)
     {
       log.step("[process]sendnbrs");
-      std::cerr << "send nbrs" << std::endl;
+      //std::cerr << "send nbrs" << std::endl;
       send_neighbors(tid,params,outbox_nbrs,params.do_send_empty_edges);
     }
 
@@ -718,21 +718,21 @@ int get_bbox_points(Id tid,algo_params & params, int nb_dat,ddt::logging_stream 
       if(hpi.get_lab() == "t" || hpi.get_lab() == "u")
         {
 	  std::string filename = hpi.get_file_name();
-	  std::cerr << "read : " << filename << std::endl;
+	  //std::cerr << "read : " << filename << std::endl;
 	  bool do_clean_data = true;
 	  ddt::read_ddt_stream(tri, hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
-	  std::cerr << "read stream done" << std::endl;
+	  //std::cerr << "read stream done" << std::endl;
         }
 
       hpi.finalize();
     }
   log.step("write");
-  std::cerr << "get bbox points" << std::endl;
+  //std::cerr << "get bbox points" << std::endl;
   ddt::get_bbox_points()(*(tri.get_tile(tid)), std::back_inserter(vvhc));
   //ddt::get_local_convex_hull()(*(tri.get_tile(tid)), std::back_inserter(vvhc));
-  std::cerr << "get bbox points done" << std::endl;
+  //std::cerr << "get bbox points done" << std::endl;
   std::cout.clear();
-  std::cerr << tid << " size:" << vvhc.size() << std::endl;
+  //std::cerr << tid << " size:" << vvhc.size() << std::endl;
   for(auto vv : vvhc)
     {
       int tmp_id = ((int)tid);
@@ -741,7 +741,7 @@ int get_bbox_points(Id tid,algo_params & params, int nb_dat,ddt::logging_stream 
       ddt::write_point_id_source<Point_id_id,Point>(pis,oqh.get_output_stream(),D);
       std::cout << std::endl;
     }
-  std::cerr << tid << "done!" <<  std::endl;
+  //std::cerr << tid << "done!" <<  std::endl;
 
   return 0;
 }
@@ -756,7 +756,7 @@ int get_neighbors(Id tid,algo_params & params, std::map<Id, std::vector<Point_id
 
   ddt::read_ddt_full_stream<DDT,Scheduler>(tri,std::cin,1,log);
   Tile_iterator tci = tri.get_tile(tid);
-  std::cerr << "get neighbors pids" << std::endl;
+  //std::cerr << "get neighbors pids" << std::endl;
   get_all_neighbors(tci,outbox);
 
   return 0;
@@ -796,7 +796,7 @@ int ply2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & lo
     {
       ddt::stream_data_header hpi;
       hpi.parse_header(std::cin);
-      std::cerr << "Start reading : " << hpi.get_file_name() << std::endl;
+      //std::cerr << "Start reading : " << hpi.get_file_name() << std::endl;
       ddt_data<Traits> w_datas;
       w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
       hpi.finalize();
@@ -830,9 +830,9 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
 
   int D = Traits::D;
   D_VMAP datas_map;
-  std::cerr << "nbdats:" << nb_dat << std::endl;   
+  //std::cerr << "nbdats:" << nb_dat << std::endl;   
   for(int i = 0; i < nb_dat; i++){
-    std::cerr << "convert data serialized " << i << std::endl;
+    //std::cerr << "convert data serialized " << i << std::endl;
 
     ddt::stream_data_header hpi;
     hpi.parse_header(std::cin);
@@ -843,7 +843,7 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
     Id hid = hpi.get_id(0);
     if(hpi.get_lab() == "t" || hpi.get_lab() == "u" || hpi.get_lab() == "v")
       {
-	std::cerr << "READ:" << hpi.get_lab() << std::endl;
+	//std::cerr << "READ:" << hpi.get_lab() << std::endl;
 	bool do_clean_data = true;
 	read_ddt_stream(tri1,w_datas,hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
 	auto  tile  = tri1.get_tile(tid);
@@ -852,11 +852,11 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
 	traits.export_tri_to_data(ttri,w_datas);
       } else if(hpi.get_lab() == "p"  || hpi.get_lab() == "z")
       {
-	std::cerr << " " << std::endl;
-	std::cerr << "=== Parse pts ===" << std::endl;
+	//std::cerr << " " << std::endl;
+	//std::cerr << "=== Parse pts ===" << std::endl;
 	std::vector<Point> vp;
 	if(hpi.is_serialized()){
-	  std::cerr << "is ser!" << std::endl;
+	  //std::cerr << "is ser!" << std::endl;
 	  std::vector<Point> rvp;
 	  //ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
 	  ddt_data<Traits> w_datas;
@@ -874,7 +874,7 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
 	//	datas_map[hid].dmap[datas_map[hid].xyz_name].last().fill_full_uint8_vect(vp);
       }
     datas_map[hid].push_back(w_datas);
-    std::cerr << "ser1" << std::endl;
+    //std::cerr << "ser1" << std::endl;
     hpi.finalize();
 
 
@@ -889,7 +889,7 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
       Id id =  it->first;
       int acc = 0;
       for(auto ddtm : it->second){
-	std::cerr << "ser2" << std::endl;
+	//std::cerr << "ser2" << std::endl;
 	ddt::stream_data_header oqh_1("p","s",id),oqh_2("p","s",id);
 	std::string filename(params.output_dir + "/" + params.slabel +
 			     "_id_" + std::to_string(id) + "_" + std::to_string(tid) + "_" + std::to_string(acc++)) ;
@@ -898,15 +898,15 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
 	oqh_2.write_into_file(filename,"_spx.geojson");
 	oqh_2.write_header(std::cout);
         
-	std::cerr << "ser3" << std::endl;
+	//std::cerr << "ser3" << std::endl;
 	ddtm.write_geojson_tri(oqh_1.get_output_stream(),oqh_2.get_output_stream());
 
   
 	oqh_1.finalize();
 	oqh_2.finalize();
-	std::cerr << "ser4" << std::endl;
+	//std::cerr << "ser4" << std::endl;
 	ddt::add_qgis_style(oqh_2.get_file_name(),params.style);
-	std::cerr << "DONE!" << std::endl;
+	//std::cerr << "DONE!" << std::endl;
 	std::cout << std::endl;
       }
     }
@@ -931,7 +931,7 @@ int extract_struct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream &
   DDT tri;
   Traits traits;
 
-  std::cerr << "load triangulation" << std::endl;
+  //std::cerr << "load triangulation" << std::endl;
   for(int i = 0; i < nb_dat; i++)
     {
       ddt::stream_data_header hpi;
@@ -997,7 +997,7 @@ int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std
   int dim = Traits::D;
   chunk_size = 1;
 
-  std::cerr << "init graph" << std::endl;
+  //std::cerr << "init graph" << std::endl;
   for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
     {
       NF++;
@@ -1009,8 +1009,8 @@ int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std
   //    std::map<int,int> id_map;
   std::map<Vertex_const_iterator,int> vid_map;
   std::vector<int> id2gid_vec;
-  std::cerr << "create ids" << std::endl;
-  std::cerr << "area_processed:" << area_processed  << std::endl;
+  //std::cerr << "create ids" << std::endl;
+  //std::cerr << "area_processed:" << area_processed  << std::endl;
   if(area_processed == 1){
     for( auto vit = tri.vertices_begin();
 	 vit != tri.vertices_end(); ++vit )
@@ -1055,10 +1055,10 @@ int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std
 	ofile << "s " <<   gid  << " ";
 	 // Circumcenter (good solution)
 	//#if defined(DDT_CGAL_TRAITS_D)
-	std::cerr << "get_circumcenter" << std::endl;
+	//std::cerr << "get_circumcenter" << std::endl;
 	auto circumcenter = cit->tile()->circumcenter(cit->full_cell());
-	std::cerr << "get_circumcenter" << std::endl;
-	std::cerr << circumcenter << std::endl; 
+	//std::cerr << "get_circumcenter" << std::endl;
+	//std::cerr << circumcenter << std::endl; 
 	for(int i = 0 ; i < dim;i++)
 	  ofile << circumcenter[i] << " ";
 // #else
@@ -1075,7 +1075,7 @@ int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std
       }
   }
 
-  std::cerr << "score facet " << std::endl;
+  //std::cerr << "score facet " << std::endl;
   for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
     {
       if(fit->is_infinite())
@@ -1137,7 +1137,7 @@ int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std
 	  continue;
 	}
     }
-  std::cerr << "acc = " << acc << std::endl;
+
   return acc;
 }
 
@@ -1237,7 +1237,7 @@ int extract_simplex_soup(DDT & tri,FTC &filter,std::ostream & ofile, int main_ti
   int NF = 0;
   int dim = Traits::D;
   
-  std::cerr << "init graph" << std::endl;
+  //std::cerr << "init graph" << std::endl;
   for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
     {
       NF++;
@@ -1249,8 +1249,8 @@ int extract_simplex_soup(DDT & tri,FTC &filter,std::ostream & ofile, int main_ti
   //    std::map<int,int> id_map;
   std::map<Vertex_const_iterator,int> vid_map;
   std::vector<int> id2gid_vec;
-  std::cerr << "create ids" << std::endl;
-  std::cerr << "area_processed:" << area_processed  << std::endl;
+  //std::cerr << "create ids" << std::endl;
+  //std::cerr << "area_processed:" << area_processed  << std::endl;
 
   int lo_id=0;
   if(area_processed == 1){
@@ -1269,7 +1269,7 @@ int extract_simplex_soup(DDT & tri,FTC &filter,std::ostream & ofile, int main_ti
       }
 
 
-    std::cerr << "score simplex" << std::endl;
+    //std::cerr << "score simplex" << std::endl;
     for( auto cit = tri.cells_begin();
 	 cit != tri.cells_end(); ++cit )
       {
@@ -1292,10 +1292,10 @@ int extract_simplex_soup(DDT & tri,FTC &filter,std::ostream & ofile, int main_ti
       	ofile << "s " <<   gid  << " ";
 	// for(int i = 0 ; i < dim;i++)
 	// 	ofile << cent[i]/(dim+1) << " ";
-	std::cerr << "get_circumcenter" << std::endl;
+	//std::cerr << "get_circumcenter" << std::endl;
 	auto circumcenter = cit->tile()->circumcenter(cit->full_cell());
-	std::cerr << "get_circumcenter" << std::endl;
-	std::cerr << circumcenter << std::endl; 
+	//std::cerr << "get_circumcenter" << std::endl;
+	//std::cerr << circumcenter << std::endl; 
 	for(int i = 0 ; i < dim;i++)
 	  ofile << circumcenter[i] << " ";
 	// for(int i = 0 ; i < dim+1;i++)
@@ -1307,7 +1307,7 @@ int extract_simplex_soup(DDT & tri,FTC &filter,std::ostream & ofile, int main_ti
       }
   }
 
-  std::cerr << "score facet " << std::endl;
+  //std::cerr << "score facet " << std::endl;
   for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
     {
       if(fit->is_infinite())
@@ -1382,12 +1382,12 @@ int extract_simplex_soup(DDT & tri,FTC &filter,std::ostream & ofile, int main_ti
 int extract_simplex_soup_main(Id tid,algo_params & params,int nb_dat,ddt::logging_stream & log)
 {
   std::cout.setstate(std::ios_base::failbit);
-  std::cerr << "seg_step0" << std::endl;
+  //std::cerr << "seg_step0" << std::endl;
 
   DDT tri; 
   Scheduler sch(1);
 
-  std::cerr << "seg_step1" << std::endl;
+  //std::cerr << "seg_step1" << std::endl;
 
 
 
@@ -1409,7 +1409,7 @@ int extract_simplex_soup_main(Id tid,algo_params & params,int nb_dat,ddt::loggin
         }
       if(hpi.get_lab() == "s")
         {
-	  std::cerr << "tile ids loal:" << hid << std::endl;
+	  //std::cerr << "tile ids loal:" << hid << std::endl;
 	  std::vector<int> vv(3);
 	  for(int d = 0; d < 3; d++)
             {
@@ -1423,7 +1423,7 @@ int extract_simplex_soup_main(Id tid,algo_params & params,int nb_dat,ddt::loggin
   log.step("compute");
   std::cout.clear();
   ddt::stream_data_header oth("t","s",tid);
-  std::cerr << "seg_step6" << std::endl;
+  //std::cerr << "seg_step6" << std::endl;
   int nbc = 0;
 
 
@@ -1444,7 +1444,7 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
   D_MAP datas_map;
     
   for(int i = 0; i < nb_dat; i++){
-    std::cerr << "convert data " << i << std::endl;
+    //std::cerr << "convert data " << i << std::endl;
 
     ddt::stream_data_header hpi;
     hpi.parse_header(std::cin);

@@ -166,16 +166,16 @@ public :
 	return;
       }
       szd = get_nbe_uint8_vect()*vsize;
-      std::cerr << "uintsize" << uint8_vect.size() << std::endl;
-      std::cerr << "szd" << szd << std::endl;
-      std::cerr << "sb" << size_bytes() << std::endl;
+      //std::cerr << "uintsize" << uint8_vect.size() << std::endl;
+      //std::cerr << "szd" << szd << std::endl;
+      //std::cerr << "sb" << size_bytes() << std::endl;
       if(szd > 0){
 	formated_data.resize(szd);
 	std::memcpy(formated_data.data(), &uint8_vect[0],size_bytes());
 	if(do_clean)
 	  uint8_vect.clear();
       }
-      std::cerr << "return" << std::endl;
+      //std::cerr << "return" << std::endl;
       return;
     }
 
@@ -203,7 +203,7 @@ public :
 	uint8_vect.clear();
 	do_exist = false;
       }
-      std::cerr << "extract full uint8 done" << std::endl;
+      //std::cerr << "extract full uint8 done" << std::endl;
       
     }
 
@@ -219,7 +219,7 @@ public :
 	uint8_vect.clear();
 	do_exist = false;
       }
-      std::cerr << "extract raw uint done" << std::endl;
+      //std::cerr << "extract raw uint done" << std::endl;
       
     }
 
@@ -497,11 +497,11 @@ public :
     }
 
     ss << nn << " ";
-    std::cerr << "----- write: " << nn << std::endl;
+    //std::cerr << "----- write: " << nn << std::endl;
     for ( const auto &ee : dmap ) {
       if(ee.second.do_exist){
 	int nbe = dmap[ee.first].get_nbe_uint8_vect();
-	std::cerr << "nbe:" << nbe << std::endl;
+	//std::cerr << "nbe:" << nbe << std::endl;
 	auto vv = dmap[ee.first].uint8_vect;
 	ss << dmap[ee.first].vname.size() << " ";
 	for(auto nn : dmap[ee.first].vname){
@@ -510,9 +510,9 @@ public :
 	ss << ee.second.part << " ";
 	ss << ee.second.get_vsize() << " ";
 	ss << ((int) ee.second.type) << " ";
-	std::cerr << "start ser" << std::endl;
+	//std::cerr << "start ser" << std::endl;
 	serialize_b64_vect(vv,ss);
-	std::cerr << "ser done" << std::endl;
+	//std::cerr << "ser done" << std::endl;
 	ss << " ";
       }
     }
@@ -521,33 +521,33 @@ public :
   void read_serialized_stream(std::istream & ss){
     int nbe;
     ss >> nbe;
-    std::cerr << "nbe:" << nbe << std::endl;
+    //std::cerr << "nbe:" << nbe << std::endl;
     for(int i = 0 ; i < nbe;i++){
       std::vector<std::string> data_name;
       std::string tt_name("vertex");
       int dim,vs,dn_size;
       tinyply::Type tt;
       ss >> dn_size;
-      std::cerr << "---" << std::endl;
+      //std::cerr << "---" << std::endl;
       std::string nnn;
       for(int i = 0; i < dn_size; i++){
 	ss >> nnn;
-	std::cerr << nnn << "-";
+	//std::cerr << nnn << "-";
 	data_name.push_back(nnn);
       }
-      std::cerr << std::endl;
+      //std::cerr << std::endl;
       ss >> tt_name;
       ss >> vs;
       int ttti;
       ss >> ttti;
-      std::cerr << "     read stats:" << nnn << " " << tt_name << " " << vs << " " << ttti << " " << std::endl;
+      //std::cerr << "     read stats:" << nnn << " " << tt_name << " " << vs << " " << ttti << " " << std::endl;
       dmap[data_name] = Data_ply(data_name,tt_name,dim,vs,static_cast<tinyply::Type>(ttti));
       dmap[data_name].set_exist(true);
       deserialize_b64_vect(dmap[data_name].uint8_vect,ss);
     }
   }
   
-  void write_ply_stream( std::ostream & ss,char nl_char = '\n',bool is_binary = false,bool do_elem_newline = false,bool do_export_bbox = false)
+  void write_ply_stream( std::ostream & ss,char nl_char = '\n',bool is_binary = false,bool do_elem_newline = false,bool do_export_bbox = true)
   {
     try
       {
@@ -556,9 +556,9 @@ public :
 	std::vector<std::string> & comments_string = file_out.get_comments();
 
 	if(do_export_bbox){
-	std::stringstream ss;
-	ss << "bbox " << bbox;
-	comments_string.push_back(ss.str());
+	  std::stringstream ss;
+	  ss << "bbox " << bbox;
+	  comments_string.push_back(ss.str());
 	}
 	
 	for ( const auto &ee : dmap ) {
@@ -690,20 +690,20 @@ public :
 	    if(true){
 	      vsize = e.size;
 
-	      std::cerr << "element - " << e.name << " (" << e.size << ")" << std::endl;	      
+	      //std::cerr << "element - " << e.name << " (" << e.size << ")" << std::endl;	      
 	      for (auto p : e.properties){
 		std::vector<std::string> pname({p.name});
 		bool do_exist = false;
-		for(auto vp : pname)
-		   std::cerr << "\tproperty - " << vp << " (" << tinyply::PropertyTable[p.propertyType].str << ")" << std::endl;
+		// for(auto vp : pname)
+		//    std::cerr << "\tproperty - " << vp << " (" << tinyply::PropertyTable[p.propertyType].str << ")" << std::endl;
 
 		for ( const auto &ee : dmap ) {
 		  if(ee.second.has_label(p.name)){
-		    std::cerr << p.name << " existe!" << std::endl;
-		    std::cerr << "[" << ee.first.size() << "] => ";
-		     for(auto ie : ee.first)
-		       std::cerr << ie << " - ";
-		    std::cerr << std::endl;
+		    //std::cerr << p.name << " existe!" << std::endl;
+		    //std::cerr << "[" << ee.first.size() << "] => ";
+		    //  for(auto ie : ee.first)
+		    //    std::cerr << ie << " - ";
+		    // std::cerr << std::endl;
 		    do_exist = true;
 		    dmap[ee.first].do_exist = true;
 		    dmap[ee.first].type = p.propertyType;
@@ -711,7 +711,7 @@ public :
 		  }
 		}
 		if(!do_exist){
-		  std::cerr << p.name << " create!" << std::endl;
+		  //std::cerr << p.name << " create!" << std::endl;
 		  dmap[pname] = Data_ply(pname,e.name,D,1,p.propertyType);
 		  dmap[pname].do_exist = true;
 		}
@@ -726,7 +726,7 @@ public :
 
 	for ( const auto &ee : dmap ) {
 	  if(ee.second.do_exist){
-	    std::cerr << "ok parse" <<  ee.first[0] << std::endl;
+	    //std::cerr << "ok parse" <<  ee.first[0] << std::endl;
 	    try { dmap[ee.first].shpt_vect = file.request_properties_from_element(ee.second.part, dmap[ee.first].get_name() ); }
 	    catch (const std::exception & e) { std::cerr << "tinyply exception: " << e.what() << std::endl; }
 	  }
@@ -774,7 +774,7 @@ public :
 
   void read_b64_generic_stream(std::istream & ifile)
   {
-    std::cerr << "READ GENERIC STREAM" << std::endl;
+    //std::cerr << "READ GENERIC STREAM" << std::endl;
     int acc;
     ifile >> acc;
     for(int i = 0;i < acc; i++){
@@ -783,16 +783,16 @@ public :
       std::string part; 
       int dim,vsize,tt;
       ifile >> name_size;
-      std::cerr << "cname  :";
+      //std::cerr << "cname  :";
       for(int j = 0; j < name_size;j++){
 	std::string lname;
 	ifile >> lname;
-	std::cerr  << lname << " ";
+	//std::cerr  << lname << " ";
 	cname.emplace_back(lname);
       }
-      std::cerr << std::endl;
+      //std::cerr << std::endl;
       ifile >> part >> dim >> vsize >> tt;
-      std::cerr << "part:" << part << " dim:" << dim << " vsize:" << vsize << " tt" << tt << std::endl;
+      //std::cerr << "part:" << part << " dim:" << dim << " vsize:" << vsize << " tt" << tt << std::endl;
       dmap[cname] = Data_ply(cname,part,dim,vsize,static_cast<tinyply::Type>(tt));
       read_b64_data_fast(dmap[cname],ifile);
       //      dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,get_float_type());
@@ -929,9 +929,9 @@ public :
 
   void extract_ptsvect(std::vector<std::string> & name,std::vector<Point> & formated_data, bool do_clean = true)
     {
-      std::cerr << "0" << std::endl;
+      //std::cerr << "0" << std::endl;
       int nbv = dmap[name].get_nbe_shpt_vect();
-      std::cerr << "0.1" << std::endl;
+      //std::cerr << "0.1" << std::endl;
       if(nbv > 0){
 	for(int nn = 0; nn < nbv ; nn++)
 	  formated_data.push_back(get_pts(nn,name));
