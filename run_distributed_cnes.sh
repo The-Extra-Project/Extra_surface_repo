@@ -140,3 +140,5 @@ function kill_spark
 {
     qdel $QSUB_ID 
 }
+
+cnes_init_spark_v2

@@ -506,7 +506,9 @@ algo_list.foreach{ cur_algo =>
 
           // Extract the surface : Last iteration
           if(acc_loop == max_opt_it -1 || do_it_stats ){
-            val graph_seg = Graph(kvrdd_seg, kvrdd_tri_edges, List("")).partitionBy(EdgePartition1D,rep_merge);
+            val rdd_local_edges = iq.get_edgrdd(res_seg,"e");
+            val graph_seg = Graph(kvrdd_seg, rdd_local_edges, List("")).partitionBy(EdgePartition1D,rep_merge);
+
             if(false){
               val rdd_ply_surface = iq.run_pipe_fun_KValue(
                 ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
@@ -518,10 +520,15 @@ algo_list.foreach{ cur_algo =>
             if(true){
               val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
                 ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge" + ext_name),
-                graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false)
+                graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false).persist(slvl_glob)
               val rdd_ply_surface_vertex = iq.run_pipe_fun_KValue(
                 ext_cmd_vertex ++ List("--label","ext_spark_ll_v2_tile" + ext_name),
-                graph_seg.vertices, "seg", do_dump = false)
+                graph_seg.vertices, "seg", do_dump = false).persist(slvl_glob)
+
+              rdd_ply_surface_edges.count()
+              rdd_ply_surface_vertex.count()
+              res_seg.unpersist()
+
               val ply_dir_edges = cur_output_dir + "/ply" + ext_name + "_edges_" + acc_loop_str
               val ply_dir_vertex = cur_output_dir + "/ply" + ext_name + "_vertex_" + acc_loop_str
               ddt_algo.saveAsPly(rdd_ply_surface_edges,ply_dir_edges,plot_lvl)
