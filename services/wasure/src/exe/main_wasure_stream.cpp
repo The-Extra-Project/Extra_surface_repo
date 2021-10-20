@@ -3701,7 +3701,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
       if(params.dump_ply)
     	hto.write_into_file(filename,".ply");
       hto.write_header(std::cout);
-      write_id_double_serialized(ee.second,hto.get_output_stream(),tid_1 ==3);
+      write_id_double_serialized(ee.second,hto.get_output_stream());
       hto.finalize();
       std::cout << std::endl;
     }
@@ -3715,7 +3715,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
       if(params.dump_ply)
     	hto.write_into_file(filename,".ply");
       hto.write_header(std::cout);
-      write_id_double_serialized(ee.second,hto.get_output_stream(),tid_1 ==3);
+      write_id_double_serialized(ee.second,hto.get_output_stream());
       hto.finalize();
       std::cout << std::endl;
     }

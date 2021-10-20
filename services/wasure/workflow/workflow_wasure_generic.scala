@@ -110,8 +110,8 @@ val dim = params_scala.get_param("dim", "2").toInt
 //val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-D" + dim.toString)
 val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-" + dim.toString)
 val build_dir = global_build_dir + "/" + ddt_kernel_dir
-val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "MEMORY_AND_DISK"))
-val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "MEMORY_AND_DISK"))
+val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
+val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "DISK_ONLY"))
 
 // General Algo params
 val bbox = params_scala.get_param("bbox", "")
@@ -388,7 +388,7 @@ val res_regularize = iq.run_pipe_fun_KValue(
   input_insert, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
 res_regularize.count()
 res_regularize_extract.unpersist()
-
+input_insert.unpersist()
 val kvrdd_reg = iq.get_kvrdd(res_regularize,"t");
 val kvrdd_shr = iq.get_edgrdd(res_regularize,"e")
 // Useless
@@ -523,7 +523,7 @@ algo_list.foreach{ cur_algo =>
                 graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false).persist(slvl_glob)
               val rdd_ply_surface_vertex = iq.run_pipe_fun_KValue(
                 ext_cmd_vertex ++ List("--label","ext_spark_ll_v2_tile" + ext_name),
-                graph_seg.vertices, "seg", do_dump = false).persist(slvl_glob)
+                kvrdd_seg, "seg", do_dump = false).persist(slvl_glob)
 
               rdd_ply_surface_edges.count()
               rdd_ply_surface_vertex.count()
