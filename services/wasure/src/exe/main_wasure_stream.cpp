@@ -2103,7 +2103,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
         ddt::stream_data_header hpi;
         hpi.parse_header(std::cin);
         Id hid = hpi.get_id(0);
-        if(hpi.get_lab() == "t")
+        if(hpi.get_lab() == "t" || hpi.get_lab() == "u")
         {
             w_datas_tri[hid] = wasure_data<Traits>();
             bool do_clean_data = false;
@@ -3691,6 +3691,22 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
     std::cout << std::endl;
 
 
+    if(params.do_finalize){
+      for(auto ee : edges_data_map){
+	Id tid2 = ee.first;
+	if(tid2 > tid_1){
+	  ddt::stream_data_header oth("u","z",std::vector<int>{tid_1,tid2});
+	  std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1));
+	  if(params.dump_ply)
+	    oth.write_into_file(filename,".ply");
+	  oth.write_header(std::cout);
+	  ddt::write_ddt_stream(tri, w_datas_tri[tid_1], oth.get_output_stream(),tid_1,false,log);
+	  oth.finalize();
+	  std::cout << std::endl;
+	}
+      }
+    }
+    
     for(auto ee : shared_data_map){
       Id tid2 = ee.first;
       if(tid2 == tid_1)
