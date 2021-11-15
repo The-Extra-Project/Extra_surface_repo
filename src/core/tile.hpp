@@ -628,7 +628,7 @@ public:
   // Algo
   int insert_points_id_id(std::vector<Point_id_id> & vpis, int tid, bool do_insert_local = false)
   {
-    std::vector<Point_id_id> svh_new;
+    //    std::vector<Point_id_id> svh_new;
     std::vector<Point_id> v_pai;
     int nbi1 = 0;
     bool do_simplify=true;
@@ -636,18 +636,17 @@ public:
       {
         Id idp =  std::get<1>(pp);
         Id id_source =  std::get<2>(pp);
-        bool is_inserted = true;
-        if( (id_source==tid && !do_insert_local)  || !is_inserted)
+        if( (id_source==tid && !do_insert_local) )
 	  {
             continue;
 	  }
         else
 	  {
-            svh_new.emplace_back(pp);
+	    //            svh_new.emplace_back(pp);
             v_pai.emplace_back(std::get<0>(pp), idp);
 	  }
       }
-    if(svh_new.size()> 0)
+    if(v_pai.size()> 0)
       {
         nbi1 += insert(v_pai,do_simplify);
       }

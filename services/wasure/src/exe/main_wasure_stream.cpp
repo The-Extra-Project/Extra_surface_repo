@@ -3222,49 +3222,49 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
 int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 {
 
-    std::cout.setstate(std::ios_base::failbit);
-    std::cerr << "START LAGRANGE" << std::endl;
+  std::cout.setstate(std::ios_base::failbit);
+  std::cerr << "START LAGRANGE" << std::endl;
 
-    DTW tri;
-    Scheduler sch(1);
-    wasure_algo w_algo;
-    D_MAP w_datas_tri;
+  DTW tri;
+  Scheduler sch(1);
+  wasure_algo w_algo;
+  D_MAP w_datas_tri;
 
-    double tau = params.tau;
-    bool is_first = true;
-    log.step("read");
+  double tau = params.tau;
+  bool is_first = true;
+  log.step("read");
 
-    std::map<Id,std::map<Id,SharedData> > shared_data_map;
-    std::map<Id,std::map<Id,SharedData> > edges_data_map;    
-    for(int i = 0; i < nb_dat; i++)
+  std::map<Id,std::map<Id,SharedData> > shared_data_map;
+  std::map<Id,std::map<Id,SharedData> > edges_data_map;    
+  for(int i = 0; i < nb_dat; i++)
     {
-        ddt::stream_data_header hpi;
-        hpi.parse_header(std::cin);
-        Id hid = hpi.get_id(0);
-	std::cerr << "PARSE : " << hpi.get_lab() << std::endl;
-        if(hpi.get_lab() == "t")
+      ddt::stream_data_header hpi;
+      hpi.parse_header(std::cin);
+      Id hid = hpi.get_id(0);
+      std::cerr << "PARSE : " << hpi.get_lab() << std::endl;
+      if(hpi.get_lab() == "t")
         {
 
-            w_datas_tri[hid] = wasure_data<Traits>();
-            bool do_clean_data = false;
-            bool do_serialize = false;
-	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
-            w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
+	  w_datas_tri[hid] = wasure_data<Traits>();
+	  bool do_clean_data = false;
+	  bool do_serialize = false;
+	  read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+	  w_datas_tri[hid].extract_dst(w_datas_tri[hid].format_dst,false);
 
-	    std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
-	    if(w_datas_tri[hid].dmap[w_datas_tri[hid].labseg_name].do_exist){
-	      is_first = false;
-	      w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
-	    }else
-	      {
-		int nbs = w_datas_tri[hid].format_dst.size();
-                for(int ss = 0; ss < nbs ; ss++)
-		  {
-                    format_labs.push_back(0);
+	  std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
+	  if(w_datas_tri[hid].dmap[w_datas_tri[hid].labseg_name].do_exist){
+	    is_first = false;
+	    w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
+	  }else
+	    {
+	      int nbs = w_datas_tri[hid].format_dst.size();
+	      for(int ss = 0; ss < nbs ; ss++)
+		{
+		  format_labs.push_back(0);
                 }
             }
         }
-	if(hpi.get_lab() == "e")
+      if(hpi.get_lab() == "e")
         {
 	  Id eid1 = hpi.get_id(0);
 	  Id eid2 = hpi.get_id(1);
@@ -3276,7 +3276,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	  read_id_double_serialized(lp, hpi.get_input_stream(),tid_1 == 3);
         }
 
-	if(hpi.get_lab() == "f")
+      if(hpi.get_lab() == "f")
         {
 	  Id eid1 = hpi.get_id(0);
 	  Id eid2 = hpi.get_id(1);
@@ -3287,246 +3287,245 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	  read_id_double_serialized(lp, hpi.get_input_stream(),tid_1 == 3);
         }
 
-	tri.finalize(sch);
-        hpi.finalize();
+      tri.finalize(sch);
+      hpi.finalize();
     }
 
-    //     ==== Compute the new lambda =====
-    // If a graph cut has been done before, computer the new lagrangian, otherwite do a first graphcut
+  //     ==== Compute the new lambda =====
+  // If a graph cut has been done before, computer the new lagrangian, otherwite do a first graphcut
 
-    Tile_const_iterator tile_1 = tri.get_const_tile(tid_1);
-    Tile_iterator main_tile = tri.get_tile(tid_1);
-    std::cerr << "start update lagrange : " << std::endl;
+  Tile_const_iterator tile_1 = tri.get_const_tile(tid_1);
+  int D = tile_1->current_dimension();
+  Tile_iterator main_tile = tri.get_tile(tid_1);
+  std::cerr << "start update lagrange : " << std::endl;
 
-    std::cerr << "seg_step5_lagrange" << std::endl;
-    tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri,&w_datas_tri);
-    mrf.lambda = params.lambda;
-    mrf.set_mode(-1);
-
-
-    int acc_tot = 0;
-    int acc_diff = 0;
+  std::cerr << "seg_step5_lagrange" << std::endl;
+  tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri,&w_datas_tri);
+  mrf.lambda = params.lambda;
+  mrf.set_mode(-1);
 
 
-    std::cerr<< std::fixed << std::setprecision(15);
-    for( auto cit_1 = tile_1->cells_begin();
-    	 cit_1 != tile_1->cells_end(); ++cit_1 )
-      {
-
-	Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
-    	  // lagrangian only on mixed cell
-      	  if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))
-      	    continue;
-      	  Id lid_1 = tile_1->lid(cit_1);
-    	  int lab_1 = 0;
-    	  if(!is_first){
-	    lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
-	  }
-	  
-	  int D = tile_1->current_dimension();
-    	  // Loop on shared tiles
-
-	  std::unordered_set<Id> idSet ;
-	  // std::unordered_set<Id> idSet2 ;
-    	  // for(int i=0; i<=D; ++i)
-    	  //   {
-    	  //     Id tid_l = tile_1->id(tile_1->vertex(cit_1,i));
-	  //     idSet2.insert(tid_l);
-	  //   }
-	  
-    	  for(int i=0; i<=D; ++i)
-    	    {
-    	      // Select only id != tid_1
-    	      Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
-	      if (idSet.find(tid_2) != idSet.end()){
-	      	continue;
-	      }
-	      idSet.insert(tid_2);
-	      // if(!tri.tile_is_loaded(tid_2)){
-	      // 	std::cerr << "ERROR : TILE NOT LOADED!!" << std::endl;
-	      // 	continue;
-	      // }
-    	      if(tid_2 == tid_1)
-    		continue;
-	      //    	      Tile_iterator tile_2 = tri.get_tile(tid_2);
-    	      //auto cit_2 = main_tile->locate_cell(*tile_2,cit_1);
-	      //	      auto cit_2 = tile_2->locate_cell(*tile_1,cit_1);
-
-	      
-    	      // Get curent lambda for the cell lid in the edge tid_2
-    	      double new_lagrange = 0;
-	      double cur_tau = mrf.get_volume_reco(fch) * params.lambda * params.coef_mult;
-	      Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
-	      double v_diff = 0;
-		
-    	      if(!is_first){
-    		new_lagrange = std::get<1>(shared_data_map[tid_2][lid_1]);
-		cur_tau = std::get<2>(shared_data_map[tid_2][lid_1]);
-		double old_lagrange = new_lagrange;
-		double old_diff = std::get<3>(shared_data_map[tid_2][lid_1]);
-
-		if(edges_data_map[tid_2].find(lid_2) == edges_data_map[tid_2].end())
-		  std::cerr << "EDGES_DATA_MAP_V2 ERROR!" << std::endl;
-		
-		int lab_2 = std::get<1>(edges_data_map[tid_2][lid_2]); 
-		//    		TODO : Compute the new lambda
+  int acc_tot = 0;
+  int acc_diff = 0;
 
 
+  std::cerr<< std::fixed << std::setprecision(15);
+  for( auto cit_1 = tile_1->cells_begin();
+       cit_1 != tile_1->cells_end(); ++cit_1 )
+    {
 
-
-		if(lab_2 != lab_1)
-		  acc_diff++;
-		acc_tot++;
-
-
-		if(tid_1 < tid_2)
-		  v_diff = lab_1-lab_2;
-		else
-		  v_diff = lab_2-lab_1;
-
-		new_lagrange  = new_lagrange + cur_tau*(v_diff);
-		if(old_diff != v_diff)
-		  cur_tau /=2;
-		// else if(old_diff == v_diff && lab_2 != lab_1)
-		//   cur_tau *=2;
-
-
-		if(params.do_finalize){
-		  Id mid = fch->main_id();
-		  if(tid_2 == mid)
-		    w_datas_tri[tid_1].format_labs[lid_1] = lab_2;
-		}
-		
-    	      }else{
-		if(shared_data_map.find(tid_2) == shared_data_map.end())
-		  shared_data_map[tid_2] = std::map<Id,SharedData>();
-	      }
-
-
-	      
-    	      shared_data_map[tid_2][lid_1] = std::make_tuple(lid_2,new_lagrange,cur_tau,v_diff);
-    	    }
+      Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
+      // lagrangian only on mixed cell
+      if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))
+	continue;
+      Id lid_1 = tile_1->lid(cit_1);
+      int lab_1 = 0;
+      if(!is_first){
+	lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
       }
-
-
-
-    // ============== Debug results ============
-    if(params.dump_debug && params.do_finalize){
+	  
       int D = tile_1->current_dimension();
-      Traits  traits;
-      std::vector<Point> pvect;
-      std::vector<int> v_labs;
-      ddt_data<Traits> datas_out;
+      // Loop on shared tiles
 
-      std::vector<std::string> label_name = {"lab"};
-
-      int acc_nbp = 0;
-      
-      for( auto cit_k = tile_1->cells_begin();
-	   cit_k != tile_1->cells_end(); ++cit_k )
-	{
-	  bool do_keep = true;
-	  if(!tile_1->cell_is_mixed(cit_k) || tile_1->cell_is_infinite(cit_k))
-      	     continue;
-
-
-
-	  for(int i=0; i<=D; ++i){
-	    auto pp = tile_1->vertex(cit_k,i)->point();
-	    if(std::fabs(pp[0] - (-14.26)) < 0.02 &&
-	       std::fabs(pp[1] - 0.98)  < 0.02  &&
-	       std::fabs(pp[2] - 0.70) < 0.02 ){
-	      do_keep = true;
-	    }
-	  }
-
-	  if(do_keep)
-	    acc_nbp++;
+      std::unordered_set<Id> idSet ;
+      // std::unordered_set<Id> idSet2 ;
+      // for(int i=0; i<=D; ++i)
+      //   {
+      //     Id tid_l = tile_1->id(tile_1->vertex(cit_1,i));
+      //     idSet2.insert(tid_l);
+      //   }
 	  
-	}
-      
-      std::ofstream myfile;
-      std::string filename(params.output_dir + "/" + params.slabel + "_" + std::to_string(tid_1) + "_debug.ply");
-      myfile.open (filename);
-      myfile << "ply" <<  std::endl;
-      myfile << "format ascii 1.0" << std::endl;
-      myfile << "element vertex "  << acc_nbp  << std::endl;
-      myfile << "property float x" << std::endl;
-      myfile << "property float y" << std::endl;
-      myfile << "property float z" << std::endl;
-      myfile << "property uchar red " << std::endl;
-      myfile << "property uchar green" << std::endl;
-      myfile << "property uchar blue" << std::endl;
-      myfile << "end_header                " << std::endl;
-
-      
-      // datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",3,3,DATA_FLOAT_TYPE);
-      // datas_out.dmap[label_name] = ddt_data<Traits>::Data_ply(label_name,"vertex",1,1,tinyply::Type::INT32);
-      //      datas_out.dmap[std::vector<std::string>{"] = ddt_data<Traits>::Data_ply(label_name,"vertex",1,1,tinyply::Type::INT32);
-      std::string filename_debug(params.output_dir + "/" + params.slabel + "_" + std::to_string(tid_1) + "_debug.ply");
-      for( auto cit_k = tile_1->cells_begin();
-	   cit_k != tile_1->cells_end(); ++cit_k )
+      for(int i=0; i<=D; ++i)
 	{
-	  Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_k);
-	  //  lagrangian only on mixed cell
-      	   if(!tile_1->cell_is_mixed(cit_k) || tile_1->cell_is_infinite(cit_k))
-      	     continue;
-	  // if(tile_1->cell_is_infinite(cit_k))
-      	  //   continue;
-
-	  bool do_keep = true;
-	  for(int i=0; i<=D; ++i){
-	    auto pp = tile_1->vertex(cit_k,i)->point();
-	    if(std::fabs(pp[0] - (-14.26)) < 0.02 &&
-	       std::fabs(pp[1] - 0.98)  < 0.02  &&
-	       std::fabs(pp[2] - 0.70) < 0.02){
-	      do_keep = true;
-	    }
-	  }
-	  if(!do_keep)
+	  // Select only id != tid_1
+	  Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
+	  if (idSet.find(tid_2) != idSet.end()){
 	    continue;
-	  
-	  Id lid_1 = tile_1->lid(cit_k);
-	  int lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
-
-	  for(int i=0; i<=D; ++i)
-    	    {
-    	      // Select only id != tid_1
-    	      Id tid_2 = tile_1->id(tile_1->vertex(cit_k,i));
-	      if(tid_2 == tid_1)
-    		continue;
-	      Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
-	      if (edges_data_map[tid_2].find(lid_2) == edges_data_map[tid_2].end()){
-		std::cerr << "EDGES_DATA_MAP_3 NOT FOUND" << std::endl;
-	      }
-	    }
-
-
-	  
-	  std::vector<double> bary = tile_1->get_cell_barycenter(cit_k);
-	  for(int d = 0; d < D; d++){
-	    myfile << bary[d] << " ";
 	  }
-	  if(lab_1 == 0)
-	    myfile << "255 0 0 " << std::endl;
-	  else
-	    myfile << "0 255 0 " << std::endl;
+	  idSet.insert(tid_2);
+	  // if(!tri.tile_is_loaded(tid_2)){
+	  // 	std::cerr << "ERROR : TILE NOT LOADED!!" << std::endl;
+	  // 	continue;
+	  // }
+	  if(tid_2 == tid_1)
+	    continue;
+	  //    	      Tile_iterator tile_2 = tri.get_tile(tid_2);
+	  //auto cit_2 = main_tile->locate_cell(*tile_2,cit_1);
+	  //	      auto cit_2 = tile_2->locate_cell(*tile_1,cit_1);
+
+	      
+	  // Get curent lambda for the cell lid in the edge tid_2
+	  double new_lagrange = 0;
+	  double cur_tau = mrf.get_volume_reco(fch) * params.lambda * params.coef_mult;
+	  Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
+	  double v_diff = 0;
+		
+	  if(!is_first){
+	    new_lagrange = std::get<1>(shared_data_map[tid_2][lid_1]);
+	    cur_tau = std::get<2>(shared_data_map[tid_2][lid_1]);
+	    double old_lagrange = new_lagrange;
+	    double old_diff = std::get<3>(shared_data_map[tid_2][lid_1]);
+
+	    if(edges_data_map[tid_2].find(lid_2) == edges_data_map[tid_2].end())
+	      std::cerr << "EDGES_DATA_MAP_V2 ERROR!" << std::endl;
+		
+	    int lab_2 = std::get<1>(edges_data_map[tid_2][lid_2]); 
+	    //    		TODO : Compute the new lambda
+
+
+
+
+	    if(lab_2 != lab_1)
+	      acc_diff++;
+	    acc_tot++;
+
+
+	    if(tid_1 < tid_2)
+	      v_diff = lab_1-lab_2;
+	    else
+	      v_diff = lab_2-lab_1;
+
+	    new_lagrange  = new_lagrange + cur_tau*(v_diff);
+	    if(old_diff != v_diff)
+	      cur_tau /=2;
+	    // else if(old_diff == v_diff && lab_2 != lab_1)
+	    //   cur_tau *=2;
+
+
+	    if(params.do_finalize){
+	      Id mid = fch->main_id();
+	      if(tid_2 == mid)
+		w_datas_tri[tid_1].format_labs[lid_1] = lab_2;
+	    }
+		
+	  }else{
+	    if(shared_data_map.find(tid_2) == shared_data_map.end())
+	      shared_data_map[tid_2] = std::map<Id,SharedData>();
+	  }
+	      
+	  shared_data_map[tid_2][lid_1] = std::make_tuple(lid_2,new_lagrange,cur_tau,v_diff);
+	}
+    }
+
+
+
+  // ============== Debug results ============
+  if(params.dump_debug && params.do_finalize){
+    int D = tile_1->current_dimension();
+    Traits  traits;
+    std::vector<Point> pvect;
+    std::vector<int> v_labs;
+    ddt_data<Traits> datas_out;
+
+    std::vector<std::string> label_name = {"lab"};
+
+    int acc_nbp = 0;
+      
+    for( auto cit_k = tile_1->cells_begin();
+	 cit_k != tile_1->cells_end(); ++cit_k )
+      {
+	bool do_keep = true;
+	if(!tile_1->cell_is_mixed(cit_k) || tile_1->cell_is_infinite(cit_k))
+	  continue;
+
+
+
+	for(int i=0; i<=D; ++i){
+	  auto pp = tile_1->vertex(cit_k,i)->point();
+	  if(std::fabs(pp[0] - (-14.26)) < 0.02 &&
+	     std::fabs(pp[1] - 0.98)  < 0.02  &&
+	     std::fabs(pp[2] - 0.70) < 0.02 ){
+	    do_keep = true;
+	  }
+	}
+
+	if(do_keep)
+	  acc_nbp++;
+	  
+      }
+      
+    std::ofstream myfile;
+    std::string filename(params.output_dir + "/" + params.slabel + "_" + std::to_string(tid_1) + "_debug.ply");
+    myfile.open (filename);
+    myfile << "ply" <<  std::endl;
+    myfile << "format ascii 1.0" << std::endl;
+    myfile << "element vertex "  << acc_nbp  << std::endl;
+    myfile << "property float x" << std::endl;
+    myfile << "property float y" << std::endl;
+    myfile << "property float z" << std::endl;
+    myfile << "property uchar red " << std::endl;
+    myfile << "property uchar green" << std::endl;
+    myfile << "property uchar blue" << std::endl;
+    myfile << "end_header                " << std::endl;
+
+      
+    // datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",3,3,DATA_FLOAT_TYPE);
+    // datas_out.dmap[label_name] = ddt_data<Traits>::Data_ply(label_name,"vertex",1,1,tinyply::Type::INT32);
+    //      datas_out.dmap[std::vector<std::string>{"] = ddt_data<Traits>::Data_ply(label_name,"vertex",1,1,tinyply::Type::INT32);
+    std::string filename_debug(params.output_dir + "/" + params.slabel + "_" + std::to_string(tid_1) + "_debug.ply");
+    for( auto cit_k = tile_1->cells_begin();
+	 cit_k != tile_1->cells_end(); ++cit_k )
+      {
+	Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_k);
+	//  lagrangian only on mixed cell
+	if(!tile_1->cell_is_mixed(cit_k) || tile_1->cell_is_infinite(cit_k))
+	  continue;
+	// if(tile_1->cell_is_infinite(cit_k))
+	//   continue;
+
+	bool do_keep = true;
+	for(int i=0; i<=D; ++i){
+	  auto pp = tile_1->vertex(cit_k,i)->point();
+	  if(std::fabs(pp[0] - (-14.26)) < 0.02 &&
+	     std::fabs(pp[1] - 0.98)  < 0.02  &&
+	     std::fabs(pp[2] - 0.70) < 0.02){
+	    do_keep = true;
+	  }
+	}
+	if(!do_keep)
+	  continue;
+	  
+	Id lid_1 = tile_1->lid(cit_k);
+	int lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
+
+	for(int i=0; i<=D; ++i)
+	  {
+	    // Select only id != tid_1
+	    Id tid_2 = tile_1->id(tile_1->vertex(cit_k,i));
+	    if(tid_2 == tid_1)
+	      continue;
+	    Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
+	    if (edges_data_map[tid_2].find(lid_2) == edges_data_map[tid_2].end()){
+	      std::cerr << "EDGES_DATA_MAP_3 NOT FOUND" << std::endl;
+	    }
+	  }
 
 
 	  
-	  pvect.push_back(traits.make_point(bary.begin()));
-	  v_labs.push_back(lab_1);
+	std::vector<double> bary = tile_1->get_cell_barycenter(cit_k);
+	for(int d = 0; d < D; d++){
+	  myfile << bary[d] << " ";
 	}
-      // datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(pvect);
-      // datas_out.dmap[label_name].fill_full_uint8_vect(v_labs);
-      myfile.close();
-      std::ofstream ofile;
+	if(lab_1 == 0)
+	  myfile << "255 0 0 " << std::endl;
+	else
+	  myfile << "0 255 0 " << std::endl;
 
-      // ofile.open(filename_debug);
-      // datas_out.write_ply_stream(ofile,'\n',false);
-      // ofile.close();
 
-      if(false){
+	  
+	pvect.push_back(traits.make_point(bary.begin()));
+	v_labs.push_back(lab_1);
+      }
+    // datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(pvect);
+    // datas_out.dmap[label_name].fill_full_uint8_vect(v_labs);
+    myfile.close();
+    std::ofstream ofile;
+
+    // ofile.open(filename_debug);
+    // datas_out.write_ply_stream(ofile,'\n',false);
+    // ofile.close();
+
+    if(false){
       std::ostringstream ss;
       ss  << std::setfill('0') << std::setw(3) << tid_1;
       std::string filename_debug2(params.output_dir + "/" + params.slabel + "_" + ss.str() + "_debug.txt");
@@ -3534,14 +3533,13 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 
       for( auto cit_1 = tile_1->cells_begin();
 	   cit_1 != tile_1->cells_end(); ++cit_1 )
-      {
-	Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
+	{
+	  Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
     	  // lagrangian only on mixed cell
       	  if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))
       	    continue;
       	  Id lid_1 = tile_1->lid(cit_1);
 	  int lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
-	  int D = tile_1->current_dimension();
 	  std::unordered_set<Id> idSet ;
 	  ofile << params.slabel << "_" << tid_1 << " lid_1:" << lid_1 << " lab_1:" << lab_1 << " -- ";
 	  std::vector<double> bary = tile_1->get_cell_barycenter(cit_1);
@@ -3581,173 +3579,226 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 	    }
 	  
 	  ofile << "conv:" << conv << std::endl;
-      }
+	}
       ofile.close();
-      }
     }
+  }
 
 
 
     
-    std::cerr << "seg_step6_lagrange" << std::endl;
+  std::cerr << "seg_step6_lagrange" << std::endl;
 
-    // === Do a graphcut ============
-    log.step("compute");
-    if(!params.do_finalize)
-      mrf.opt_gc_lagrange(1,tri,w_datas_tri,shared_data_map,tid_1,params.use_weight);
-
-
-    log.step("write");
-    std::cout.clear();
+  // === Do a graphcut ============
+  log.step("compute");
+  if(!params.do_finalize)
+    mrf.opt_gc_lagrange(1,tri,w_datas_tri,shared_data_map,tid_1,params.use_weight);
 
 
-    std::cerr << "seg_step7_lagrange" << std::endl;
+  log.step("write");
+  std::cout.clear();
+
+
+  std::cerr << "seg_step7_lagrange" << std::endl;
 
     
-    // ==== Build new edges =====
-    if(!params.do_finalize){
-      edges_data_map.clear();
-      for( auto cit_1 = tile_1->cells_begin();
-	   cit_1 != tile_1->cells_end(); ++cit_1 )
-	{
-	  Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
-	  // lagrangian only on mixed cell
-	  if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))
-	    continue;
-	  Id lid_1 = tile_1->lid(cit_1);
-	  int lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
-	  int D = tile_1->current_dimension();
-	  std::unordered_set<Id> idSet ;	  
-	  for(int i=0; i<=D; ++i)
-	    {
-	      // Select only id != tid_1
-	      Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
-	      Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
-	      if (idSet.find(tid_2) != idSet.end()){
-		continue;
-	      }
-	      idSet.insert(tid_2);
-	      if(tid_2 == tid_1)
-		continue;
-
-
-	      if(edges_data_map.find(tid_2) == edges_data_map.end())
-		edges_data_map[tid_2] = std::map<Id,SharedData>();
-	      //  send to the neighbor tile the value of the tets at LID_1 
-	      edges_data_map[tid_2][lid_1] = std::make_tuple(lid_1,((double)lab_1),0,0);
-
+  // ==== Build new edges =====
+  if(!params.do_finalize){
+    edges_data_map.clear();
+    for( auto cit_1 = tile_1->cells_begin();
+	 cit_1 != tile_1->cells_end(); ++cit_1 )
+      {
+	Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
+	// lagrangian only on mixed cell
+	if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))
+	  continue;
+	Id lid_1 = tile_1->lid(cit_1);
+	int lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
+	int D = tile_1->current_dimension();
+	std::unordered_set<Id> idSet ;	  
+	for(int i=0; i<=D; ++i)
+	  {
+	    // Select only id != tid_1
+	    Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
+	    Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
+	    if (idSet.find(tid_2) != idSet.end()){
+	      continue;
 	    }
-	}
-    }else{
-      for( auto cit_1 = tile_1->cells_begin();
-	   cit_1 != tile_1->cells_end(); ++cit_1 )
-	{
-	  Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
-	  Id mid = fch->main_id();
-	  // lagrangian only on mixed cell
-	  if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))
-	    continue;
-	  Id lid_1 = tile_1->lid(cit_1);
-	  int lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
-	  int D = tile_1->current_dimension();
-	  std::unordered_set<Id> idSet ;	  
-	  for(int i=0; i<=D; ++i)
-	    {
-	      // Select only id != tid_1
-	      Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
-	      Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
-	      int lab_2 = std::get<1>(edges_data_map[tid_2][lid_2]);
-
-    	      if(tid_2 == tid_1)
-    		continue;
-	      
-	      if (idSet.find(tid_2) != idSet.end()){
-		continue;
-	      }
-	      idSet.insert(tid_2);
-	      //	      std::cerr << "DBG2002 " << tid_2 << " " << tid_1 << " " << mid << " " << lid_1 << " " << lid_2 << " " << lab_2 << std::endl;
-	      if(tid_2 == mid)
-		w_datas_tri[tid_1].format_labs[lid_1] = lab_2;
-	      
-	    }
-	}
-
-    }
-    log.step("finalize");
-    w_datas_tri[tid_1].fill_labs(w_datas_tri[tid_1].format_labs);
-
-    
-    std::cerr << "seg_step8_lagrange" << std::endl;
-    // ============== Dump results =================
-    
-    //  log.step("Write header");
-    ddt::stream_data_header oth("t","z",tid_1);
-    std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1));
-    if(params.dump_ply)
-        oth.write_into_file(filename,".ply");
-    oth.write_header(std::cout);
-    ddt::write_ddt_stream(tri, w_datas_tri[tid_1], oth.get_output_stream(),tid_1,false,log);
-    oth.finalize();
-    std::cout << std::endl;
+	    idSet.insert(tid_2);
+	    if(tid_2 == tid_1)
+	      continue;
 
 
-    if(params.do_finalize){
-      for(auto ee : edges_data_map){
-	Id tid2 = ee.first;
-	if(tid2 > tid_1){
-	  ddt::stream_data_header oth("u","z",std::vector<int>{tid_1,tid2});
-	  std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1));
-	  if(params.dump_ply)
-	    oth.write_into_file(filename,".ply");
-	  oth.write_header(std::cout);
-	  ddt::write_ddt_stream(tri, w_datas_tri[tid_1], oth.get_output_stream(),tid_1,false,log);
-	  oth.finalize();
-	  std::cout << std::endl;
-	}
+	    if(edges_data_map.find(tid_2) == edges_data_map.end())
+	      edges_data_map[tid_2] = std::map<Id,SharedData>();
+	    //  send to the neighbor tile the value of the tets at LID_1 
+	    edges_data_map[tid_2][lid_1] = std::make_tuple(lid_1,((double)lab_1),0,0);
+
+	  }
       }
-    }
+  }else{
+    for( auto cit_1 = tile_1->cells_begin();
+	 cit_1 != tile_1->cells_end(); ++cit_1 )
+      {
+	Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
+	Id mid = fch->main_id();
+	// lagrangian only on mixed cell
+	if(!tile_1->cell_is_mixed(cit_1) || tile_1->cell_is_infinite(cit_1))
+	  continue;
+	Id lid_1 = tile_1->lid(cit_1);
+	int lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
+	int D = tile_1->current_dimension();
+	std::unordered_set<Id> idSet ;	  
+	for(int i=0; i<=D; ++i)
+	  {
+	    // Select only id != tid_1
+	    Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
+	    Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
+	    int lab_2 = std::get<1>(edges_data_map[tid_2][lid_2]);
+
+	    if(tid_2 == tid_1)
+	      continue;
+	      
+	    if (idSet.find(tid_2) != idSet.end()){
+	      continue;
+	    }
+	    idSet.insert(tid_2);
+	    //	      std::cerr << "DBG2002 " << tid_2 << " " << tid_1 << " " << mid << " " << lid_1 << " " << lid_2 << " " << lab_2 << std::endl;
+	    if(tid_2 == mid)
+	      w_datas_tri[tid_1].format_labs[lid_1] = lab_2;
+	      
+	  }
+      }
+
+  }
+  log.step("finalize");
+  w_datas_tri[tid_1].fill_labs(w_datas_tri[tid_1].format_labs);
+
     
-    for(auto ee : shared_data_map){
-      Id tid2 = ee.first;
-      if(tid2 == tid_1)
+  std::cerr << "seg_step8_lagrange" << std::endl;
+  // ============== Dump results =================
+    
+  //  log.step("Write header");
+  ddt::stream_data_header oth("t","z",tid_1);
+  std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1));
+  if(params.dump_ply)
+    oth.write_into_file(filename,".ply");
+  oth.write_header(std::cout);
+  ddt::write_ddt_stream(tri, w_datas_tri[tid_1], oth.get_output_stream(),tid_1,false,log);
+  oth.finalize();
+  std::cout << std::endl;
+
+
+  if(params.do_finalize){
+    D_MAP w_datas_tri_fz;
+    DTW tri1_fz;
+    tri1_fz.init(tid_1);
+    Tile_iterator tci_fz = tri1_fz.get_tile(tid_1);
+      
+    std::vector<Point_id_id> vpis;
+
+    for( auto cit_1 = tile_1->cells_begin();
+	 cit_1 != tile_1->cells_end(); ++cit_1 ){
+      Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
+      bool do_keep = false;
+      for(int i=0; i<=D; ++i)
+	{
+	  // Select only id != tid_1
+	  Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
+	  if(tid_2 != tid_1)
+	    do_keep = true;
+	}
+      if(!do_keep)
 	continue;
-      ddt::stream_data_header hto("e","z",std::vector<int> {tid_1,tid2});
-      std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1) + "_nid" + std::to_string(tid2));
-      //hto.write_into_file(filename,".pts");
-      if(params.dump_ply)
-    	hto.write_into_file(filename,".ply");
-      hto.write_header(std::cout);
-      write_id_double_serialized(ee.second,hto.get_output_stream());
-      hto.finalize();
-      std::cout << std::endl;
+      for(int i=0; i<=D; ++i)
+	{
+	  auto vv = tile_1->vertex(cit_1,i);
+	  Id tid_2 = tile_1->id(vv);
+	  Point_id_id pis = std::make_tuple(vv->point(),tid_2,tid_2);
+	  vpis.push_back(pis);
+	}
     }
+    tci_fz->insert_points_id_id(vpis,tid_1,true);
+    tci_fz->init_local_id_tile();
+    Traits  traits;
 
-
+    std::vector<int>  & format_labs = w_datas_tri_fz[tid_1].format_labs ;
+    for( auto cit_1 = tci_fz->cells_begin();
+	 cit_1 != tci_fz->cells_end(); ++cit_1 )
+      {
+	format_labs.push_back(0);
+      }
+    for( auto cit_1 = tci_fz->cells_begin();
+	 cit_1 != tci_fz->cells_end(); ++cit_1 )
+      {
+	if(tci_fz->cell_is_infinite(cit_1))
+	  continue;
+	Id lid_1 = tci_fz->lid(cit_1);
+	std::vector<double> bary = tci_fz->get_cell_barycenter(cit_1);
+	auto pp_bary = traits.make_point(bary.begin());	
+	auto main_cell = tile_1->locate_cell_point(*tile_1,pp_bary);
+	Id lid_2 = tile_1->lid(main_cell);
+	w_datas_tri_fz[tid_1].format_labs[lid_1] = w_datas_tri[tid_1].format_labs[lid_2];
+      }
+    w_datas_tri_fz[tid_1].fill_labs(w_datas_tri_fz[tid_1].format_labs);      
+        
     for(auto ee : edges_data_map){
       Id tid2 = ee.first;
-      ddt::stream_data_header hto("f","z",std::vector<int> {tid_1,tid2});
-      std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1) + "_nid" + std::to_string(tid2));
-      //hto.write_into_file(filename,".pts");
-      if(params.dump_ply)
-    	hto.write_into_file(filename,".ply");
-      hto.write_header(std::cout);
-      write_id_double_serialized(ee.second,hto.get_output_stream());
-      hto.finalize();
-      std::cout << std::endl;
+      if(tid2 != tid_1){
+	ddt::stream_data_header oth("u","z",std::vector<int>{tid_1,tid2});
+	std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1));
+	if(params.dump_ply)
+	  oth.write_into_file(filename,".ply");
+	oth.write_header(std::cout);
+	//ddt::write_ddt_stream(tri1_fz, w_datas_tri_fz[tid_1], oth.get_output_stream(),tid_1,false,log);
+	ddt::write_ddt_stream(tri, w_datas_tri[tid_1], oth.get_output_stream(),tid_1,false,log);
+	oth.finalize();
+	std::cout << std::endl;
+      }
     }
-
-
-
-    // Dump stats
-    ddt::stream_data_header sth("s","z",tid_1);
-    sth.write_header(std::cout);
-    std::cout << "[diff:tot] " << acc_diff << " " << acc_tot ;
-    sth.finalize();
+  }  
+    
+  for(auto ee : shared_data_map){
+    Id tid2 = ee.first;
+    if(tid2 == tid_1)
+      continue;
+    ddt::stream_data_header hto("e","z",std::vector<int> {tid_1,tid2});
+    std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1) + "_nid" + std::to_string(tid2));
+    //hto.write_into_file(filename,".pts");
+    if(params.dump_ply)
+      hto.write_into_file(filename,".ply");
+    hto.write_header(std::cout);
+    write_id_double_serialized(ee.second,hto.get_output_stream());
+    hto.finalize();
     std::cout << std::endl;
+  }
+
+
+  for(auto ee : edges_data_map){
+    Id tid2 = ee.first;
+    ddt::stream_data_header hto("f","z",std::vector<int> {tid_1,tid2});
+    std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1) + "_nid" + std::to_string(tid2));
+    //hto.write_into_file(filename,".pts");
+    if(params.dump_ply)
+      hto.write_into_file(filename,".ply");
+    hto.write_header(std::cout);
+    write_id_double_serialized(ee.second,hto.get_output_stream());
+    hto.finalize();
+    std::cout << std::endl;
+  }
+
+
+
+  // Dump stats
+  ddt::stream_data_header sth("s","z",tid_1);
+  sth.write_header(std::cout);
+  std::cout << "[diff:tot] " << acc_diff << " " << acc_tot ;
+  sth.finalize();
+  std::cout << std::endl;
 
 
     
-    return 0;
+  return 0;
 }
 
 
