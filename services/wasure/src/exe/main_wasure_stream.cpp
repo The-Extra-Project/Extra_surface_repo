@@ -3691,60 +3691,64 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
 
   if(params.do_finalize){
     D_MAP w_datas_tri_fz;
-    DTW tri1_fz;
-    tri1_fz.init(tid_1);
-    Tile_iterator tci_fz = tri1_fz.get_tile(tid_1);
+
+    if(false){
+      // Simplification of the crown
+      DTW tri1_fz;
+      tri1_fz.init(tid_1);
+      Tile_iterator tci_fz = tri1_fz.get_tile(tid_1);
       
-    std::vector<Point_id_id> vpis;
+      std::vector<Point_id_id> vpis;
 
-    for( auto cit_1 = tile_1->cells_begin();
-	 cit_1 != tile_1->cells_end(); ++cit_1 ){
-      Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
-      bool do_keep = false;
-      for(int i=0; i<=D; ++i)
-	{
-	  // Select only id != tid_1
-	  Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
-	  if(tid_2 != tid_1)
-	    do_keep = true;
-	}
-      if(!do_keep)
-	continue;
-      for(int i=0; i<=D; ++i)
-	{
-	  auto vv = tile_1->vertex(cit_1,i);
-	  Id tid_2 = tile_1->id(vv);
-	  Point_id_id pis = std::make_tuple(vv->point(),tid_2,tid_2);
-	  vpis.push_back(pis);
-	}
-    }
-    tci_fz->insert_points_id_id(vpis,tid_1,true);
-    tci_fz->init_local_id_tile();
-    Traits  traits;
-
-    std::vector<int>  & format_labs = w_datas_tri_fz[tid_1].format_labs ;
-    for( auto cit_1 = tci_fz->cells_begin();
-	 cit_1 != tci_fz->cells_end(); ++cit_1 )
-      {
-	format_labs.push_back(0);
-      }
-    for( auto cit_1 = tci_fz->cells_begin();
-	 cit_1 != tci_fz->cells_end(); ++cit_1 )
-      {
-	if(tci_fz->cell_is_infinite(cit_1))
+      for( auto cit_1 = tile_1->cells_begin();
+	   cit_1 != tile_1->cells_end(); ++cit_1 ){
+	Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_1);
+	bool do_keep = false;
+	for(int i=0; i<=D; ++i)
+	  {
+	    // Select only id != tid_1
+	    Id tid_2 = tile_1->id(tile_1->vertex(cit_1,i));
+	    if(tid_2 != tid_1)
+	      do_keep = true;
+	  }
+	if(!do_keep)
 	  continue;
-	Id lid_1 = tci_fz->lid(cit_1);
-	std::vector<double> bary = tci_fz->get_cell_barycenter(cit_1);
-	auto pp_bary = traits.make_point(bary.begin());	
-	auto main_cell = tile_1->locate_cell_point(*tile_1,pp_bary);
-	Id lid_2 = tile_1->lid(main_cell);
-	w_datas_tri_fz[tid_1].format_labs[lid_1] = w_datas_tri[tid_1].format_labs[lid_2];
+	for(int i=0; i<=D; ++i)
+	  {
+	    auto vv = tile_1->vertex(cit_1,i);
+	    Id tid_2 = tile_1->id(vv);
+	    Point_id_id pis = std::make_tuple(vv->point(),tid_2,tid_2);
+	    vpis.push_back(pis);
+	  }
       }
-    w_datas_tri_fz[tid_1].fill_labs(w_datas_tri_fz[tid_1].format_labs);      
-        
+      tci_fz->insert_points_id_id(vpis,tid_1,true);
+      tci_fz->init_local_id_tile();
+      Traits  traits;
+
+      std::vector<int>  & format_labs = w_datas_tri_fz[tid_1].format_labs ;
+      for( auto cit_1 = tci_fz->cells_begin();
+	   cit_1 != tci_fz->cells_end(); ++cit_1 )
+	{
+	  format_labs.push_back(0);
+	}
+      for( auto cit_1 = tci_fz->cells_begin();
+	   cit_1 != tci_fz->cells_end(); ++cit_1 )
+	{
+	  if(tci_fz->cell_is_infinite(cit_1))
+	    continue;
+	  Id lid_1 = tci_fz->lid(cit_1);
+	  std::vector<double> bary = tci_fz->get_cell_barycenter(cit_1);
+	  auto pp_bary = traits.make_point(bary.begin());	
+	  auto main_cell = tile_1->locate_cell_point(*tile_1,pp_bary);
+	  Id lid_2 = tile_1->lid(main_cell);
+	  w_datas_tri_fz[tid_1].format_labs[lid_1] = w_datas_tri[tid_1].format_labs[lid_2];
+	}
+      w_datas_tri_fz[tid_1].fill_labs(w_datas_tri_fz[tid_1].format_labs);      
+    }
+    
     for(auto ee : edges_data_map){
       Id tid2 = ee.first;
-      if(tid2 != tid_1){
+      if(tid2 > tid_1){
 	ddt::stream_data_header oth("u","z",std::vector<int>{tid_1,tid2});
 	std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1));
 	if(params.dump_ply)

@@ -88,18 +88,17 @@ include_directories("../../../extern/opengm/include/")
 
 
 
-# set(spark-wasure_SOURCES
-#   main_polyfit.cpp
-#   )
-# add_executable(polyfit-exe ${spark-wasure_SOURCES})
-# set_property(TARGET polyfit-exe PROPERTY CXX_STANDARD 11)
-# target_link_libraries(polyfit-exe
-#   # intern dependencies
-#   ddt
-#   tbmrf
-#   ${WASURE_EXE_LIB_DEP}
-#   ${DOUBLE_CONV_LIBRARIES}
-#   )
+set(spark-wasure_SOURCES
+  main_structuring_example.cpp
+  )
+add_executable(structuring_example-exe ${spark-wasure_SOURCES})
+set_property(TARGET structuring_example-exe PROPERTY CXX_STANDARD 11)
+target_link_libraries(structuring_example-exe
+  # intern dependencies
+  ddt
+  tbmrf
+  ${WASURE_EXE_LIB_DEP}
+  )
 
 
  

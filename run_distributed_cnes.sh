@@ -114,7 +114,8 @@ function cnes_init_spark_v2
     echo "/!\\ Spark context Web UI available at /!\\"
     echo "${NODE_NAME}:8080"
     echo ""
-    run_cnes_toulouse_full
+    run_cnes_toulouse_v4
+    #run_cnes_church
 }
 
 # Start Spark
