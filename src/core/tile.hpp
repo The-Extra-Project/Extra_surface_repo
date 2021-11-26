@@ -195,6 +195,7 @@ public:
     // Mixed  => some vertex ids are equal to the tile id
     // Foreign => no vertex ids are equal to the tile id
     inline bool vertex_is_local(Vertex_const_handle v) const { assert(!vertex_is_infinite(v)); return id(v) == id(); }
+    inline bool vertex_is_local_in_tile(Vertex_const_handle v, int tid) const { assert(!vertex_is_infinite(v)); return id(v) == tid; }
     inline bool vertex_is_foreign(Vertex_const_handle v) const { return !vertex_is_local(v); }
 
 
@@ -331,6 +332,20 @@ public:
         return true;
     }
 
+
+  template<typename C>
+  bool cell_is_foreign_in_tile(C c, int tid) const
+    {
+        for(int i=0; i<=current_dimension(); ++i)
+        {
+            auto v = vertex(c,i);
+            if ( vertex_is_infinite(v) ) continue;
+            if ( vertex_is_local_in_tile(v,tid) ) return false;
+        }
+
+        return true;
+    }
+
     // Main
     template<typename V>
     bool vertex_is_main(V v) const
@@ -340,26 +355,89 @@ public:
     }
 
 
-  // Check if the facet is main
+  // // Check if the facet is main
+  //   template<typename F>
+  //   bool facet_is_main(F f) const
+  //   {
+  //       int icv = index_of_covertex(f);
+  //       auto c = full_cell(f);
+  //       bool foreign = true;
+  //       for(int i=0; i<=current_dimension(); ++i)
+  //       {
+  //           if (i == icv) continue;
+  //           auto v = vertex(c,i);
+  //           if (vertex_is_infinite(v)) continue;
+  //           Id vid = id(v);
+  //           if ( vid < id() )
+  //               return false;
+  //           else if (vid == id())
+  //               foreign = false;
+  //       }
+  //       return !foreign;
+  //   }
+
+
+    // Check if the facet is main
     template<typename F>
     bool facet_is_main(F f) const
     {
+        // return true;
         int icv = index_of_covertex(f);
-        auto c = full_cell(f);
+	
+	auto c1 = full_cell(f);
+	auto c2 = neighbor(c1,icv);
         bool foreign = true;
-        for(int i=0; i<=current_dimension(); ++i)
+	std::vector<int> lid;
+	for(int i=0; i<=current_dimension(); ++i)
         {
-            if (i == icv) continue;
-            auto v = vertex(c,i);
-            if (vertex_is_infinite(v)) continue;
-            Id vid = id(v);
-            if ( vid < id() )
-                return false;
-            else if (vid == id())
-                foreign = false;
-        }
-        return !foreign;
+	  if (i == icv) continue;
+	  auto v = vertex(c1,i);
+	  if (vertex_is_infinite(v)) continue;
+	  Id vid = id(v);
+	  lid.push_back(vid);
+	}
+	std::sort(lid.begin(),lid.end());
+        for(int i=0; i<lid.size(); ++i)
+        {
+	  int vid = lid[i];
+	  if(!cell_is_foreign_in_tile(c1,vid) && !cell_is_foreign_in_tile(c2,vid))
+	    return vid == id();
+	}
+	return false;
     }
+
+
+    // // Check if the facet is main
+    // template<typename F>
+    // bool facet_is_main(F f) const
+    // {
+    //     int icv = index_of_covertex(f);
+    //     auto c1 = full_cell(f);
+    // 	auto c2 = f->neighbor(icv);
+    //     bool foreign = true;
+    // 	std::map<int,int> cmap;
+    //     for(int i=0; i<=current_dimension(); ++i)
+    //     {
+    //         if (i == icv) continue;
+    //         auto v = vertex(c,i);
+    //         if (vertex_is_infinite(v)) continue;
+    //         Id vid = id(v);
+    // 	    if(cmap.find(vid) == cmap.end())
+    // 	      cmap[vid] = 0;
+    // 	    else
+    // 	      cmap[vid] += 1;
+    //     }
+    // 	int vmax = -1;
+    // 	int imax = 0;
+    // 	for(auto it = cmap.begin(); it != cmap.end(); it++)
+    // 	  if(it->second > vmax){
+    // 	    vmax = it->second;
+    // 	    imax = it->first;
+    // 	  }
+    // 	return imax == id();
+	
+    //     // return !foreign;
+    // }
 
     template<typename C>
     bool cell_is_main(C c) const

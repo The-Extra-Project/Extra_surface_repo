@@ -2301,6 +2301,216 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
 }
 
 
+int extract_surface_new(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
+{
+
+    std::vector<Facet_const_iterator> lft;
+    std::vector<bool> lbool;
+    std::cout.setstate(std::ios_base::failbit);
+    DTW tri;
+    Scheduler sch(1);
+    wasure_algo w_algo;
+    int D = Traits::D;
+
+    D_MAP w_datas_tri;
+    ddt_data<Traits> datas_out;
+    log.step("read");
+    for(int i = 0; i < nb_dat; i++)
+    {
+        ddt::stream_data_header hpi;
+        hpi.parse_header(std::cin);
+        Id hid = hpi.get_id(0);
+        if(hpi.get_lab() == "t" || hpi.get_lab() == "u")
+        {
+            w_datas_tri[hid] = wasure_data<Traits>();
+            bool do_clean_data = false;
+            bool do_serialize = false;
+	    read_ddt_stream(tri,w_datas_tri[hid], hpi.get_input_stream(),hid,do_serialize,do_clean_data,log);
+            w_datas_tri[hid].extract_labs(w_datas_tri[hid].format_labs,false);
+        }
+        tri.finalize(sch);
+        hpi.finalize();
+    }
+
+    //    w_datas_tri[tid].extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
+    // Cell_const_iterator fch;
+
+
+    log.step("compute");
+    int mode = -1;
+
+    //mode = 1;
+    // if(params.mode.find(std::string("out")) != std::string::npos)
+    mode = 0;
+
+
+       
+    for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
+    {
+        try
+        {
+
+            if(fit->is_infinite())
+                continue;
+
+	  
+            Cell_const_iterator tmp_fch = fit.full_cell();
+            int tmp_idx = fit.index_of_covertex();
+            Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
+
+
+	    bool is_on_convex = false;
+	    if(tmp_fch->is_infinite() ||  tmp_fchn->is_infinite() )
+	      is_on_convex = true;
+
+
+            Cell_const_iterator fch = tmp_fch;//->main();
+            int id_cov = fit.index_of_covertex();
+            Cell_const_iterator fchn = tmp_fchn;//>main();
+	    //            Vertex_h_iterator vht;
+
+            int cccid = fch->lid();
+            int cccidn = fchn->lid();
+
+            int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
+            int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];
+            if(
+	       (ch1lab != chnlab)  || (mode == 0 && (is_on_convex && (ch1lab == 0 || chnlab == 0)))
+	       ){
+                lft.push_back(*fit);
+		
+		const Point& a = fch->vertex((id_cov+1)&3)->point();
+		const Point& b = fch->vertex((id_cov+2)&3)->point();
+		const Point& c = fch->vertex((id_cov+3)&3)->point();
+		const Point& d = fch->vertex((id_cov)&3)->point();
+
+		datas_out.bbox += a;
+		datas_out.bbox += b;
+		datas_out.bbox += c;
+		bool bl =
+		  (CGAL::orientation(a,b,c,d) == 1 && chnlab == 0) ||
+		  (CGAL::orientation(a,b,c,d) == -1 && chnlab == 1);
+		lbool.push_back(!bl);
+	    }
+
+        }
+        catch (ddt::DDT_exeption& e)
+        {
+            std::cerr << "!! WARNING !!!" << std::endl;
+            std::cerr << "Exception catched : " << e.what() << std::endl;
+            continue;
+        }
+    }
+
+
+    log.step("write");
+
+    std::cerr << "dim done tile : "<< tid << std::endl;
+    std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) + "_surface");
+    std::cout.clear();
+
+    ddt::stream_data_header oth("p","z",tid);
+    if(D == 2){
+      oth.write_into_file(ply_name,".geojson");
+      oth.write_header(std::cout);
+    }
+    // else
+    //     oth.write_into_file(ply_name,".ply");
+
+
+
+
+    switch (D)
+    {
+    case 2 :
+    {
+        wasure::dump_2d_surface_geojson<DTW>(lft,oth.get_output_stream());
+        break;
+    }
+    case 3 :
+    {
+
+        std::vector<Point>  format_points;
+        std::vector<int> v_simplex;
+        std::map<Vertex_const_iterator, uint> vertex_map;
+
+
+        int acc = 0;
+        for(auto fit = lft.begin(); fit != lft.end(); ++fit)
+        {
+            Cell_const_iterator fch = fit->full_cell();
+            int id_cov = fit->index_of_covertex();
+            for(int i = 0; i < D+1; ++i)
+            {
+                if(i != id_cov)
+                {
+                    Vertex_const_iterator v = fch->vertex(i);
+                    if(vertex_map.find(v) == vertex_map.end())
+                    {
+                        vertex_map[v] = acc++;
+                        format_points.push_back(v->point());
+                    }
+                }
+            }
+        }
+
+	acc=0;
+        for(auto fit = lft.begin(); fit != lft.end(); ++fit)
+        {
+            Cell_const_iterator fch = fit->full_cell();
+            int id_cov = fit->index_of_covertex();
+
+	    
+	    Id ida = (id_cov+1)&3;
+	    Id idb = (id_cov+2)&3;
+	    Id idc = (id_cov+3)&3;
+
+	    v_simplex.push_back(vertex_map[fch->vertex(ida)]);
+	    if(!lbool[acc]){
+	      v_simplex.push_back(vertex_map[fch->vertex(idb)]);
+	      v_simplex.push_back(vertex_map[fch->vertex(idc)]);
+	    }else{
+	      v_simplex.push_back(vertex_map[fch->vertex(idc)]);
+	      v_simplex.push_back(vertex_map[fch->vertex(idb)]);
+	    }
+	    
+            // for(int i = 0; i < D+1; ++i)
+            // {
+            //     if(i != id_cov)
+            //     {
+            //         Vertex_const_iterator v = fch->vertex(i);
+            //         v_simplex.push_back(vertex_map[fch->vertex(0)]);
+            //     }
+            // }
+	    acc++;
+        }
+
+
+
+        datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+        datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
+        datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(format_points);
+        datas_out.dmap[datas_out.simplex_name].fill_full_uint8_vect(v_simplex);
+	datas_out.write_ply_stream(oth.get_output_stream(),PLY_CHAR,false,false,true);
+	
+	
+        break;
+    }
+    default :             // Note the colon, not a semicolon
+    {
+        return 1;
+        break;
+    }
+    }
+
+
+    oth.finalize();
+    std::cout << std::endl;
+
+    return 0;
+}
+
+
 
 
 
@@ -4424,7 +4634,7 @@ int main(int argc, char **argv)
             else if(params.algo_step == std::string("extract_surface"))
             {
                 if(params.area_processed == 0)
-                    rv = extract_surface(tile_id,params,nb_dat,log);
+                    rv = extract_surface_new(tile_id,params,nb_dat,log);
                 else
                     rv = extract_surface_area(tile_id,params,nb_dat,log);
 		//		do_dump_log = false;

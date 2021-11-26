@@ -509,7 +509,7 @@ algo_list.foreach{ cur_algo =>
             val rdd_local_edges = iq.get_edgrdd(res_seg,"e");
             val graph_seg = Graph(kvrdd_seg, rdd_local_edges, List("")).partitionBy(EdgePartition1D,rep_merge);
 
-            if(true){
+            if(false){
               val rdd_local_crown = iq.get_edgrdd(res_seg,"u");
               val kvrdd_tri_with_crown = (rdd_local_crown.map(e => (e.dstId,e.attr)) union kvrdd_seg).reduceByKey(_ ::: _,rep_loop).persist(iq.get_storage_level_loop()).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
               val rdd_ply_surface = iq.run_pipe_fun_KValue(
@@ -519,10 +519,13 @@ algo_list.foreach{ cur_algo =>
               ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
               wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
             }
-            if(false){
+            if(true){
+              // val rdd_ply_surface = iq.run_pipe_fun_KValue(
+              //   ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
+              //   iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
               val rdd_ply_surface = iq.run_pipe_fun_KValue(
                 ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
-                iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
+                graph_seg.vertices, "seg", do_dump = false)
               val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str
               ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
               wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
