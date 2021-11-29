@@ -313,6 +313,7 @@ val t0 = System.nanoTime()
 params_scala("t0") = collection.mutable.Set(t0.toString)
 println("======== Tiling =============")
 kvrdd_points = ddt_algo.compute_tiling_2(kvrdd_inputs,iq,params_ddt,params_scala);
+ddt_algo.update_time(params_scala,"tiling");
 nb_leaf = params_scala("nb_leaf").head.toInt;
 
 var rep_merge = ((if((nb_leaf) < spark_core_max) spark_core_max else  nb_leaf));
@@ -336,7 +337,7 @@ var input_ddt = kvrdd_points;
 // If we have a simplified point cloud, do the delaunay triangulation of the simplfied point cloud
 if(pscale > 0)
   input_ddt = kvrdd_simp;
-
+ddt_algo.update_time(params_scala,"Dimensionality");
 println("=========== Delauay triangulatin computation ==================")
 val defaultV = (List(""));
 
@@ -362,6 +363,7 @@ res_dim.unpersist()
 
 
 println("============= Simplex score computation ===============")
+ddt_algo.update_time(params_scala,"compute_dst");
 val res_dst = iq.run_pipe_fun_KValue(
   dst_cmd ++ List("--label", "dst"),
   input_dst, "dst", do_dump = false).persist(slvl_glob).setName("res_dst");
@@ -372,7 +374,7 @@ kvrdd_points.unpersist();
 val kvrdd_dst = iq.get_kvrdd(res_dst,"t");
 
 println("============= Regularize ===============")
-
+ddt_algo.update_time(params_scala,"regularize");
 // Message passing regularize
 val res_regularize_extract = iq.run_pipe_fun_KValue(
   regularize_slave_extract_cmd ++ List("--label", "regularize_slave_extract"),
@@ -386,6 +388,8 @@ val input_insert = (
 val res_regularize = iq.run_pipe_fun_KValue(
   regularize_slave_insert_cmd ++ List("--label", "regularize_slave_insert"),
   input_insert, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
+
+
 res_regularize.count()
 res_regularize_extract.unpersist()
 input_insert.unpersist()
@@ -397,6 +401,7 @@ graph_reg.vertices.setName("graph_reg");
 graph_reg.edges.setName("graph_reg");
 
 println("============= Optimiation ===============")
+ddt_algo.update_time(params_scala,"optimization");
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.map(fmt.format(_).replace(',','.'))
 var coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_).replace(',','.'))
 val algo_list = params_scala("algo_opt").toList

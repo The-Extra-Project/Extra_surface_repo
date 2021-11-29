@@ -905,7 +905,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
       hpi.finalize();
       std::cerr << "finalize" << std::endl;
 
-      //      log.step("compute");
+
       // w_datas.extract_ptsvect(w_datas.xyz_name,w_datas.format_points,false);
       // w_datas.extract_ptsvect(w_datas.center_name,w_datas.format_centers,false);
       w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(w_datas.format_points,false);
@@ -931,6 +931,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
       // else
       // {
 
+      log.step("compute_dim");
       if(w_datas.format_centers.size() == 0)
 	{
 	  double coords[Traits::D];
@@ -950,7 +951,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
       if(do_splitted){
 	w_algo.compute_dim(w_datas.format_points,
 			   w_datas.format_egv,
-			   w_datas.format_sigs);
+			   w_datas.format_sigs,log);
 
 
 
@@ -985,7 +986,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
     
     w_algo.compute_dim(w_datas_full.format_points,
 		       w_datas_full.format_egv,
-		       w_datas_full.format_sigs);
+		       w_datas_full.format_sigs,log);
     
     if(w_datas_full.format_centers.size() == 0)
       {
@@ -1008,7 +1009,8 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
 			w_datas_full.format_egv,
 			w_datas_full.format_centers);
   }
-    
+
+  log.step("compute_tessel");
   std::cerr << "start tessel" << std::endl;
   if(params.pscale < 1){
     w_algo.tessel_adapt(w_datas_full.format_points,
@@ -1022,6 +1024,8 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
     
   }
 
+
+  log.step("dump");
   // w_algo.tessel(w_datas_full.format_points,
   // 		  p_simp_full,
   // 		  w_datas_full.format_egv,

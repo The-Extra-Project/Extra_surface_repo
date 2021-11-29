@@ -21,7 +21,7 @@ public :
 
     // ============ Dim ====================
     void compute_svd(int K_T, const  ANNidxArray & nnIdx, const std::vector<Point> & points,std::vector<Point> & pts_norms, std::vector<double> &coords_scale);
-    int  compute_dim(  std::vector<Point> & points, std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales);
+    int  compute_dim(  std::vector<Point> & points, std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales,ddt::logging_stream & log);
     int  compute_dim_with_simp(  std::vector<Point> & points, std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales,std::vector<Point> & simp, double pscale);
     int simplify(std::vector<Point> & points, std::vector<bool> & do_keep, double dist );
 

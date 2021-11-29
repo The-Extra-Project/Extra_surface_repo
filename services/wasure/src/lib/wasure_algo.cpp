@@ -473,12 +473,13 @@ wasure_algo::compute_svd(int K_T, const  ANNidxArray & nnIdx, const std::vector<
 
 
 int 
-wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales){
+wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales,ddt::logging_stream & loggin){
   int D = Traits::D;  
 
   int nbp = points.size();
   double eps = 0;
   int K_T = 150;
+  int step = 10;
   if(K_T > points.size() -1)
     K_T = points.size() -1;
 
@@ -501,6 +502,7 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
 
   
   int npts =0;
+  loggin.step("build_ann");
   for(std::vector<Point>::iterator pit = points.begin(); pit != points.end(); ++pit){
     Point p1 = *pit;
     for(int d = 0; d < D; d++)
@@ -511,7 +513,7 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
   kdTree = new ANNkd_tree(dataPts,npts,D);
   //std::cerr << "step2" << std::endl;
 
-
+  loggin.step("compute_dim_on_pts");
   for(std::vector<Point>::iterator pit = points.begin(); pit != points.end(); ++pit){
     Point p1 = *pit;
     std::vector<Point> pts_norms;
@@ -538,7 +540,7 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
 
     kdTree->annkSearch(queryPt,K_T, nnIdx,dists,eps);
     
-    for(int k = K_T_min; k < K_T; k++){
+    for(int k = K_T_min; k < K_T; k+=K_T/step){
       if(dists[k] < 0.02 && k < 30)
 	continue;
       std::vector<Point> cur_pts_norms;
