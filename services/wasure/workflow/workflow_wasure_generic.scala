@@ -525,7 +525,9 @@ algo_list.foreach{ cur_algo =>
               //   iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
               val rdd_ply_surface = iq.run_pipe_fun_KValue(
                 ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
-                graph_seg.vertices, "seg", do_dump = false)
+                kvrdd_seg, "seg", do_dump = false).persist(slvl_glob)
+              rdd_ply_surface.count()
+              res_seg.unpersist()
               val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str
               ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
               wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
