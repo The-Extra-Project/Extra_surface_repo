@@ -19,12 +19,28 @@
 #include "ddt_spark_utils.hpp"
 
 
+#include <CGAL/Shape_detection/Efficient_RANSAC.h>
+#include <CGAL/structure_point_set.h>
+#include <CGAL/property_map.h>
+#include <CGAL/IO/write_xyz_points.h>
+
 typedef std::map<Id,wasure_data<Traits> > D_MAP;
 typedef std::map<Id,std::list<wasure_data<Traits>> > D_LMAP;
 typedef std::tuple<Id,double,double,double>                                SharedData;
 typedef std::tuple<Id,Point,Point,Point,Point,double,double,double>           SharedDataDst;
 typedef Id                                EdgeData;
 
+// Strucuring
+typedef std::pair<Point,Vector>         Point_with_normal;
+typedef std::vector<Point_with_normal>                       Pwn_vector;
+typedef CGAL::First_of_pair_property_map<Point_with_normal>  Point_map;
+typedef CGAL::Second_of_pair_property_map<Point_with_normal> Normal_map;
+
+// Efficient RANSAC types
+typedef CGAL::Shape_detection::Efficient_RANSAC_traits
+<Traits::K, Pwn_vector, Point_map, Normal_map>              RANSACTraits;
+typedef CGAL::Shape_detection::Efficient_RANSAC<RANSACTraits>    Efficient_ransac;
+typedef CGAL::Shape_detection::Plane<RANSACTraits>               Plane;
 
 int write_id_double_serialized(const std::map<Id,SharedData>  & lp, std::ostream & ofile,bool do_print = false)
 {
@@ -1012,18 +1028,50 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
 
   log.step("compute_tessel");
   std::cerr << "start tessel" << std::endl;
-  if(params.pscale < 1){
-    w_algo.tessel_adapt(w_datas_full.format_points,
-		      p_simp_full,
-		      w_datas_full.format_egv,
-		      w_datas_full.format_sigs,
-		      20,params.pscale,D,tid
-		      );
+  if(true){
+    if(params.pscale < 1){
+      w_algo.tessel_adapt(w_datas_full.format_points,
+			  p_simp_full,
+			  w_datas_full.format_egv,
+			  w_datas_full.format_sigs,
+			  20,params.pscale,D,tid
+			  );
+    }else{
+      p_simp_full.insert(p_simp_full.end(),w_datas_full.format_points.begin(),w_datas_full.format_points.end());
+    }
   }else{
-    p_simp_full.insert(p_simp_full.end(),w_datas_full.format_points.begin(),w_datas_full.format_points.end());
-    
-  }
+    // Shape detection
+    Pwn_vector points;
+    Efficient_ransac ransac;
+    Pwn_vector structured_pts;
 
+    for(int i = 0; i < w_datas_full.format_points.size(); i++){
+      auto nn = w_datas_full.format_egv[i][D-1];
+      Vector vv(nn[0],nn[1],nn[2]);
+      points.push_back(std::make_pair(w_datas_full.format_points[i],vv));
+    }
+    
+    ransac.set_input(points);
+    ransac.add_shape_factory<Plane>();
+    ransac.detect();
+    Efficient_ransac::Plane_range planes = ransac.planes();
+    CGAL::structure_point_set (points,
+			       planes,
+			       std::back_inserter (structured_pts),
+			       0.005, // epsilon for structuring points
+			       CGAL::parameters::point_map (Point_map()).
+			       normal_map (Normal_map()).
+			       plane_map (CGAL::Shape_detection::Plane_map<RANSACTraits>()).
+			       plane_index_map (CGAL::Shape_detection::Point_to_shape_index_map<RANSACTraits>(points, planes)));
+
+    for(auto spp : structured_pts)
+      p_simp_full.push_back(spp.first);
+    std::ofstream out (params.output_dir + "/" + params.slabel + "_" + std::to_string(tid) + "_structured_2.xyz");
+    CGAL::write_xyz_points (out, structured_pts,
+			    CGAL::parameters::point_map(Point_map()).normal_map(Normal_map()));
+    out.close();
+
+  }
 
   log.step("dump");
   // w_algo.tessel(w_datas_full.format_points,

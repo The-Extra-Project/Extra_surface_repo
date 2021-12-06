@@ -440,13 +440,14 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
     ist >> lab;
     int size_c;
     ist >> size_c;
-
     int idx;
     for(int i = 0; i < size_c; i++)
     {
         ist >> idx;
         lidx.push_back(idx);
     }
+    std::cerr << "lab:" <<  lab << " " << lidx[0] << std::endl;
+
     if(lab.empty() || lidx.size() == 0)
     {
         std::cerr << "[ERROR] error during header parsing" << std::endl;
@@ -507,7 +508,8 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
         std::getline(std::cin, input);
         // initialize string stream
         ifile = new std::stringstream(input);
-      }else{
+      }
+    else{
       std::cout << " ";
       if(ifile != NULL){
 	delete ifile;

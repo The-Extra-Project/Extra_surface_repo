@@ -50,6 +50,7 @@ typedef typename DTW::Tile_iterator  Tile_iterator ;
 typedef typename Traits::Delaunay_triangulation DT;
 typedef typename ddt::Traits_raw::Delaunay_triangulation       DT_raw;
 typedef typename Traits::Point       Point;
+typedef typename Traits::Vector       Vector;
 typedef typename Traits::Id          Id;
 typedef typename Traits::Point_id    Point_id;
 typedef typename Traits::Point_id_id Point_id_id;

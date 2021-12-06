@@ -122,6 +122,46 @@ val coef_mult = params_scala.get_param("coef_mult", "10").toFloat
 // Set the iq library on
 val iq = new IQlibSched(slvl_glob,slvl_loop)
 
+val current_plateform = get_bash_variable("CURRENT_PLATEFORM");
+
+current_plateform.toLowerCase match {
+  case "cnes" => {
+    println("void")
+    import org.apache.log4j.PropertyConfigurator
+    PropertyConfigurator.configure(ddt_main_dir + "/log4j-executor.properties.v3" )
+  }
+  case "multivac" => {
+    val hdfs_files_dir = get_bash_variable("HDFS_FILES_DIR");
+    val exec_path_list = List("ddt-stream-exe","wasure-stream-exe");
+    // val lib_list = List(
+    //   "libboost_system.so.1.71.0",
+    //   "libboost_filesystem.so.1.71.0","libc.so.6",
+    //   "libddt.so","libgcc_s.so.1","libgmp.so.10","libm.so.6","libpthread.so.0","libstdc++.so.6","libtbmrf.so"
+    // )
+
+    val lib_list = List(
+      "ddt-stream-exe","libboost_system.so.1.67.0",
+      "libboost_filesystem.so.1.67.0","libCGAL.so.13",
+      "libddt.so","libstdc++.so.6","libm.so.6","libtbmrf.so"
+    )
+
+    var inc_dir = sc.parallelize(List("")).map(
+      x => (SparkFiles.get("libCGAL.so.13").split("/").dropRight(1).reduce(_ ++ "/" ++ _)).dropRight(1)
+    ).collect()(0).split("_").dropRight(1).reduce(_ ++ "_" ++ _) + "_"
+    var inc_dir_list = (1 to 100).map(inc_dir  + "%06d".format(_)).reduce(_ ++ ":" ++ _)
+
+    exec_path_list.map(x => sc.addFile(hdfs_files_dir + x))
+    lib_list.map(x => sc.addFile(hdfs_files_dir + x))
+    println("===> SC DEFAUT PAR :" + sc.defaultParallelism)
+
+    env_map = Map(
+      "CLASSPATH" -> sys.env("CLASSPATH"),
+      "LD_LIBRARY_PATH" -> (inc_dir_list + ":/usr/lib/jvm/java-8-oracle/jre/lib/amd64/server:/opt/cloudera/parcels/CDH/lib/")
+    )
+  }
+  case "local" => {}
+}
+
 val cpp_exec_path = current_plateform.toLowerCase match {
   case "cnes"  =>     "/softs/rh7/singularity/3.5.3/bin/singularity exec " + build_dir + "/ddt_img_cnes.simg " + build_dir + "/bin/"
   case "singularity"  =>     "singularity exec " + build_dir + "/ddt_img_cnes.simg " + build_dir + "/bin/"
@@ -198,8 +238,8 @@ val lambda = params_scala.get_param("lambda", "0.1").toFloat
 
 params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + bba(4) + "x" + (bba(4) + smax))
 params_scala("ndtree_depth") = collection.mutable.Set(ndtree_depth.toString)
-params_scala("datatype") = collection.mutable.Set("filestream")
-params_scala("max_ppt") = collection.mutable.Set(max_ppt.toString)
+params_scala("datatype") = collection.mutable.Set("b64stream")
+params_scala("max_ppt") = collection.mutable.Set(max_ppt_per_tile.toString)
 
 val params_scala_dump = params_scala.filter(x => !x._2.head.isEmpty && x._1 != "do_expand" && x._1 != "output_dir" )
 

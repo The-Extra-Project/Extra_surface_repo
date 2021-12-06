@@ -55,6 +55,7 @@ struct Cgal_traits_3_Raw
 
     typedef typename Delaunay_triangulation::Facet_iterator                 Facet_iterator;
     typedef Facet_iterator                   Facet_const_handle;
+    typedef  K::Vector_3 Vector;
 
     typedef typename Delaunay_triangulation::Point                                    Point;
     typedef std::pair<Cell_const_handle, int>                      Facet;
@@ -202,7 +203,8 @@ struct Cgal_traits_3
     typedef typename K::Point_3                                    Point;
     typedef std::pair<Point,Id>                                    Point_id;
     typedef std::tuple<Point,Id,Id>                                Point_id_id;
-
+  typedef  K::Vector_3 Vector;
+  
     typedef typename TDS::Vertex_iterator                          Vertex_const_iterator;
     typedef typename TDS::Vertex_handle                            Vertex_const_handle;
     typedef typename TDS::Vertex_iterator                          Vertex_iterator;
@@ -218,6 +220,7 @@ struct Cgal_traits_3
     typedef Facet_const_iterator                                   Facet_const_handle;
     typedef Facet_const_iterator                                   Facet_iterator;
     typedef Facet_const_iterator                                   Facet_handle;
+
 
     typedef CGAL::Delaunay_triangulation_3<K, TDS>                 Delaunay_triangulation;
     typedef CGAL::Random_points_in_sphere_3<Point>                 Random_points_in_ball;

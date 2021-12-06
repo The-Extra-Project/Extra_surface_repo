@@ -388,7 +388,6 @@ object params_parser {
           input_rdd_raw, "generate_points", do_dump = false)
         kvrdd_inputs = iq.get_kvrdd(raw_inputs, "z",txt="pts").persist(slvl_glob).setName("KVRDD_INPUT");
 
-
       }
       case "files" => {
         println("")
@@ -404,7 +403,27 @@ object params_parser {
         //   kvrdd_inputs, "struct", do_dump = false)
         kvrdd_inputs_struct = kvrdd_inputs//iq.get_kvrdd(struct_inputs)
       }
-      case "filestream" => {
+
+      case "plystream" => {
+        println("")
+        println("======== LOAD DATA filestream =============")
+        val ss_reg = regexp_filter.r
+        val nb_file = fs.listStatus(new Path(input_dir)).map(x => fs.listStatus(x.getPath)).reduce(_ ++ _).map(_.getPath).filter(
+          x => ((x.toString endsWith ".ply")) && ((ss_reg).findFirstIn(x.toString).isDefined)
+        ).size
+
+        val ply_input = fs.listStatus(new Path(input_dir)).map(x => fs.listStatus(x.getPath)).reduce(_ ++ _).map(_.getPath).filter(
+          x => ((x.toString endsWith ".ply")) && ((ss_reg).findFirstIn(x.toString).isDefined)
+        )
+
+        kvrdd_inputs_struct = sc.wholeTextFiles(input_dir + "*.ply").map(x =>
+          x._2.replaceAll("[\n\r](p|f|e|c)",";$1").replace("end_header", "end_header;").replace("\n"," ")).zipWithIndex.map(
+          e => (e._2.toLong,List("g 1 " + e._2.toString + " s " +  e._1.toString))
+        )
+
+      }
+
+      case "b64stream" => {
         println("")
         println("======== LOAD DATA filestream =============")
         val ss_reg = regexp_filter.r
@@ -419,7 +438,6 @@ object params_parser {
         kvrdd_inputs_struct = sc.textFile(input_dir + "*.stream").zipWithIndex.map(
           e => (e._2.toLong,List("z 1 " + e._2.toString + " z " +  e._1.toString))
           ).repartition(nb_file).setName("KVRDD_INPUT")
-
       }
       case _ => {
         println(" ERROR : DATATYPE " + datatype + " does not exists")

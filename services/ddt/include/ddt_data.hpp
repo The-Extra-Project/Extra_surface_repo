@@ -690,20 +690,20 @@ public :
 	    if(true){
 	      vsize = e.size;
 
-	      //std::cerr << "element - " << e.name << " (" << e.size << ")" << std::endl;	      
+	      std::cerr << "element - " << e.name << " (" << e.size << ")" << std::endl;	      
 	      for (auto p : e.properties){
 		std::vector<std::string> pname({p.name});
 		bool do_exist = false;
-		// for(auto vp : pname)
-		//    std::cerr << "\tproperty - " << vp << " (" << tinyply::PropertyTable[p.propertyType].str << ")" << std::endl;
+		 for(auto vp : pname)
+		    std::cerr << "\tproperty - " << vp << " (" << tinyply::PropertyTable[p.propertyType].str << ")" << std::endl;
 
 		for ( const auto &ee : dmap ) {
 		  if(ee.second.has_label(p.name)){
-		    //std::cerr << p.name << " existe!" << std::endl;
-		    //std::cerr << "[" << ee.first.size() << "] => ";
-		    //  for(auto ie : ee.first)
-		    //    std::cerr << ie << " - ";
-		    // std::cerr << std::endl;
+		    std::cerr << p.name << " existe!" << std::endl;
+		    std::cerr << "[" << ee.first.size() << "] => ";
+		      for(auto ie : ee.first)
+		        std::cerr << ie << " - ";
+		     std::cerr << std::endl;
 		    do_exist = true;
 		    dmap[ee.first].do_exist = true;
 		    dmap[ee.first].type = p.propertyType;

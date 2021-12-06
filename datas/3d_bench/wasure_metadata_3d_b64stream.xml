@@ -1,0 +1,31 @@
+<env>
+  <datasets>
+    <austin>
+      <plot_lvl>1</plot_lvl>
+      <do_stats>false</do_stats>
+      <datatype>b64stream</datatype>
+      <dim>3</dim>
+      <ndtree_depth>2</ndtree_depth>
+      <bbox>-50x50:-50x50:-50x50</bbox>
+      <!-- Nombre maximum de point par tuile (octree) -->
+      <max_ppt>5000</max_ppt>  
+
+      <pscale>0.03</pscale>
+      <nb_samples>1</nb_samples>
+
+      <algo_opt>seg_lagrange_weight</algo_opt>
+      <lambda>0.1</lambda>
+      <coef_mult>5</coef_mult>
+      <max_opt_it>30</max_opt_it>
+      <StorageLevel>DISK_ONLY</StorageLevel> 
+      <!-- Meta paramexters -->
+      <do_process>true</do_process>
+      <do_expand>false</do_expand>
+      <dump_debug>false</dump_debug>
+      
+    </austin>
+  </datasets>
+</env>
+
+
+

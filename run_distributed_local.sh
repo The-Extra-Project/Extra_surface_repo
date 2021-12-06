@@ -79,9 +79,14 @@ function run_3d_bench_raw
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d_ori_do.xml"
-    run_algo_docker
+
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}-files/"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d_files.xml"
+    #run_algo_docker
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}-stream/"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d_plystream.xml"
+    #run_algo_docker
+
 }
 
 function run_3d_bench_preprocess
@@ -90,7 +95,7 @@ function run_3d_bench_preprocess
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench/"
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
-    run_algo_docker
+    #run_algo_docker
 
     DEBUG_FLAG=""
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
@@ -186,8 +191,8 @@ function preprocess_toulouse
 
 ### 3D
 #run_3d_bench_small
-run_3d_bench_raw
-#run_3d_bench_preprocess
+#run_3d_bench_raw
+run_3d_bench_preprocess
 #run_3d_yanis
 #run_3d_yanis_2
 

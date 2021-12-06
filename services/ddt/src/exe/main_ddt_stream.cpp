@@ -1847,13 +1847,14 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
     {
       std::vector<Point> vp_in;    
       ddt::stream_data_header hpi;
-
+     
       int count;
       hpi.parse_header(std::cin);
       Id hid = hpi.get_id(0);
       //datas_map[hid].dmap[datas_map[hid].xyz_name] = ddt_data<Traits>::Data_ply(datas_map[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
       //      ddt_data<Traits> & w_datas = datas_map[hid];
       ddt_data<Traits>  w_datas;// = ddt_data<Traits>::Data_ply(datas_map[hid].xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+      std::cerr << "get_lab :" << hpi.get_lab() << std::endl;
       if(hpi.get_lab() == "p")
       	{
       	  w_datas.read_ply_stream(hpi.get_input_stream());
@@ -1865,6 +1866,9 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
       // 	{
       // 	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
       // 	  count = w_datas.nb_pts_shpt_vect();
+      // 	  std::cerr << "count mag  : " << count << std::endl;
+      // 	  w_datas.dmap[w_datas.xyz_name].extract_full_shpt_vect(vp_in,false);
+      // 	  w_datas.shpt2uint8();
       // 	}
 
       if(hpi.get_lab() == "z" )
@@ -2054,6 +2058,15 @@ int tile_ply_2(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 	  w_datas.dmap[w_datas.xyz_name].extract_full_shpt_vect(vp_in,false);
 	  w_datas.shpt2uint8();
       	}
+      if(hpi.get_lab() == "g")
+	{
+	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+	  count = w_datas.nb_pts_shpt_vect();
+	  std::cerr << "count mag  : " << count << std::endl;
+	  w_datas.dmap[w_datas.xyz_name].extract_full_shpt_vect(vp_in,false);
+	  w_datas.shpt2uint8();
+	}
+
       // if(hpi.get_lab() == "g")
       // 	{
       // 	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
@@ -2088,7 +2101,7 @@ int tile_ply_2(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 	  else
 	    p = w_datas.get_pts(count);
 
-
+	  //	  std::cerr << p << std::endl;
 	  bool is_out = false;
 	  for(int d = 0; d < D; d++)
 	    {
