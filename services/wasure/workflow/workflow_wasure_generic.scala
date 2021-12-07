@@ -243,7 +243,7 @@ val params_wasure =  set_params(params_new,List(
 ))
 
 
-if(true){
+if(false){
   params_ddt("dump_ply") = collection.mutable.Set("")
   params_wasure("dump_ply") = collection.mutable.Set("")
 }
