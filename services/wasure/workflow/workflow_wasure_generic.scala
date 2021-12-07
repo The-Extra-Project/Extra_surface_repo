@@ -274,6 +274,8 @@ println("")
 println("=======================================================")
 params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
 
+
+
 // General c++ commands
 val ply2geojson_cmd =  set_params(params_ddt, List(("step","ply2geojson"))).to_command_line
 val tri2geojson_cmd =  set_params(params_ddt, List(("step","tri2geojson"))).to_command_line

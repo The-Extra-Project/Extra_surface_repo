@@ -82,7 +82,7 @@ function run_3d_bench_raw
 
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}-files/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d_files.xml"
-    #run_algo_docker
+    run_algo_docker
     OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}-stream/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d_plystream.xml"
     #run_algo_docker
@@ -191,8 +191,8 @@ function preprocess_toulouse
 
 ### 3D
 #run_3d_bench_small
-#run_3d_bench_raw
-run_3d_bench_preprocess
+run_3d_bench_raw
+#run_3d_bench_preprocess
 #run_3d_yanis
 #run_3d_yanis_2
 

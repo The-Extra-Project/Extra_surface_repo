@@ -185,11 +185,11 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
       if(hpi.get_lab() == "p" )
         {
 	  ddt_data<Traits> w_datas;
-	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
-	  for(int i = 0; i < w_datas.nb_pts_shpt_vect() ; i++)
-            {
-	      vp.emplace_back(w_datas.get_pts(i));
-            }
+	  std::vector<Point> vp1;
+      	  w_datas.read_ply_stream(hpi.get_input_stream());
+	  w_datas.dmap[w_datas.xyz_name].extract_full_shpt_vect(vp1,false);
+	  w_datas.shpt2uint8();
+	  vp.insert(vp.end(), vp1.begin(), vp1.end());
         }
       hpi.finalize();
     }
@@ -387,7 +387,7 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
 	      }
 	    else if(ext == "ply" || hpi.is_stream())
 	      {
-		w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+		w_datas.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
 		for(int i = 0; i < w_datas.nb_pts_shpt_vect() ; i++)
 		  {
 		    vp.emplace_back(std::make_pair(w_datas.get_pts(i),tid));
@@ -774,7 +774,7 @@ int ply2dataset(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & lo
       ddt::stream_data_header hpi;
       hpi.parse_header(std::cin);
       ddt_data<Traits> w_datas;
-      w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+      w_datas.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
       hpi.finalize();
 
 
@@ -782,7 +782,7 @@ int ply2dataset(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & lo
       Id id = hpi.get_id(0);
       ddt::stream_data_header oth("h","s",tid);
       oth.write_header(std::cout);
-      w_datas.write_dataset_stream(std::cout,PLY_CHAR,id);
+      w_datas.write_dataset_stream(std::cout,oth.get_nl_char(),id);
       std::cout << std::endl;
     }
   return 0;
@@ -798,7 +798,7 @@ int ply2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & lo
       hpi.parse_header(std::cin);
       //std::cerr << "Start reading : " << hpi.get_file_name() << std::endl;
       ddt_data<Traits> w_datas;
-      w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+      w_datas.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
       hpi.finalize();
 
       std::cout.clear();
@@ -1805,7 +1805,7 @@ int generate_points_uniform(Id tid,algo_params & params,ddt::logging_stream & lo
   std::string filename(params.output_dir + "/tile_" + params.slabel +"_id_"+ std::to_string(tid) + "_" + std::to_string(tid));
 
   oqh.write_header(std::cout);
-  datas_out.write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
+  datas_out.write_ply_stream(oqh.get_output_stream(),oqh.get_nl_char());
   oqh.finalize();
   std::cout << std::endl;
   och.write_header(std::cout);
@@ -1864,7 +1864,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
       	}
       // if(hpi.get_lab() == "g")
       // 	{
-      // 	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+      // 	  w_datas.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
       // 	  count = w_datas.nb_pts_shpt_vect();
       // 	  std::cerr << "count mag  : " << count << std::endl;
       // 	  w_datas.dmap[w_datas.xyz_name].extract_full_shpt_vect(vp_in,false);
@@ -1988,7 +1988,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	//datas_out.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
 
 	if(false){
-	  datas_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
+	  datas_map[id].write_ply_stream(oqh.get_output_stream(),oqh.get_nl_char());
 	}else{
 	
 	  if(params.dump_ply)
@@ -2060,7 +2060,7 @@ int tile_ply_2(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
       	}
       if(hpi.get_lab() == "g")
 	{
-	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+	  w_datas.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
 	  count = w_datas.nb_pts_shpt_vect();
 	  std::cerr << "count mag  : " << count << std::endl;
 	  w_datas.dmap[w_datas.xyz_name].extract_full_shpt_vect(vp_in,false);
@@ -2069,7 +2069,7 @@ int tile_ply_2(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 
       // if(hpi.get_lab() == "g")
       // 	{
-      // 	  w_datas.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+      // 	  w_datas.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
       // 	  count = w_datas.nb_pts_shpt_vect();
       // 	}
 
@@ -2214,7 +2214,7 @@ int tile_ply_2(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 	//datas_out.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
 
 	if(false){
-	  datas_map[id].write_ply_stream(oqh.get_output_stream(),PLY_CHAR);
+	  datas_map[id].write_ply_stream(oqh.get_output_stream(),oqh.get_nl_char());
 	}else{
 	
 	  if(params.dump_ply)
@@ -2274,7 +2274,7 @@ int dump_ply_binary(Id tid,algo_params & params, int nb_dat,ddt::logging_stream 
 	      w_datas_in.dmap[w_datas_in.xyz_name] = ddt_data<Traits>::Data_ply(w_datas_in.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
 	      w_datas_in.dmap[w_datas_in.xyz_name].fill_full_uint8_vect(vp);
 	    }else{
-	    w_datas_in.read_ply_stream(hpi.get_input_stream(),PLY_CHAR);
+	    w_datas_in.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
 	  }
 	  hpi.finalize();
 

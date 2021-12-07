@@ -113,6 +113,12 @@ public :
     }
 
 
+  char get_nl_char(){
+    if(is_file())
+      return '\n';
+    return ';';
+  }
+
     std::string get_file_name()
     {
         //    assert(is_file());
