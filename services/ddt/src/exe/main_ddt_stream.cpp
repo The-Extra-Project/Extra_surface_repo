@@ -177,8 +177,15 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 	  
 	  ddt_data<Traits> w_datas;
 	  std::vector<Point> vp1;
-	  w_datas.read_serialized_stream(hpi.get_input_stream());
-	  w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(vp1,true);
+	  if(hpi.is_file()){
+	    std::cerr << "is file!" << std::endl;
+	    w_datas.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
+	    w_datas.dmap[w_datas.xyz_name].extract_full_shpt_vect(vp1,true);
+	  }else{
+	    w_datas.read_serialized_stream(hpi.get_input_stream());
+	    w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(vp1,true);
+	  }
+
 	  vp.insert(vp.end(), vp1.begin(), vp1.end());
 	  //	  ddt::read_point_set_serialized(vp, hpi.get_input_stream(),traits);
         }
@@ -199,8 +206,10 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   tri_raw.insert(vp.begin(),vp.end());
   ddt::Bbox<Traits::D> tri_bbox;
 
+  std::cerr << "staring VP MF" << std::endl;
   for(auto& vv : vp)
     {
+      std::cerr << vv << std::endl;
       tri_bbox += vv;
     }
 
@@ -370,7 +379,12 @@ int parse_datas(DDT & tri1, std::vector<Point_id> & vp,std::vector<Point_id_id> 
 	    std::vector<Point> rvp;
 	    //ddt::read_point_set_serialized(rvp, hpi.get_input_stream(),traits);
 	    ddt_data<Traits> w_datas;
-	    w_datas.read_serialized_stream(hpi.get_input_stream());
+
+	    if(hpi.is_file()){
+	      w_datas.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
+	    }else{
+	      w_datas.read_serialized_stream(hpi.get_input_stream());
+	    }
 	    w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(rvp,true);
 	    for(auto pp : rvp)
 	      {
@@ -1992,7 +2006,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	}else{
 	
 	  if(params.dump_ply)
-	    datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n');
+	    datas_map[id].write_ply_stream(oqh.get_output_stream(),oqh.get_nl_char());
 	  else
 	    datas_map[id].write_serialized_stream(oqh.get_output_stream());
 
@@ -2213,20 +2227,17 @@ int tile_ply_2(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 
 	//datas_out.write_ply_stream(oth.get_output_stream(),PLY_CHAR);
 
-	if(false){
-	  datas_map[id].write_ply_stream(oqh.get_output_stream(),oqh.get_nl_char());
-	}else{
-	
-	  if(params.dump_ply)
-	    datas_map[id].write_ply_stream(oqh.get_output_stream(),'\n');
-	  else
-	    datas_map[id].write_serialized_stream(oqh.get_output_stream());
 
-	  oqh.finalize();
-	  std::cout << std::endl;
-	  och.write_header(std::cout);
-	  och.get_output_stream() << nb_out;
-	}
+	
+	if(params.dump_ply)
+	  datas_map[id].write_ply_stream(oqh.get_output_stream(),oqh.get_nl_char());
+	else
+	  datas_map[id].write_serialized_stream(oqh.get_output_stream());
+
+	oqh.finalize();
+	std::cout << std::endl;
+	och.write_header(std::cout);
+	och.get_output_stream() << nb_out;
 	och.finalize();
 
 	std::cout << std::endl;
@@ -2325,8 +2336,8 @@ int main(int argc, char **argv)
       Id tile_id = ((Id)sah.tile_id);
 
       // To have a different seed for each tiles, if not, each tiles in random case has the same point cloud
-      srand(params.seed*tile_id);
-      //srand(time(NULL));
+      //srand(params.seed*tile_id);
+      srand(time(NULL));
       int nb_dat = sah.get_nb_dat();
       ddt::logging_stream log(params.algo_step, params.log_level);
       bool do_dump_log = false;

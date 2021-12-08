@@ -547,7 +547,7 @@ public :
     }
   }
   
-  void write_ply_stream( std::ostream & ss,char nl_char = '\n',bool is_binary = false,bool do_elem_newline = false,bool do_export_bbox = true)
+  void write_ply_stream( std::ostream & ss,char nl_char = '\n',bool is_binary = true,bool do_elem_newline = false,bool do_export_bbox = true)
   {
     try
       {

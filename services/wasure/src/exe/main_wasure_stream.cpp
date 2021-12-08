@@ -870,7 +870,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
 {
   std::cout.setstate(std::ios_base::failbit);
-  std::cerr << "into fun simp" << std::endl;
+
   wasure_algo w_algo;
   int D = Traits::D;
   Traits  traits;
@@ -897,20 +897,17 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
           //       vp.emplace_back(std::make_pair(pp,tid));
 	  //     }
 	  w_datas_map[hid].push_back(wasure_data<Traits>());
-	  if(hpi.is_serialized()){
-	    std::cerr << "start read ply" << std::endl;
-	    w_datas_map[hid].back().read_serialized_stream(hpi.get_input_stream());
-	    //	      w_datas.read_serialized_stream(hpi.get_input_stream());
-	    //w_datas.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
-	    std::cerr << "end read ply" << std::endl;
-	  }else{
-	    w_datas_map[hid].back().read_ply_stream(hpi.get_input_stream());
+
+	  if(hpi.is_file()){
+	    w_datas_map[hid].back().read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
 	    w_datas_map[hid].back().shpt2uint8();
+	  }else{
+	    w_datas_map[hid].back().read_serialized_stream(hpi.get_input_stream());
 	  }
-	    
-
+	  //	      w_datas.read_serialized_stream(hpi.get_input_stream());
+	  //w_datas.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
+	  std::cerr << "end read ply" << std::endl;
 	  std::cerr << "start read ply" << std::endl;
-
 	  //w_datas.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
 	  std::cerr << "end read ply" << std::endl;
 	}
@@ -1100,7 +1097,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
 
 	    log.step("write");
 	    ddt::stream_data_header oth("z","s",tid);
-	    if(params.dump_ply)
+	    if(params.dump_ply && false)
 	      oth.write_into_file(ply_name,".ply");
 	    oth.write_header(std::cout);
 
@@ -1130,7 +1127,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
     if(params.dump_ply)
       oth.write_into_file(ply_name,".ply");
     oth.write_header(std::cout);
-
+    std::cerr << "DUMPING_DIM : " << ply_name << std::endl;
     if(params.dump_ply)
       w_datas_full.write_ply_stream(oth.get_output_stream(),oth.get_nl_char(),true);
     else
@@ -1141,6 +1138,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
 
   }
   bool do_debug = false;
+  std::cerr << "PSIMP_SIZE_TID:" << std::to_string(tid) << " "  << p_simp_full.size() << std::endl;
   if(p_simp_full.size() > 0)
     {
       ddt::stream_data_header oxh("x","z",tid);
@@ -1149,8 +1147,9 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
       datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(p_simp_full);
 
       std::string ply_name(params.output_dir +  "/simp_id_" + std::to_string(tid) + "_simp");
+      std::cerr << "DUMPING_SIMP : " << ply_name << std::endl;
       if(!do_debug){
-	if(params.dump_ply )
+	if(params.dump_ply)
 	  oxh.write_into_file(ply_name,".ply");
 	oxh.write_header(std::cout);
 	if(params.dump_ply)
@@ -1160,6 +1159,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
       }else{
 	datas_out.write_ply_stream(oxh.get_output_stream(),oxh.get_nl_char());
       }
+      std::cerr << "DUMPED : " << ply_name << std::endl;
       oxh.finalize();
       std::cout << std::endl;
     }
@@ -1225,7 +1225,14 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
 
             w_datas_pts[hid].push_back(wasure_data<Traits>());
             //w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
-	    w_datas_pts[hid].back().read_serialized_stream(hpi.get_input_stream());
+
+	    if(hpi.is_file()){
+	      w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
+	      w_datas_pts[hid].back().shpt2uint8();
+	    }else{
+	      w_datas_pts[hid].back().read_serialized_stream(hpi.get_input_stream());
+	    }
+
 
         }
         hpi.finalize();
@@ -1335,8 +1342,8 @@ int dst_new(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
     //  log.step("Write header");
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
-    if(params.dump_ply)
-        oth.write_into_file(filename,".ply");
+    // if(params.dump_ply)
+    //     oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     std::cerr << "stream dumped" << std::endl;
@@ -1398,7 +1405,14 @@ int dst_conflict(const Id tid,wasure_params & params,int nb_dat,ddt::logging_str
             // 	w_datas_pts[hid] = new std::list<wasure_data<Traits>>();
             w_datas_pts[hid].push_back(wasure_data<Traits>());
             //w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
+	  if(hpi.is_file()){
+	    w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
+	    w_datas_pts[hid].back().shpt2uint8();
+	  }else{
 	    w_datas_pts[hid].back().read_serialized_stream(hpi.get_input_stream());
+	  }
+	    
+
 
         }
         hpi.finalize();
@@ -1523,8 +1537,8 @@ int dst_conflict(const Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     //  log.step("Write header");
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
-    if(params.dump_ply)
-        oth.write_into_file(filename,".ply");
+    // if(params.dump_ply)
+    //     oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
@@ -1585,7 +1599,15 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
             // if(w_datas_pts.find(hid) == w_datas_pts.end())
             // 	w_datas_pts[hid] = new std::list<wasure_data<Traits>>();
             w_datas_pts[hid].push_back(wasure_data<Traits>());
+
+
+	  if(hpi.is_file()){
+	    w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
+	    w_datas_pts[hid].back().shpt2uint8();
+	  }else{
 	    w_datas_pts[hid].back().read_serialized_stream(hpi.get_input_stream());
+	  }
+	    
             //w_datas_pts[hid].back().read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
 
         }
@@ -1671,8 +1693,8 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
     //  log.step("Write header");
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
-    if(params.dump_ply)
-        oth.write_into_file(filename,".ply");
+    // if(params.dump_ply)
+    //     oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
@@ -1768,8 +1790,8 @@ int regularize_slave_focal(Id tid,wasure_params & params,int nb_dat,ddt::logging
     //  log.step("Write header");
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
-    if(params.dump_ply)
-        oth.write_into_file(filename,".ply");
+    // if(params.dump_ply)
+    //     oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     std::cerr << "stream dumped" << std::endl;
@@ -1785,8 +1807,8 @@ int regularize_slave_focal(Id tid,wasure_params & params,int nb_dat,ddt::logging
       ddt::stream_data_header hto("e","z",std::vector<int> {tid,tid2});
       std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid) + "_nid" + std::to_string(tid2));
       //hto.write_into_file(filename,".pts");
-      if(params.dump_ply)
-    	hto.write_into_file(filename,".ply");
+      // if(params.dump_ply)
+      // 	hto.write_into_file(filename,".ply");
       hto.write_header(std::cout);
       write_id_double_serialized(ee.second,hto.get_output_stream());
       hto.finalize();
@@ -1881,8 +1903,8 @@ int regularize_slave_extract(Id tid_1,wasure_params & params,int nb_dat,ddt::log
     //  log.step("Write header");
     ddt::stream_data_header oth("t","z",tid_1);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1));
-    if(params.dump_ply)
-        oth.write_into_file(filename,".ply");
+    // if(params.dump_ply)
+    //     oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid_1], oth.get_output_stream(),tid_1,false,log);
     std::cerr << "stream dumped" << std::endl;
@@ -1895,8 +1917,8 @@ int regularize_slave_extract(Id tid_1,wasure_params & params,int nb_dat,ddt::log
       ddt::stream_data_header hto("f","z",std::vector<int> {tid_1,tid_2});
       std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1) + "_nid" + std::to_string(tid_2));
       //hto.write_into_file(filename,".pts");
-      if(params.dump_ply)
-    	hto.write_into_file(filename,".ply");
+      // if(params.dump_ply)
+      // 	hto.write_into_file(filename,".ply");
       hto.write_header(std::cout);
       write_id_dst_serialized(ee.second,hto.get_output_stream(),tid_1 ==3);
       hto.finalize();
@@ -2103,8 +2125,8 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
     //  log.step("Write header");
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
-    if(params.dump_ply)
-        oth.write_into_file(filename,".ply");
+    // if(params.dump_ply)
+    //     oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     std::cerr << "stream dumped" << std::endl;
@@ -2120,8 +2142,8 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
       ddt::stream_data_header hto("e","z",std::vector<int> {tid,tid2});
       std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid) + "_nid" + std::to_string(tid2));
       //hto.write_into_file(filename,".pts");
-      if(params.dump_ply)
-    	hto.write_into_file(filename,".ply");
+      // if(params.dump_ply)
+      // 	hto.write_into_file(filename,".ply");
       hto.write_header(std::cout);
       write_id_double_serialized(ee.second,hto.get_output_stream());
       hto.finalize();
@@ -3276,8 +3298,8 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
     //  log.step("Write header");
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
-    if(params.dump_ply)
-        oth.write_into_file(filename,".ply");
+    // if(params.dump_ply)
+    //     oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
@@ -3943,8 +3965,8 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
   //  log.step("Write header");
   ddt::stream_data_header oth("t","z",tid_1);
   std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1));
-  if(params.dump_ply)
-    oth.write_into_file(filename,".ply");
+  // if(params.dump_ply)
+  //   oth.write_into_file(filename,".ply");
   oth.write_header(std::cout);
   ddt::write_ddt_stream(tri, w_datas_tri[tid_1], oth.get_output_stream(),tid_1,false,log);
   oth.finalize();
@@ -4013,8 +4035,8 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
       if(tid2 > tid_1){
 	ddt::stream_data_header oth("u","z",std::vector<int>{tid_1,tid2});
 	std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1));
-	if(params.dump_ply)
-	  oth.write_into_file(filename,".ply");
+	// if(params.dump_ply)
+	//   oth.write_into_file(filename,".ply");
 	oth.write_header(std::cout);
 	//ddt::write_ddt_stream(tri1_fz, w_datas_tri_fz[tid_1], oth.get_output_stream(),tid_1,false,log);
 	ddt::write_ddt_stream(tri, w_datas_tri[tid_1], oth.get_output_stream(),tid_1,false,log);
@@ -4031,8 +4053,8 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
     ddt::stream_data_header hto("e","z",std::vector<int> {tid_1,tid2});
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1) + "_nid" + std::to_string(tid2));
     //hto.write_into_file(filename,".pts");
-    if(params.dump_ply)
-      hto.write_into_file(filename,".ply");
+    // if(params.dump_ply)
+    //   hto.write_into_file(filename,".ply");
     hto.write_header(std::cout);
     write_id_double_serialized(ee.second,hto.get_output_stream());
     hto.finalize();
@@ -4045,8 +4067,8 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
     ddt::stream_data_header hto("f","z",std::vector<int> {tid_1,tid2});
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1) + "_nid" + std::to_string(tid2));
     //hto.write_into_file(filename,".pts");
-    if(params.dump_ply)
-      hto.write_into_file(filename,".ply");
+    // if(params.dump_ply)
+    //   hto.write_into_file(filename,".ply");
     hto.write_header(std::cout);
     write_id_double_serialized(ee.second,hto.get_output_stream());
     hto.finalize();
@@ -4135,8 +4157,8 @@ int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
     //  log.step("Write header");
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
-    if(params.dump_ply)
-        oth.write_into_file(filename,".ply");
+    // if(params.dump_ply)
+    //     oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
 
 
@@ -4615,18 +4637,19 @@ int main(int argc, char **argv)
             nb_dat = sah.get_nb_dat();
 
         }
-        srand(params.seed*tile_id);
+	//        srand(params.seed*tile_id);
+	srand(time(NULL));
         ddt::logging_stream log(std::to_string(tile_id) + "_" + params.algo_step, params.log_level);
 
-	// if(acc == 0){
-        // std::cerr << " ======================================================= " << std::endl;
-        // std::cerr << "     [MAIN_DDT_STREAM_LOG] stream  : " << params.slabel << std::endl;
-        // std::cerr << "     [MAIN_DDT_STREAM_LOG] tile_id : " << tile_id <<  std::endl;
-        // std::cerr << "     [MAIN_DDT_STREAM_LOG] step    : " << params.algo_step << std::endl;
-        // std::cerr << "     [MAIN_DDT_STREAM_LOG] acc     : " << acc++ << std::endl;
-	// std::cerr << "     [MAIN_DDT_STREAM_LOG] nb dat  : " << nb_dat << std::endl;
-        // std::cerr << " ======================================================= " << std::endl;
-	// }
+	if(acc == 0){
+	  std::cerr << " ======================================================= " << std::endl;
+	  std::cerr << "     [MAIN_DDT_STREAM_LOG] stream  : " << params.slabel << std::endl;
+	  std::cerr << "     [MAIN_DDT_STREAM_LOG] tile_id : " << tile_id <<  std::endl;
+	  std::cerr << "     [MAIN_DDT_STREAM_LOG] step    : " << params.algo_step << std::endl;
+	  std::cerr << "     [MAIN_DDT_STREAM_LOG] acc     : " << acc++ << std::endl;
+	  std::cerr << "     [MAIN_DDT_STREAM_LOG] nb dat  : " << nb_dat << std::endl;
+	  std::cerr << " ======================================================= " << std::endl;
+	}
         try
         {
             if(params.algo_step == std::string("hello"))

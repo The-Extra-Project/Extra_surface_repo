@@ -125,7 +125,7 @@ public :
         return filename;
     }
 
-    void write_into_file(std::string root_dir,std::string ext, bool rand_ext = false);
+    void write_into_file(std::string root_dir,std::string ext, bool rand_ext = true);
     void set_file_name(std::string fname);
 
 
@@ -351,13 +351,7 @@ void stream_data_header::write_into_file(std::string root_name,std::string ext, 
         curname = root_name  + "_" + random_string(10)  + ext;
     else
         curname = root_name   + ext;
-    //std::string curname = root_name  + ext;
     set_file_name(curname);
-    std::string hdfs_string("hdfs:");
-    if(filename.compare(0, hdfs_string.length(), hdfs_string) == 0)
-    {
-        type = "h";
-    }
 }
 
 
@@ -381,8 +375,8 @@ void stream_data_header::finalize()
             fos->flush();
             fos->close();
             delete fos;
-            int res = system(std::string("chmod 777 " + filename).c_str());
-            if (res!=0) std::cerr << "chmod 777 " << filename << " failed" << std::endl;
+            // int res = system(std::string("chmod 777 " + filename).c_str());
+            // if (res!=0) std::cerr << "chmod 777 " << filename << " failed" << std::endl;
         }
     }
     // else if(is_hdfs())
@@ -464,8 +458,8 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
     if(is_file())
     {
         ist >> filename;
-        int res = system(std::string("touch " + filename).c_str());
-        if (res!=0) std::cerr << "touch " << filename << " failed" << std::endl;
+        // int res = system(std::string("touch " + filename).c_str());
+        // if (res!=0) std::cerr << "touch " << filename << " failed" << std::endl;
         fis = new std::ifstream();
         int acc_op = 0;
         bool is_open = false;
