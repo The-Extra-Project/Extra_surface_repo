@@ -209,7 +209,6 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   std::cerr << "staring VP MF" << std::endl;
   for(auto& vv : vp)
     {
-      std::cerr << vv << std::endl;
       tri_bbox += vv;
     }
 

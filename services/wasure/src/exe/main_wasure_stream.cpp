@@ -906,10 +906,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
 	  }
 	  //	      w_datas.read_serialized_stream(hpi.get_input_stream());
 	  //w_datas.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
-	  std::cerr << "end read ply" << std::endl;
-	  std::cerr << "start read ply" << std::endl;
-	  //w_datas.read_ply_stream(hpi.get_input_stream(),hpi.get_nl_char());
-	  std::cerr << "end read ply" << std::endl;
+
 	}
 
       std::cerr << "reading end" << std::endl;
@@ -1117,7 +1114,6 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
     //w_datas_full.dmap[w_datas_full.sig_name].fill_full_uint8_vect(w_datas_full.format_sigs);
     w_datas_full.fill_sigs(w_datas_full.format_sigs);
     w_datas_full.dmap[w_datas_full.xyz_name].fill_full_uint8_vect(w_datas_full.format_points);
-    std::cerr << "dim done tile : "<< tid << std::endl;
     std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_" + std::to_string(tid) +  "_dim");
     std::cout.clear();
 
@@ -1127,7 +1123,6 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
     if(params.dump_ply)
       oth.write_into_file(ply_name,".ply");
     oth.write_header(std::cout);
-    std::cerr << "DUMPING_DIM : " << ply_name << std::endl;
     if(params.dump_ply)
       w_datas_full.write_ply_stream(oth.get_output_stream(),oth.get_nl_char(),true);
     else
@@ -1147,7 +1142,6 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
       datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(p_simp_full);
 
       std::string ply_name(params.output_dir +  "/simp_id_" + std::to_string(tid) + "_simp");
-      std::cerr << "DUMPING_SIMP : " << ply_name << std::endl;
       if(!do_debug){
 	if(params.dump_ply)
 	  oxh.write_into_file(ply_name,".ply");
@@ -1159,7 +1153,6 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
       }else{
 	datas_out.write_ply_stream(oxh.get_output_stream(),oxh.get_nl_char());
       }
-      std::cerr << "DUMPED : " << ply_name << std::endl;
       oxh.finalize();
       std::cout << std::endl;
     }
@@ -1552,12 +1545,10 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
 {
 
     std::cout.setstate(std::ios_base::failbit);
-    std::cerr << "dst_step0" << std::endl;
 
     DTW tri;
     Scheduler sch(1);
     int D = Traits::D;
-    std::cerr << "dst_step1" << std::endl;
     wasure_algo w_algo;
 
     D_LMAP w_datas_pts;
@@ -1567,7 +1558,6 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
 
 
 
-    std::cerr << "dst_step2" << std::endl;
 
     log.step("read");
     for(int i = 0; i < nb_dat; i++)
@@ -1615,7 +1605,7 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
     }
     log.step("preprocess");
 
-    std::cerr << "dst_step3" << std::endl;
+
 
     for ( auto it = w_datas_pts.begin(); it != w_datas_pts.end(); it++ )
     {
@@ -1637,7 +1627,6 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
 
     }
 
-    std::cerr << "dst_step3" << std::endl;
     std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
     if(format_dst.size() == 0)
     {
@@ -1688,7 +1677,6 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
     log.step("finalize");
     w_datas_tri[tid].fill_dst(w_datas_tri[tid].format_dst);
     log.step("write");
-    std::cerr << "dst_step6" << std::endl;
     std::cout.clear();
     //  log.step("Write header");
     ddt::stream_data_header oth("t","z",tid);
@@ -1785,7 +1773,6 @@ int regularize_slave_focal(Id tid,wasure_params & params,int nb_dat,ddt::logging
 
 
 
-    std::cerr << "regularize" << std::endl;
     std::cout.clear();
     //  log.step("Write header");
     ddt::stream_data_header oth("t","z",tid);
@@ -1794,7 +1781,6 @@ int regularize_slave_focal(Id tid,wasure_params & params,int nb_dat,ddt::logging
     //     oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
-    std::cerr << "stream dumped" << std::endl;
     oth.finalize();
     std::cout << std::endl;
 
@@ -1898,7 +1884,6 @@ int regularize_slave_extract(Id tid_1,wasure_params & params,int nb_dat,ddt::log
 
 
 
-    std::cerr << "regularize" << std::endl;
     std::cout.clear();
     //  log.step("Write header");
     ddt::stream_data_header oth("t","z",tid_1);
@@ -1907,7 +1892,6 @@ int regularize_slave_extract(Id tid_1,wasure_params & params,int nb_dat,ddt::log
     //     oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid_1], oth.get_output_stream(),tid_1,false,log);
-    std::cerr << "stream dumped" << std::endl;
     oth.finalize();
     std::cout << std::endl;
 
@@ -1984,7 +1968,6 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
     //    std::vector<std::vector<double>>  & format_labs = w_datas_tri[tid].format_labs; ;
     // Loop over each shared cell to extracts id relation
     // lid_l , lid_l <-> lid_k
-    std::cerr << "RECIEVE BARY" << std::endl; 
     for(auto ee : edges_dst_map){
       Id tid_l = ee.first;
       for(auto ee_map : ee.second){
@@ -2027,7 +2010,7 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
 	  is_cell_equal = is_cell_equal && is_pts_equal;
 	}
 
-	if(!is_cell_equal){
+	if(!is_cell_equal && false){
 	  std::cerr << "DEBUG_EQUAL_FALSE" << std::endl;
 	  for(int d1 = 0; d1 < D; d1++){
 	    auto pd1 = main_cell->vertex(d1)->point();
@@ -2120,7 +2103,6 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
     w_datas_tri[tid].fill_dst(w_datas_tri[tid].format_dst);
 
 
-    std::cerr << "regularize" << std::endl;
     std::cout.clear();
     //  log.step("Write header");
     ddt::stream_data_header oth("t","z",tid);
@@ -2129,7 +2111,6 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
     //     oth.write_into_file(filename,".ply");
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
-    std::cerr << "stream dumped" << std::endl;
     oth.finalize();
     std::cout << std::endl;
 

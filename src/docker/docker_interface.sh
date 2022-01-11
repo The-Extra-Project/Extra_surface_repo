@@ -87,7 +87,7 @@ function build # Build docker container
 	*)
 	    echo "ERROR NO IMAGE"
 	    ;;
-    esac
+      esac
 
 }
 

@@ -65,7 +65,7 @@ RUN cd /usr/local/bin/ && \
     make 
 
 
-RUN apt-get update && apt-get install -y python3-pip python3-gdal && pip3 install matplotlib 
+RUN apt-get update && apt-get install -y python3-pip python3-gdal && pip3 install matplotlib plyfile
 
 ## For the benchmark
 RUN apt-get update && yes "8" | apt-get -y install libpng-dev liblapack-dev libblas-dev ffmpeg openexr libtiff-dev libopenexr-dev libsuitesparse-dev libgl1-mesa-dev libglu1-mesa-dev --assume-yes ##  gnuplot --assume-yes

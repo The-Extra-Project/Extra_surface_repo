@@ -199,7 +199,7 @@ val cpp_exec_path = current_plateform.toLowerCase match {
   case _  => build_dir + "/bin/"
 }
 
-
+val python_exec_path = "python3 /home/laurent/code/spark-ddt/services/wasure/python/"
 
 // Set the iq library on
 val iq = new IQlibSched(slvl_glob,slvl_loop,env_map)
@@ -224,6 +224,11 @@ val params_ddt =  set_params(params_new,List(
   ("min_ppt",params_scala("min_ppt").head),
   ("dump_mode",params_scala("dump_mode").head),
   ("seed",algo_seed)
+))
+
+
+val params_python =  set_params(params_new,List(
+  ("exec_path", python_exec_path + "python_stream.py")
 ))
 
 
@@ -275,6 +280,8 @@ println("=======================================================")
 params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
 
 
+// python
+val python_cmd = params_python.to_command_line
 
 // General c++ commands
 val ply2geojson_cmd =  set_params(params_ddt, List(("step","ply2geojson"))).to_command_line
@@ -334,6 +341,11 @@ val res_dim = iq.run_pipe_fun_KValue(
   kvrdd_points, "dim", do_dump = false).persist(slvl_glob)
 val kvrdd_dim = iq.get_kvrdd(res_dim,"z");
 val kvrdd_simp = iq.get_kvrdd(res_dim,"x").reduceByKey((u,v) => u ::: v,rep_loop);
+
+// Test python
+val res_dim_python = iq.run_pipe_fun_KValue(
+  python_cmd,
+  kvrdd_points, "dim", do_dump = false).persist(slvl_glob)
 
 var input_ddt = kvrdd_points;
 // If we have a simplified point cloud, do the delaunay triangulation of the simplfied point cloud
