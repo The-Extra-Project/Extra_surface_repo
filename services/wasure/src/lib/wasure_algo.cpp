@@ -480,10 +480,13 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
   double eps = 0;
   int K_T = 150;
   int step = 10;
-  if(K_T > points.size() -1)
+  if(K_T > points.size() -1){
     K_T = points.size() -1;
+  }
+  if(K_T/step < 1)
+    step = K_T;
 
-  int K_T_min = 3;
+  int K_T_min = 4;
   // if(K_T_min > points.size() -1)
   //   K_T_min = points.size() - 1;
   
@@ -539,8 +542,9 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
       queryPt[d] = p1[d];
 
     kdTree->annkSearch(queryPt,K_T, nnIdx,dists,eps);
-    
-    for(int k = K_T_min; k < K_T; k+=K_T/step){
+
+    //    for(int k = K_T_min; k < K_T; k+=K_T/step){
+    for(int k = K_T_min; k < K_T; k++){
       if(dists[k] < 0.02 && k < 30)
 	continue;
       std::vector<Point> cur_pts_norms;
@@ -1313,7 +1317,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
   	double coef_conf = -1;
 	double gbl_scale = -1; 
 	//	std::cerr << "glob scale:" << gbl_scale << std::endl;
-	if(params.mode == std::string("surface")){
+	if(true){
 	  get_params_surface_dst(pts_scales,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
 	  std::vector<double> pts_coefs = compute_base_coef(Pt3d,PtSample,pts_norms,D);
 
@@ -1323,7 +1327,8 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 	    }
 	  }
 	  compute_dst_mass_norm(pts_coefs,pts_scales,coef_conf,pdf_smooth,pdf_smooth,pe2, po2,pu2);
-	}else if(params.mode == std::string("conflict")){
+	}else if(false){
+	  // conflict stuff
 	  // get_params_surface_dst(pts_scales,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
 	  // std::vector<double> pts_coefs = compute_base_coef(Pt3d,PtSample,pts_norms,D);
 	  // compute_dst_mass_norm(pts_coefs,pts_scales,coef_conf, pdf_smooth,pe2, po2,pu2);

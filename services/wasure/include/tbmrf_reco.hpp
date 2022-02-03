@@ -18,7 +18,7 @@ public :
     typedef typename Traits::Vertex_handle                    Vertex_handle;
 
 
-    tbmrf_reco(int nblabs, DTW * t,D_MAP * dm) : mode(1),pLabsIn(nblabs),pLabsOut(nblabs),pLabsUnk(nblabs),tbmrf<DTW,D_MAP>(nblabs,t,dm)
+  tbmrf_reco(int nblabs, DTW * t,D_MAP * dm) : mode(-1),pLabsIn(nblabs),pLabsOut(nblabs),pLabsUnk(nblabs),tbmrf<DTW,D_MAP>(nblabs,t,dm)
     {
 
         for(int i = 0; i < nblabs; i++)
@@ -48,69 +48,83 @@ public :
 
   }
   
-    double get_score_linear(Cell_const_iterator fch,int label,D_MAP & data_map)
-    {
+  double get_score_linear(Cell_const_iterator fch,int label,D_MAP & data_map)
+  {
 
-        double volume = 1;
-	if(!fch->is_infinite()){
-	  volume =  get_volume_reco(fch);
-	  //volume = tbmrf<DTW,D_MAP>::get_volume(fch);
+    double volume = 1;
+    if(!fch->is_infinite()){
+      volume =  get_volume_reco(fch);
+      //volume = tbmrf<DTW,D_MAP>::get_volume(fch);
 	  
-	}
-	int D = Traits::D;
-
-        if(fch->is_infinite() && false)
-        {
-	  //std::cout << "retrun inf!!" << std::endl;
-	  return 0;
-	  int id_cov;
-	  for(int d = 0; d < D+1;d++){
-	    if(fch->vertex(d)->is_infinite())
-	      id_cov = d;
-	  }
-
-	  auto chn = fch->neighbor(id_cov);
-	  int mir = fch->mirror_index(id_cov);
+    }
+    int D = Traits::D;
+    try
+      {
+        if(fch->is_infinite())
+	  {
+	    if(mode != 1)
+	       return 0;
+	    for(int d = 0; d < D+1;d++){
+	      if(fch->neighbor(d)->is_mixed())
+		std::cerr << "mixed detected" << std::endl;
+	        return 0;
+	    }
 	  
-	  const Point& a = chn->vertex((mir+1)&3)->point();
-	  const Point& b = chn->vertex((mir+2)&3)->point();
-	  const Point& c = chn->vertex((mir+3)&3)->point();
-	  const Point& d = chn->vertex(mir)->point();
+	    //std::cerr << "NOT MIXED, INF STUFF 222222" << std::endl;
+	    int id_cov;
+	    // for(int d = 0; d < D+1;d++){
+	    //   if(fch->vertex(d)->is_infinite())
+	    // 	id_cov = d;
+	    // }
+
+	    auto chn = fch->neighbor(id_cov);
+	    int mir = fch->mirror_index(id_cov);
+	  
+	    const Point& a = chn->vertex((mir+1)&3)->point();
+	    const Point& b = chn->vertex((mir+2)&3)->point();
+	    const Point& c = chn->vertex((mir+3)&3)->point();
+	    const Point& d = chn->vertex(mir)->point();
 
 	  
-	  CGAL::Vector_3<typename Traits::K> v1 = a - c;
-	  CGAL::Vector_3<typename Traits::K> v2 = b - c;
+	    CGAL::Vector_3<typename Traits::K> v1 = a - c;
+	    CGAL::Vector_3<typename Traits::K> v2 = b - c;
 
-	  auto vn = CGAL::cross_product(v1,v2);
-	  double coef_proj = compute_coef_proj(c,d,vn,D);
-	  auto bary = chn->barycenter() ;
+	    auto vn = CGAL::cross_product(v1,v2);
+	    double coef_proj = compute_coef_proj(c,d,vn,D);
+	    auto bary = chn->barycenter();
 
-	  //	  std::cerr << coef_proj << " " << std::endl;
+	    //	  std::cerr << coef_proj << " " << std::endl;
 
-	  // for(int d = 0; d < D;d++)
-	  //   std::cerr << bary[d] << " ";
-	  // std::cerr << std::endl << std::endl;
+	    // for(int d = 0; d < D;d++)
+	    //   std::cerr << bary[d] << " ";
+	    // std::cerr << std::endl << std::endl;
 				       
 
-	  if((coef_proj > 0 && vn[D-1] < 0) ||
-	     (coef_proj < 0 && vn[D-1] > 0) ){
-	    //	    std::cerr << c << " " << vn  << " " << std::endl;
-	    if(pLabsOut[label] > 0.5)
-	      return 100000;
-	    else
-	      return 0;
-	  }else{
-	    //	    std::cout << c << " " << vn  << " " << std::endl;
-	    if(pLabsOut[label] > 0.5)
-	      return 0;
-	    else
-	      return 100000;
-	  }
+	    if((coef_proj > 0 && vn[D-1] < 0) ||
+	       (coef_proj < 0 && vn[D-1] > 0) ){
+	      //	    std::cerr << c << " " << vn  << " " << std::endl;
+	      if(pLabsOut[label] > 0.5)
+		return 100000;
+	      else
+		return 0;
+	    }else{
+	      //	    std::cout << c << " " << vn  << " " << std::endl;
+	      if(pLabsOut[label] > 0.5)
+		return 0;
+	      else
+		return 100000;
+	    }
 	
-        }
+	  }
+      }
+    catch (ddt::DDT_exeption& e)
+      {
+	std::cerr << "!! WARNING !!!" << std::endl;
+	std::cerr << "Exception catched : " << e.what() << std::endl;
+	return 0;
+      }
 
-
-	// if(fch->is_infinite() && true){	     	  
+// if(fch->is_infinite() && true){	     	  
 	//   if((mode == 1 && pLabsOut[label] > 0.5) ||
 	//      (mode == 0 && pLabsOut[label] < 0.5)
 	//      )

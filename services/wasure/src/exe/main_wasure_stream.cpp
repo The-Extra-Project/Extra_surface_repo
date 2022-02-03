@@ -957,7 +957,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
 	      w_datas.format_centers.push_back(traits.make_point(coords));
 	    }
 	}
-
+      std::cerr << "init ok" << std::endl;
       if(do_splitted){
 	w_algo.compute_dim(w_datas.format_points,
 			   w_datas.format_egv,
@@ -985,19 +985,18 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
 	  w_datas_full.insert(w_datas);
 	}
       }
-
-
     }
-
+  std::cerr << "start extract..." << std::endl;    
   if(!do_splitted){
     w_datas_full.dmap[w_datas_full.xyz_name].extract_full_uint8_vect(w_datas_full.format_points,false);
 
     w_datas_full.dmap[w_datas_full.center_name].extract_full_uint8_vect(w_datas_full.format_centers,false);
-    
+    std::cerr << "extract OK" << std::endl;
+    std::cerr << "start dim..." << std::endl;        
     w_algo.compute_dim(w_datas_full.format_points,
 		       w_datas_full.format_egv,
 		       w_datas_full.format_sigs,log);
-    
+    std::cerr << "dim OK " << std::endl;        
     if(w_datas_full.format_centers.size() == 0)
       {
 	double coords[Traits::D];
@@ -1014,22 +1013,25 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
 	  }
       }
 
-	
+    std::cerr << "start flip... " << std::endl;        	
     w_algo.flip_dim_ori(w_datas_full.format_points,
 			w_datas_full.format_egv,
 			w_datas_full.format_centers);
+    std::cerr << "flip OK " << std::endl;        	
   }
 
   log.step("compute_tessel");
   std::cerr << "start tessel" << std::endl;
   if(true){
     if(params.pscale < 1){
+      std::cerr << "start tessel... " << std::endl;        	
       w_algo.tessel_adapt(w_datas_full.format_points,
 			  p_simp_full,
 			  w_datas_full.format_egv,
 			  w_datas_full.format_sigs,
-			  20,params.pscale,D,tid
+			  10,params.pscale,D,tid
 			  );
+      std::cerr << "Tessel OK " << std::endl;        	
     }else{
       p_simp_full.insert(p_simp_full.end(),w_datas_full.format_points.begin(),w_datas_full.format_points.end());
     }
@@ -2175,11 +2177,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
 
 
     log.step("compute");
-    int mode = -1;
-
-    //mode = 1;
-    // if(params.mode.find(std::string("out")) != std::string::npos)
-    mode = 0;
+    int mode = params.mode;
 
 
        
@@ -2392,11 +2390,7 @@ int extract_surface_new(Id tid,wasure_params & params,int nb_dat,ddt::logging_st
 
 
     log.step("compute");
-    int mode = -1;
-
-    //mode = 1;
-    // if(params.mode.find(std::string("out")) != std::string::npos)
-    mode = 0;
+    int mode = params.mode;
 
 
        
@@ -2415,9 +2409,12 @@ int extract_surface_new(Id tid,wasure_params & params,int nb_dat,ddt::logging_st
 
 
 	    bool is_on_convex = false;
-	    if(tmp_fch->is_infinite() ||  tmp_fchn->is_infinite() )
+	    if(tmp_fch->is_infinite() ||  tmp_fchn->is_infinite() ){
 	      is_on_convex = true;
-
+	      if(mode == 1)
+		continue;
+	    }
+	    
 
             Cell_const_iterator fch = tmp_fch;//->main();
             int id_cov = fit.index_of_covertex();
@@ -2606,10 +2603,8 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
   // Cell_const_iterator fch;
 
   log.step("compute");
-  int mode = -1;
-  //mode = 1;
-  // if(params.mode.find(std::string("out")) != std::string::npos)
-  mode = 0;
+  int mode = params.mode;
+
 
 
   for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
@@ -3126,7 +3121,7 @@ int extract_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
 
     tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri,&w_datas_tri);
     mrf.lambda = params.lambda;
-    mrf.set_mode(-1);
+    mrf.set_mode(params.mode);
 
 
     
@@ -3441,7 +3436,7 @@ int fill_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & lo
 //     log.step("compute");
 
 //     mrf.lambda = params.lambda;
-//     mrf.set_mode(-1);
+//     mrf.set_mode(params.mode);
 
 //     mrf.opt_gc_lagrange(1,tri,w_datas_tri,edges_map,tid1);
 
@@ -3567,7 +3562,8 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
   std::cerr << "seg_step5_lagrange" << std::endl;
   tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri,&w_datas_tri);
   mrf.lambda = params.lambda;
-  mrf.set_mode(-1);
+  
+  mrf.set_mode(params.mode);
 
 
   int acc_tot = 0;
@@ -3953,8 +3949,8 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
   oth.finalize();
   std::cout << std::endl;
 
-
-  if(params.do_finalize){
+  bool do_dump_u = false;
+  if(params.do_finalize && do_dump_u){
     D_MAP w_datas_tri_fz;
 
     if(false){
@@ -4127,7 +4123,7 @@ int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
     std::cerr << "seg_step5" << std::endl;
     tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri,&w_datas_tri);
     mrf.lambda = params.lambda;
-    mrf.set_mode(-1);
+    mrf.set_mode(params.mode);
     mrf.opt_gc(1,tri,w_datas_tri);
 
     log.step("finalize");
@@ -4208,7 +4204,7 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
 
     tbmrf_reco<DTW,D_MAP> mrf_ori(params.nb_labs,&tri,&w_datas_tri);
     mrf_ori.lambda = params.lambda;
-    mrf_ori.set_mode(-1);
+    mrf_ori.set_mode(params.mode);
     double energy_largrange = mrf_ori.get_energy(tri,w_datas_tri);
     
     // Clean new struct
@@ -4228,7 +4224,7 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     std::cerr << "seg_step5" << std::endl;
     tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri,&w_datas_tri);
     mrf.lambda = params.lambda;
-    mrf.set_mode(-1);
+    mrf.set_mode(params.mode);
     mrf.opt_gc(1,tri,w_datas_tri);
     double energy_full = mrf.get_energy(tri,w_datas_tri);
     std::cerr << "seg_setp6 stats" << std::endl;
@@ -4268,12 +4264,10 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     std::vector<Facet_const_iterator> lft;
     std::vector<bool> lbool;
     std::cout.setstate(std::ios_base::failbit);
-      int D = Traits::D;
+    int D = Traits::D;
 
-    int mode = -1;
-    //mode = 1;
-    // if(params.mode.find(std::string("out")) != std::string::npos)
-    mode = 0;
+    int mode = params.mode;
+
 
     std::cerr << "seg_setp7 surface extraction" << std::endl;
 
@@ -4664,10 +4658,10 @@ int main(int argc, char **argv)
             }
             else if(params.algo_step == std::string("dst"))
             {
-                if(params.mode == std::string("surface"))
+	      //                if(params.mode == std::string("surface"))
                     rv = dst_new(tile_id,params,nb_dat,log);
-                else if(params.mode == std::string("conflict"))
-                    rv = dst_conflict(tile_id,params,nb_dat,log);
+                // else if(params.mode == std::string("conflict"))
+                //     rv = dst_conflict(tile_id,params,nb_dat,log);
             }
             else if(params.algo_step == std::string("seg"))
             {

@@ -128,7 +128,7 @@ val spark_core_max = params_scala.get_param("spark_core_max", df_par.toString).t
 val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(100000).toString);
 
 // Surface reconstruction prarams
-val wasure_mode = params_scala.get_param("mode", "surface")
+val wasure_mode = params_scala.get_param("mode", "-1")
 val pscale = params_scala.get_param("pscale", "0.05").toFloat
 val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
 val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
@@ -137,7 +137,10 @@ val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
 val lambda = params_scala.get_param("lambda", "0.1").toFloat
 val coef_mult = params_scala.get_param("coef_mult", "1").toFloat
 //val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
-val max_opt_it = 10
+val max_opt_it = 30
+if (ndtree_depth == 0){
+  val max_opt_it = 2
+}
 val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
 val stats_mod_it = params_scala.get_param("stats_mod_it", ((max_opt_it)/2).toString).toInt
 val stats_mod_it = 1
@@ -440,6 +443,8 @@ var algo_id_acc = 0;
  val cur_algo = algo_list.head
  */
 
+
+
 algo_list.foreach{ cur_algo =>
   if(cur_algo != "seg_lagrange_weight"){
     coef_mult_list = List("110000000000","110000000","110000")
@@ -529,6 +534,8 @@ algo_list.foreach{ cur_algo =>
             val graph_seg = Graph(kvrdd_seg, rdd_local_edges, List("")).partitionBy(EdgePartition1D,rep_merge);
 
             if(false){
+              // WARNING!! if true set "do_dump_u = true" in main_wasure_stream.cpp"
+
               val rdd_local_crown = iq.get_edgrdd(res_seg,"u");
               val kvrdd_tri_with_crown = (rdd_local_crown.map(e => (e.dstId,e.attr)) union kvrdd_seg).reduceByKey(_ ::: _,rep_loop).persist(iq.get_storage_level_loop()).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
               val rdd_ply_surface = iq.run_pipe_fun_KValue(

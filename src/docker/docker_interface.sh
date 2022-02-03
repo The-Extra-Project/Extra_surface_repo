@@ -95,7 +95,9 @@ function build # Build docker container
 function build_cnes # Build docker container
 {
     docker build ${PROXY_CMD} ${NO_CACHE} -t  ddt_img_cnes -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-cnes ${DDT_MAIN_DIR}
+    rm -rf ddt_img_cnes.simg
     singularity build ddt_img_cnes.simg docker-daemon://ddt_img_cnes:latest
+    scp -r /home/laurent/code/spark-ddt/ddt_img_cnes.simg caraffl@hal.cnes.fr:~/code/spark-ddt/build/build-spark-Release-3/
 }
 
 
