@@ -116,6 +116,16 @@ function run_3d_yanis
     run_algo_docker
 }
 
+### 3D Surface reconstruction 
+function run_3d_lidarhd
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+    INPUT_DIR="${GLOBAL_INPUT_DIR}/lidarHD/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    run_algo_docker
+}
+
 
 
 ### 3D Surface reconstruction 
@@ -179,9 +189,9 @@ function preprocess_toulouse
     run_algo_docker
 }
 
-
-run_3d_bench_raw
-run_3d_yanis
+run_3d_lidarhd
+# run_3d_bench_raw
+# run_3d_yanis
 
 # ==== surface reconstruction workflow ====
 #preprocess_data
