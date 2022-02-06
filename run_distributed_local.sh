@@ -189,9 +189,9 @@ function preprocess_toulouse
     run_algo_docker
 }
 
-run_3d_lidarhd
-# run_3d_bench_raw
-# run_3d_yanis
+#run_3d_lidarhd
+run_3d_bench_raw
+run_3d_yanis
 
 # ==== surface reconstruction workflow ====
 #preprocess_data
