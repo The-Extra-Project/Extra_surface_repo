@@ -359,8 +359,8 @@ wasure_algo::tessel(DT_raw  & tri,
       // 	std::cerr << "insert done " <<  std::endl;
       // }
     }
-    if(it == max_it-1 && false){
-      dump_tessel(tri,it,max_it,tid,bbox_min,bbox_max);
+    if(it == max_it-1){
+      //dump_tessel(tri,it,max_it,tid,bbox_min,bbox_max);
       dump_vector_pts(extra_pts,it,tid);
     }
      
