@@ -234,7 +234,7 @@ public :
         }
 	double nff = n_surface<Point,Traits>(lp,D);
 	double min_d = 1000000;
-	double max_d = 0;
+	double max_d = 0.000001;
 	for(int ii = 0; ii < lp.size(); ii++){
 	  auto it1 = lp.begin();
 	  std::advance(it1,ii);
@@ -248,6 +248,12 @@ public :
 	      max_d = dist;
 	  }
 	}
+	double eps = 0.0001;
+	if(min_d <= eps)
+	  min_d = eps;
+	eps = 1000000;
+	if(max_d > eps)
+	  max_d  =eps;
         return nff*(sqrt(max_d)/sqrt(min_d));
     }
 
