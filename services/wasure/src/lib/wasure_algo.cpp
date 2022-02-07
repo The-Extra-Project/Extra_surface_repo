@@ -237,6 +237,37 @@ int dump_tessel(DT_raw  & tri, int it, int max_it,int tid, double * bbox_min,dou
   return 0;
 }
 
+
+
+
+int dump_vector_pts(std::vector<Point> vp, int it, int tid){
+
+  std::ofstream myfile;
+  std::string filename("/home/laurent/shared_spark/tmp/extra_" + std::to_string(it) + "_" + std::to_string(tid) + ".ply");
+  myfile.open (filename);
+  myfile << "ply" <<  std::endl;
+  myfile << "format ascii 1.0" << std::endl;
+  myfile << "element vertex "  << vp.size() << std::endl;
+  myfile << "property float x" << std::endl;
+  myfile << "property float y" << std::endl;
+  myfile << "property float z" << std::endl;
+  myfile << "end_header                " << std::endl;
+
+
+  int acc = 0;
+  for(auto vv : vp){
+    myfile << vv << " " << std::endl;
+  }
+
+  std::cerr << "close" << std::endl;
+  myfile.close();
+  std::cerr << "dump done" << std::endl;
+  return 0;
+}
+
+
+
+
 int 
 wasure_algo::tessel(DT_raw  & tri,
 		    std::vector<Point> & points,  std::vector<Point> & vps,
@@ -293,7 +324,7 @@ wasure_algo::tessel(DT_raw  & tri,
       auto vpo = vv->point();
       auto vpn = vertex_map[vv];
       auto vn = norm_map[vv];
-      auto vs = norm_map[vv];
+      auto vs = scale_map[vv];
       if(vpn[D] == 0)
 	continue;
       for(int d = 0; d < D; d++){
@@ -316,7 +347,7 @@ wasure_algo::tessel(DT_raw  & tri,
       }
 
       if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1){
-	auto pp2 = Point(vpn[0]-vn[0]*vs[0]*3,vpn[1]-vn[1]*vs[1]*3,vpn[2]-vn[2]*vs[2]*3);
+	auto pp2 = Point(vpn[0]-vn[0]*vs[0]/3,vpn[1]-vn[1]*vs[1]/3,vpn[2]-vn[2]*vs[2]/3);
 	extra_pts.push_back(pp2);
       }
 
@@ -328,9 +359,11 @@ wasure_algo::tessel(DT_raw  & tri,
       // 	std::cerr << "insert done " <<  std::endl;
       // }
     }
-     if(false)
-       dump_tessel(tri,it,max_it,tid,bbox_min,bbox_max);
-
+    if(it == max_it-1 && false){
+      dump_tessel(tri,it,max_it,tid,bbox_min,bbox_max);
+      dump_vector_pts(extra_pts,it,tid);
+    }
+     
   }    
 
 

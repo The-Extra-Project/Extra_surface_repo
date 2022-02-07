@@ -8,7 +8,7 @@ GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/datas/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
-#DEBUG_FLAG="-d"
+DEBUG_FLAG="-d"
 
 
 ### Run spark-shell with a given script,params and input dir.
@@ -23,7 +23,7 @@ function run_algo_docker
     echo ""
     echo "##  ------  ${FUNCNAME[1]}  ------"
     #    export CURRENT_PLATEFORM="singularity"
-    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c 3 -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
+    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c 4 -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
     exec ${CMD}
 }
 
@@ -191,7 +191,7 @@ function preprocess_toulouse
 
 #run_3d_lidarhd
 run_3d_bench_raw
-run_3d_yanis
+#run_3d_yanis
 
 # ==== surface reconstruction workflow ====
 #preprocess_data
