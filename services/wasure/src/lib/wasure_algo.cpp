@@ -180,6 +180,8 @@ int dump_tessel(DT_raw  & tri, int it, int max_it,int tid, double * bbox_min,dou
 	    l_cir.push_back(pp);
   	}
   }
+
+  l_cir.clear();
   
   std::cerr << "dump" << std::endl;
   std::ofstream myfile;
@@ -346,8 +348,9 @@ wasure_algo::tessel(DT_raw  & tri,
 	tri.move(vv,pp);
       }
 
+      double scll = std::max({vs[0], vs[1], vs[2]})/3;
       if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1){
-	auto pp2 = Point(vpn[0]-vn[0]*vs[0]/3,vpn[1]-vn[1]*vs[1]/3,vpn[2]-vn[2]*vs[2]/3);
+	auto pp2 = Point(vpn[0]-vn[0]*scll,vpn[1]-vn[1]*scll,vpn[2]-vn[2]*scll);
 	extra_pts.push_back(pp2);
       }
 
@@ -360,7 +363,7 @@ wasure_algo::tessel(DT_raw  & tri,
       // }
     }
     if(it == max_it-1){
-      //dump_tessel(tri,it,max_it,tid,bbox_min,bbox_max);
+      dump_tessel(tri,it,max_it,tid,bbox_min,bbox_max);
       dump_vector_pts(extra_pts,it,tid);
     }
      
@@ -1072,7 +1075,6 @@ wasure_algo::get_params_surface_dst(const std::vector<double> & pts_scales,doubl
   //double data_scale = 10;
   if(glob_scale > 0){
     pdf_smooth = glob_scale*3;
-
   }else{
     //double data_scale = *std::max_element(pts_scales.begin(),pts_scales.end());
     pdf_smooth = data_scale;

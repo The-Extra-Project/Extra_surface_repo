@@ -5,7 +5,7 @@
 //#include "wasure_typedefs.hpp"
 #include <stdio.h>      /* printf */
 #include <iostream>      /* printf */
-
+#include <iterator>
 #include <vector>
 #include "io/write.hpp"
 #include "io/read.hpp"
@@ -226,17 +226,29 @@ public :
 	std::list<Vertex_const_handle> lvh;
 	cci->get_list_vertices(lvh);
 	for(auto vht : lvh){
-        // for(auto vht = fch->vertices_begin() ;
-        //         vht != fch->vertices_end() ;
-        //         ++vht)
-        // {
             Vertex_const_handle v = vht;
             if(fch->index(v) == idx)
                 continue;
             lp.push_back(v->point());
 
         }
-        return n_surface<Point,Traits>(lp,D);
+	double nff = n_surface<Point,Traits>(lp,D);
+	double min_d = 1000000;
+	double max_d = 0;
+	for(int ii = 0; ii < lp.size(); ii++){
+	  auto it1 = lp.begin();
+	  std::advance(it1,ii);
+	  for(int jj = ii+1; jj < lp.size();jj++){
+	    auto it2 = lp.begin();
+	    std::advance(it2,jj);
+	    double dist = CGAL::squared_distance(*it2,*it1);
+	    if(dist < min_d)
+	      min_d = dist;
+	    if(dist > max_d)
+	      max_d = dist;
+	  }
+	}
+        return nff*(sqrt(max_d)/sqrt(min_d));
     }
 
 

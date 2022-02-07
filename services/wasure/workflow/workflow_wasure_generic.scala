@@ -137,9 +137,9 @@ val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
 val lambda = params_scala.get_param("lambda", "0.1").toFloat
 val coef_mult = params_scala.get_param("coef_mult", "1").toFloat
 //val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
-val max_opt_it = 30
+var max_opt_it = 30
 if (ndtree_depth == 0){
-  val max_opt_it = 2
+  max_opt_it = 2
 }
 val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
 val stats_mod_it = params_scala.get_param("stats_mod_it", ((max_opt_it)/2).toString).toInt
