@@ -8,7 +8,7 @@ GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/datas/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ${GLOBAL_OUTPUT_DIR}
-DEBUG_FLAG="-d"
+#DEBUG_FLAG="-d"
 
 
 ### Run spark-shell with a given script,params and input dir.
@@ -190,8 +190,8 @@ function preprocess_toulouse
 }
 
 #run_3d_lidarhd
-run_3d_bench_raw
-#run_3d_yanis
+#run_3d_bench_raw
+run_3d_yanis
 
 # ==== surface reconstruction workflow ====
 #preprocess_data

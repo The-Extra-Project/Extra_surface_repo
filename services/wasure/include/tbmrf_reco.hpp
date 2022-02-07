@@ -67,7 +67,6 @@ public :
 	    for(int d = 0; d < D+1;d++){
 	      if(fch->neighbor(d)->is_mixed())
 		std::cerr << "mixed detected" << std::endl;
-	        return 0;
 	    }
 	  
 	    //std::cerr << "NOT MIXED, INF STUFF 222222" << std::endl;
