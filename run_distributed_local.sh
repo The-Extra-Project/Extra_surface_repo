@@ -191,7 +191,7 @@ function preprocess_toulouse
 
 #run_3d_lidarhd
 
-run_3d_bench_raw
+#run_3d_bench_raw
 run_3d_yanis
 
 # ==== surface reconstruction workflow ====
