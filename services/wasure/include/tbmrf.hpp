@@ -1003,7 +1003,6 @@ public :
 		double gsps = get_goodshape_prior(fch,tmp_idx);
                 double surface = get_score_surface(fch,tmp_idx);
                 double coef = (lambda*surface+GSPS_CONST*gsps)/((double)card_shared);
-		std::cerr << "gsps:" << gsps << std::endl;
                 int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
                 int chnlab = data_map[fchn->tile()->id()].format_labs[cccidn];
 		ch1lab = chnlab = 0;
