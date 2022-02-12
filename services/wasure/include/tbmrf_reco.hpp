@@ -103,7 +103,7 @@ public :
 	       (coef_proj < 0 && vn[D-1] > 0) ){
 	      //	    std::cerr << c << " " << vn  << " " << std::endl;
 	      if(pLabsOut[label] > 0.5)
-		return 100000;
+		return 100000000;
 	      else
 		return 0;
 	    }else{
@@ -111,7 +111,7 @@ public :
 	      if(pLabsOut[label] > 0.5)
 		return 0;
 	      else
-		return 100000;
+		return 100000000;
 	    }
 	
 	  }
@@ -120,7 +120,7 @@ public :
       {
 	std::cerr << "!! WARNING !!!" << std::endl;
 	std::cerr << "Exception catched : " << e.what() << std::endl;
-	return 0;
+	return 1000000;
       }
 
 // if(fch->is_infinite() && true){	     	  

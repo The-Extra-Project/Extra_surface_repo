@@ -1,7 +1,7 @@
 #ifndef TBMRF_H
 #define TBMRF_H
 #define MULT (1.0)
-
+#define GSPS_CONST (0)
 //#include "wasure_typedefs.hpp"
 #include <stdio.h>      /* printf */
 #include <iostream>      /* printf */
@@ -16,7 +16,7 @@
 #include "graph.h"
 #include "wasure_maths.hpp"
 #include "QPBO.h"
-
+#include "wasure_typedefs.hpp"
 
 // Belief
 #include <opengm/graphicalmodel/graphicalmodel.hxx>
@@ -212,14 +212,9 @@ public :
     }
 
 
-  double get_coef_facet(){
-
-
-  }
-
-  
-    double get_surface(Cell_const_iterator & cci, int idx)
+    double get_goodshape_prior(Cell_const_iterator & cci, int idx)
     {
+      return 1;
         Tile_cell_const_handle fch = cci->full_cell();
 
         std::list<Point> lp;
@@ -232,8 +227,7 @@ public :
             lp.push_back(v->point());
 
         }
-	double nff = n_surface<Point,Traits>(lp,D);
-	double min_d = 1000000;
+	double min_d = std::numeric_limits<double>::max();
 	double max_d = 0.000001;
 	for(int ii = 0; ii < lp.size(); ii++){
 	  auto it1 = lp.begin();
@@ -251,10 +245,105 @@ public :
 	double eps = 0.0001;
 	if(min_d <= eps)
 	  min_d = eps;
-	eps = 1000000;
-	if(max_d > eps)
-	  max_d  =eps;
-        return nff*(sqrt(max_d)/sqrt(min_d));
+        return (sqrt(max_d)/sqrt(min_d));
+    }
+
+
+  bool do_debug(std::list<Point> & lp){
+    double xx = 14429.2;
+    double yy = 20629.9;
+    double zz = 133.75;
+    for(auto pp : lp){
+      if(abs(pp[0] - xx) < 0.5 &&
+	 abs(pp[1] - yy) < 0.5 &&
+	 abs(pp[2] - zz) < 0.5 
+	 )
+	return false;
+    }
+    return false;
+  }
+  
+    double get_score_surface(Cell_const_iterator & cci, int idx)
+    {
+        Tile_cell_const_handle fch = cci->full_cell();
+	Tile_cell_const_handle fchn = fch->neighbor(idx);
+	int idx2 = fch->index(fch);
+        std::list<Point> lp;
+	std::list<Vertex_const_handle> lvh;
+	cci->get_list_vertices(lvh);
+	for(auto vht : lvh){
+            Vertex_const_handle v = vht;
+            if(fch->index(v) == idx)
+                continue;
+            lp.push_back(v->point());
+
+        }
+	double nff = n_surface<Point,Traits>(lp,D);
+	double min_d = std::numeric_limits<double>::max();
+	double max_d = 0.000001;
+	bool do_deb = do_debug(lp);
+
+
+	  double ccf = 1;
+	if(true){
+	  Sphere sp1(fch->vertex(0)->point(),
+		    fch->vertex(1)->point(),
+		    fch->vertex(2)->point(),
+		    fch->vertex(3)->point());
+	  Sphere sp2(fchn->vertex(0)->point(),
+		    fchn->vertex(1)->point(),
+		    fchn->vertex(2)->point(),
+		    fchn->vertex(3)->point());
+	  Plane pp(fch->vertex((idx+1)%4)->point(),
+		   fch->vertex((idx+2)%4)->point(),
+		   fch->vertex((idx+3)%4)->point());
+
+	  auto center1 = sp1.center();
+	  auto proj1 = pp.projection(center1);
+	  auto center2 = sp2.center();
+	  auto proj2 = pp.projection(center2);
+	  auto pp1a = fch->vertex((idx+1)%4)->point();
+	  double angle_deg1=CGAL::approximate_angle(center1,pp1a,proj1);
+	  double angle_deg2=CGAL::approximate_angle(center2,pp1a,proj2);
+	  double ang1 = (angle_deg1)*3.14/180.0;
+	  double ang2 = (angle_deg2)*3.14/180.0;
+	  ccf = std::min(cos(ang1),cos(ang2));
+	
+	}
+	if(false){
+	  if(do_deb)
+	    std::cerr << "ddd =====" << std::endl;
+	  for(int ii = 0; ii < lp.size(); ii++){
+	    auto it1 = lp.begin();
+	    std::advance(it1,ii);
+	    for(int jj = ii+1; jj < lp.size();jj++){
+	      auto it2 = lp.begin();
+	      std::advance(it2,jj);
+	      double dist = CGAL::squared_distance(*it2,*it1);
+	      if(dist < min_d)
+		min_d = dist;
+	      if(dist > max_d)
+		max_d = dist;
+	      if(do_deb){
+
+		std::cerr << "ddd " << (*it2) <<  " " << (*it1) << " dist:" << dist << std::endl;
+	      }
+	    }
+	  }
+	  double eps = 0.0001;
+	  if(min_d <= eps)
+	    min_d = eps;
+	  eps = 10000;
+	  if(max_d > eps)
+	    max_d  =eps;
+	   ccf = (sqrt(max_d)/sqrt(min_d));
+	  if(do_deb){
+	    std::cerr << "ddd " << max_d << " " << min_d << " " << ccf << std::endl;
+	    std::cerr << "ddd surface:" << nff << std::endl;
+	  }
+	}
+	
+        return nff*ccf;
     }
 
 
@@ -329,7 +418,7 @@ public :
     //     int c1Id = fch->data().opt_idx;
     //     int cnId = fchn->data().opt_idx;
 
-    //     double surface = get_surface(fch,idx);
+    //     double surface = get_score_surface(fch,idx);
     //     double coef = lambda*surface;
 
     //     int ch1lab = fch->data().lab;
@@ -554,8 +643,9 @@ public :
 
 		int cccid = fch->lid();
                 int cccidn = fchn->lid();
-                double surface = get_surface(tmp_fch,tmp_idx);
-                double coef = lambda*surface;
+		double gsps = get_goodshape_prior(tmp_fch,tmp_idx);
+                double surface = get_score_surface(tmp_fch,tmp_idx);
+                double coef = lambda*surface+GSPS_CONST*gsps;
 
 		
                 int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
@@ -672,8 +762,9 @@ public :
 
 		int cccid = fch->lid();
                 int cccidn = fchn->lid();
-                double surface = get_surface(tmp_fch,tmp_idx);
-                double coef = lambda*surface;
+		double gsps = get_goodshape_prior(tmp_fch,tmp_idx);
+                double surface = get_score_surface(tmp_fch,tmp_idx);
+                double coef = lambda*surface+GSPS_CONST*gsps;
 
 		
                 int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
@@ -851,6 +942,7 @@ public :
 	  // if(tid_k == 3 && tile_k->cell_is_mixed(cit) )
 	  //   std::cerr << "lid_k:" << cccid << " e0: " << e0 << " e1:" << e1 << " lag:" << lag_acc << " card" << card_shared <<  std::endl;
 
+	  
 	  if(lag_acc > 0)
 	    e0 += lag_acc;
 	  else
@@ -896,7 +988,7 @@ public :
 		   card_shared = idSet.size();
 		  //		  std::cerr << "card" << card_shared << std::endl;
 		}
-
+		//		card_shared=1;
 
                 Cell_const_iterator fch = Cell_const_iterator(tile_k,tile_k, tile_k, tmp_fch);
                 int idx = tmp_idx;
@@ -908,9 +1000,10 @@ public :
 
       		int cccid = fch->lid();
                 int cccidn = fchn->lid();
-                double surface = get_surface(fch,tmp_idx);
-                double coef = (lambda*surface)/((double)card_shared);
-
+		double gsps = get_goodshape_prior(fch,tmp_idx);
+                double surface = get_score_surface(fch,tmp_idx);
+                double coef = (lambda*surface+GSPS_CONST*gsps)/((double)card_shared);
+		std::cerr << "gsps:" << gsps << std::endl;
                 int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
                 int chnlab = data_map[fchn->tile()->id()].format_labs[cccidn];
 		ch1lab = chnlab = 0;
@@ -1077,8 +1170,9 @@ public :
                 // int cccidn = fchn->cell_data().id;
 		int cccid = fch->lid();
                 int cccidn = fchn->lid();
-                double surface = get_surface(tmp_fch,tmp_idx);
-                double coef = lambda*surface;
+		double gsps = get_goodshape_prior(tmp_fch,tmp_idx);
+                double surface = get_score_surface(tmp_fch,tmp_idx);
+                double coef = lambda*surface+GSPS_CONST*gsps;
 
                 int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
                 int chnlab = data_map[fchn->tile()->id()].format_labs[cccidn];
@@ -1272,8 +1366,9 @@ public :
                 // int cccidn = fchn->cell_data().id;
 		int cccid = fch->lid();
                 int cccidn = fchn->lid();
-                double surface = get_surface(tmp_fch,tmp_idx);
-                double coef = lambda*surface;
+		double gsps = get_goodshape_prior(tmp_fch,tmp_idx);
+                double surface = get_score_surface(tmp_fch,tmp_idx);
+                double coef = lambda*surface+GSPS_CONST*gsps;
 
                 int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
                 int chnlab = data_map[fchn->tile()->id()].format_labs[cccidn];
@@ -1531,8 +1626,8 @@ public :
     // 	int gidc = data_map[tidc].format_gids[lidc];
     // 	int gidn = data_map[tidn].format_gids[lidn];
 
-    // 	double surface = get_surface(tmp_fch,tmp_idx);
-    // 	double coef = lambda*surface;
+    // 	double surface = get_score_surface(tmp_fch,tmp_idx);
+    // 	double coef = lambda*surface+GSPS_CONST*gsps;
 
 
     // 	int ch1lab = data_map[tidc].format_labs[lidc];
@@ -1795,8 +1890,9 @@ public :
 	    // std::cerr << "lidc" << lidc << " lidn:" << lidn << std::endl;
 	    // std::cerr << "gidc" << gidc << " gidn:" << gidn << std::endl;
 	    // std::cerr << "lab.size : " << data_map[tidn].format_labs.size();
-	    double surface = get_surface(tmp_fch,tmp_idx);
-	    double coef = lambda*surface;
+	    double gsps = get_goodshape_prior(tmp_fch,tmp_idx);
+	    double surface = get_score_surface(tmp_fch,tmp_idx);
+	    double coef = lambda*surface+GSPS_CONST*gsps;
 
 	    int ch1lab = data_map[tidc].format_labs[lidc];
 	    int chnlab = data_map[tidn].format_labs[lidn];
@@ -2110,8 +2206,9 @@ public :
                 int gidn = fchn->gid();//data_map[tidn].format_gids[lidn];
 		// std::cerr << "lidc" << lidc << " lidn:" << lidn << std::endl;
 		// std::cerr << "gidc" << gidc << " gidn:" << gidn << std::endl;
-                double surface = get_surface(tmp_fch,tmp_idx);
-                double coef = lambda*surface;
+		double gsps = get_goodshape_prior(tmp_fch,tmp_idx);
+                double surface = get_score_surface(tmp_fch,tmp_idx);
+                double coef = lambda*surface+GSPS_CONST*gsps;
 
 
                 int ch1lab = data_map[tidc].format_labs[lidc];
@@ -2305,8 +2402,9 @@ public :
                 int gidc = fch->gid(); //data_map[tidc].format_gids[lidc];
                 int gidn = fchn->gid();//data_map[tidn].format_gids[lidn];
 
-                double surface = get_surface(tmp_fch,tmp_idx);
-                double coef = lambda*surface;
+		double gsps = get_goodshape_prior(tmp_fch,tmp_idx);		
+                double surface = get_score_surface(tmp_fch,tmp_idx);
+                double coef = lambda*surface+GSPS_CONST*gsps;
 
 
                 int ch1lab = data_map[tidc].format_labs[lidc];

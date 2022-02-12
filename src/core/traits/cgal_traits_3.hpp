@@ -201,6 +201,8 @@ struct Cgal_traits_3
     typedef CGAL::Triangulation_data_structure_3<Vb,Cb>               TDS;
   //#endif
     typedef typename K::Point_3                                    Point;
+  typedef typename K::Sphere_3                                    Sphere;
+  typedef typename K::Plane_3                                    Plane;
     typedef std::pair<Point,Id>                                    Point_id;
     typedef std::tuple<Point,Id,Id>                                Point_id_id;
   typedef  K::Vector_3 Vector;

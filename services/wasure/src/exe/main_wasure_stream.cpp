@@ -40,7 +40,7 @@ typedef CGAL::Second_of_pair_property_map<Point_with_normal> Normal_map;
 typedef CGAL::Shape_detection::Efficient_RANSAC_traits
 <Traits::K, Pwn_vector, Point_map, Normal_map>              RANSACTraits;
 typedef CGAL::Shape_detection::Efficient_RANSAC<RANSACTraits>    Efficient_ransac;
-typedef CGAL::Shape_detection::Plane<RANSACTraits>               Plane;
+typedef CGAL::Shape_detection::Plane<RANSACTraits>               Plane_ransac;
 
 int write_id_double_serialized(const std::map<Id,SharedData>  & lp, std::ostream & ofile,bool do_print = false)
 {
@@ -304,7 +304,8 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	// }
 
 	if(!datas_map[hid].dmap[datas_map[hid].center_name].do_exist){
-	  //std::cerr << "NO CENTER : " << fname_map[hid] << std::endl;
+	  std::cerr << "NO CENTER : " << fname_map[hid] << std::endl;
+	  return 1;
 	  datas_map[hid].dmap[datas_map[hid].center_name] = ddt_data<Traits>::Data_ply(datas_map[hid].center_name,"vertex",D,D,DATA_FLOAT_TYPE);
 	  datas_map[hid].dmap[datas_map[hid].flags_name] = ddt_data<Traits>::Data_ply(datas_map[hid].flags_name,"vertex",1,1,tinyply::Type::INT32);
 
@@ -452,7 +453,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 
 
 	std::string filename(params.output_dir + "/" + fname_map2[id] + "_" + std::to_string(id));
-	if(true){
+	if(false){
 	  ddt::stream_data_header oqh("p","f",id);
 	  oqh.write_into_file(filename,".stream");
 	  oqh.write_header(std::cout);
@@ -462,7 +463,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	}
 	if(false){
 	  ddt::stream_data_header oqh("p","f",id);
-	  oqh.write_into_file(filename,"_visu.ply");
+	  oqh.write_into_file(filename,"_final.ply");
 	  oqh.write_header(std::cout);
 	  datas_map_splitted[id].write_ply_stream(oqh.get_output_stream(),'\n',true);
 	  oqh.finalize();
@@ -1048,7 +1049,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
     }
     
     ransac.set_input(points);
-    ransac.add_shape_factory<Plane>();
+    ransac.add_shape_factory<Plane_ransac>();
     ransac.detect();
     Efficient_ransac::Plane_range planes = ransac.planes();
     CGAL::structure_point_set (points,

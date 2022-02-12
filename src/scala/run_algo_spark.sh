@@ -52,37 +52,37 @@ function run_master (){
 	INPUT_CMD=" -i ${INPUT_SCRIPT}"
     fi
     /usr/local/bin/spark-2.2.0-bin-hadoop2.7/bin/spark-shell $INPUT_CMD \
-        --jars ${GLOBAL_BUILD_DIR}/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar  \
-        --master spark://${MASTER_IP}:7077  \
-	--conf "spark.local.dirs=${SPARK_TMP_DIR}"  \
-        --conf "spark.rdd.compress=true"  \
-	--conf "spark.eventLog.enabled=true"  \
-	--conf "spark.memory.fraction=0.2" \
-	--conf "spark.driver.allowMultipleContexts=true"\
-	--conf "spark.memory.storageFraction=0.8"\
-	--conf "spark.memory.offHeap.enabled=true"\
-	--conf "spark.memory.offHeap.size=10g"\
-	--conf "spark.network.timeout=10000000" \  
-	--conf "spark.history.fs.logDirectory=${SPARK_HISTORY_DIR}" \
-	--conf "spark.serializer=org.apache.spark.serializer.KryoSerializer"  \
-	--conf "yarn.nodemanager.log-dirs=${SPARK_HISTORY_DIR}" \
-	-Djava.io.tmpdir="${SPARK_TMP_DIR}" \
-	-Dspark.executor.memory=${SPARK_EXECUTOR_MEMORY} \
-	-Dspark.driver.memory=${SPARK_DRIVER_MEMORY} \
-	--packages "com.github.astrolabsoftware:spark3d_2.11:0.3.1"
+							     --jars ${GLOBAL_BUILD_DIR}/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar  \
+							     --master spark://${MASTER_IP}:7077  \
+							     --conf "spark.local.dirs=${SPARK_TMP_DIR}"  \
+							     --conf "spark.rdd.compress=true"  \
+							     --conf "spark.eventLog.enabled=true"  \
+							     --conf "spark.memory.fraction=0.2" \
+							     --conf "spark.driver.allowMultipleContexts=true" \
+							     --conf "spark.memory.storageFraction=0.8" \
+							     --conf "spark.memory.offHeap.enabled=true" \
+							     --conf "spark.memory.offHeap.size=10g" \
+							     --conf "spark.network.timeout=10000000" \
+							     --conf "spark.history.fs.logDirectory=${SPARK_HISTORY_DIR}" \
+							     --conf "spark.serializer=org.apache.spark.serializer.KryoSerializer"  \
+							     --conf "yarn.nodemanager.log-dirs=${SPARK_HISTORY_DIR}" \
+							     -Djava.io.tmpdir="${SPARK_TMP_DIR}" \
+							     -Dspark.executor.memory=${SPARK_EXECUTOR_MEMORY} \
+							     -Dspark.driver.memory=${SPARK_DRIVER_MEMORY} \
+							     --packages "com.github.astrolabsoftware:spark3d_2.11:0.3.1"
 
     #--conf "spark.kryoserializer.buffer.max=2000m" \
-#    	--conf "spark.executor.extraJavaOptions=-XX:-UseGCOverheadLimit" \
-    # --conf spark.memory.offheap.size=8G \
-    # --conf spark.memory.offheap.enabled=true
-	#--conf "spark.executor.extraJavaOptions=-Xss256k -XX:MaxPermSize=128m -XX:-UseGCOverheadLimit -XX:PermSize=96m -XX:MaxTenuringThreshold=2 -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:CMSInitiatingOccupancyFraction=75 - XX:+UseCMSInitiatingOccupancyOnly -XX:+AggressiveOpts -XX:+UseCompressedOops"
+	# --conf "spark.executor.extraJavaOptions=-XX:-UseGCOverheadLimit" \
+	# --conf spark.memory.offheap.size=8G \
+	# --conf spark.memory.offheap.enabled=true
+    #--conf "spark.executor.extraJavaOptions=-Xss256k -XX:MaxPermSize=128m -XX:-UseGCOverheadLimit -XX:PermSize=96m -XX:MaxTenuringThreshold=2 -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:CMSInitiatingOccupancyFraction=75 - XX:+UseCMSInitiatingOccupancyOnly -XX:+AggressiveOpts -XX:+UseCompressedOops"
 
     #        -Dspark.shuffle.file.buffer=256k  spark.kryoserializer.buffer.max=256m
     #        --conf "spark.executor.extraJavaOptions=-Djava.io.tmpdir=${SPARK_TMP_DIR}" \
-    #	--conf "mapreduce.cluster.local.dir=${SPARK_TMP_DIR}"
+	#	--conf "mapreduce.cluster.local.dir=${SPARK_TMP_DIR}"
     # --conf "spark.executor.extraJavaOptions=-Djava.io.tmpdir=${SPARK_TMP_DIR}"
     #	--conf "yarn.nodemanager.local-dirs=${SPARK_TMP_DIR}"  \
-}
+	}
 
 function run_slave (){
     export_params ${MASTER_IP}

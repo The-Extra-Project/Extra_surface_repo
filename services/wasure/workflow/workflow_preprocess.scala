@@ -238,7 +238,7 @@ val lambda = params_scala.get_param("lambda", "0.1").toFloat
 
 params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + bba(4) + "x" + (bba(4) + smax))
 params_scala("ndtree_depth") = collection.mutable.Set(ndtree_depth.toString)
-params_scala("datatype") = collection.mutable.Set("b64stream")
+params_scala("datatype") = collection.mutable.Set("files")
 params_scala("max_ppt") = collection.mutable.Set(max_ppt_per_tile.toString)
 
 val params_scala_dump = params_scala.filter(x => !x._2.head.isEmpty && x._1 != "do_expand" && x._1 != "output_dir" )
