@@ -285,7 +285,7 @@ public :
 
 
 	  double ccf = 1;
-	if(false{
+	  if(false){
 	  Sphere sp1(fch->vertex(0)->point(),
 		    fch->vertex(1)->point(),
 		    fch->vertex(2)->point(),
