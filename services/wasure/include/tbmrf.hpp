@@ -285,7 +285,7 @@ public :
 
 
 	  double ccf = 1;
-	if(true){
+	if(false{
 	  Sphere sp1(fch->vertex(0)->point(),
 		    fch->vertex(1)->point(),
 		    fch->vertex(2)->point(),
@@ -310,7 +310,7 @@ public :
 	  ccf = std::min(cos(ang1),cos(ang2));
 	
 	}
-	if(false){
+	if(true){
 	  if(do_deb)
 	    std::cerr << "ddd =====" << std::endl;
 	  for(int ii = 0; ii < lp.size(); ii++){
