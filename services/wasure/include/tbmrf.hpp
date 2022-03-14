@@ -284,16 +284,16 @@ public :
 	bool do_deb = do_debug(lp);
 
 
-	  double ccf = 1;
-	  if(true){
+	double ccf = 1;
+	if(true){
 	  Sphere sp1(fch->vertex(0)->point(),
-		    fch->vertex(1)->point(),
-		    fch->vertex(2)->point(),
-		    fch->vertex(3)->point());
+		     fch->vertex(1)->point(),
+		     fch->vertex(2)->point(),
+		     fch->vertex(3)->point());
 	  Sphere sp2(fchn->vertex(0)->point(),
-		    fchn->vertex(1)->point(),
-		    fchn->vertex(2)->point(),
-		    fchn->vertex(3)->point());
+		     fchn->vertex(1)->point(),
+		     fchn->vertex(2)->point(),
+		     fchn->vertex(3)->point());
 	  Plane pp(fch->vertex((idx+1)%4)->point(),
 		   fch->vertex((idx+2)%4)->point(),
 		   fch->vertex((idx+3)%4)->point());
@@ -313,8 +313,8 @@ public :
 	    std::cerr << "ang:" << ang1 << " " << ang2 << std::endl;
 	    ccf = 0.001;
 	  }
-	
 	}
+	  
 	if(false){
 	  if(do_deb)
 	    std::cerr << "ddd =====" << std::endl;

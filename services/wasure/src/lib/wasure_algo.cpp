@@ -1485,11 +1485,11 @@ wasure_algo::compute_dst_mass_beam(std::vector<double> & coefs, std::vector<doub
   double score = fabs((angle/angle_scale)*(angle/angle_scale));
   if(c3 > 0){
     v_o1 =  0;
-    v_e1 = 1-0.5*score_pdf(fabs(c3),sig);
+    v_e1 = 1-0.5*score_pdf(fabs(c3),sig*5);
     v_e1 = v_e1*exp(-score);
 
   }else{
-    v_o1 = 1-0.5*score_pdf(fabs(c3),sig);
+    v_o1 = 1-0.5*score_pdf(fabs(c3),sig*5);
     v_e1 =  0;
     v_o1 = v_e1*exp(-score);
   }
@@ -1870,7 +1870,7 @@ try_next_cell:
     }
 
 
-    // for(int ii = 0; ii <= cur_dim; ii++){
+    // for(int ii = 0; ii <= 3; ii++){
     //   Cell_handle s_nbr = s->neighbor(ii);
     //   if(!tri.is_infinite(s_nbr))
     // 	sample_cell(s_nbr,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
@@ -1965,7 +1965,7 @@ void wasure_algo::compute_dst_with_center(DTW & tri, wasure_data<Traits>  & data
 
   compute_dst_tri(tri,datas_tri,datas_pts,params);
   DT & tri_tile  = tri.get_tile(tid)->triangulation();
-  //compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
+  compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
   center_dst(tri,datas_tri,datas_pts.format_centers,tid);
 } 
 
