@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 ### Start workflow in local mode 
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
 source ${DDT_MAIN_DIR}/algo-env.sh
@@ -116,6 +117,91 @@ function run_3d_yanis
     run_algo_docker
 }
 
+
+
+
+
+### 3D Surface reconstruction 
+function run_3d_yanis_bench
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+
+    # INPUT_DIR="${GLOBAL_INPUT_DIR}/yanis_bench_full/Strasbourg/PC3E44_3/OC/"
+    # OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    # PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    # run_algo_docker
+
+    # INPUT_DIR="${GLOBAL_INPUT_DIR}/yanis_bench_full/Strasbourg/PC3E45_3/OC/"
+    # OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    # PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    # run_algo_docker
+
+    # INPUT_DIR="${GLOBAL_INPUT_DIR}/yanis_bench_full/Strasbourg/PC3E47_3/OC/"
+    # OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    # PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    # run_algo_docker
+
+    # INPUT_DIR="${GLOBAL_INPUT_DIR}/yanis_bench_full/garage/OC/"
+    # OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    # PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    # run_algo_docker
+
+
+    
+    ## Train
+    # INPUT_DIR="${GLOBAL_INPUT_DIR}/yanis_bench_full/Evaluation/train/"
+    # OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    # PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    # run_algo_docker
+
+
+    # INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/Strasbourg/PC3E45_3/OC/"
+    # OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/yanis_bench_full/PC3E45_3/"
+    # PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    # run_algo_docker
+
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/yanis_bench_2022_05_18/"
+    
+    echo $1
+    case $1 in
+	1)
+	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/Strasbourg/PC3E44_3/OC"
+	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/PC3E44_3/"
+	    ;;
+	2)
+	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/Strasbourg/PC3E47_3/OC"
+	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/PC3E47_3/"
+	    ;;
+	3)
+	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/atelier/OC"
+	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/atelier/"
+	    ;;
+	4)
+	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/exterieur/OC"
+	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/exterieur/"
+	    ;;
+	5)
+	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/garage/OC"
+	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/garage/"
+	    ;;
+	6)
+	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/ETH3D/pipes/OC"
+	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/pipe/"
+	    ;;
+	7)
+	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/ETH3D/courtyard/OC"
+	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/courtyard/"
+	    ;;
+	8)    
+	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/ETH3D/terrace/OC"
+	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/terrace/"
+	    ;;
+    esac
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    run_algo_docker
+}
+
+
 ### 3D Surface reconstruction 
 function run_3d_lidarhd
 {
@@ -192,7 +278,7 @@ function preprocess_toulouse
 #run_3d_lidarhd
 
 #run_3d_bench_raw
-run_3d_yanis
+run_3d_yanis_bench $1
 
 # ==== surface reconstruction workflow ====
 #preprocess_data
