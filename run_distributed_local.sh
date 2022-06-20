@@ -25,6 +25,7 @@ function run_algo_docker
     echo "##  ------  ${FUNCNAME[1]}  ------"
     #    export CURRENT_PLATEFORM="singularity"
     CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c 4 -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
+    #echo $CMD
     exec ${CMD}
 }
 
@@ -160,41 +161,41 @@ function run_3d_yanis_bench
     # PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     # run_algo_docker
 
-    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/yanis_bench_2022_05_18/"
+    OUTPUT_DIR_BENCH="${GLOBAL_OUTPUT_DIR}/yanis_bench_2022_05_19/"
     
-    echo $1
+    echo "$1"
     case $1 in
 	1)
 	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/Strasbourg/PC3E44_3/OC"
-	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/PC3E44_3/"
+	    OUTPUT_DIR="${OUTPUT_DIR_BENCH}/PC3E44_3/"
 	    ;;
 	2)
 	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/Strasbourg/PC3E47_3/OC"
-	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/PC3E47_3/"
+	    OUTPUT_DIR="${OUTPUT_DIR_BENCH}/PC3E47_3/"
 	    ;;
 	3)
 	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/atelier/OC"
-	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/atelier/"
+	    OUTPUT_DIR="${OUTPUT_DIR_BENCH}/atelier/"
 	    ;;
 	4)
 	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/exterieur/OC"
-	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/exterieur/"
+	    OUTPUT_DIR="${OUTPUT_DIR_BENCH}/exterieur/"
 	    ;;
 	5)
 	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/garage/OC"
-	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/garage/"
+	    OUTPUT_DIR="${OUTPUT_DIR_BENCH}/garage/"
 	    ;;
 	6)
 	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/ETH3D/pipes/OC"
-	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/pipe/"
+	    OUTPUT_DIR="${OUTPUT_DIR_BENCH}/pipe/"
 	    ;;
 	7)
 	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/ETH3D/courtyard/OC"
-	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/courtyard/"
+	    OUTPUT_DIR="${OUTPUT_DIR_BENCH}/courtyard/"
 	    ;;
 	8)    
 	    INPUT_DIR="/home/laurent/shared_spark/datas/yanis_bench_full/ETH3D/terrace/OC"
-	    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${OUTPUT_DIR}/terrace/"
+	    OUTPUT_DIR="${OUTPUT_DIR_BENCH}/terrace/"
 	    ;;
     esac
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
@@ -275,10 +276,22 @@ function preprocess_toulouse
     run_algo_docker
 }
 
+
+function run_3d_church
+{
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+    INPUT_DIR="${GLOBAL_INPUT_DIR}/toulouse_church/preprocessed_small_2/"
+    OUTPUT_DIR="${GLOBAL_OUTPUT_DIR}/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    run_algo_docker
+}
+
+
+
 #run_3d_lidarhd
 
-#run_3d_bench_raw
-run_3d_yanis_bench $1
+run_3d_bench_raw
+# run_3d_yanis_bench $1
 
 # ==== surface reconstruction workflow ====
 #preprocess_data
