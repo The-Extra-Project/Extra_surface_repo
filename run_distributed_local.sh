@@ -290,7 +290,7 @@ function run_3d_church
 
 #run_3d_lidarhd
 
-run_3d_bench_raw
+#run_3d_bench_raw
 # run_3d_yanis_bench $1
 
 # ==== surface reconstruction workflow ====
@@ -303,7 +303,7 @@ run_3d_bench_raw
 #run_full_eval
 
 ### 3D
-#run_3d_bench_small
+run_3d_bench_small
 #run_3d_bench_preprocess
 
 #run_3d_yanis_2
