@@ -194,7 +194,7 @@ int main(int argc, char **argv)
 
     w_algo.compute_dim(wdp.format_points,
 		       wdp.format_egv,
-		       wdp.format_sigs);
+		       wdp.format_sigs,log);
 
     // Flip the normal according to the optical center
     w_algo.flip_dim_ori(wdp.format_points,

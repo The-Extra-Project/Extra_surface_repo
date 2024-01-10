@@ -34,17 +34,17 @@ set(spark-wasure_SOURCES
   main_wasure_local.cpp
   )
 
-# add_executable(wasure-local-exe ${spark-wasure_SOURCES})
-# set_property(TARGET wasure-local-exe PROPERTY CXX_STANDARD 11)
-# target_link_libraries(wasure-local-exe
-#   # intern dependencies
-#   ddt
-#   tbmrf
-#   ${QPBO_LIBRARIES}
-#   ${WASURE_EXE_LIB_DEP}
+add_executable(wasure-local-exe ${spark-wasure_SOURCES})
+set_property(TARGET wasure-local-exe PROPERTY CXX_STANDARD 11)
+target_link_libraries(wasure-local-exe
+  # intern dependencies
+  ddt
+  tbmrf
+  ${QPBO_LIBRARIES}
+  ${WASURE_EXE_LIB_DEP}
 
-#   ${DOUBLE_CONV_LIBRARIES}
-#   )
+  ${DOUBLE_CONV_LIBRARIES}
+  )
 
 set(spark-wasure_SOURCES
   main_qpbo.cpp
