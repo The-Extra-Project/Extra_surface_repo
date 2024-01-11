@@ -8,7 +8,7 @@ GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/datas/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 
-DEBUG_FLAG="-d"
+#DEBUG_FLAG="-d"
 
 
 ### Run spark-shell with a given script,params and input dir.
@@ -35,7 +35,7 @@ function run_3d_bench_small
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_small/"
-    OUTPUT_DIR="${DDT_MAIN_DIR}/${FUNCNAME[0]}/"
+    OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
     run_algo_docker
 }
@@ -47,5 +47,5 @@ function run_local
 
 }
 ### 3D Surface reconstruction
-#run_local
+run_local
 run_3d_bench_small
