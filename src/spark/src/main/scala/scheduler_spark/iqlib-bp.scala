@@ -228,8 +228,9 @@ object algo_spark_ddt {
   def graph_cut(full_graph_merged: RDD[VData] , maxIterations: Int, epsilon : Double,iq : IQlibSched,sc : SparkContext,nb_part : Int):  RDD[(Int, Int)]  = {
     println(" belief prop : Init")
 
+    val aa = Array("0 0", "1 0")
     val edges_cpp = full_graph_merged.filter(x => !x.isEmpty).filter(_(0) == 'e').map(_.substring(2))
-    val nodes_cpp = (sc.parallelize(Array("0 0", "1 0")) union full_graph_merged.filter(x => !x.isEmpty).filter(_(0) == 'v').map(_.substring(2)))
+    val nodes_cpp = (sc.parallelize(aa) union full_graph_merged.filter(x => !x.isEmpty).filter(_(0) == 'v').map(_.substring(2)))
     val vertexRDD = nodes_cpp.map(x => x.split(" ")).map(x => (x(0).toLong,x(1).toLong));
     val edgesRDD = edges_cpp.map( x=> x.split(" ")).filter(_.size > 1).map( x => org.apache.spark.graphx.Edge(x(0).toLong,x(1).toLong,x(2).toFloat.toInt))
 

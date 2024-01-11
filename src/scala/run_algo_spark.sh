@@ -9,23 +9,22 @@ source ${DDT_MAIN_DIR}/algo-env.sh
 
 
 function export_params {
-    echo "export SPARK_MASTER_HOST=${1}" >> /usr/local/bin/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh
-    echo "export LOCAL_DIRS=${SPARK_TMP_DIR}" >> /usr/local/bin/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh
-    echo "export SPARK_LOCAL_DIRS=${SPARK_TMP_DIR}" >> /usr/local/bin/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh
-    echo "export SPARK_EXECUTOR_MEMORY=${SPARK_EXECUTOR_MEMORY}" >> /usr/local/bin/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh
-    echo "export SPARK_DRIVER_MEMORY=${SPARK_DRIVER_MEMORY}" >> /usr/local/bin/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh
-    echo "export SPARK_WORKER_CORES=${SPARK_WORKER_CORES}" >> /usr/local/bin/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh
-    echo "export SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}" >> /usr/local/bin/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh
-    echo "export YARN_LOG_DIR=${SPARK_TMP_DIR}" >> /usr/local/bin/spark-2.2.0-bin-hadoop2.7/conf/spark-env.sh
+    echo "export SPARK_MASTER_HOST=${1}" >> /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/conf/spark-env.sh
+    echo "export LOCAL_DIRS=${SPARK_TMP_DIR}" >> /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/conf/spark-env.sh
+    echo "export SPARK_LOCAL_DIRS=${SPARK_TMP_DIR}" >> /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/conf/spark-env.sh
+    echo "export SPARK_EXECUTOR_MEMORY=${SPARK_EXECUTOR_MEMORY}" >> /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/conf/spark-env.sh
+    echo "export SPARK_DRIVER_MEMORY=${SPARK_DRIVER_MEMORY}" >> /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/conf/spark-env.sh
+    echo "export SPARK_WORKER_CORES=${SPARK_WORKER_CORES}" >> /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/conf/spark-env.sh
+    echo "export SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}" >> /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/conf/spark-env.sh
+    echo "export YARN_LOG_DIR=${SPARK_TMP_DIR}" >> /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/conf/spark-env.sh
 
 }
 
 function run_local (){
     ${DDT_MAIN_DIR}/src/spark/spark.sh start_all ${MASTER_IP}
-    /usr/local/bin/
-    spark-2.2.0-bin-hadoop2.7/bin/spark-shell \
+    /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/bin/spark-shell \
         -i ${INPUT_SCRIPT}  \
-        --jars ${GLOBAL_BUILD_DIR}/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar  \
+        --jars ${GLOBAL_BUILD_DIR}/spark/target/scala-2.13/iqlib-spark_2.13-1.0.jar  \
         --master spark://localhost:7077  -Dspark.executor.memory=1g -Dspark.driver.memory=1g
 }
 
@@ -51,8 +50,8 @@ function run_master (){
     else
 	INPUT_CMD=" -i ${INPUT_SCRIPT}"
     fi
-    /usr/local/bin/spark-2.2.0-bin-hadoop2.7/bin/spark-shell $INPUT_CMD \
-							     --jars ${GLOBAL_BUILD_DIR}/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar  \
+    /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/bin/spark-shell $INPUT_CMD \
+							     --jars ${GLOBAL_BUILD_DIR}/spark/target/scala-2.13/iqlib-spark_2.13-1.0.jar  \
 							     --master spark://${MASTER_IP}:7077  \
 							     --conf "spark.local.dirs=${SPARK_TMP_DIR}"  \
 							     --conf "spark.rdd.compress=true"  \

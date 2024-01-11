@@ -213,7 +213,7 @@ class nd_tree(dim : Int,depth : Int,iq : IQlibSched) extends Serializable {
     println("Distributed Nd tree construction ...")
     while(li_new.count > 1){
       val root_li_new = li_new.map(x => (root_id(x._1),x._2)).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2)).cache().setName("RDD_ROOT_LI_NEW" + acc)
-      val root_li_stage = li_new.map(x => (root_id(x._1),(x._2._1,List(x._1)))).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2)).flatMap( x=> x._2._2.map(y => (y , x._2.x._1)))
+      val root_li_stage = li_new.map(x => (root_id(x._1),(x._2._1,List(x._1)))).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2)).flatMap( x=> x._2._2.map(y => (y , x._2._1)))
       val li_new_filt = li_new.cogroup(root_li_stage).filter(
         cc => ((!cc._2._2.isEmpty) && (!cc._2._1.isEmpty))).filter(
         cc => cc._2._2.head > lim && cc._2._1.head._1 <=lim).map(cc => (cc._1,cc._2._1.head));
@@ -248,7 +248,7 @@ class nd_tree(dim : Int,depth : Int,iq : IQlibSched) extends Serializable {
     println("Distributed Nd tree construction ...")
     while(li_new.count > 1){
       val root_li_new = li_new.map(x => (root_id(x._1),x._2)).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2)).persist(iq.get_storage_level()).setName("RDD_ROOT_LI_NEW" + acc)
-      val root_li_stage = li_new.map(x => (root_id(x._1),(x._2._1,List(x._1)))).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2)).flatMap( x=> x._2._2.map(y => (y , x._2.x._1)))
+      val root_li_stage = li_new.map(x => (root_id(x._1),(x._2._1,List(x._1)))).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2)).flatMap( x=> x._2._2.map(y => (y , x._2._1)))
       val li_new_filt = li_new.cogroup(root_li_stage).filter(
         cc => ((!cc._2._2.isEmpty) && (!cc._2._1.isEmpty))).filter(
         cc => cc._2._2.head > lim && cc._2._1.head._1 <=lim).map(cc => (cc._1,cc._2._1.head));

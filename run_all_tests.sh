@@ -8,7 +8,7 @@ GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/datas/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 
-#DEBUG_FLAG="-d"
+DEBUG_FLAG="-d"
 
 
 ### Run spark-shell with a given script,params and input dir.

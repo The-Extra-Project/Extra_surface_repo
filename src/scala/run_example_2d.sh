@@ -40,7 +40,7 @@ cd ${OUTPUT_DATA_DIR}
 
 # Run 
 ${DDT_MAIN_DIR}/src/spark/spark.sh start_all
-/usr/local/bin/spark-2.2.0-bin-hadoop2.7/bin/spark-shell \
+/usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/bin/spark-shell \
     -i ${INPUT_SCRIPT}  \
     --jars ${DDT_MAIN_DIR}/build-spark/spark/target/scala-2.11/iqlib-spark_2.11-1.0.jar  \
     --master spark://localhost:7077  -Dspark.executor.memory=12g -Dspark.driver.memory=12g

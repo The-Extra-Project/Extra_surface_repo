@@ -4,13 +4,13 @@ import org.apache.spark.rdd.RDD;
 import org.apache.hadoop.fs.FileSystem
 import org.apache.spark.SparkContext
 import scala.collection.mutable.ListBuffer
-import scala.util.parsing.json._
+// import scala.util.parsing.json._
 import scala.xml.XML
 import java.nio.file.{ Paths, Files }
 import java.io.File
 import org.apache.hadoop.fs.Path
 import java.io._
-
+import scala.language.postfixOps
 
 import java.io.BufferedOutputStream
 import spark_ddt.core._;
@@ -488,11 +488,11 @@ object params_parser {
 
   def dump_json(pm : params_map,json_filename : String, sc : SparkContext)  = {
     println()
-    val fs = FileSystem.get(sc.hadoopConfiguration);
-    val output = fs.create(new Path(json_filename));
-    val os = new BufferedOutputStream(output)
-    os.write((scala.util.parsing.json.JSONObject(pm.toMap.map(x => (x._1,x._2.head))).toString()).getBytes);
-    os.close()
+    // val fs = FileSystem.get(sc.hadoopConfiguration);
+    // val output = fs.create(new Path(json_filename));
+    // val os = new BufferedOutputStream(output)
+    // os.write((scala.util.parsing.json.JSONObject(pm.toMap.map(x => (x._1,x._2.head))).toString()).getBytes);
+    // os.close()
   }
 
 
