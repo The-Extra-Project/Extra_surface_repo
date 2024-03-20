@@ -6,6 +6,7 @@ include_directories(${INCLUDE_DIR})
 include_directories(SYSTEM ${TINYPLY_INCLUDE_DIR})
 include_directories(SYSTEM ${DDTLIB_INCLUDE_DIR})
 include_directories(SYSTEM ${ANN_INCLUDE_DIR})
+include_directories(SYSTEM ${LAS_INCLUDE_DIR})
 include_directories(SYSTEM ${GRAPHCUT_INCLUDE_DIR})
 include_directories(SYSTEM ${CIMG_INCLUDE_DIR})
 include_directories(SYSTEM ${QPBO_INCLUDE_DIR})
@@ -26,6 +27,18 @@ target_link_libraries(wasure-stream-exe
   tbmrf
   ${WASURE_EXE_LIB_DEP}
   ${DOUBLE_CONV_LIBRARIES}
+  )
+
+set(spark-wasure_SOURCES
+  main_preprocess.cpp
+  )
+add_executable( main_preprocess  ${spark-wasure_SOURCES} )
+set_property(TARGET main_preprocess PROPERTY CXX_STANDARD 11)
+target_link_libraries(main_preprocess
+  ddt
+  tbmrf
+  ${WASURE_EXE_LIB_DEP}
+  ${LAS_LIBRARIES}
   )
 
 

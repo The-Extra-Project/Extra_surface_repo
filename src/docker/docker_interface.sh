@@ -84,6 +84,9 @@ function build # Build docker container
 	"ddt_img_base_20_04")
 	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-20-04 ${DDT_MAIN_DIR}
 	    ;;
+	"ddt_img_base_devel")
+	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-devel ${DDT_MAIN_DIR}
+	    ;;	
 	*)
 	    echo "ERROR NO IMAGE"
 	    ;;

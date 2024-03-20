@@ -404,6 +404,21 @@ object params_parser {
         kvrdd_inputs_struct = kvrdd_inputs//iq.get_kvrdd(struct_inputs)
       }
 
+      case "laz" => {
+        println("")
+        println("======== LOAD DATA  file =============")
+        val ss_reg = regexp_filter.r
+        val ply_input = getListOfFiles(input_dir).filter(
+          x => ((x.toString endsWith ".laz") && ((ss_reg).findFirstIn(x.toString).isDefined)))
+        kvrdd_inputs = iq.get_kvrdd(sc.parallelize(ply_input.map(
+          fname => "p 1 " + ("([0-9]+)".r).findAllIn(fname.toString).toArray.last + " f " + fname.toString)),"p")
+
+        // val struct_inputs = iq.run_pipe_fun_KValue(
+        //   ser2datastruct_cmd ++ List("--label", "struct"),
+        //   kvrdd_inputs, "struct", do_dump = false)
+        kvrdd_inputs_struct = kvrdd_inputs//iq.get_kvrdd(struct_inputs)
+      }        
+
       case "plystream" => {
         println("")
         println("======== LOAD DATA filestream =============")

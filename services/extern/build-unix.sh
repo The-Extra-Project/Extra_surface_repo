@@ -1,6 +1,6 @@
 #!/bin/bash
 
-libs=("ann_1.1.2"  "cimg"  "cut-pursuit"  "graphcut"  "pugixml"  "tinyply")
+libs=("ann_1.1.2"  "cimg"  "cut-pursuit"  "graphcut"  "pugixml"  "tinyply" "LAStools")
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/"
 
 function build {

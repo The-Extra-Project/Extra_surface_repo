@@ -31,21 +31,23 @@ function run_algo_docker
 
 
 ### 3D Surface reconstruction 
-function run_3d_bench_small
+function run_lidarhd
 {
+    # DEBUG_FLAG=""
+    # FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
+    # INPUT_DIR="${DDT_MAIN_DIR}/datas/lidarhd/"
+    # OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"    
+
+    # run_algo_docker
+
+
+    
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_small/"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/lidarhd_ply/"
     OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
-    run_algo_docker
+    #run_algo_docker
 }
 
-function run_local
-{
-    OUTPUT_DIR=${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}
-    docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR} --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "mkdir -p ${OUTPUT_DIR} &&  ${DDT_MAIN_DIR}/build//build-spark-Release-3/bin/wasure-local-exe --output_dir ${OUTPUT_DIR} --input_dir ${DDT_MAIN_DIR}/datas/3d_bench_small --dim 3 --bbox 0000x10000:0000x10000  --pscale 0.1 --nb_samples 5 --rat_ray_sample 0 --mode surface --lambda 1 --step full_stack --seed 18696 --label full_small_CRO --filename ${DDT_MAIN_DIR}/datas/3d_bench_small/croco_small.ply"
-
-}
-### 3D Surface reconstruction
-# run_local
-run_3d_bench_small
+#run_preprocess
+run_lidarhd

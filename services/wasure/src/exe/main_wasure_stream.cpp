@@ -305,7 +305,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 
 	if(!datas_map[hid].dmap[datas_map[hid].center_name].do_exist){
 	  std::cerr << "NO CENTER : " << fname_map[hid] << std::endl;
-	  return 1;
+	  //return 1;
 	  datas_map[hid].dmap[datas_map[hid].center_name] = ddt_data<Traits>::Data_ply(datas_map[hid].center_name,"vertex",D,D,DATA_FLOAT_TYPE);
 	  datas_map[hid].dmap[datas_map[hid].flags_name] = ddt_data<Traits>::Data_ply(datas_map[hid].flags_name,"vertex",1,1,tinyply::Type::INT32);
 
