@@ -286,8 +286,9 @@ public :
     gid_name = {"gid"};
     center_name = subvect({"x_origin","y_origin","z_origin","t_origin"},D);
   }
-  
-  ddt_data<Traits>(){
+
+
+  ddt_data(){
     int D = Traits::D;
     init_name();
     init_map();
@@ -296,7 +297,7 @@ public :
 
 
   
-  ddt_data<Traits>(std::map<std::vector<std::string>, Data_ply > & init_dmap)  {
+  ddt_data(std::map<std::vector<std::string>, Data_ply > & init_dmap)  {
     init_name();
     for ( const auto &ee : init_dmap ) {
       dmap[ee.first] =  Data_ply(ee.first,ee.second.part,D,ee.second.get_vsize(),ee.second.type);	    

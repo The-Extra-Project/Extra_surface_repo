@@ -4,7 +4,7 @@
 #include "flags.hpp"
 #include "typedefs_type.hpp"
 #include <iostream>
-
+#include <cstdint>
 
 #define MAIN_FLAG (0)
 namespace iqlib

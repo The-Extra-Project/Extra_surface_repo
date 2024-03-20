@@ -16,14 +16,14 @@ public :
 
     typedef ddt_data<Traits> ddtd;
 
-    wasure_data<Traits>() : ddt_data<Traits>(), tile_ids(3)
+    wasure_data() : ddt_data<Traits>(), tile_ids(3)
     {
         int D = Traits::D;
         init_wasure_name();
         init_wasure_map();
     }
 
-  wasure_data<Traits>(std::map<std::vector<std::string>, Data_ply > & init_dmap)  {
+  wasure_data(std::map<std::vector<std::string>, Data_ply > & init_dmap)  {
     init_name();
     for ( const auto &ee : init_dmap ) {
       ddt_data<Traits>::dmap[ee.first] =  Data_ply(ee.first,ee.second.part,Traits::D,ee.second.get_vsize(),ee.second.type);	    
