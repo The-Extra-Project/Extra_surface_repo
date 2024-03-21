@@ -8,7 +8,7 @@ GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/datas/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 
-#DEBUG_FLAG="-d"
+DEBUG_FLAG="-d"
 
 
 ### Run spark-shell with a given script,params and input dir.
@@ -39,14 +39,14 @@ function run_lidarhd
     # OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"    
 
     # run_algo_docker
-
-
+    echo "${DDT_MAIN_DIR}/build/build-spark-Release-3/bin/main_preprocess ${GLOBAL_INPUT_DIR}/Semis_2021_1226_6202_LA93_IGN78.laz ${GLOBAL_INPUT_DIR}/Semis_2021_1226_6202_LA93_IGN78.ply "
+    
     
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/lidarhd_ply/"
     OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
-    #run_algo_docker
+    run_algo_docker
 }
 
 #run_preprocess

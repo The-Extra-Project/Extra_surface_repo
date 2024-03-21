@@ -38,7 +38,6 @@ target_link_libraries(main_preprocess
   ddt
   tbmrf
   ${WASURE_EXE_LIB_DEP}
-  ${LAS_LIBRARIES}
   )
 
 
