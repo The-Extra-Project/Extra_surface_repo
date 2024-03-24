@@ -47,5 +47,5 @@ function run_local
 
 }
 ### 3D Surface reconstruction
-# run_local
-run_3d_bench_small
+run_local
+# run_3d_bench_small

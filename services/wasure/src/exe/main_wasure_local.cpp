@@ -195,7 +195,7 @@ int main(int argc, char **argv)
     w_algo.compute_dim(wdp.format_points,
 		       wdp.format_egv,
 		       wdp.format_sigs,log);
-
+    std::cout << "dim done!" << std::endl;
     // Flip the normal according to the optical center
     w_algo.flip_dim_ori(wdp.format_points,
 			wdp.format_egv,
@@ -304,7 +304,7 @@ int main(int argc, char **argv)
 
   //  std::vector<double> lambda_list({0,0.000001,0.000002,0.000005,0.00001,0.0001,0.001,0.01,0.02,0.05,0.1,1,2,4});
   //std::vector<double> lambda_list({0.00001,0.0001,0.001,0.01,0.1});
-  std::vector<double> lambda_list({0.01,0.02,0.05,0.07,0.1,0.12,0.13,0.15,0.2});
+  std::vector<double> lambda_list({0.01,0.05,0.07,0.1,0.15,0.2,0.4,0.6,0.1,0.2,0.3,0.4,0.5});
   std::vector<int> opt_mode({0});
   //std::vector<double> lambda_list({0.1});
   //std::vector<double> lambda_list({1});

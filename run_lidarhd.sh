@@ -28,12 +28,20 @@ function run_algo_docker
     exec ${CMD}
 }
 
+function run_lidarhd_local
+{
+    INPUT_DIR="${GLOBAL_INPUT_DIR}/lidar_hd_prepro/"
+    OUTPUT_DIR=${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}
+    INPUT_FILE="${GLOBAL_INPUT_DIR}/lidar_hd_prepro/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.crop.ply"
+    docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR} -v ${GLOBAL_INPUT_DIR}:${GLOBAL_INPUT_DIR} --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "mkdir -p ${OUTPUT_DIR} &&  ${DDT_MAIN_DIR}/build//build-spark-Release-3/bin/wasure-local-exe --output_dir ${OUTPUT_DIR} --input_dir ${DDT_MAIN_DIR}/datas/3d_bench_small --dim 3 --bbox  -59x59:-59x59:-33x32  --pscale 0.1 --nb_samples 5 --rat_ray_sample 1 --mode surface --lambda 1 --step full_stack --seed 18696 --label full_small_CRO --filename $INPUT_FILE "
 
+}
 
 ### 3D Surface reconstruction 
 function run_lidarhd
 {
-    # DEBUG_FLAG=""
+
+    #DEBUG_FLAG="-d"
     # FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
     # INPUT_DIR="${DDT_MAIN_DIR}/datas/lidarhd/"
     # OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"    
@@ -50,4 +58,5 @@ function run_lidarhd
 }
 
 #run_preprocess
+#run_lidarhd_local
 run_lidarhd
