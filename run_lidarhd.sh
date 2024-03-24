@@ -23,7 +23,7 @@ function run_algo_docker
     echo ""
     echo "##  ------  ${FUNCNAME[1]}  ------"
     #    export CURRENT_PLATEFORM="singularity"
-    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c 4 -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
+    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c ${NUM_PROCESS} -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
     #echo $CMD
     exec ${CMD}
 }
@@ -37,6 +37,7 @@ function run_lidarhd_local
 
 }
 
+
 ### 3D Surface reconstruction 
 function run_lidarhd
 {
@@ -47,7 +48,29 @@ function run_lidarhd
     # OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"    
 
     # run_algo_docker
-    echo "${DDT_MAIN_DIR}/build/build-spark-Release-3/bin/main_preprocess ${GLOBAL_INPUT_DIR}/lidar_hd_raw/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.crop.laz  ${GLOBAL_INPUT_DIR}/lidar_hd_prepro/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.crop.ply" > out.txt
+    #docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR} -v ${GLOBAL_INPUT_DIR}:${GLOBAL_INPUT_DIR} --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "${DDT_MAIN_DIR}/build/build-spark-Release-3/bin/main_preprocess ${GLOBAL_INPUT_DIR}/lidar_hd_raw/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.laz  ${GLOBAL_INPUT_DIR}/lidar_hd_full/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.ply"
+    
+    
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+    INPUT_DIR="${GLOBAL_INPUT_DIR}/lidar_hd_full/"
+    OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
+    PARAMS="${INPUT_DIR}/wasure_metadata.xml"
+    run_algo_docker
+
+}
+
+
+### 3D Surface reconstruction 
+function run_lidarhd_crop
+{
+
+    #DEBUG_FLAG="-d"
+    # FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
+    # INPUT_DIR="${DDT_MAIN_DIR}/datas/lidarhd/"
+    # OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"    
+
+    # run_algo_docker
+    docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR} -v ${GLOBAL_INPUT_DIR}:${GLOBAL_INPUT_DIR} --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "${DDT_MAIN_DIR}/build/build-spark-Release-3/bin/main_preprocess ${GLOBAL_INPUT_DIR}/lidar_hd_raw/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.crop.laz  ${GLOBAL_INPUT_DIR}/lidar_hd_prepro/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.crop.ply"
     
     
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
