@@ -41,6 +41,7 @@ else()
 endif()
 
 
+
 # ---- Add /Defines depts ----
 SET(INCLUDE_DIR ${wasure_SOURCE_DIR}/include/)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${GLOBAL_BUILD_DIR}/lib)
@@ -84,6 +85,11 @@ else()
     message(STATUS "NOTICE: This program requires the Eigen3 library, and will not be compiled.")
 endif()
 
+# Use FindLibXml2 module to locate libxml2
+find_package(LibXml2 REQUIRED)
+# Add include directories for libxml2
+
+
 
 set(WASURE_EXE_LIB_DEP
   ${DDTLIB_LIBRARIES}
@@ -98,15 +104,15 @@ set(WASURE_EXE_LIB_DEP
   ${DOUBLE_CONV_LIBRARIES}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
-
+  ${LIBXML2_LIBRARIES}
 )
 
 
 
 
 # ---- Defin global flags and versions ----
-set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wuninitialized -Wall -O0 -g -fPIC -pthread -std=gnu++11")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fpermissive -w -O3 -DNDEBUG -pthread  -fPIC -std=gnu++11")
+set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wuninitialized -Wall -O0 -g -lxml2 -fPIC -pthread -std=gnu++11")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fpermissive -w -O3 -DNDEBUG -pthread -lxml2  -fPIC -std=gnu++11")
 set(CIMG_LIB -L/usr/X11R6/lib -lm -lpthread -lX11)
 
 

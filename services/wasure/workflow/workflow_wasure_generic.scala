@@ -443,7 +443,7 @@ var algo_id_acc = 0;
  val cur_algo = algo_list.head
  */
 
-val lambda_list = List("0.05","0.3")
+// val lambda_list = List("0.05","0.3")
 
 algo_list.foreach{ cur_algo =>
   if(cur_algo != "seg_lagrange_weight"){

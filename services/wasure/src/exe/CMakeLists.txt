@@ -12,6 +12,7 @@ include_directories(SYSTEM ${CIMG_INCLUDE_DIR})
 include_directories(SYSTEM ${QPBO_INCLUDE_DIR})
 include_directories(SYSTEM ${GLOBAL_BUILD_DIR})
 include_directories(SYSTEM ${DOUBLE_CONV_INCLUDE_DIR})
+include_directories(SYSTEM ${LIBXML2_INCLUDE_DIR})
 include_directories(../../../ddt/include/)
 find_package(ZLIB)
 

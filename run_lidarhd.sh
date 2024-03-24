@@ -3,12 +3,12 @@
 ### Start workflow in local mode 
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
 source ${DDT_MAIN_DIR}/algo-env.sh
-GLOBAL_OUTPUT_DIR="${SPARK_SHARED_DIR}/outputs/"
+GLOBAL_OUTPUT_DIR="${SPARK_SHARED_DIR}/datas/"
 GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/datas/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 
-DEBUG_FLAG="-d"
+#DEBUG_FLAG="-d"
 
 
 ### Run spark-shell with a given script,params and input dir.
@@ -39,13 +39,13 @@ function run_lidarhd
     # OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"    
 
     # run_algo_docker
-    echo "${DDT_MAIN_DIR}/build/build-spark-Release-3/bin/main_preprocess ${GLOBAL_INPUT_DIR}/Semis_2021_1226_6202_LA93_IGN78.laz ${GLOBAL_INPUT_DIR}/Semis_2021_1226_6202_LA93_IGN78.ply "
+    echo "${DDT_MAIN_DIR}/build/build-spark-Release-3/bin/main_preprocess ${GLOBAL_INPUT_DIR}/lidar_hd_raw/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.crop.laz  ${GLOBAL_INPUT_DIR}/lidar_hd_prepro/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.crop.ply" > out.txt
     
     
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/lidarhd_ply/"
+    INPUT_DIR="${GLOBAL_INPUT_DIR}/lidar_hd_prepro/"
     OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    PARAMS="${INPUT_DIR}/wasure_metadata.xml"
     run_algo_docker
 }
 

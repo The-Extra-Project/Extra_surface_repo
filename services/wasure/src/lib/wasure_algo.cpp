@@ -1922,6 +1922,7 @@ void wasure_algo::center_dst(DTW & ttri, wasure_data<Traits>  & datas_tri,std::v
 
 void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,wasure_data<Traits>  & datas_pts, wasure_params & params){
   std::cerr << "    compute dst ray ..." << std::endl;
+
   Traits traits;
   std::vector<Point> & points = datas_pts.format_points;
   std::vector<Point> & centers = datas_pts.format_centers;
@@ -1929,6 +1930,7 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
   std::vector<std::vector<double>> & scales = datas_pts.format_sigs;
   std::vector<int> & format_flags = datas_pts.format_flags;
   double rat_ray_sample = params.rat_ray_sample;
+  std::cerr << "    ray ray sample  ..." << rat_ray_sample << std::endl;
   if(rat_ray_sample == 0)
     return;
   int D = Traits::D;  
@@ -1947,7 +1949,7 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
       for(int d = 0;d < D;d++)
 	coords[d] = Pt3d[d] -(Ptcenter[d] - Pt3d[d]);
       Point Ptcenter_mir = traits.make_point(coords);
-      //std::cerr << n << " -- pt:" << Pt3d << " -- center:" << Ptcenter << std::endl;
+      std::cerr << n << " -- pt:" << Pt3d << " -- center:" << Ptcenter << std::endl;
       //Cell_handle loc = walk_locate(tri,Pt,Ptcenter,norms[n],scales[n],acc++);
       if(((int)format_flags[n]) ==0){
 	walk_locate(tri,Pt3d,Ptcenter,Pt3d,datas_tri,datas_pts,params,n,start_walk);
@@ -1965,7 +1967,7 @@ void wasure_algo::compute_dst_with_center(DTW & tri, wasure_data<Traits>  & data
 
   compute_dst_tri(tri,datas_tri,datas_pts,params);
   DT & tri_tile  = tri.get_tile(tid)->triangulation();
-  //compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
+  compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
   center_dst(tri,datas_tri,datas_pts.format_centers,tid);
 } 
 
