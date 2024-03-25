@@ -1,0 +1,1 @@
+/media/laurent/ssd2/softs/spark-ddt-3.0/src/docker/docker_interface.sh compile -j4 -t3
