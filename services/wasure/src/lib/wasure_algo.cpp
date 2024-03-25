@@ -1594,6 +1594,70 @@ wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasur
 
 
 
+void
+wasure_algo::sample_cell_raw(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasure_data<Traits>  & datas_tri, wasure_data<Traits>  & datas_pts, wasure_params & params, int rid, int dim){
+  Id cid = traits.gid(ch);
+
+  
+  std::vector<Point> & pts_norm = datas_pts.format_egv[rid];
+  std::vector<double> & pts_scale = datas_pts.format_sigs[rid];
+  std::vector<std::vector<double>> & v_dst = datas_tri.format_dst;
+  std::vector<int> & format_flags = datas_pts.format_flags;
+  // if(cid < 0 || cid > v_dst.size())
+  //   return;
+
+  
+  // //  if((ch->data()).seg == cid) return;
+  // std::vector<double> & vpe = (ch->data()).vpe;
+  // std::vector<double> & vpo = (ch->data()).vpo;
+  // std::vector<double> & vpu = (ch->data()).vpu;
+  Traits  traits;
+ 
+  for(int x = 0; x < params.nb_samples; x++){
+    std::vector<double>  C = (x == 0) ? traits.get_cell_barycenter(ch) : Pick(ch,D);
+    Point  PtSample = traits.make_point(C.begin());
+    double pe1,po1,pu1,pe2,po2,pu2;
+
+    pe1 = v_dst[cid][0];
+    po1 = v_dst[cid][1];
+    pu1 = v_dst[cid][2];
+
+	  
+    //    std::vector<double> center_coefs = compute_base_coef<Point>(Pt3d,PtCenter,pts_norm,dim);
+    std::vector<double> pts_coefs = compute_base_coef<Point>(Pt3d,PtSample,pts_norm,dim);
+    double angle = compute_angle_rad(PtSample,Pt3d,PtCenter,dim);
+
+    double pdf_smooth = -1;
+    double coef_conf = -1;
+    double gbl_scale = -1;//(datas.glob_scale.size() > 0)  ? datas.glob_scale[cid] : -1;
+    get_params_surface_dst(pts_scale,gbl_scale,params.min_scale,pdf_smooth,coef_conf,dim);
+
+    // if(((int)format_flags[rid]) > 0)
+    //   coef_conf = 0.2*coef_conf;
+	  
+    
+    compute_dst_mass_beam(pts_coefs,pts_scale,angle,ANGLE_SCALE,coef_conf,pe2,po2,pu2);
+    ds_score(pe1,po1,pu1,pe2,po2,pu2,pe1,po1,pu1);
+    regularize(pe1,po1,pu1);
+
+    
+  // NAN check
+    if(pe1 == pe1 &&
+       po1 == po1 &&
+       pu1 == pu1){
+      v_dst[cid][0] = pe1;
+      v_dst[cid][1] = po1 ;
+      v_dst[cid][2] = pu1 ;
+    }
+
+  }
+
+
+}
+
+
+
+
 Cell_handle wasure_algo::walk_locate(DT & tri,
 				     Point & Pt3d,  Point & Ptcenter, Point & Ptcenter_mir,
 				     wasure_data<Traits>  & datas_tri,
@@ -1607,15 +1671,15 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
 
 #if defined(DDT_CGAL_TRAITS_D)
   
-  std::cerr << "start walk begin" << std::endl;
+    //std::cerr << "start walk begin" << std::endl;
   typedef typename DT::Face Face;
   DT::Locate_type  loc_type;// type of result (full_cell, face, vertex)
   Face face(tri.maximal_dimension());// the face containing the query in its interior (when appropriate)
   DT::Facet  facet;// the facet containing the query in its interior (when appropriate)
 
-  std::cerr << "start locate" << std::endl;
+  //std::cerr << "start locate" << std::endl;
   Cell_handle start = tri.locate(Ptcenter,start_cell);
-  std::cerr << "located" << std::endl;
+  //std::cerr << "located" << std::endl;
   start_cell = start;
   DT::Geom_traits geom_traits;
   CGAL::Random                      rng_;

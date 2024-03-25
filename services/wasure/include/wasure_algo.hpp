@@ -36,6 +36,8 @@ public :
 
     void sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasure_data<Traits>  & datas,wasure_data<Traits>  & datas_pts, wasure_params & params, int idr, int dim);
 
+    void sample_cell_raw(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasure_data<Traits>  & datas,wasure_data<Traits>  & datas_pts, wasure_params & params, int idr, int dim);
+
     void compute_dst_mass(std::vector<double> coefs, std::vector<double> scales, double & v_e1, double & v_o1, double & v_u1) ;
 
     void compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_pts,wasure_data<Traits>  & datas_tri, wasure_params & params);
