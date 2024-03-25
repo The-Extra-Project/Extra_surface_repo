@@ -87,5 +87,5 @@ function run_lidarhd_crop
 
 #run_preprocess
 #run_lidarhd_local
-#run_lidarhd
-run_lidarhd_crop
+run_lidarhd
+#run_lidarhd_crop

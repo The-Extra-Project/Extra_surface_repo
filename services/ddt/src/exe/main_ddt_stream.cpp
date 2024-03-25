@@ -1516,7 +1516,7 @@ int serialized2datastruct(Id tid,algo_params & params, int nb_dat,ddt::logging_s
       }
 
 
-    std::cerr << "stream lab: " << datas_map[hid].stream_lab << std::endl;
+    //std::cerr << "stream lab: " << datas_map[hid].stream_lab << std::endl;
     hpi.finalize();
   }
   std::cout.clear();
@@ -1598,7 +1598,7 @@ int preprocess(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
       }
 
 
-    std::cerr << "stream lab: " << datas_map[hid].stream_lab << std::endl;
+    //std::cerr << "stream lab: " << datas_map[hid].stream_lab << std::endl;
     hpi.finalize();
   }
   std::cout.clear();
@@ -1997,7 +1997,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
       {
 	Id id = myPair.first;
 	int nb_out = datas_map[id].nb_pts_uint8_vect ();
-	std::cerr << "id: " << id << "nbout:" << nb_out << std::endl;
+	// std::cerr << "id: " << id << "nbout:" << nb_out << std::endl;
 	if(nb_out < params.min_ppt)
 	  {
 	    continue;
@@ -2218,12 +2218,12 @@ int tile_ply_2(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
     }
     
   }else{
-    std::cerr << "ddddmappp" << std::endl;
+      //std::cerr << "ddddmappp" << std::endl;
     for ( const auto &myPair : datas_map )
       {
 	Id id = myPair.first;
 	int nb_out = datas_map[id].nb_pts_uint8_vect ();
-	std::cerr << "id: " << id << "nbout:" << nb_out << std::endl;
+	//std::cerr << "id: " << id << "nbout:" << nb_out << std::endl;
 	if(nb_out < params.min_ppt)
 	  {
 	    continue;

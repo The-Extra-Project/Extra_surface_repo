@@ -446,7 +446,7 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
         ist >> idx;
         lidx.push_back(idx);
     }
-    std::cerr << "lab:" <<  lab << " " << lidx[0] << std::endl;
+    // std::cerr << "lab:" <<  lab << " " << lidx[0] << std::endl;
 
     if(lab.empty() || lidx.size() == 0)
     {
