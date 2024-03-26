@@ -41,6 +41,19 @@ target_link_libraries(main_preprocess
   ${WASURE_EXE_LIB_DEP}
   )
 
+set(CGAL_SCANLINE_ORIENT_VERBOSE 1)
+set(spark-wasure_SOURCES
+  main_compute_normal.cpp
+  )
+add_executable( main_compute_normal  ${spark-wasure_SOURCES} )
+set_property(TARGET main_compute_normal PROPERTY CXX_STANDARD 11)
+target_link_libraries(main_compute_normal
+  ddt
+  tbmrf
+  ${WASURE_EXE_LIB_DEP}
+  )
+
+
 
 link_directories(${GLOBAL_BUILD_DIR})
 set(spark-wasure_SOURCES

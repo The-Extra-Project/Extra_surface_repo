@@ -1625,7 +1625,7 @@ wasure_algo::sample_cell_raw(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, w
 	  
     //    std::vector<double> center_coefs = compute_base_coef<Point>(Pt3d,PtCenter,pts_norm,dim);
     std::vector<double> pts_coefs = compute_base_coef<Point>(Pt3d,PtSample,pts_norm,dim);
-    double angle = compute_angle_rad(PtSample,Pt3d,PtCenter,dim);
+    double angle = 0;
 
     double pdf_smooth = -1;
     double coef_conf = -1;
@@ -1637,7 +1637,9 @@ wasure_algo::sample_cell_raw(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, w
 	  
     
     compute_dst_mass_beam(pts_coefs,pts_scale,angle,ANGLE_SCALE,coef_conf,pe2,po2,pu2);
+    //std::cout << "dst:" << pe1<< " " << po1<< " " << pu1<< " " << pe2<< " " << po2<< " " << pu2 << std::endl;
     ds_score(pe1,po1,pu1,pe2,po2,pu2,pe1,po1,pu1);
+
     regularize(pe1,po1,pu1);
 
     
@@ -1671,7 +1673,7 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
 
 #if defined(DDT_CGAL_TRAITS_D)
   
-    //std::cerr << "start walk begin" << std::endl;
+
   typedef typename DT::Face Face;
   DT::Locate_type  loc_type;// type of result (full_cell, face, vertex)
   Face face(tri.maximal_dimension());// the face containing the query in its interior (when appropriate)
@@ -1862,8 +1864,10 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
 
   
 #if defined(DDT_CGAL_TRAITS_3)
-
+  //  std::cerr << "start walk begin T3" << std::endl;
   int n_of_turns = 10000;
+
+  auto seg =  Traits::K::Segment_3(Ptcenter, Pt3d);
   if(tri.dimension() < 3)
     return start_cell;
 
@@ -1908,15 +1912,23 @@ try_next_cell:
                           &(c->vertex(3)->point()) };
 
 
-  
+
   // (non-stochastic) visibility walk
+  // const Point p1 = pts[0];
+  // const Point p2 = pts[1];
+  // const Point p3 = pts[2];
+  // const Point p4 = pts[2];
+  Traits::K::Tetrahedron_3 tet(*pts[0],*pts[1],*pts[2],*pts[3]);
+  if(CGAL::do_intersect(seg, tet)){
+      sample_cell_raw(c,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
+  }
   for(int i=0; i != 4; ++i)
   {
     Cell_handle next = c->neighbor(i);
     if(previous == next) continue;
 
-    if(!next->has_vertex(tri.infinite_vertex()))
-      sample_cell(next,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
+    // if(!next->has_vertex(tri.infinite_vertex()))
+    //   sample_cell(next,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
     
     // We temporarily put p at i's place in pts.
     const Point* backup = pts[i];
@@ -2031,7 +2043,7 @@ void wasure_algo::compute_dst_with_center(DTW & tri, wasure_data<Traits>  & data
 
   compute_dst_tri(tri,datas_tri,datas_pts,params);
   DT & tri_tile  = tri.get_tile(tid)->triangulation();
-  // compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
+  compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
   center_dst(tri,datas_tri,datas_pts.format_centers,tid);
 } 
 
