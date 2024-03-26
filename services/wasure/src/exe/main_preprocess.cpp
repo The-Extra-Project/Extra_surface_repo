@@ -3,7 +3,8 @@
 #include <CGAL/IO/write_las_points.h>
 #include <CGAL/IO/write_ply_points.h>
 #include <CGAL/jet_estimate_normals.h>
-#include <CGAL/scanline_orient_normals.h>
+
+#include <scanline_orient_normals.hpp>
 
 #include <typeinfo>
 
@@ -18,14 +19,15 @@ using Kernel = CGAL::Simple_cartesian<double>;
 using Point_3 = Kernel::Point_3;
 using Vector_3 = Kernel::Vector_3;
 using Point_with_info = std::tuple<Point_3, Vector_3, float, unsigned char>;
-using Point_with_info_2 = std::tuple<Point_3, Vector_3>;
+using Point_with_info_2 = std::tuple<Point_3, Vector_3, Vector_3>;
 using Point_map = CGAL::Nth_of_tuple_property_map<0, Point_with_info>;
 using Normal_map = CGAL::Nth_of_tuple_property_map<1, Point_with_info>;
 using Scan_angle_map = CGAL::Nth_of_tuple_property_map<2, Point_with_info>;
 using Scanline_id_map = CGAL::Nth_of_tuple_property_map<3, Point_with_info>;
 
 using Point_map_2 = CGAL::Nth_of_tuple_property_map<0, Point_with_info_2>;
-using Ori_map = CGAL::Nth_of_tuple_property_map<1, Point_with_info_2>;
+using Normal_map_2 = CGAL::Nth_of_tuple_property_map<1, Point_with_info_2>;
+using Ori_map = CGAL::Nth_of_tuple_property_map<2, Point_with_info_2>;
 
 void dump_2 (const char* filename, const std::vector<Point_with_info_2>& points)
 {
@@ -34,6 +36,10 @@ void dump_2 (const char* filename, const std::vector<Point_with_info_2>& points)
     CGAL::IO::write_PLY_with_properties
 	(ofile, points,
 	 CGAL::make_ply_point_writer (Point_map_2()),
+	 std::make_tuple(Normal_map_2(),
+			 CGAL::IO::PLY_property<double>("nx"),
+			 CGAL::IO::PLY_property<double>("ny"),
+			 CGAL::IO::PLY_property<double>("nz")),
 	 std::make_tuple(Ori_map(),
 			 CGAL::IO::PLY_property<double>("x_origin"),
 			 CGAL::IO::PLY_property<double>("y_origin"),
@@ -158,6 +164,7 @@ int main (int argc, char** argv)
     
     std::vector<Point_with_info> points;
     std::vector<Point_with_info_2> points_2;
+    std::vector<Vector_3> lines_of_sight;
     std::cerr << "Reading input file " << fname << std::endl;
     std::ifstream ifile (fname, std::ios::binary);
     if (!ifile ||
@@ -174,12 +181,13 @@ int main (int argc, char** argv)
 	}
     std::cerr << "Estimating normals" << std::endl;
     CGAL::jet_estimate_normals<CGAL::Parallel_if_available_tag>
-	(points, 12,
+	(points, 100,
 	 CGAL::parameters::point_map (Point_map()).
 	 normal_map (Normal_map()));
     std::cerr << "Orienting normals using scan angle and direction flag" << std::endl;
     CGAL::scanline_orient_normals
 	(points,
+	 lines_of_sight,
 	 CGAL::parameters::point_map (Point_map()).
 	 normal_map (Normal_map()).
 	 scan_angle_map (Scan_angle_map()).
@@ -199,15 +207,16 @@ int main (int argc, char** argv)
     auto bbox_center = Point_3((bbox.xmin() + bbox.xmax()) / 2.0,
                    (bbox.ymin() + bbox.ymax()) / 2.0,
                    (bbox.zmin() + bbox.zmax()) / 2.0);
+    int acc = 0;
     for (auto pp : points){
 	auto vx = std::get<0>(pp)[0];
 	auto vy = std::get<0>(pp)[1];
 	auto vz = std::get<0>(pp)[2];	
-
+	
 	Kernel::Vector_3 ori(
-			     std::get<0>(pp)[0] + alpha*std::get<1>(pp)[0] - bbox_center[0] ,
-			     std::get<0>(pp)[1] + alpha*std::get<1>(pp)[1] - bbox_center[1] ,
-			     std::get<0>(pp)[2] + alpha*std::get<1>(pp)[2] - bbox_center[2]
+			     std::get<0>(pp)[0] + alpha*lines_of_sight[acc][0] - bbox_center[0] ,
+			     std::get<0>(pp)[1] + alpha*lines_of_sight[acc][1] - bbox_center[1] ,
+			     std::get<0>(pp)[2] + alpha*lines_of_sight[acc][2] - bbox_center[2]
 			     );
 	Kernel::Point_3 pp_new(
 			     std::get<0>(pp)[0] - bbox_center[0] ,
@@ -216,13 +225,14 @@ int main (int argc, char** argv)
 			     );	
 
 
-	points_2.push_back(std::make_tuple(pp_new,ori));
+	points_2.push_back(std::make_tuple(pp_new,std::get<1>(pp),ori));
 
 	vx = pp_new[0];
 	vy = pp_new[1];
 	vz = pp_new[2];	
 	bbox2 = bbox2 +  CGAL::Bbox_3(vx,vy,vz,
                                     vx,vy,vz);
+	acc++;
 	
     }
     dump_2(oname.c_str(), points_2);					 

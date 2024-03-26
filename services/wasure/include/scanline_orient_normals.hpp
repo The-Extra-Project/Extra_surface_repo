@@ -110,7 +110,7 @@ namespace CGAL
 
 		Line_3 pca2;
 		
-		std::cout << "point_map_size:" << std::distance (begin, end) << std::endl;
+		// std::cout << "point_map_size:" << std::distance (begin, end) << std::endl;
 		linear_least_squares_fitting_3
 		    (boost::make_transform_iterator
 		     (begin, Property_map_to_unary_function<PointMap>(point_map)),
@@ -121,7 +121,7 @@ namespace CGAL
 		Vector_3 pca_direction = pca2.to_vector();
 		pca_direction = Vector_3 (pca_direction.x(), pca_direction.y(), 0);
 		pca_direction = pca_direction / CGAL::approximate_sqrt(pca_direction.squared_length());
-		std::cout << "pca_direction:" << pca_direction << std::endl;
+		// std::cout << "pca_direction:" << pca_direction << std::endl;
 		Plane_3 pca3;
 		linear_least_squares_fitting_3
 		    (boost::make_transform_iterator
@@ -131,13 +131,13 @@ namespace CGAL
 		     pca3, Dimension_tag<0>());
 
 		Vector_3 orthogonal = pca3.orthogonal_vector();
-		std::cout << "orthogonal:" << orthogonal << std::endl;
+		// std::cout << "orthogonal:" << orthogonal << std::endl;
 		Vector_3 vertical = CGAL::cross_product (pca_direction, orthogonal);
 		if (vertical * vertical_vector<Vector_3>() < 0)
 		    vertical = -vertical;
 
 		vertical = vertical / CGAL::approximate_sqrt(vertical.squared_length());
-		std::cout << "vertical:" << vertical << std::endl;
+		// std::cout << "vertical:" << vertical << std::endl;
 		if (std::acos(vertical * vertical_vector<Vector_3>()) < limit)
 		    return std::make_pair (pca_direction, vertical);
 
@@ -147,14 +147,14 @@ namespace CGAL
 		// Dummy begin->end vector version
 		Iterator last = end; -- last;
 		const Point_3& pbegin = get (point_map, *begin);
-		std::cout << "pbegin:" << pbegin << std::endl;
+		// std::cout << "pbegin:" << pbegin << std::endl;
 		const Point_3& plast = get (point_map, *last);
-		std::cout << "plast:" << plast << std::endl;
+		// std::cout << "plast:" << plast << std::endl;
 		Vector_3 direction (Point_3 (pbegin.x(), pbegin.y(), 0),
 				    Point_3 (plast.x(), plast.y(), 0));
-		std::cout << "direction2:" << direction << std::endl;
+		// std::cout << "direction2:" << direction << std::endl;
 		direction = direction / CGAL::approximate_sqrt (direction.squared_length());
-		std::cout << "direction3:" << direction << std::endl;
+		// std::cout << "direction3:" << direction << std::endl;
 		return std::make_pair (direction, vertical_vector<Vector_3>());
 	    }
 
@@ -185,8 +185,8 @@ namespace CGAL
 		    {
 			const Point_3& p = get (point_map, *it);
 			const Vector_3& v = lines_of_sight[idx];
-			std::cout << "p:" << p << std::endl;
-			std::cout << "v:" << v << std::endl;
+			// std::cout << "p:" << p << std::endl;
+			// std::cout << "v:" << v << std::endl;
 			Vector n;
 			n << v.x(), v.y(), v.z();
 
@@ -212,42 +212,54 @@ namespace CGAL
 
 
 	    template <typename Iterator, typename PointMap, typename NormalMap,
-		      typename ScanAngleMap>
+		      typename ScanAngleMap,typename ScanIdMap,typename Vector_3>
 	    void orient_scanline (Iterator begin, Iterator end,
 				  PointMap point_map,
 				  NormalMap normal_map,
 				  ScanAngleMap scan_angle_map,
+				  ScanIdMap scan_id_map,
+				  std::vector<Vector_3> & lines_of_sight,
 				  const Tag_false&) // no fallback scan angle
 	    {
 		using Point_3 = typename boost::property_traits<PointMap>::value_type;
-		using Vector_3 = typename boost::property_traits<NormalMap>::value_type;
+		//using Vector_3 = typename boost::property_traits<NormalMap>::value_type;
 
 		Vector_3 direction;
 		Vector_3 vertical;
 		std::tie (direction, vertical)
 		    = scanline_base (begin, end, point_map);
 
-		std::cout << "vertical:" << vertical << std::endl;
-		std::cout << "direction:" << direction << std::endl;
+		// std::cout << "vertical:" << vertical << std::endl;
+		// std::cout << "direction:" << direction << std::endl;
   
-		std::vector<Vector_3> lines_of_sight;
 		lines_of_sight.reserve (std::distance (begin, end));
 
 		double mean_z = 0;
 		for (Iterator it = begin; it != end; ++ it)
 		    {
+			int flag = static_cast<double>(get (scan_id_map, *it));
 			double angle = CGAL_PI * static_cast<double>(get (scan_angle_map, *it)) / 180.;
-			std::cout << "angle:" << angle << std::endl;
-			std::cout << std::sin(angle) << " " << std::cos(angle) << std::endl;
-			std::cout << direction * std::sin(angle)  << " " << vertical * std::cos(angle) << std::endl;
+			// std::cout << "angle:" << angle << std::endl;
+			// std::cout << "flag:" << flag << std::endl;
+			// std::cout << "vertical:" << vertical << std::endl;
+			// std::cout << "direction:" << direction << std::endl;
+			//angle = -angle;
+			// if(flag == 1){
+			//     angle = -angle;
+			// }
+			// std::cout << std::sin(angle) << " " << std::cos(angle) << std::endl;
+			// std::cout << direction * std::sin(angle)  << " " << vertical * std::cos(angle) << std::endl;
 			Vector_3 los = direction * std::sin(angle) + vertical * std::cos(angle);
-			std::cout << "los:" << los << std::endl;
-			lines_of_sight.push_back (los);
+			// if(flag == 0)
+			//     los = -vertical;
+			    
+			// std::cout << "los:" << los << std::endl;
+			lines_of_sight.push_back (los/2);
 			mean_z += get (point_map, *it).z();
 
 		    }
 		mean_z /= std::distance (begin, end);
-		std::cout << "mean_z:" << mean_z << std::endl;
+		// std::cout << "mean_z:" << mean_z << std::endl;
 #ifdef CGAL_SCANORIENT_DUMP_RANDOM_SCANLINES
 		if (rand() % 1000 == 0 && std::distance(begin, end) > 10)
 		    {
@@ -290,8 +302,14 @@ namespace CGAL
 			for (Iterator it = begin; it != end; ++ it, ++ idx)
 			    {
 				double angle = CGAL_PI * static_cast<double>(get (scan_angle_map, *it)) / 180.;
+				int flag = static_cast<double>(get (scan_id_map, *it));
+
 				Vector_3 los = direction * std::sin(angle) + vertical * std::cos(angle);
-				lines_of_sight[idx] = los;
+				// los[0] = sin(-angle)
+				// if(flag == 0)
+				//     los = -vertical;
+				
+				lines_of_sight[idx] = los/2;
 			    }
 
 			std::tie (scan_position, solver_success)
@@ -312,21 +330,26 @@ namespace CGAL
 		    {
 			const Vector_3 los = lines_of_sight[idx];
 			const Vector_3& normal = get (normal_map, *it);
-			if (normal_along_scanline_is_inverted (normal, los))
-			    put (normal_map, *it, -normal);
+			put (normal_map, *it,  los);
+			if (normal_along_scanline_is_inverted (normal, los)){
+			    //put (normal_map, *it, -normal);
+			    //put (normal_map, *it,  los);
+			 }
 		    }
 	    }
 
 	    template <typename Iterator, typename PointMap, typename NormalMap,
-		      typename ScanAngleMap>
+		      typename ScanAngleMap,typename ScanIdMap,typename Vector_3>
 	    void orient_scanline (Iterator begin, Iterator end,
 				  PointMap point_map,
 				  NormalMap normal_map,
 				  ScanAngleMap,
+				  ScanIdMap scan_id_map,
+				  std::vector<Vector_3> & lines_of_sight,
 				  const Tag_true&) // fallback scan angle
 	    {
 		using Point_3 = typename boost::property_traits<PointMap>::value_type;
-		using Vector_3 = typename boost::property_traits<NormalMap>::value_type;
+		//using Vector_3 = typename boost::property_traits<NormalMap>::value_type;
 
 		Vector_3 direction;
 		Vector_3 vertical;
@@ -357,12 +380,14 @@ namespace CGAL
 		Point_3 scan_position (mean_x / nb, mean_y / nb,
 				       max_z + length * 2);
 
+
 		for (Iterator it = begin; it != end; ++ it)
 		    {
 			Vector_3 line_of_sight (get(point_map, *it), scan_position);
 			const Vector_3& normal = get (normal_map, *it);
-			if (normal_along_scanline_is_inverted (normal, line_of_sight))
+			if (normal_along_scanline_is_inverted (normal, line_of_sight)){
 			    put (normal_map, *it, -normal);
+			}
 		    }
 	    }
 
@@ -474,11 +499,11 @@ namespace CGAL
        \cgalParamNEnd
        \cgalNamedParamsEnd
     */
-    template <typename PointRange, typename NamedParameters = parameters::Default_named_parameters>
-    void scanline_orient_normals (PointRange& points, const NamedParameters& np = parameters::default_values())
+    template <typename PointRange, typename NamedParameters = parameters::Default_named_parameters,typename Vector_3>
+    void scanline_orient_normals (PointRange& points, std::vector<Vector_3> & lines_of_sight,const NamedParameters& np = parameters::default_values())
     {
-	std::cout << "custom fun" << std::endl;
-	std::cout << "size:" << points.size() << std::endl;
+	// std::cout << "custom fun" << std::endl;
+	// std::cout << "size:" << points.size() << std::endl;
 	using parameters::choose_parameter;
 	using parameters::get_parameter;
 
@@ -537,14 +562,14 @@ namespace CGAL
 			force_cut = (CGAL::squared_distance (get (point_map, *prev),
 							     get (point_map, *it)) > limit * limit);
 		    }
-		std::cout << "point_map_size:" << std::distance (scanline_begin, it) << std::endl;
+		// std::cout << "point_map_size:" << std::distance (scanline_begin, it) << std::endl;
 		if (Point_set_processing_3::internal::is_end_of_scanline
 		    (scanline_begin, it, point_map, scanline_id_map,
 		     Fallback_scanline_ID()) || force_cut)
 		    {
 			Point_set_processing_3::internal::orient_scanline
 			    (scanline_begin, it, point_map, normal_map,
-			     scan_angle_map, Fallback_scan_angle());
+			     scan_angle_map, scanline_id_map,lines_of_sight,Fallback_scan_angle());
 
 #ifdef CGAL_SCANORIENT_DUMP_RANDOM_SCANLINES
 			ofile << std::distance (scanline_begin, it);
@@ -560,7 +585,7 @@ namespace CGAL
 
 	Point_set_processing_3::internal::orient_scanline
 	    (scanline_begin, points.end(), point_map, normal_map,
-	     scan_angle_map, Fallback_scan_angle());
+	     scan_angle_map,scanline_id_map, lines_of_sight,Fallback_scan_angle());
 
 #ifdef CGAL_SCANLINE_ORIENT_VERBOSE
 	std::cout << nb_scanlines << " scanline(s) identified (mean length = "

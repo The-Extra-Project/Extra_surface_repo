@@ -1914,21 +1914,22 @@ try_next_cell:
 
 
   // (non-stochastic) visibility walk
-  // const Point p1 = pts[0];
-  // const Point p2 = pts[1];
-  // const Point p3 = pts[2];
-  // const Point p4 = pts[2];
   Traits::K::Tetrahedron_3 tet(*pts[0],*pts[1],*pts[2],*pts[3]);
-  if(CGAL::do_intersect(seg, tet)){
-      sample_cell_raw(c,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
-  }
+  // if(CGAL::do_intersect(seg, tet)){
+      //     sample_cell_raw(c,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
+  // }
   for(int i=0; i != 4; ++i)
   {
     Cell_handle next = c->neighbor(i);
     if(previous == next) continue;
 
-    // if(!next->has_vertex(tri.infinite_vertex()))
-    //   sample_cell(next,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
+    if(!next->has_vertex(tri.infinite_vertex())){
+	  // if(CGAL::do_intersect(seg, tet)){
+      //     sample_cell_raw(c,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
+  // }
+	if(CGAL::do_intersect(seg, tet))
+	    sample_cell(next,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
+    }
     
     // We temporarily put p at i's place in pts.
     const Point* backup = pts[i];
@@ -1947,9 +1948,10 @@ try_next_cell:
 
 
     // for(int ii = 0; ii <= 3; ii++){
-    //   Cell_handle s_nbr = s->neighbor(ii);
+    //   Cell_handle s_nbr = c->neighbor(ii);
     //   if(!tri.is_infinite(s_nbr))
     // 	sample_cell(s_nbr,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
+    // }
     
     previous = c;
     c = next;
@@ -2043,7 +2045,7 @@ void wasure_algo::compute_dst_with_center(DTW & tri, wasure_data<Traits>  & data
 
   compute_dst_tri(tri,datas_tri,datas_pts,params);
   DT & tri_tile  = tri.get_tile(tid)->triangulation();
-  compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
+  //compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
   center_dst(tri,datas_tri,datas_pts.format_centers,tid);
 } 
 
