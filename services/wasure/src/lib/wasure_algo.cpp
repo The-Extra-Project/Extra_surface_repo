@@ -1804,7 +1804,7 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
 	    loc_type = DT::OUTSIDE_CONVEX_HULL;
 	    face.set_full_cell(s);
 	  }else{
-	    sample_cell(s,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
+	    sample_cell_raw(s,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
 	    for(int ii = 0; ii <= cur_dim; ii++){
 	      Cell_handle s_nbr = s->neighbor(ii);
 	      if(!tri.is_infinite(s_nbr))
@@ -1925,10 +1925,10 @@ try_next_cell:
 
     if(!next->has_vertex(tri.infinite_vertex())){
 	  // if(CGAL::do_intersect(seg, tet)){
-      //     sample_cell_raw(c,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
+	//sample_cell_raw(c,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
   // }
-	if(CGAL::do_intersect(seg, tet))
-	    sample_cell(next,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
+	//if(CGAL::do_intersect(seg, tet))
+	sample_cell(next,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
     }
     
     // We temporarily put p at i's place in pts.
@@ -2027,7 +2027,7 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
       for(int d = 0;d < D;d++)
 	coords[d] = Pt3d[d] -(Ptcenter[d] - Pt3d[d]);
       Point Ptcenter_mir = traits.make_point(coords);
-      // std::cerr << n << " -- pt:" << Pt3d << " -- center:" << Ptcenter << std::endl;
+      //std::cerr << n << " -- pt:" << Pt3d << " -- center:" << Ptcenter << std::endl;
       //Cell_handle loc = walk_locate(tri,Pt,Ptcenter,norms[n],scales[n],acc++);
       if(((int)format_flags[n]) ==0){
 	walk_locate(tri,Pt3d,Ptcenter,Pt3d,datas_tri,datas_pts,params,n,start_walk);

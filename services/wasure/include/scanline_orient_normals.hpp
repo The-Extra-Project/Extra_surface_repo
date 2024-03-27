@@ -254,7 +254,7 @@ namespace CGAL
 			//     los = -vertical;
 			    
 			// std::cout << "los:" << los << std::endl;
-			lines_of_sight.push_back (los/2);
+			lines_of_sight.push_back (los);
 			mean_z += get (point_map, *it).z();
 
 		    }
@@ -330,7 +330,7 @@ namespace CGAL
 		    {
 			const Vector_3 los = lines_of_sight[idx];
 			const Vector_3& normal = get (normal_map, *it);
-			put (normal_map, *it,  los);
+			// put (normal_map, *it,  los);
 			if (normal_along_scanline_is_inverted (normal, los)){
 			    //put (normal_map, *it, -normal);
 			    //put (normal_map, *it,  los);
@@ -380,14 +380,18 @@ namespace CGAL
 		Point_3 scan_position (mean_x / nb, mean_y / nb,
 				       max_z + length * 2);
 
-
+		int acc = 0;
 		for (Iterator it = begin; it != end; ++ it)
 		    {
+			
 			Vector_3 line_of_sight (get(point_map, *it), scan_position);
+			lines_of_sight[acc] = line_of_sight;
 			const Vector_3& normal = get (normal_map, *it);
+			put (normal_map, *it,  line_of_sight);
 			if (normal_along_scanline_is_inverted (normal, line_of_sight)){
-			    put (normal_map, *it, -normal);
+			    //put (normal_map, *it, -normal);
 			}
+			acc++;
 		    }
 	    }
 

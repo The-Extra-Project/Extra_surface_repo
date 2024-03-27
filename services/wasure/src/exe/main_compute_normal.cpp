@@ -3,7 +3,7 @@
 #include <CGAL/IO/write_ply_points.h>
 #include <CGAL/jet_estimate_normals.h>
 //#include <CGAL/scanline_orient_normals.h>
-#include <scanline_orient_normals.hpp>
+#include <scanline_orient_normals_ori.hpp>
 
 #define CGAL_SCANLINE_ORIENT_VERBOSE 1
 
@@ -29,7 +29,6 @@ int main (int argc, char** argv)
 
     std::string fname = argv[1];
     std::string oname = argv[2];
-    std::vector<Vector_3> lines_of_sight;  
     std::vector<Point_with_info> points;
     std::cerr << "Reading input file " << fname << std::endl;
     std::ifstream ifile (fname, std::ios::binary);
@@ -57,45 +56,13 @@ int main (int argc, char** argv)
     std::cerr << "Orienting normals using scan angle and direction flag" << std::endl;
     CGAL::scanline_orient_normals
 	(points,
-	 lines_of_sight,
 	 CGAL::parameters::point_map (Point_map()).
 	 normal_map (Normal_map()).
 	 scan_angle_map (Scan_angle_map()).
 	 scanline_id_map (Scanline_id_map()));
 
-    for (auto pp : points){
-	break;
-	auto vx = std::get<1>(pp)[0];
-	auto vy = std::get<1>(pp)[1];
-	auto vz = std::get<1>(pp)[2];
-	std::cout << vx << " " << vy << " " << vz << " : ";
-	std::cout << std::get<2>(pp) << " " << std::to_string(std::get<3>(pp))  << std::endl;
-    }
 
-  
-    dump("/home/LCaraffa/code/spark-ddt/datas/lidar_hd/urban_fix.ply", points);
-    std::cerr << "Orienting normals using scan direction flag only" << std::endl;
-    CGAL::scanline_orient_normals
-	(points,
-	 lines_of_sight,
-	 CGAL::parameters::point_map (Point_map()).
-	 normal_map (Normal_map()).
-	 scanline_id_map (Scanline_id_map()));
-    dump("/home/LCaraffa/code/spark-ddt/datas/lidar_hd/out_flag.ply", points);
-    std::cerr << "Orienting normals using scan angle only" << std::endl;
-    CGAL::scanline_orient_normals
-	(points,
-	 lines_of_sight,
-	 CGAL::parameters::point_map (Point_map()).
-	 normal_map (Normal_map()).
-	 scan_angle_map (Scan_angle_map()));
-    dump("/home/LCaraffa/code/spark-ddt/datas/lidar_hd/out_angle.ply", points);
-    std::cerr << "Orienting normals using no additional info" << std::endl;
-    CGAL::scanline_orient_normals
-	(points,
-	 lines_of_sight,
-	 CGAL::parameters::point_map (Point_map()).
-	 normal_map (Normal_map()));
-    dump("/home/LCaraffa/code/spark-ddt/datas/lidar_hd/out_nothing.ply", points);
+    dump("/home/LCaraffa/code/spark-ddt/datas/lidar_hd/out_lines.ply", points);
+
     return EXIT_SUCCESS;
 }

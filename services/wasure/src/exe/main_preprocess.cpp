@@ -4,7 +4,7 @@
 #include <CGAL/IO/write_ply_points.h>
 #include <CGAL/jet_estimate_normals.h>
 
-#include <scanline_orient_normals.hpp>
+#include <scanline_orient_normals_ori.hpp>
 
 #include <typeinfo>
 
@@ -164,7 +164,7 @@ int main (int argc, char** argv)
     
     std::vector<Point_with_info> points;
     std::vector<Point_with_info_2> points_2;
-    std::vector<Vector_3> lines_of_sight;
+    //    std::vector<Vector_3> lines_of_sight;
     std::cerr << "Reading input file " << fname << std::endl;
     std::ifstream ifile (fname, std::ios::binary);
     if (!ifile ||
@@ -187,13 +187,12 @@ int main (int argc, char** argv)
     std::cerr << "Orienting normals using scan angle and direction flag" << std::endl;
     CGAL::scanline_orient_normals
 	(points,
-	 lines_of_sight,
 	 CGAL::parameters::point_map (Point_map()).
 	 normal_map (Normal_map()).
 	 scan_angle_map (Scan_angle_map()).
 	 scanline_id_map (Scanline_id_map()));
 
-    double alpha = 100.0;
+    double alpha = 200.0;
     CGAL::Bbox_3 bbox;
     CGAL::Bbox_3 bbox2;
 
@@ -209,14 +208,14 @@ int main (int argc, char** argv)
                    (bbox.zmin() + bbox.zmax()) / 2.0);
     int acc = 0;
     for (auto pp : points){
-	auto vx = std::get<0>(pp)[0];
-	auto vy = std::get<0>(pp)[1];
-	auto vz = std::get<0>(pp)[2];	
+	auto lx = std::get<1>(pp)[0];
+	auto ly = std::get<1>(pp)[1];
+	auto lz = std::get<1>(pp)[2];	
 	
 	Kernel::Vector_3 ori(
-			     std::get<0>(pp)[0] + alpha*lines_of_sight[acc][0] - bbox_center[0] ,
-			     std::get<0>(pp)[1] + alpha*lines_of_sight[acc][1] - bbox_center[1] ,
-			     std::get<0>(pp)[2] + alpha*lines_of_sight[acc][2] - bbox_center[2]
+			     std::get<0>(pp)[0] + alpha*lx - bbox_center[0] ,
+			     std::get<0>(pp)[1] + alpha*ly - bbox_center[1] ,
+			     std::get<0>(pp)[2] + alpha*lz - bbox_center[2]
 			     );
 	Kernel::Point_3 pp_new(
 			     std::get<0>(pp)[0] - bbox_center[0] ,
@@ -227,9 +226,9 @@ int main (int argc, char** argv)
 
 	points_2.push_back(std::make_tuple(pp_new,std::get<1>(pp),ori));
 
-	vx = pp_new[0];
-	vy = pp_new[1];
-	vz = pp_new[2];	
+	double vx = pp_new[0];
+	double vy = pp_new[1];
+	double vz = pp_new[2];	
 	bbox2 = bbox2 +  CGAL::Bbox_3(vx,vy,vz,
                                     vx,vy,vz);
 	acc++;

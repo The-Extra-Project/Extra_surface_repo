@@ -1,7 +1,7 @@
 #ifndef TBMRF_H
 #define TBMRF_H
 #define MULT (1.0)
-#define GSPS_CONST (0)
+
 //#include "wasure_typedefs.hpp"
 #include <stdio.h>      /* printf */
 #include <iostream>      /* printf */
@@ -17,6 +17,7 @@
 #include "wasure_maths.hpp"
 #include "QPBO.h"
 #include "wasure_typedefs.hpp"
+#include "input_params.hpp"
 
 // Belief
 #include <opengm/graphicalmodel/graphicalmodel.hxx>
@@ -214,7 +215,7 @@ public :
 
     double get_goodshape_prior(Cell_const_iterator & cci, int idx)
     {
-      return 1;
+	//return 1;
         Tile_cell_const_handle fch = cci->full_cell();
 
         std::list<Point> lp;
@@ -242,10 +243,10 @@ public :
 	      max_d = dist;
 	  }
 	}
-	double eps = 0.0001;
+	double eps = 0.00001;
 	if(min_d <= eps)
 	  min_d = eps;
-        return (sqrt(max_d)/sqrt(min_d));
+        return (max_d/min_d);
     }
 
 
