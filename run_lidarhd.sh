@@ -33,7 +33,7 @@ function run_lidarhd_local
     INPUT_DIR="${GLOBAL_INPUT_DIR}/lidar_hd_prepro/"
     OUTPUT_DIR=${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}
     INPUT_FILE="${GLOBAL_INPUT_DIR}/lidar_hd_prepro/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.crop.ply"
-    docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR} -v ${GLOBAL_INPUT_DIR}:${GLOBAL_INPUT_DIR} --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "mkdir -p ${OUTPUT_DIR} &&  ${DDT_MAIN_DIR}/build//build-spark-Release-3/bin/wasure-local-exe --output_dir ${OUTPUT_DIR} --input_dir ${DDT_MAIN_DIR}/datas/3d_bench_small --dim 3 --bbox  -59x59:-59x59:-33x32  --pscale 0.1 --nb_samples 5 --rat_ray_sample 1 --mode surface --lambda 1 --step full_stack --seed 18696 --label full_small_CRO --filename $INPUT_FILE "
+    docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR} -v ${GLOBAL_INPUT_DIR}:${GLOBAL_INPUT_DIR} --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "mkdir -p ${OUTPUT_DIR} &&  ${DDT_MAIN_DIR}/build//build-spark-Release-3/bin/wasure-local-exe --output_dir ${OUTPUT_DIR} --input_dir ${DDT_MAIN_DIR}/datas/3d_bench_small --dim 3 --bbox  -59x59:-59x59:-33x32  --pscale 0.1 --nb_samples 50 --rat_ray_sample 1 --mode surface --lambda 1 --step full_stack --seed 18696 --label full_small_CRO --filename $INPUT_FILE "
 
 }
 
@@ -48,7 +48,7 @@ function run_lidarhd
     # OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"    
 
     # run_algo_docker
-    #docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR} -v ${GLOBAL_INPUT_DIR}:${GLOBAL_INPUT_DIR} --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "${DDT_MAIN_DIR}/build/build-spark-Release-3/bin/main_preprocess ${GLOBAL_INPUT_DIR}/lidar_hd_raw/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.laz  ${GLOBAL_INPUT_DIR}/lidar_hd_full/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.ply"
+    docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR} -v ${GLOBAL_INPUT_DIR}:${GLOBAL_INPUT_DIR} --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "${DDT_MAIN_DIR}/build/build-spark-Release-3/bin/main_preprocess ${GLOBAL_INPUT_DIR}/lidar_hd_raw/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.laz  ${GLOBAL_INPUT_DIR}/lidar_hd_full/LHD_FXX_0635_6857_PTS_C_LAMB93_IGN69.copc.ply"
     
     
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
@@ -88,6 +88,6 @@ function run_lidarhd_crop
 }
 
 #run_preprocess
-#run_lidarhd_local
+run_lidarhd_local
 #run_lidarhd
-run_lidarhd_crop
+#run_lidarhd_crop

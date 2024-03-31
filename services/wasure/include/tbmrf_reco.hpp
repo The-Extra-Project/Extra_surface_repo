@@ -53,7 +53,7 @@ public :
 
     double volume = 1;
     if(!fch->is_infinite()){
-      volume =  get_volume_reco(fch);
+	//volume =  get_volume_reco(fch);
       //volume = tbmrf<DTW,D_MAP>::get_volume(fch);
 	  
     }

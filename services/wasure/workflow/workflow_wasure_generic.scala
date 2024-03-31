@@ -136,8 +136,8 @@ val min_ppt = params_scala.get_param("min_ppt", "100").toInt
 val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
 val lambda = params_scala.get_param("lambda", "0.1").toFloat
 val coef_mult = params_scala.get_param("coef_mult", "1").toFloat
-//val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
-var max_opt_it = 30
+val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
+//var max_opt_it = 30
 if (ndtree_depth == 0){
   max_opt_it = 2
 }

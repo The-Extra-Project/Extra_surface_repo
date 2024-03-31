@@ -1040,7 +1040,7 @@ void wasure_algo::compute_dst_mass_norm(std::vector<double> coefs, std::vector<d
       // v_e1 = v_e1*exp(-fabs(coefs[d]/(scales[d]*3)));
       // v_o1 = v_o1*exp(-fabs(coefs[d]/(scales[d]*3)));
       v_e1 = v_e1*score_pdf(coefs[d],scales[d]/9);
-      v_o1 = v_o1*score_pdf(coefs[d],scales[d]/9);
+      v_o1 = v_o1*score_pdf(coefs[d],scales[d]/9);      
     }
   }
 
@@ -1108,6 +1108,7 @@ wasure_algo::get_params_conflict_dst(const std::vector<double> & pts_scales,doub
   //  coef_conf = exp(-(rat/0.01)*(rat/0.01));
   //  coef_conf = exp(-(rat*rat)/0.01);
   coef_conf = 1;//MIN(min_scale/data_scale,1);//*get_conf_volume(pts_scales,D);
+  
 
 }
 
