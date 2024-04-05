@@ -304,7 +304,7 @@ int main(int argc, char **argv)
 
   //  std::vector<double> lambda_list({0,0.000001,0.000002,0.000005,0.00001,0.0001,0.001,0.01,0.02,0.05,0.1,1,2,4});
   //std::vector<double> lambda_list({0.00001,0.0001,0.001,0.01,0.1});
-  std::vector<double> lambda_list({0.01,0.05,0.07,0.1,0.15,0.2,0.4,0.6,0.9,1,1.5,2,4});
+  std::vector<double> lambda_list({0.01,0.05,0.07,0.1,0.15,0.2,0.3,0.4,0.5,0.6,0.7,0.9,1,1.5,2,4,8,10,20});
   std::vector<int> opt_mode({0});
   //std::vector<double> lambda_list({0.1});
   //std::vector<double> lambda_list({1});

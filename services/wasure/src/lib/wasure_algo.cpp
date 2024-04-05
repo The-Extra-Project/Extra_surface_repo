@@ -1037,10 +1037,8 @@ void wasure_algo::compute_dst_mass_norm(std::vector<double> coefs, std::vector<d
     if(scales[d] <= 0){
       v_e1 = v_o1 = 0;
     }else{
-      // v_e1 = v_e1*exp(-fabs(coefs[d]/(scales[d]*3)));
-      // v_o1 = v_o1*exp(-fabs(coefs[d]/(scales[d]*3)));
-      v_e1 = v_e1*score_pdf(coefs[d],scales[d]/9);
-      v_o1 = v_o1*score_pdf(coefs[d],scales[d]/9);      
+      v_e1 = v_e1*score_pdf(coefs[d],scales[d]);
+      v_o1 = v_o1*score_pdf(coefs[d],scales[d]);      
     }
   }
 
