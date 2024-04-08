@@ -63,6 +63,7 @@ RUN cd /usr/local/bin/ && \
     cmake ../ && \
     make 
 
+ENV LD_LIBRARY_PATH /usr/local/lib/:$LD_LIBRARY_PATH
 
 # RUN apt-get update && apt-get install -y python3-pip python3-gdal && pip3 install matplotlib plyfile
 

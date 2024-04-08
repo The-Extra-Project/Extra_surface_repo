@@ -215,7 +215,7 @@ public :
 
     double get_goodshape_prior(Cell_const_iterator & cci, int idx)
     {
-	//return 1;
+	//	return 0
         Tile_cell_const_handle fch = cci->full_cell();
 
         std::list<Point> lp;
@@ -246,7 +246,10 @@ public :
 	double eps = 0.00001;
 	if(min_d <= eps)
 	  min_d = eps;
-        return (max_d/min_d);
+	double vv = (max_d/min_d);
+	if (vv > 10)
+	    vv = 10;
+        return vv;
     }
 
 
@@ -955,9 +958,10 @@ public :
 	    e1 += -lag_acc;
 
 	  // if(tid_k == 3 && tile_k->cell_is_mixed(cit) )
-	  //   std::cerr << "lid_k:" << cccid << " new_e0: " << e0 << " new_e1:" << e1  <<  std::endl;
+	  //std::cerr << "lid_k:" << cccid << " new_e0: " << e0 << " new_e1:" << e1  <<  std::endl;
 	  // Construction des termes unaires
 	  // add_tweights(id du tétraèdre, score S->node,score node->T);
+
 	  g->add_tweights(cid, (e0 * MULT), (e1 * MULT));
 
         }
@@ -1009,6 +1013,11 @@ public :
 		double gsps = get_goodshape_prior(fch,tmp_idx);
                 double surface = get_score_surface(fch,tmp_idx);
                 double coef = (lambda*surface+GSPS_CONST*gsps)/((double)card_shared);
+		if(coef != coef){
+		    std::cerr << "WARNING coef == NAN" << std::endl;
+		    coef = 100;
+		}
+		//std::cerr << gsps << " " << surface << " " << coef << " " << std::endl;
                 int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
                 int chnlab = data_map[fchn->tile()->id()].format_labs[cccidn];
 		ch1lab = chnlab = 0;

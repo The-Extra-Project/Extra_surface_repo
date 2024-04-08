@@ -13,9 +13,9 @@
       <pscale>0.01</pscale>
       <nb_samples>1</nb_samples>
      
-      <lambda>0.1</lambda>
-      <max_opt_it>20</max_opt_it>
-      <algo_opt>seg_lagrange_weight,belief</algo_opt>
+      <lambda>1</lambda>
+      <max_opt_it>50</max_opt_it>
+      <algo_opt>seg_lagrange_weight</algo_opt>
       <StorageLevel>MEMORY_AND_DISK</StorageLevel>
       <!-- Meta paramexters -->
       <do_process>true</do_process>
