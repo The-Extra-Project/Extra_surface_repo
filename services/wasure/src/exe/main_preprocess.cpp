@@ -58,7 +58,7 @@ std::string extractDirectoryPath(const std::string& filePath) {
 
 
 
-void dump_xml(CGAL::Bbox_3 & bbox, int nbp, std::string fname){
+void dump_xml(CGAL::Bbox_3 & bbox, int nbp, Point_3 & cc, std::string fname){
       // Create XML writer context
     xmlTextWriterPtr writer = xmlNewTextWriterFilename(fname.c_str(), 0);
 
@@ -97,21 +97,22 @@ void dump_xml(CGAL::Bbox_3 & bbox, int nbp, std::string fname){
 
     // Write elements and their values
     //std::string bbstring = std::to_string(bbox.xmin())+"x"+std::to_string(bbox.xmax()) + ":"+ std::to_string(bbox.xmin())+"x"+std::to_string(bbox.ymax()) + ":" + std::to_string(bbox.zmin())+"x"+std::to_string(bbox.zmax());
-   std::string bbstring = std::to_string(bbox.xmin())+"x"+std::to_string(bbox.xmax()) + ":"+ std::to_string(bbox.xmin())+"x"+std::to_string(bbox.ymax()) + ":-500x500";
-	
+   std::string bbstring = std::to_string(bbox.xmin())+"x"+std::to_string(bbox.xmax()) + ":"+ std::to_string(bbox.xmin())+"x"+std::to_string(bbox.ymax()) + ":0x100000";
+   std::string shift=std::to_string(cc[0]) + "x" + std::to_string(cc[1]) + "x" + std::to_string(cc[2]);
     xmlTextWriterWriteElement(writer, BAD_CAST "plot_lvl", BAD_CAST "1");
     xmlTextWriterWriteElement(writer, BAD_CAST "do_stats", BAD_CAST "false");
     xmlTextWriterWriteElement(writer, BAD_CAST "datatype", BAD_CAST "files");
     xmlTextWriterWriteElement(writer, BAD_CAST "dim", BAD_CAST "3");
-    xmlTextWriterWriteElement(writer, BAD_CAST "ndtree_depth", BAD_CAST "2");
+    xmlTextWriterWriteElement(writer, BAD_CAST "ndtree_depth", BAD_CAST "7");
     xmlTextWriterWriteElement(writer, BAD_CAST "bbox", BAD_CAST bbstring.c_str());
-    xmlTextWriterWriteElement(writer, BAD_CAST "max_ppt", BAD_CAST "200000");
-    xmlTextWriterWriteElement(writer, BAD_CAST "pscale", BAD_CAST "0.03");
-    xmlTextWriterWriteElement(writer, BAD_CAST "nb_samples", BAD_CAST "1");
+    xmlTextWriterWriteElement(writer, BAD_CAST "shift", BAD_CAST shift.c_str());
+    xmlTextWriterWriteElement(writer, BAD_CAST "max_ppt", BAD_CAST "500000");
+    xmlTextWriterWriteElement(writer, BAD_CAST "pscale", BAD_CAST "0.05");
+    xmlTextWriterWriteElement(writer, BAD_CAST "nb_samples", BAD_CAST "50");
     xmlTextWriterWriteElement(writer, BAD_CAST "algo_opt", BAD_CAST "seg_lagrange_weight");
-    xmlTextWriterWriteElement(writer, BAD_CAST "lambda", BAD_CAST "0.1");
+    xmlTextWriterWriteElement(writer, BAD_CAST "lambda", BAD_CAST "2");
     xmlTextWriterWriteElement(writer, BAD_CAST "coef_mult", BAD_CAST "5");
-    xmlTextWriterWriteElement(writer, BAD_CAST "max_opt_it", BAD_CAST "30");
+    xmlTextWriterWriteElement(writer, BAD_CAST "max_opt_it", BAD_CAST "50");
     xmlTextWriterWriteElement(writer, BAD_CAST "StorageLevel", BAD_CAST "DISK_ONLY");
     xmlTextWriterWriteElement(writer, BAD_CAST "do_process", BAD_CAST "true");
     xmlTextWriterWriteElement(writer, BAD_CAST "do_expand", BAD_CAST "false");
@@ -205,7 +206,7 @@ int main (int argc, char** argv)
     }
     auto bbox_center = Point_3((bbox.xmin() + bbox.xmax()) / 2.0,
                    (bbox.ymin() + bbox.ymax()) / 2.0,
-                   (bbox.zmin() + bbox.zmax()) / 2.0);
+                   0);
     int acc = 0;
     for (auto pp : points){
 	auto lx = std::get<1>(pp)[0];
@@ -235,7 +236,7 @@ int main (int argc, char** argv)
 	
     }
     dump_2(oname.c_str(), points_2);					 
-    dump_xml(bbox2,points.size(),xml_fname);
+    dump_xml(bbox2,points.size(),bbox_center,xml_fname);
     
     return EXIT_SUCCESS;
 }

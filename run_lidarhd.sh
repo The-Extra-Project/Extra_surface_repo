@@ -61,6 +61,34 @@ function run_lidarhd
 
 
 ### 3D Surface reconstruction 
+function run_lidarhd_full
+{
+    
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+    INPUT_DIR_RAW="${GLOBAL_INPUT_DIR}/lidar_hd_raw/"
+    INPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
+    OUTPUT_DIR="${INPUT_DIR}"
+    PARAMS="${INPUT_DIR}/wasure_metadata.xml"
+    FILES="${INPUT_DIR_RAW}/*.laz"
+
+    mkdir -p ${OUTPUT_DIR}
+    for ff in ${FILES}
+    do
+	echo 
+	echo "Processing $ff file..."
+	bname=$(basename "$ff")
+	PLYFILE="${OUTPUT_DIR}/${bname%.laz}.ply"
+	docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR} -v ${GLOBAL_INPUT_DIR}:${GLOBAL_INPUT_DIR} --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "${DDT_MAIN_DIR}/build/build-spark-Release-3/bin/main_preprocess ${ff} ${PLYFILE} "
+	# take action on each file. $f store current file name
+    done
+
+    run_algo_docker
+
+}
+
+
+
+### 3D Surface reconstruction 
 function run_lidarhd_crop
 {
 
@@ -89,5 +117,6 @@ function run_lidarhd_crop
 
 #run_preprocess
 #run_lidarhd_local
-run_lidarhd
+#run_lidarhd
 #run_lidarhd_crop
+run_lidarhd_full
