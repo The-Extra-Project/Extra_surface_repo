@@ -254,68 +254,6 @@ std::string time_in_HH_MM_SS_MMM()
 
 
 
-// tSize read_buffer_hdfs(std::string filename,char * buffer,ddt::logging_stream * log)
-// {
-
-//     // hdfsConnect will take time the first call, fast after
-//     if(log != NULL) log->step("[read]hdfs_connect");
-
-//     hdfsFS fs = hdfsConnect("default", 0);
-//     const char* readPath = filename.c_str();
-
-//     if(log != NULL) log->step("[read]hdfs_openfile");
-//     hdfsFile readFile = hdfsOpenFile(fs, readPath, O_RDONLY,0, 0, 0);
-
-//     if(!readFile)
-//     {
-//         std::cerr << "Failed to open [" << std::string(readPath) << "] for writing!" << std::endl;
-//     }
-
-//     tSize tot_read_bytes = 0;
-//     int i = 0;
-
-//     if(log != NULL) log->step("[read]hdfs_totbytes");
-//     while(tot_read_bytes % SPARK_BUF_SIZE == 0)
-//     {
-//         tot_read_bytes += hdfsRead(fs, readFile, (buffer+(i++)*SPARK_BUF_SIZE), MAXBUFLEN);
-//     }
-
-//     if(log != NULL) log->step("[read]hdfs_close");
-//     hdfsCloseFile(fs, readFile);
-
-//     return tot_read_bytes;
-// }
-
-
-// tSize write_buffer_hdfs(std::string filename,const char * buffer,ddt::logging_stream * log)
-// {
-
-//     // Connect is fast if called before
-//     if(log != NULL) log->step("[write]hdfs_connect");
-
-//     hdfsFS fs = hdfsConnect("default", 0);
-//     const char* writePath = filename.c_str();
-
-//     if(log != NULL) log->step("[write]hdfs_open");
-//     hdfsFile writeFile = hdfsOpenFile(fs, writePath, O_WRONLY|O_CREAT, 0, 0, 0);
-//     if(!writeFile)
-//     {
-//         std::cerr << "Failed to open [" << writePath <<  "] for writing" << std::endl;
-//     }
-
-//     if(log != NULL) log->step("[write]hdfs_flush");
-//     tSize num_written_bytes = hdfsWrite(fs, writeFile, (void*)buffer, strlen(buffer)+1);
-//     if (hdfsFlush(fs, writeFile))
-//     {
-//         std::cerr <<  "Failed to 'flush' " << writePath << std::endl;;
-//     }
-
-//     if(log != NULL) log->step("[write]hdfs_close");
-//     hdfsCloseFile(fs, writeFile);
-//     return num_written_bytes;
-// }
-
-
 
 
 

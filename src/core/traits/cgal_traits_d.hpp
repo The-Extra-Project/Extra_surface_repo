@@ -331,7 +331,6 @@ struct Cgal_traits_d
     template<class It, class Out> inline int insert_splay(Delaunay_triangulation& dt, Id id, It begin, It end, Out out) const
     {
         assert(false);
-        std::cerr << "insert_splay not implemented in cgal_traits_2" << std::endl;
         insert(dt, begin, end);
         return 0; //FIXME
     }
@@ -414,7 +413,6 @@ struct Cgal_traits_d
     template<int D>
     inline bool is_visible(const Delaunay_triangulation& dt, const Bbox<D>& bbox, Cell_const_handle c, int i) const
     {
-        std::cerr << "is_visible not implemented in cgal_traits_d" << std::endl;
         return true;
     }
 
@@ -685,8 +683,6 @@ struct Cgal_traits_d
 
         uint ik;
         deserialize_b64_vect(v_int,ifile);
-	std::cerr << "deserialize cell done" << std::endl;
-	std::cerr << "num_c : " << v_int.size()/(D+1) << " " << num_c << std::endl;
         num_c = v_int.size()/(D+1);
         std::vector<Cell_handle> cell_map(num_c);
         for(uint i = 0; i < num_c; ++i)
@@ -757,12 +753,6 @@ struct Cgal_traits_d
             }
         }
 
-	std::cerr << "valid test" << std::endl;
-	std::cerr << "IS VALID??!" << std::endl;
-	if(tri.is_valid())
-	  std::cerr << "ok it's valid" << std::endl;
-	else
-	  std::cerr << "WRONG NOT VALID" << std::endl;
         assert(tri.is_valid());
 
         return ifile;
@@ -1070,7 +1060,6 @@ struct Cgal_traits_d
         std::vector<Cell_handle> cell_map(num_c);
         uint ik;
 
-        //std::cout << "number of cells to read.." << num_c << std::endl;
 
 	
         for(uint ii = 0; ii < num_c; ++ii)

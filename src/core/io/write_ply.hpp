@@ -277,7 +277,6 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
 	}
       }
   }
-  std::cerr << "TEST_CMP:" << nb_cell << "_" << nb_cell2 << std::endl;
   
   ofile.write(buffer_char,pos);
   delete [] buffer_char;      

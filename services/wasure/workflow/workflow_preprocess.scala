@@ -95,9 +95,9 @@ val dim = params_scala.get_param("dim", "3").toInt
 //val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-D" + dim.toString)
 val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-" + dim.toString)
 val build_dir = global_build_dir + "/" + ddt_kernel_dir
-val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "MEMORY_AND_DISK_SER"))
-val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "MEMORY_AND_DISK_SER"))
-val max_ppt_per_tile = 100000
+val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "MEMORY_AND_DISK"))
+val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "MEMORY_AND_DISK"))
+val max_ppt_per_tile = 500000
 
 
 // General Algo params
@@ -106,17 +106,17 @@ val spark_core_max = params_scala.get_param("spark_core_max", df_par.toString).t
 val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(100000).toString);
 
 // Wasure Algo params
-val wasure_mode = params_scala.get_param("mode", "surface")
+val wasure_mode = params_scala.get_param("mode", "1")
 val pscale = params_scala.get_param("pscale", "0.05").toFloat
-val nb_samples = params_scala.get_param("nb_samples", "1").toFloat
-val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
-val min_ppt = params_scala.get_param("min_ppt", "5").toInt
+val nb_samples = params_scala.get_param("nb_samples", "50").toFloat
+val rat_ray_sample = params_scala.get_param("rat_ray_sample", "0").toFloat
+val min_ppt = params_scala.get_param("min_ppt", "50").toInt
 val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
 val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
-val lambda = params_scala.get_param("lambda", "0.1").toFloat
-val max_opt_it = params_scala.get_param("max_opt_it", "15").toInt
+val lambda = params_scala.get_param("lambda", "2").toFloat
+val max_opt_it = params_scala.get_param("max_opt_it", "50").toInt
 val do_stats = params_scala.get_param("do_stats", "false").toBoolean
-val coef_mult = params_scala.get_param("coef_mult", "10").toFloat
+val coef_mult = params_scala.get_param("coef_mult", "5").toFloat
 
 
 // Set the iq library on
@@ -205,7 +205,7 @@ println("======== LOAD DATA  file =============")
 val ss_reg = regexp_filter.r
 // get number of ply
 val nb_ply = fs.listStatus(new Path(input_dir)).map(x => fs.listStatus(x.getPath)).reduce(_ ++ _).map(_.getPath).filter(
-  x => ((x.toString endsWith ".ply")) && ((ss_reg).findFirstIn(x.toString).isDefined)
+  x => ((x.toString endsWith ".las")) && ((ss_reg).findFirstIn(x.toString).isDefined)
 ).size
 
 if(nb_ply == 0){
@@ -215,7 +215,7 @@ if(nb_ply == 0){
 
 // List of input ply filepath
 val ply_input = getListOfFiles(input_dir).filter(
-  x => ((x.toString endsWith ".ply") && ((ss_reg).findFirstIn(x.toString).isDefined)))
+  x => ((x.toString endsWith ".las") && ((ss_reg).findFirstIn(x.toString).isDefined)))
 kvrdd_inputs = iq.get_kvrdd(sc.parallelize(ply_input.map(
   fname => "p 1 " + ("([0-9]+)".r).findAllIn(fname.toString).toArray.last + " f " + fname.toString)),"p").repartition(nb_ply)
 
@@ -226,17 +226,22 @@ val struct_inputs = iq.run_pipe_fun_KValue(
     , "struct", do_dump = false)
 struct_inputs.collect
 val kvrdd_bbox = iq.get_kvrdd(struct_inputs,"s").persist(slvl_loop);
+
 val bba =   kvrdd_bbox.map(x => x._2.head.split("z").tail.head.split(" ").filter(!_.isEmpty).map(x => x.toFloat)).reduce(
-  (x,y) => Array(Math.min(x(0),y(0)),Math.max(x(1),y(1)),Math.min(x(2),y(2)),Math.max(x(3),y(3)),Math.min(x(4),y(4)),Math.max(x(5),y(5)), x(6)+y(6)))
+   (x,y) => Array(Math.min(x(0),y(0)),Math.max(x(1),y(1)),Math.min(x(2),y(2)),Math.max(x(3),y(3)),Math.min(x(4),y(4)),Math.max(x(5),y(5)), x(6)+y(6)))
+
+
 val smax =   Math.max(Math.max(bba(1)-bba(0),bba(1)-bba(0)),bba(1)-bba(0))
 val tot_nbp = bba(6)
-val ndtree_depth = (Math.log(tot_nbp/max_ppt_per_tile)/Math.log(3)).round 
-val lambda = params_scala.get_param("lambda", "0.1").toFloat
+val ndtree_depth = (Math.log(tot_nbp/max_ppt_per_tile)/Math.log(3)).round +1
+val lambda = params_scala.get_param("lambda", "1").toFloat
 
 
 // Dump xml
 
-params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + bba(4) + "x" + (bba(4) + smax))
+// params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + bba(4) + "x" + (bba(4) + smax))
+params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + 0 + "x" + 1000)
+
 params_scala("ndtree_depth") = collection.mutable.Set(ndtree_depth.toString)
 params_scala("datatype") = collection.mutable.Set("files")
 params_scala("max_ppt") = collection.mutable.Set(max_ppt_per_tile.toString)

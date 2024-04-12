@@ -42,17 +42,6 @@ target_link_libraries(main_preprocess
   )
 
 set(CGAL_SCANLINE_ORIENT_VERBOSE 1)
-set(spark-wasure_SOURCES
-  main_compute_normal.cpp
-  )
-add_executable( main_compute_normal  ${spark-wasure_SOURCES} )
-set_property(TARGET main_compute_normal PROPERTY CXX_STANDARD 11)
-target_link_libraries(main_compute_normal
-  ddt
-  tbmrf
-  ${WASURE_EXE_LIB_DEP}
-  )
-
 
 
 link_directories(${GLOBAL_BUILD_DIR})
@@ -68,64 +57,13 @@ target_link_libraries(wasure-local-exe
   tbmrf
   ${QPBO_LIBRARIES}
   ${WASURE_EXE_LIB_DEP}
-
   ${DOUBLE_CONV_LIBRARIES}
   )
-
-set(spark-wasure_SOURCES
-  main_qpbo.cpp
-  )
-add_executable(opt-qpbo-exe ${spark-wasure_SOURCES})
-set_property(TARGET opt-qpbo-exe PROPERTY CXX_STANDARD 11)
-target_link_libraries(opt-qpbo-exe
-  ${QPBO_LIBRARIES}
-  )
-
-
-# set(spark-wasure_SOURCES
-#   main_test_graph.cpp
-#   )
-# add_executable(test_graph-exe ${spark-wasure_SOURCES})
-# set_property(TARGET test_graph-exe PROPERTY CXX_STANDARD 11)
-# target_link_libraries(test_graph-exe
-#   ${QPBO_LIBRARIES}
-#   ${GRAPHCUT_LIBRARIES}
-#   ${WASURE_EXE_LIB_DEP}
-#   )
-
-
-# set(spark-wasure_SOURCES
-#   main_test_yanis.cpp
-#   )
-# add_executable(test_yanis-exe ${spark-wasure_SOURCES})
-# set_property(TARGET test_yanis-exe PROPERTY CXX_STANDARD 11)
-# target_link_libraries(test_yanis-exe
-#   ${WASURE_EXE_LIB_DEP}
-#   )
-
 
 
 
 
 include_directories("../../../extern/opengm/include/")
-# add_executable(example-grid-potts grid_potts.cxx)
-# find_library(RT_LIBRARY rt)
-# target_link_libraries(example-grid-potts rt)
-
-
-
-set(spark-wasure_SOURCES
-  main_structuring_example.cpp
-  )
-add_executable(structuring_example-exe ${spark-wasure_SOURCES})
-set_property(TARGET structuring_example-exe PROPERTY CXX_STANDARD 11)
-target_link_libraries(structuring_example-exe
-  # intern dependencies
-  ddt
-  tbmrf
-  ${WASURE_EXE_LIB_DEP}
-  )
-
 
  
 if(CMAKE_VERBOSITY GREATER 0)

@@ -163,7 +163,6 @@ struct Cgal_traits_2
     template<class It, class Out> inline int insert_splay(Delaunay_triangulation& dt, Id id, It begin, It end, Out out) const
     {
         assert(false);
-        std::cerr << "insert_splay not implemented in cgal_traits_2" << std::endl;
         dt.insert(begin, end);
         return 0; //FIXME
     }
@@ -438,13 +437,11 @@ struct Cgal_traits_2
 
     std::istream& read_cgal(std::istream&  ifile, Delaunay_triangulation& dt, bool do_data = true, bool is_ascii = true)
     {
-        std::cerr << "read_cgal not implemented in cgal_traits_2" << std::endl;
         return ifile;
     }
 
     std::ostream & write_cgal(std::ostream & ofile, const Delaunay_triangulation& dt, bool do_data = true, bool is_ascii = true) const
     {
-        std::cerr << "write_cgal not implemented in cgal_traits_2" << std::endl;
         return ofile;
     }
 
@@ -579,13 +576,6 @@ struct Cgal_traits_2
             }
         }
 
-        std::cerr << "[stats out] :";
-        std::cerr << std::distance(tri.all_edges_begin(),tri.all_edges_end()) << " " ;
-        std::cerr << std::distance(tri.all_vertices_begin(),tri.all_vertices_end()) << " " ;
-        std::cerr << std::distance(tri.all_faces_begin(),tri.all_faces_end()) << " --  " ;
-        std::cerr << tri.tds().number_of_edges() << " " ;
-        std::cerr << tri.number_of_vertices() << " " ;
-        std::cerr << tri.number_of_faces() << std::endl;
 
         data.dmap[data.xyz_name].fill_full_output(v_xyz);
         data.dmap[data.simplex_name].fill_full_output(v_simplex);

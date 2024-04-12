@@ -750,13 +750,11 @@ struct Cgal_traits_3
 
     std::istream& read_cgal(std::istream&  ifile, Delaunay_triangulation& dt, bool do_data = true, bool is_ascii = true)
     {
-        std::cerr << "read_cgal not implemented in cgal_traits_3" << std::endl;
         return ifile;
     }
 
     std::ostream & write_cgal(std::ostream & ofile, const Delaunay_triangulation& dt, bool do_data = true, bool is_ascii = true) const
     {
-        std::cerr << "write_cgal not implemented in cgal_traits_3" << std::endl;
         return ofile;
     }
 
@@ -1119,8 +1117,6 @@ struct Cgal_traits_3
 
         uint ik;
         deserialize_b64_vect(v_int,ifile);
-	std::cerr << "deserialize cell done" << std::endl;
-	std::cerr << "num_c : " << v_int.size()/(D+1) << " " << num_c << std::endl;
         num_c = v_int.size()/(D+1);
         std::vector<Cell_handle> cell_map(num_c);
         for(uint i = 0; i < num_c; ++i)
@@ -1174,29 +1170,6 @@ struct Cgal_traits_3
             }
         }
 
-        // for(uint j = 0; j < num_c; ++j)
-        // {
-        //     Cell_handle s  = cell_map[j];
-        //     for( uint j = 0; j <= D; ++j )
-        //     {
-        //         if( -1 != s->mirror_index(j) )
-        //             continue;
-        //         Cell_handle n = s->neighbor(j);
-        //         int k = 0;
-        //         Cell_handle nn = n->neighbor(k);
-        //         while( s != nn )
-        //             nn = n->neighbor(++k);
-        //         s->set_mirror_index(j,k);
-        //         n->set_mirror_index(k,j);
-        //     }
-        // }
-
-	std::cerr << "valid test" << std::endl;
-	std::cerr << "IS VALID??!" << std::endl;
-	if(tri.is_valid())
-	  std::cerr << "ok it's valid" << std::endl;
-	else
-	  std::cerr << "WRONG NOT VALID" << std::endl;
         assert(tri.is_valid());
 
         return ifile;

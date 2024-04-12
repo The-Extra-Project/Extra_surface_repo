@@ -4,8 +4,8 @@
 #include <CGAL/IO/write_ply_points.h>
 #include <CGAL/jet_estimate_normals.h>
 
-#include <scanline_orient_normals_ori.hpp>
 
+#include <scanline_orient_normals_ori.hpp>
 #include <typeinfo>
 
 #include <iostream>
@@ -14,6 +14,10 @@
 #include <libxml/tree.h>
 #include <libxml/xmlwriter.h>
 
+
+#include <iostream>
+#include <fstream>
+#include <filesystem>
 
 using Kernel = CGAL::Simple_cartesian<double>;
 using Point_3 = Kernel::Point_3;
@@ -24,7 +28,6 @@ using Point_map = CGAL::Nth_of_tuple_property_map<0, Point_with_info>;
 using Normal_map = CGAL::Nth_of_tuple_property_map<1, Point_with_info>;
 using Scan_angle_map = CGAL::Nth_of_tuple_property_map<2, Point_with_info>;
 using Scanline_id_map = CGAL::Nth_of_tuple_property_map<3, Point_with_info>;
-
 using Point_map_2 = CGAL::Nth_of_tuple_property_map<0, Point_with_info_2>;
 using Normal_map_2 = CGAL::Nth_of_tuple_property_map<1, Point_with_info_2>;
 using Ori_map = CGAL::Nth_of_tuple_property_map<2, Point_with_info_2>;
@@ -107,6 +110,7 @@ void dump_xml(CGAL::Bbox_3 & bbox, int nbp, Point_3 & cc, std::string fname){
     xmlTextWriterWriteElement(writer, BAD_CAST "bbox", BAD_CAST bbstring.c_str());
     xmlTextWriterWriteElement(writer, BAD_CAST "shift", BAD_CAST shift.c_str());
     xmlTextWriterWriteElement(writer, BAD_CAST "max_ppt", BAD_CAST "500000");
+    xmlTextWriterWriteElement(writer, BAD_CAST "mode", BAD_CAST "1");
     xmlTextWriterWriteElement(writer, BAD_CAST "pscale", BAD_CAST "0.05");
     xmlTextWriterWriteElement(writer, BAD_CAST "nb_samples", BAD_CAST "50");
     xmlTextWriterWriteElement(writer, BAD_CAST "algo_opt", BAD_CAST "seg_lagrange_weight");
@@ -204,9 +208,10 @@ int main (int argc, char** argv)
 	bbox = bbox +  CGAL::Bbox_3(vx,vy,vz,
                                     vx,vy,vz);
     }
-    auto bbox_center = Point_3((bbox.xmin() + bbox.xmax()) / 2.0,
-                   (bbox.ymin() + bbox.ymax()) / 2.0,
-                   0);
+    // auto bbox_center = Point_3((bbox.xmin() + bbox.xmax()) / 2.0,
+    //                (bbox.ymin() + bbox.ymax()) / 2.0,
+    //                0);
+    auto bbox_center = Point_3(0,0,0);
     int acc = 0;
     for (auto pp : points){
 	auto lx = std::get<1>(pp)[0];

@@ -95,25 +95,14 @@ function build # Build docker container
 }
 
 
-function build_cnes # Build docker container
-{
-    docker build ${PROXY_CMD} ${NO_CACHE} -t  ddt_img_cnes -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-cnes ${DDT_MAIN_DIR}
-    rm -rf ddt_img_cnes.simg
-    singularity build ddt_img_cnes.simg docker-daemon://ddt_img_cnes:latest
-    scp -r /home/laurent/code/spark-ddt/ddt_img_cnes.simg caraffl@hal.cnes.fr:~/code/spark-ddt/build/build-spark-Release-3/
-}
 
 
-function kill_container { # ./docker_interface.sh kill_container : kill all container related to wasure
+function kill_container { 
     echo "kill all container: ${CONTAINER_NAME_EXAMPLE}"
     docker rm -f ${CONTAINER_NAME_SHELL} 2>/dev/null
     docker rm -f ${CONTAINER_NAME_COMPILE} 2>/dev/null
 }
 
-function kill_container_all { # ./docker_interface.sh kill_container_all : kill all docker container 
-    docker stop $(docker ps -a -q) 2>/dev/null
-    docker rm -f $(docker ps -a -q) 2>/dev/null
-}
 
 
 function run_algo_spark # Run the main pipeline
@@ -159,7 +148,7 @@ function run_algo_spark # Run the main pipeline
 
     MOUNT_CMD="${MOUNT_CMD} -v ${INPUT_DATA_DIR}:${INPUT_DATA_DIR}"
     MOUNT_CMD="${MOUNT_CMD} -v ${OUTPUT_DATA_DIR}:${OUTPUT_DATA_DIR}"
-    
+    mkdir -p /tmp/spark-events     
     docker rm -f ${CONTAINER_NAME_SHELL} 2>/dev/null
     EXEC_FUN="cd ${ND_TRI_MAIN_DIR_DOCKER}"
     EXEC_FUN="${EXEC_FUN} ; ${DDT_MAIN_DIR}/src/scala/run_algo_spark.sh  -i ${INPUT_DATA_DIR} -o ${OUTPUT_DATA_DIR}  ${FILE_SCRIPT}  ${PARAM_PATH}  ${SPARK_CONF}  ${MASTER_IP} ${CORE_LOCAL_MACHINE} -b ${GLOBAL_BUILD_DIR} ${ALGO_SEED} ${DEBUG_CMD}"

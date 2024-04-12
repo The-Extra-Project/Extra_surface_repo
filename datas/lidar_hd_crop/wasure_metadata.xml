@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<env>
+  <datasets>
+    <austin>
+      <plot_lvl>1</plot_lvl>
+      <do_stats>false</do_stats>
+      <datatype>files</datatype>
+      <dim>3</dim>
+      <ndtree_depth>1</ndtree_depth>
+      <bbox>635471.000000x635570.990000:635471.000000x6856530.990000:0x100000</bbox>
+      <shift>0.000000x0.000000x0.000000</shift>
+      <max_ppt>50000</max_ppt>
+      <mode>1</mode>
+      <pscale>0.05</pscale>
+      <nb_samples>50</nb_samples>
+      <algo_opt>seg_lagrange_weight</algo_opt>
+      <lambda>2</lambda>
+      <coef_mult>5</coef_mult>
+      <max_opt_it>50</max_opt_it>
+      <StorageLevel>DISK_ONLY</StorageLevel>
+      <do_process>true</do_process>
+      <do_expand>false</do_expand>
+      <dump_debug>false</dump_debug>
+    </austin>
+  </datasets>
+</env>
