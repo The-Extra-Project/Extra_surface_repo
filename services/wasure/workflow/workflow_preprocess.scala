@@ -95,8 +95,8 @@ val dim = params_scala.get_param("dim", "3").toInt
 //val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-D" + dim.toString)
 val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-" + dim.toString)
 val build_dir = global_build_dir + "/" + ddt_kernel_dir
-val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "MEMORY_AND_DISK"))
-val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "MEMORY_AND_DISK"))
+val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
+val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "DISK_ONLY"))
 val max_ppt_per_tile = 500000
 
 
@@ -193,7 +193,8 @@ params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
 
 
 // Starts preprocess
-val preprocess_cmd =  set_params(params_wasure, List(("step","preprocess"))).to_command_line
+
+val bbox_cmd =  set_params(params_wasure, List(("step","compute_bbox"))).to_command_line
 val fs = FileSystem.get(sc.hadoopConfiguration);
 val regexp_filter = params_scala.get_param("regexp_filter", "");
 val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
@@ -205,7 +206,7 @@ println("======== LOAD DATA  file =============")
 val ss_reg = regexp_filter.r
 // get number of ply
 val nb_ply = fs.listStatus(new Path(input_dir)).map(x => fs.listStatus(x.getPath)).reduce(_ ++ _).map(_.getPath).filter(
-  x => ((x.toString endsWith ".las")) && ((ss_reg).findFirstIn(x.toString).isDefined)
+  x => ((x.toString endsWith ".las") || (x.toString endsWith ".laz")) && ((ss_reg).findFirstIn(x.toString).isDefined)
 ).size
 
 if(nb_ply == 0){
@@ -214,10 +215,32 @@ if(nb_ply == 0){
 }
 
 // List of input ply filepath
+// List of input ply filepath
 val ply_input = getListOfFiles(input_dir).filter(
-  x => ((x.toString endsWith ".las") && ((ss_reg).findFirstIn(x.toString).isDefined)))
+  x => (((x.toString endsWith ".las") || (x.toString endsWith ".laz")) && ((ss_reg).findFirstIn(x.toString).isDefined))).zipWithIndex
+
 kvrdd_inputs = iq.get_kvrdd(sc.parallelize(ply_input.map(
-  fname => "p 1 " + ("([0-9]+)".r).findAllIn(fname.toString).toArray.last + " f " + fname.toString)),"p").repartition(nb_ply)
+  xx => "p 1 " + xx._2 + " f " + xx._1)),"p").repartition(nb_ply)
+
+// val ply_input = getListOfFiles(input_dir).filter(
+//   x => (((x.toString endsWith ".las") || (x.toString endsWith ".laz")) && ((ss_reg).findFirstIn(x.toString).isDefined)))
+// kvrdd_inputs = iq.get_kvrdd(sc.parallelize(ply_input.map(
+//   fname => "p 1 " + ("([0-9]+)".r).findAllIn(fname.toString).toArray.last + " f " + fname.toString)),"p").repartition(nb_ply)
+
+// process data
+val struct_inputs_bbox = iq.run_pipe_fun_KValue(
+  bbox_cmd ++ List("--label", "struct"),
+  kvrdd_inputs
+    , "struct", do_dump = false)
+struct_inputs_bbox.collect
+val kvrdd_bbox_ori = iq.get_kvrdd(struct_inputs_bbox,"s").persist(slvl_loop);
+val bba_ori =   kvrdd_bbox_ori.map(x => x._2.head.split("z").tail.head.split(" ").filter(!_.isEmpty).map(x => x.toFloat)).reduce((x,y) => Array(Math.min(x(0),y(0)),Math.max(x(1),y(1)),Math.min(x(2),y(2)),Math.max(x(3),y(3)),Math.min(x(4),y(4)),Math.max(x(5),y(5)), x(6)+y(6)))
+
+
+val preprocess_cmd =  set_params(params_wasure, List(
+  ("step","preprocess"),
+  ("bbox", bba_ori(0) + "x" + bba_ori(1) + ":" + bba_ori(2) + "x" + bba_ori(3) + ":" + bba_ori(4) + "x" + bba_ori(5))
+)).to_command_line
 
 // process data
 val struct_inputs = iq.run_pipe_fun_KValue(
@@ -233,14 +256,14 @@ val bba =   kvrdd_bbox.map(x => x._2.head.split("z").tail.head.split(" ").filter
 
 val smax =   Math.max(Math.max(bba(1)-bba(0),bba(1)-bba(0)),bba(1)-bba(0))
 val tot_nbp = bba(6)
-val ndtree_depth = (Math.log(tot_nbp/max_ppt_per_tile)/Math.log(3)).round +1
+val ndtree_depth = Math.max((Math.log(tot_nbp/max_ppt_per_tile)/Math.log(3)).round,0) + 1
 val lambda = params_scala.get_param("lambda", "1").toFloat
 
 
 // Dump xml
 
 // params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + bba(4) + "x" + (bba(4) + smax))
-params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + 0 + "x" + 1000)
+params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + 0.0 + "x" + 1000.0)
 
 params_scala("ndtree_depth") = collection.mutable.Set(ndtree_depth.toString)
 params_scala("datatype") = collection.mutable.Set("files")

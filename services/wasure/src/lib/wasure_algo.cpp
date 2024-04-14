@@ -513,6 +513,7 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
   int D = Traits::D;  
 
   int nbp = points.size();
+
   double eps = 0;
   int K_T = 150;
   int step = 10;
@@ -522,7 +523,7 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
   if(K_T/step < 1)
     step = K_T;
 
-  int K_T_min = 4;
+  int K_T_min = 10;
   // if(K_T_min > points.size() -1)
   //   K_T_min = points.size() - 1;
   

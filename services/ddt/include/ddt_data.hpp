@@ -268,6 +268,7 @@ public :
     dmap[simplex_name] = Data_ply(simplex_name,"face",D+1,D+1,tinyply::Type::INT32);
     dmap[nb_name] = Data_ply(nb_name,"face",D+1,D+1,tinyply::Type::INT32);
     dmap[center_name] = Data_ply(center_name,"vertex",D,D,DATA_FLOAT_TYPE);
+    dmap[normal_name] = Data_ply(normal_name,"vertex",D,D,DATA_FLOAT_TYPE);
   }
 
 
@@ -285,6 +286,7 @@ public :
     nb_name = {"nb_indices"};
     gid_name = {"gid"};
     center_name = subvect({"x_origin","y_origin","z_origin","t_origin"},D);
+    normal_name = subvect({"nx","ny","nz","nt"},D);
   }
 
 
@@ -522,26 +524,26 @@ public :
   void read_serialized_stream(std::istream & ss){
     int nbe;
     ss >> nbe;
-    //std::cerr << "nbe:" << nbe << std::endl;
+    std::cerr << "nbe:" << nbe << std::endl;
     for(int i = 0 ; i < nbe;i++){
       std::vector<std::string> data_name;
       std::string tt_name("vertex");
       int dim,vs,dn_size;
       tinyply::Type tt;
       ss >> dn_size;
-      //std::cerr << "---" << std::endl;
+      std::cerr << "---" << std::endl;
       std::string nnn;
       for(int i = 0; i < dn_size; i++){
 	ss >> nnn;
-	//std::cerr << nnn << "-";
+	std::cerr << nnn << "-";
 	data_name.push_back(nnn);
       }
-      //std::cerr << std::endl;
+      std::cerr << std::endl;
       ss >> tt_name;
       ss >> vs;
       int ttti;
       ss >> ttti;
-      //std::cerr << "     read stats:" << nnn << " " << tt_name << " " << vs << " " << ttti << " " << std::endl;
+      std::cerr << "     read stats:" << nnn << " " << tt_name << " " << vs << " " << ttti << " " << std::endl;
       dmap[data_name] = Data_ply(data_name,tt_name,dim,vs,static_cast<tinyply::Type>(ttti));
       dmap[data_name].set_exist(true);
       deserialize_b64_vect(dmap[data_name].uint8_vect,ss);
@@ -983,6 +985,7 @@ public :
     flag_vertex_name,
     flag_simplex_name,
     gid_name,
+      normal_name,
     simplex_name,nb_name,center_name;      
 };
 

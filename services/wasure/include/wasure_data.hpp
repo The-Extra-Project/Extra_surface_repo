@@ -36,6 +36,7 @@ public :
     {
         int D = Traits::D;
         ddt_data<Traits>::dmap[center_name] = Data_ply(center_name,"vertex",D,D,DATA_FLOAT_TYPE);
+	ddt_data<Traits>::dmap[normal_name] = Data_ply(normal_name,"vertex",D,D,DATA_FLOAT_TYPE);
         ddt_data<Traits>::dmap[egv_name] = Data_ply(egv_name,"vertex",D*D,D*D,DATA_FLOAT_TYPE);
 	ddt_data<Traits>::dmap[flags_name] = Data_ply(flags_name,"vertex",1,1,tinyply::Type::INT32);
         ddt_data<Traits>::dmap[dst_name] = Data_ply(dst_name,"face",3,3,DATA_FLOAT_TYPE);
@@ -55,6 +56,7 @@ public :
 	glob_scale_name = {"glob_scale"};
 	flags_name = {"flags"};
         center_name = ddt_data<Traits>::subvect({"x_origin","y_origin","z_origin","t_origin"},D);
+	normal_name = ddt_data<Traits>::subvect({"nx","ny","nz","nt"},D);
         switch(D)
         {
         case 1 :
@@ -570,6 +572,7 @@ public :
 
     std::vector<Point>  format_points;
     std::vector<Point>  format_centers;
+    std::vector<Point>  format_normals;
     std::vector<std::vector<Point> >  format_egv;
     std::vector<std::vector<double>>  format_sigs ;
     std::vector<std::vector<double>>  format_dst ;
@@ -578,7 +581,7 @@ public :
     std::vector<double>  format_glob_scale ;
     std::vector<int> tile_ids;
 
-  std::vector<std::string> egv_name,sig_name,labseg_name,gid_name,center_name,dst_name,glob_scale_name,flags_name;
+    std::vector<std::string> egv_name,sig_name,labseg_name,gid_name,center_name,normal_name,dst_name,glob_scale_name,flags_name;
 
 };
 

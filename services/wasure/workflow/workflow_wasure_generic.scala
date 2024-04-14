@@ -345,6 +345,7 @@ val res_dim = iq.run_pipe_fun_KValue(
 val kvrdd_dim = iq.get_kvrdd(res_dim,"z");
 val kvrdd_simp = iq.get_kvrdd(res_dim,"x").reduceByKey((u,v) => u ::: v,rep_loop);
 
+
 // Test python
 val res_dim_python = iq.run_pipe_fun_KValue(
   python_cmd,

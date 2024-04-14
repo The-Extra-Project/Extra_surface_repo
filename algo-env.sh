@@ -9,6 +9,7 @@ export CONTAINER_NAME_COMPILE="ddt_container_compile"
 ## Shared dir
 export DDT_MAIN_DIR_DOCKER=${DDT_MAIN_DIR}
 export SHARED_DIR="${DDT_MAIN_DIR_DOCKER}/shared_spark/"
+#export SHARED_DIR="/media/laurent/ssd2/datas/shared_spark/"
 export TMP_DIR="${SHARED_DIR}/tmp/"
 export SPARK_TMP_DIR="${TMP_DIR}/spark/"
 export SPARK_HISTORY_DIR="${SPARK_TMP_DIR}"
@@ -23,4 +24,4 @@ export MASTER_IP_SPARK="localhost"
 export SPARK_EXECUTOR_MEMORY="10G"
 export SPARK_DRIVER_MEMORY="10G"
 export SPARK_WORKER_MEMORY="10G"
-export NUM_PROCESS="10"
+export NUM_PROCESS="14"
