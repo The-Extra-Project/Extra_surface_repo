@@ -1,2 +1,2 @@
-/media/laurent/ssd2/softs/spark-ddt-release/src/docker/docker_interface.sh compile -j4 -t3*
+/media/laurent/ssd2/softs/spark-ddt-release/src/docker/docker_interface.sh compile -j4 -t3
 

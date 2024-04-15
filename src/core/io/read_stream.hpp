@@ -84,7 +84,10 @@ std::istream& read_json_stream(Tile & tile,std::istream&  ifile)
     auto & bbox = tile->bbox();
     for (auto its : root_node.get_child("bbox"))
     {
+	std::cerr << "read_json_stream" << std::endl;
+	std::cerr << its.first << std::endl;
         int iid = std::stoi(its.first);
+	std::cerr << "done" << std::endl;
         Id id = iid;
         std::stringstream ss (its.second.data());
         ss >> bbox[id];
