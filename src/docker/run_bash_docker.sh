@@ -71,7 +71,15 @@ function run_fun () {
 		echo "${RED}$BASH_CMD ${NC}"
 		echo ""
 		eval $DOCKER_EXE
-		rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+		rc=$?;
+		echo "RC ===> $rc" 
+		if [[ $rc != 0 ]];
+		then
+		    echo "RC ===> $rc" 
+		    exit $rc;
+		else
+		    return 0;
+		fi
 	    fi
 
 	    if [ -z "$DETACHED_TRUE" ];
@@ -128,3 +136,6 @@ fi
 # echo "Mount : $MOUNT_CMD"
 # echo "Img : $NAME_IMG"
 run_fun
+echo "DONE!!!"
+
+exit 0;
