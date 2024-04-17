@@ -282,6 +282,7 @@ public :
     ctileid_name = {"ctid"};
     cid_name = {"cid"};
     flag_vertex_name = {"flag_v"};
+    conf_vertex_name = {"conf"};
     flag_simplex_name = {"flag_s"};
     nb_name = {"nb_indices"};
     gid_name = {"gid"};
@@ -982,7 +983,8 @@ public :
     ctileid_name,
     vid_name,
     cid_name,
-    flag_vertex_name,
+      flag_vertex_name,
+      conf_vertex_name,
     flag_simplex_name,
     gid_name,
       normal_name,

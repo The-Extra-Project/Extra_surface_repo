@@ -3401,10 +3401,11 @@ using Scanline_id_map = CGAL::Nth_of_tuple_property_map<3, Point_with_info>;
 using Point_map_2 = CGAL::Nth_of_tuple_property_map<0, Point_with_info_2>;
 using Normal_map_2 = CGAL::Nth_of_tuple_property_map<1, Point_with_info_2>;
 using Ori_map = CGAL::Nth_of_tuple_property_map<2, Point_with_info_2>;
+using Conf_map = CGAL::Nth_of_tuple_property_map<3, Point_with_info_2>;
 
 
 
-void dump_2 (const char* filename, const std::vector<Point_with_info_2>& points){
+void dump_2(const char* filename, const std::vector<Point_with_info_2>& points){
     std::ofstream ofile (filename, std::ios::binary);
     CGAL::IO::set_binary_mode(ofile);
     CGAL::IO::write_PLY_with_properties
@@ -3417,7 +3418,9 @@ void dump_2 (const char* filename, const std::vector<Point_with_info_2>& points)
 	 std::make_tuple(Ori_map(),
 			 CGAL::IO::PLY_property<double>("x_origin"),
 			 CGAL::IO::PLY_property<double>("y_origin"),
-			 CGAL::IO::PLY_property<double>("z_origin")));
+			 CGAL::IO::PLY_property<double>("z_origin")));//,
+	 // std::make_tuple(Conf_map(),
+	 // 		 CGAL::IO::PLY_property<double>("conf")));
     return;
 }
 
@@ -3599,7 +3602,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
 	    bbox = bbox +  CGAL::Bbox_3(pp_new[0],pp_new[1],pp_new[2],
 					pp_new[0],pp_new[1],pp_new[2]);
 
-
+	    double conf = 1;
 	    points_2.push_back(std::make_tuple(pp_new,std::get<1>(pp),ori));
 	}
 
