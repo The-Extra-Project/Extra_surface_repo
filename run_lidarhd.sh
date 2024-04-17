@@ -45,6 +45,32 @@ function run_lidarhd_nice
     run_algo_docker
 }
 
+### 3D Surface reconstruction 
+function run_lidarhd_crop_nice
+{
+
+
+
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop_nice/"
+    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
+    #run_algo_docker
+
+    export LIST_WEIGHT="0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0"
+    export LIST_SAMPLE="1.0"
+
+    for ww in ${LIST_WEIGHT}
+    do
+	for ss in ${LIST_SAMPLE}
+	do	   
+	    docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR} --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "mkdir -p ${OUTPUT_DIR} && rm -rf ${OUTPUT_DIR}/tri.stream && ${DDT_MAIN_DIR}/build//build-spark-Release-3/bin/wasure-local-exe --output_dir ${OUTPUT_DIR} --input_dir ${DDT_MAIN_DIR}/datas/3d_bench_small --dim 3 --bbox 0000x10000:0000x10000  --pscale 0.05 --nb_samples 30 --rat_ray_sample ${ss} --ray_weight ${ww} --mode 1 --lambda 2 --step full_stack --seed 18696 --label lidarhd --filename ${OUTPUT_DIR}/struct_id_0.ply"
+	done
+    done
+
+}
+
+
 
 ### 3D Surface reconstruction 
 function run_lidarhd_full
@@ -53,7 +79,7 @@ function run_lidarhd_full
     INPUT_DIR="/media/laurent/ssd2/datas/shared_spark/datas/lidar_hd_raw/"
     OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    run_algo_docker
+    #run_algo_docker
 
     INPUT_DIR=${OUTPUT_DIR}
     PARAMS="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/wasure_metadata_3d_gen.xml"
@@ -67,5 +93,6 @@ function run_lidarhd_full
 #run_local
 #run_3d_bench_small
 #run_lidarhd_crop
+#run_lidarhd_crop_nice
 #run_lidarhd_tiles
 run_lidarhd_full

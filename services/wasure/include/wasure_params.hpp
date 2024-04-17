@@ -15,7 +15,7 @@ class wasure_params
 {
 public :
   wasure_params() : verbose_flag(0),nbp(0),log_level(2),nbt_side(-1),dump_ply(false),area_processed(0),coef_mult(1),dst_scale(-1),
-		    input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),slabel(std::string("")),mode(-1),rat_ray_sample(0.5),pscale(1),nb_samples(1),lambda(1),nb_labs(2),graph_type(0),tau(0.5),skip_app_header(false)
+		    input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),slabel(std::string("")),mode(-1),rat_ray_sample(0),pscale(1),nb_samples(1),lambda(1),nb_labs(2),graph_type(0),tau(0.5),skip_app_header(false),ray_weight(0)
     {
 
 
@@ -23,7 +23,7 @@ public :
     };
     int verbose_flag,seed,nbp,log_level,id_padding,graph_type,area_processed;
   bool show_ghost,skip_app_header,dump_ply,process_only_shared;
-  double lambda,terr,rat_ray_sample,rat_extra_pts,min_scale,pscale,coef_mult,tau,dst_scale;
+    double lambda,terr,rat_ray_sample,rat_extra_pts,min_scale,pscale,coef_mult,tau,dst_scale,ray_weight;
   int nb_samples,max_it,nb_labs,nb_threads,mode;
   int center_type,tile_id,nbt_side;
   bool use_weight = true;
@@ -63,7 +63,7 @@ public :
 	   {"bbox",  required_argument, 0, 'b'},
 	   {"lambda",  required_argument, 0, 'c'},
 	   {"dim",  required_argument, 0, 'd'},
-	   {"skip_app_header", no_argument,0, 'e'},
+	   {"ray_weight", required_argument,0, 'e'},
 	   {"pscale", required_argument,0, 'f'},
 	   {"step",  required_argument, 0, 's'},
 	   {"nbp",  required_argument, 0, 'n'},
@@ -90,7 +90,7 @@ public :
 
         int option_index = 0;
 
-        while ((cc = getopt_long(argc, argv, "s:a:c:k:n:i:d:u:m:o:f:j:l:b:p:r:w:t:g:qexzh",long_options,&option_index)) != -1)
+        while ((cc = getopt_long(argc, argv, "s:a:c:k:n:i:d:u:m:e:o:f:j:l:b:p:r:w:t:g:qxzh",long_options,&option_index)) != -1)
         {
             switch (cc)
             {
@@ -130,6 +130,9 @@ public :
             case 'k':
                 coef_mult = atof(optarg);
                 break;
+            case 'e':
+                ray_weight = atof(optarg);
+                break;		
             case 'u':
                 rat_ray_sample = atof(optarg);
                 break;
@@ -157,9 +160,6 @@ public :
                 break;
             case 'g':
                 nbt_side = atoi(optarg);
-                break;
-            case 'e':
-                skip_app_header=true;
                 break;
             case 'x':
                 dump_ply=true;

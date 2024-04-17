@@ -403,7 +403,7 @@ int main(int argc, char **argv)
 
 
       std::string string_name = time_in_HH_MM_SS_MMM();
-      std::string ply_name(params.output_dir +  "/" + params.slabel + "_" + string_name + "_ll_" + std::to_string(ll) + "_surface_" + std::to_string(opt_id));
+      std::string ply_name(params.output_dir +  "/" + params.slabel + "_" + string_name + "_ll_" + std::to_string(ll) + "_ww_" + std::to_string(params.ray_weight) + "_ss_" + std::to_string(params.rat_ray_sample) +  "_surface_" + std::to_string(opt_id));
       ddt::stream_data_header oth("p","f",tid);
 
       if(D == 2)
