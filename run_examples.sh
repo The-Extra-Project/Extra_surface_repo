@@ -58,7 +58,6 @@ function run_lidarhd_crop
 {
 
 
-
     INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop/"
     PARAMS="${INPUT_DIR}/wasure_metadata.xml"
     OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
