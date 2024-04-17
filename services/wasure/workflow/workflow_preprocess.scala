@@ -97,7 +97,7 @@ val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-"
 val build_dir = global_build_dir + "/" + ddt_kernel_dir
 val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
 val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "DISK_ONLY"))
-val max_ppt_per_tile = 500000
+val max_ppt = params_scala.get_param("max_ppt", "500000").toInt
 
 
 // General Algo params
@@ -256,7 +256,7 @@ val bba =   kvrdd_bbox.map(x => x._2.head.split("z").tail.head.split(" ").filter
 
 val smax =   Math.max(Math.max(bba(1)-bba(0),bba(1)-bba(0)),bba(1)-bba(0))
 val tot_nbp = bba(6)
-val ndtree_depth = Math.max((Math.log(tot_nbp/max_ppt_per_tile)/Math.log(3)).round,0) + 1
+val ndtree_depth = Math.max((Math.log(tot_nbp/max_ppt)/Math.log(3)).round,0) + 1
 val lambda = params_scala.get_param("lambda", "1").toFloat
 
 
@@ -267,7 +267,7 @@ params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + "
 
 params_scala("ndtree_depth") = collection.mutable.Set(ndtree_depth.toString)
 params_scala("datatype") = collection.mutable.Set("files")
-params_scala("max_ppt") = collection.mutable.Set(max_ppt_per_tile.toString)
+params_scala("max_ppt") = collection.mutable.Set(max_ppt.toString)
 
 val params_scala_dump = params_scala.filter(x => !x._2.head.isEmpty && x._1 != "do_expand" && x._1 != "output_dir" )
 

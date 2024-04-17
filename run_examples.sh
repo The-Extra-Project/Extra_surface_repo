@@ -8,7 +8,7 @@ GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/datas/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 
-#DEBUG_FLAG="-d"
+# DEBUG_FLAG="-d"
 
 
 ### Run spark-shell with a given script,params and input dir.
@@ -31,7 +31,7 @@ function run_algo_docker
 
 
 ### Reconstruction algorithm 
-function run_local
+function run_ply_mono
 {
     OUTPUT_DIR=${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}
     docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR} --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "mkdir -p ${OUTPUT_DIR} &&  ${DDT_MAIN_DIR}/build//build-spark-Release-3/bin/wasure-local-exe --output_dir ${OUTPUT_DIR} --input_dir ${DDT_MAIN_DIR}/datas/3d_bench_small --dim 3 --bbox 0000x10000:0000x10000  --pscale 0.1 --nb_samples 5 --rat_ray_sample 0 --mode surface --lambda 10 --step full_stack --seed 18696 --label full_small_CRO --filename ${DDT_MAIN_DIR}/datas/3d_bench_small/croco_small.ply"
@@ -39,7 +39,7 @@ function run_local
 }
 
 ### 3D Surface reconstruction 
-function run_3d_bench_small
+function run_ply_spark
 {
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_small/"
@@ -60,7 +60,7 @@ function run_lidarhd_crop
 
 
     INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop/"
-    PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
+    PARAMS="${INPUT_DIR}/wasure_metadata.xml"
     OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
     run_algo_docker
@@ -89,8 +89,8 @@ function run_lidarhd_tiles
 }
 
 ### 3D Surface reconstruction
-run_local
-run_3d_bench_small
+run_ply_mono
+run_ply_spark
 run_lidarhd_crop
-run_lidarhd_tiles
+#run_lidarhd_tiles
 
