@@ -256,7 +256,7 @@ val bba =   kvrdd_bbox.map(x => x._2.head.split("z").tail.head.split(" ").filter
 
 val smax =   Math.max(Math.max(bba(1)-bba(0),bba(1)-bba(0)),bba(1)-bba(0))
 val tot_nbp = bba(6)
-val ndtree_depth = Math.max((Math.log(tot_nbp/max_ppt)/Math.log(3)).round,0) + 1
+val ndtree_depth = Math.max((Math.log(tot_nbp/max_ppt)/Math.log(3)).round,0) 
 val lambda = params_scala.get_param("lambda", "1").toFloat
 
 

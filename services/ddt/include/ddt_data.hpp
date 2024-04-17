@@ -265,6 +265,7 @@ public :
     int D = Traits::D;
     //    dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,tinyply::Type::INVALID);
     dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
+    dmap[conf_vertex_name] = Data_ply(conf_vertex_name,"vertex",1,1,DATA_FLOAT_TYPE);
     dmap[simplex_name] = Data_ply(simplex_name,"face",D+1,D+1,tinyply::Type::INT32);
     dmap[nb_name] = Data_ply(nb_name,"face",D+1,D+1,tinyply::Type::INT32);
     dmap[center_name] = Data_ply(center_name,"vertex",D,D,DATA_FLOAT_TYPE);
