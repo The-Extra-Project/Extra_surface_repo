@@ -57,6 +57,7 @@ import strings_opt._;
 import params_parser._;
 import files_opt._;
 
+
 //=============================================
 //==== Configuration and file sysyem init  ====
 val conf = new SparkConf().setAppName("DDT")
@@ -79,23 +80,17 @@ val output_dir = get_bash_variable("OUTPUT_DATA_DIR").replaceAll("//", "/");
 val input_dir = get_bash_variable("INPUT_DATA_DIR").replaceAll("//", "/");
 val env_xml = get_bash_variable("PARAM_PATH");
 val ddt_main_dir = get_bash_variable("DDT_MAIN_DIR");
+val current_plateform = get_bash_variable("CURRENT_PLATEFORM");
 val global_build_dir = get_bash_variable("GLOBAL_BUILD_DIR");
+val executor_cores = get_bash_variable("MULTIVAC_EXECUTOR_CORE");
+val num_executors = get_bash_variable("MULTIVAC_NUM_EXECUTORS");
 
-// Check if we have
-if (output_dir.isEmpty ||  input_dir.isEmpty || !Files.exists(Paths.get(env_xml)))
-{
-  System.err.println("ERROR")
-  System.err.println("Bash variable are empy or ")
-  System.err.println("File params " + env_xml +  " does not exist")
-  System.exit(1)
-}
 
 // Get Params list from xml
-val param_list = parse_xml_datasets(env_xml)
+val xml_string = sc.wholeTextFiles(env_xml).collect()(0)._2
+var param_list = parse_xml_datasets_string(xml_string)
 val df_par = sc.defaultParallelism;
 val params_scala = param_list(0) // We only process 1 set of parameter in this workflow
-
-
 
 // ===============================================
 // ==== Scala and param initialization ===========
@@ -108,7 +103,7 @@ val dim = params_scala.get_param("dim", "2").toInt
 val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-" + dim.toString)
 val build_dir = global_build_dir + "/" + ddt_kernel_dir
 val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
-val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "MEMORY_AND_DISK_SER"))
+val slvl_loop = StorageLevel.fromString(params_scala.get_param("StorageLevelLoop", "DISK_ONLY"))
 
 // General Algo params
 val bbox = params_scala.get_param("bbox", "")
@@ -125,19 +120,24 @@ val spark_core_max = params_scala.get_param("spark_core_max", df_par.toString).t
 val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(100000).toString);
 
 // Surface reconstruction prarams
-val wasure_mode = params_scala.get_param("mode", "surface")
+val wasure_mode = params_scala.get_param("mode", "-1")
 val pscale = params_scala.get_param("pscale", "0.05").toFloat
 val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
 val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
-val min_ppt = params_scala.get_param("min_ppt", "50").toInt
+val min_ppt = params_scala.get_param("min_ppt", "100").toInt
 val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
 val lambda = params_scala.get_param("lambda", "0.1").toFloat
 val coef_mult = params_scala.get_param("coef_mult", "1").toFloat
-val max_opt_it = params_scala.get_param("max_opt_it", "2").toInt
+val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
+//var max_opt_it = 30
+if (ndtree_depth == 0){
+  max_opt_it = 2
+}
 val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
-val stats_mod_it = params_scala.get_param("stats_mod_it", ((max_opt_it)/3).toString).toInt
-
-
+val stats_mod_it = params_scala.get_param("stats_mod_it", ((max_opt_it)/2).toString).toInt
+val stats_mod_it = 1
+// params_scala("dump_mode") = collection.mutable.Set("TRIANGLE_SOUP")
+params_scala("dump_mode") = collection.mutable.Set("NONE")
 val fmt = new java.text.DecimalFormat("##0.##############")
 val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
 val datestring = dateFormatter.format(Calendar.getInstance().getTime());
@@ -145,25 +145,43 @@ val cur_output_dir ={output_dir  + sc.applicationId + "_" + datestring + "_"+ pa
 fs.mkdirs(new Path(cur_output_dir),new FsPermission("777"))
 
 
+
+var env_map: scala.collection.immutable.Map[String, String] = Map("" -> "")
+
+val cpp_exec_path = current_plateform.toLowerCase match {
+  case _  => build_dir + "/bin/"
+}
+
+val python_exec_path = "python3 /home/laurent/code/spark-ddt/services/wasure/python/"
+
 // Set the iq library on
-val iq = new IQlibSched(slvl_glob,slvl_loop)
+val iq = new IQlibSched(slvl_glob,slvl_loop,env_map)
+
+
+
 
 // Set the c++ command line object
 val params_new = new Hash_StringSeq with mutable.MultiMap[String, String]
 val params_ddt =  set_params(params_new,List(
-  ("exec_path", build_dir + "/bin/ddt-stream-exe"),
+  ("exec_path", cpp_exec_path + "ddt-stream-exe"),
   ("dim",params_scala("dim").head),
   ("bbox",params_scala("bbox").head),
   ("ech_input","1"),
   ("input_dir",input_dir),
   ("output_dir",cur_output_dir),
   ("min_ppt",params_scala("min_ppt").head),
+  ("dump_mode",params_scala("dump_mode").head),
   ("seed",algo_seed)
 ))
 
 
+val params_python =  set_params(params_new,List(
+  ("exec_path", python_exec_path + "python_stream.py")
+))
+
+
 val params_wasure =  set_params(params_new,List(
-  ("exec_path", build_dir + "/bin/wasure-stream-exe"),
+  ("exec_path", cpp_exec_path + "wasure-stream-exe"),
   ("dim",params_scala("dim").head),
   ("bbox",params_scala("bbox").head),
   ("lambda",params_scala("lambda").head),
@@ -178,31 +196,35 @@ val params_wasure =  set_params(params_new,List(
 ))
 
 
-if(false){
-  params_ddt("dump_ply") = collection.mutable.Set("")
-  params_wasure("dump_ply") = collection.mutable.Set("")
-}
 if(do_dump_debug)
   params_wasure("dump_debug") = collection.mutable.Set("")
 
-val fmt = new java.text.DecimalFormat("##0.##############")
-val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
-val floatFormat = new DecimalFormat("#.###")
 
+
+val floatFormat = new DecimalFormat("#.###")
 val nbt_side = math.pow(2,ndtree_depth)
 val tot_nbt = scala.math.pow(nbt_side,dim).toInt;
 val nbp_per_tile = nbp/tot_nbt;
-val rep_value = ((if((tot_nbt) < sc.defaultParallelism) sc.defaultParallelism else  (tot_nbt).toInt))
-var nb_leaf = tot_nbt;
 
+val rep_value = 100
+var nb_leaf = tot_nbt;
+params_scala("rep_value") = collection.mutable.Set(rep_value.toString)
 params_ddt("output_dir") = collection.mutable.Set(cur_output_dir)
 params_scala("output_dir") = collection.mutable.Set(cur_output_dir)
 params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)
+params_scala("executor_cores") =  collection.mutable.Set(executor_cores)
+params_scala("num_executors") =  collection.mutable.Set(num_executors)
 params_ddt("nbt_side") =  collection.mutable.Set(nbt_side.toString)
+params_wasure("nbt_side") =  collection.mutable.Set(nbt_side.toString)
+
 
 println("")
 println("=======================================================")
 params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
+
+
+// python
+val python_cmd = params_python.to_command_line
 
 // General c++ commands
 val ply2geojson_cmd =  set_params(params_ddt, List(("step","ply2geojson"))).to_command_line
@@ -224,7 +246,6 @@ val ext_cmd =  set_params(params_wasure, List(("step","extract_surface"))).to_co
 val tri2geojson_wasure_cmd =  set_params(params_wasure, List(("step","tri2geojson"))).to_command_line
 val wasure_ply2geojson_cmd =  set_params(params_wasure, List(("step","ply2geojson"))).to_command_line
 
-
 // =================================================
 // ============  Parsing and init data ===========
 var kvrdd_points: RDD[KValue] = sc.parallelize(List((0L,List(""))));
@@ -239,12 +260,12 @@ var kvrdd_inputs = format_data(
   iq
 )
 
-
 // =========== Start of the algorithm ==============
 val t0 = System.nanoTime()
 params_scala("t0") = collection.mutable.Set(t0.toString)
 println("======== Tiling =============")
-kvrdd_points = ddt_algo.compute_tiling_2(kvrdd_inputs,iq,params_ddt,params_scala);
+kvrdd_points = ddt_algo.compute_tiling(kvrdd_inputs,iq,params_ddt,params_scala);
+ddt_algo.update_time(params_scala,"tiling");
 nb_leaf = params_scala("nb_leaf").head.toInt;
 
 var rep_merge = ((if((nb_leaf) < spark_core_max) spark_core_max else  nb_leaf));
@@ -255,12 +276,9 @@ if(ndtree_depth > 8){
 }
 params_scala("rep_loop") = collection.mutable.Set(rep_loop.toString)
 params_scala("rep_merge") = collection.mutable.Set(rep_merge.toString)
-params_scala("dump_mode") = collection.mutable.Set("NONE")
 
 
 println("======== Dimenstionnality =============")
-val t0 = System.nanoTime()
-params_scala("t0") = collection.mutable.Set(t0.toString)
 val res_dim = iq.run_pipe_fun_KValue(
   dim_cmd ++ List("--label", "dim"),
   kvrdd_points, "dim", do_dump = false).persist(slvl_glob)
@@ -268,65 +286,59 @@ val kvrdd_dim = iq.get_kvrdd(res_dim,"z");
 val kvrdd_simp = iq.get_kvrdd(res_dim,"x").reduceByKey((u,v) => u ::: v,rep_loop);
 
 
+// Test python
+val res_dim_python = iq.run_pipe_fun_KValue(
+  python_cmd,
+  kvrdd_points, "dim", do_dump = false).persist(slvl_glob)
+
 var input_ddt = kvrdd_points;
 // If we have a simplified point cloud, do the delaunay triangulation of the simplfied point cloud
 if(pscale > 0)
   input_ddt = kvrdd_simp;
-
+ddt_algo.update_time(params_scala,"Dimensionality");
 println("=========== Delauay triangulatin computation ==================")
 val defaultV = (List(""));
-val (graph_tri,log_tri,stats_tri)  = ddt_algo.compute_ddt(
+
+val (kvrdd_tri_vertices,kvrdd_tri_edges,log_tri,stats_tri)  = ddt_algo.compute_ddt_nograph(
   kvrdd_points = input_ddt,
   iq = iq,
   params_cpp = params_ddt,
   params_scala = params_scala
 );
+kvrdd_tri_vertices.persist(slvl_glob);
+kvrdd_tri_edges.persist(slvl_glob);
+val kvrdd_tri_gid = ddt_algo.update_global_ids(kvrdd_tri_vertices,stats_tri,rep_merge,iq, params_ddt,sc)
+kvrdd_tri_gid.persist(slvl_glob);
+kvrdd_tri_gid.count()
+kvrdd_tri_gid.unpersist()
 
-
-val kvrdd_tri_gid = ddt_algo.update_global_ids(graph_tri.vertices,stats_tri,iq, params_ddt,sc)
-val graph_tri_gid = Graph(kvrdd_tri_gid, graph_tri.edges, defaultV)
-graph_tri_gid.vertices.setName("graph_tri_gid");
-graph_tri_gid.edges.setName("graph_tri_gid");
-
-val graph_pts = Graph(kvrdd_dim.reduceByKey( (u,v) => u ::: v), graph_tri.edges, List(""));
-graph_pts.vertices.setName("graph_pts");
-graph_pts.edges.setName("graph_pts");
 val stats_kvrdd = kvrdd_simplex_id(stats_tri,sc)
-val graph_stats = Graph(stats_kvrdd, graph_tri.edges, List(""));
-val input_dst = (graph_tri_gid.vertices).union(iq.aggregate_value_clique(graph_pts, 1)).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
+val graph_stats = Graph(stats_kvrdd, kvrdd_tri_edges, List(""));
+val input_dst = (kvrdd_tri_gid).union(kvrdd_dim).union(graph_stats.vertices).reduceByKey(_ ::: _,rep_merge).setName("input_dst");
 input_dst.persist(slvl_glob);
-graph_tri.vertices.unpersist()
-graph_tri.edges.unpersist()
-//val input_dst = (graph_tri.vertices).union(graph_pts.vertices).union(graph_stats.vertices).reduceByKey(_ ::: _).setName("input_dst");
-
-val datastruct_identity_cmd =  set_params(params_ddt, List(("step","datastruct_identity"))).to_command_line
-val struct_inputs_id = iq.run_pipe_fun_KValue(
-  datastruct_identity_cmd ++ List("--label", "struct"),
-  graph_pts.vertices, "struct", do_dump = false)
+input_dst.count()
+res_dim.unpersist()
 
 
 println("============= Simplex score computation ===============")
+ddt_algo.update_time(params_scala,"compute_dst");
 val res_dst = iq.run_pipe_fun_KValue(
   dst_cmd ++ List("--label", "dst"),
   input_dst, "dst", do_dump = false).persist(slvl_glob).setName("res_dst");
 res_dst.count
-res_dim.unpersist()
+
 input_dst.unpersist()
 kvrdd_points.unpersist();
 val kvrdd_dst = iq.get_kvrdd(res_dst,"t");
-val graph_dst = Graph(kvrdd_dst, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
-
 
 println("============= Regularize ===============")
-// // Focal regularize
-// val res_regularize = iq.run_pipe_fun_KValue(
-//   regularize_slave_focal_cmd ++ List("--label", "regularize_slave_focal"),
-//   iq.aggregate_value_clique(graph_dst, 1), "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
-
+ddt_algo.update_time(params_scala,"regularize");
 // Message passing regularize
 val res_regularize_extract = iq.run_pipe_fun_KValue(
   regularize_slave_extract_cmd ++ List("--label", "regularize_slave_extract"),
   kvrdd_dst, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
+res_regularize_extract.count()
+res_dst.unpersist()
 val rdd_shared_edges = iq.get_edgrdd(res_regularize_extract,"f")
 val input_insert = (
   rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_dst
@@ -336,38 +348,32 @@ val res_regularize = iq.run_pipe_fun_KValue(
   input_insert, "regularize", do_dump = false).persist(slvl_glob).setName("res_reg");
 
 
-
-
-
+res_regularize.count()
+res_regularize_extract.unpersist()
+input_insert.unpersist()
 val kvrdd_reg = iq.get_kvrdd(res_regularize,"t");
 val kvrdd_shr = iq.get_edgrdd(res_regularize,"e")
-val graph_reg = Graph(kvrdd_reg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
+// Useless
+val graph_reg = Graph(kvrdd_reg, kvrdd_tri_edges, List("")).partitionBy(EdgePartition1D,rep_merge);
 graph_reg.vertices.setName("graph_reg");
 graph_reg.edges.setName("graph_reg");
 
-
-graph_pts.vertices.unpersist();
-graph_tri_gid.vertices.unpersist();
-graph_tri.vertices.unpersist();
-
-
 println("============= Optimiation ===============")
-
-val lambda_list = params_scala("lambda").map(_.toDouble).toList.map(fmt.format(_))
-var coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_))
+ddt_algo.update_time(params_scala,"optimization");
+val lambda_list = params_scala("lambda").map(_.toDouble).toList.map(fmt.format(_).replace(',','.'))
+var coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_).replace(',','.'))
+val algo_list = params_scala("algo_opt").toList
 // val algo_list = List("seg_lagrange_weight","belief");
 
 
 // Only for stats
 var stats_list_1 = new ListBuffer[(Int,(Float,Float))]()
 var stats_list_2 = new ListBuffer[(Int,(Float,Float))]()
-
-
+var stats_list_3 = new ListBuffer[(Int,(Float,Float))]()
 
 val test_name = "coef_mult_lag"
-var loop_acc = 0;
+var algo_id_acc = 0;
 // Loop on different algo
-
 
 //val coef_mult_list = List("110000000000".toLong,"110000000".toLong,"110000".toLong)
 // vcppp faot ieitii
@@ -378,8 +384,8 @@ var loop_acc = 0;
  val cur_algo = algo_list.head
  */
 
+// val lambda_list = List("0.05","0.3")
 
-val algo_list = params_scala("algo_opt").toList
 algo_list.foreach{ cur_algo =>
   if(cur_algo != "seg_lagrange_weight"){
     coef_mult_list = List("110000000000","110000000","110000")
@@ -392,8 +398,8 @@ algo_list.foreach{ cur_algo =>
       params_wasure("lambda") = collection.mutable.Set(ll)
       params_wasure("coef_mult") = collection.mutable.Set(coef_mult)
       val datestring = dateFormatter.format(Calendar.getInstance().getTime());
-      val ext_name = test_name + "_" + cur_algo + "_" + loop_acc + "_ll_" + ll + "_cm_" + coef_mult + "_" + fmt.format(max_opt_it) + "_" + cur_algo + "_"  + datestring;
-      loop_acc+=1;
+      val ext_name = test_name + "_" + cur_algo + "_" + algo_id_acc + "_ll_" + ll + "_cm_" + coef_mult + "_" + fmt.format(max_opt_it).replace(',','.') + "_" + cur_algo + "_"  + datestring;
+      algo_id_acc+=1;
 
       //val seg_cmd =  set_params(params_wasure, List(("step","seg"))).to_command_line
       val seg_cmd =  set_params(params_wasure, List(("step",cur_algo))).to_command_line;
@@ -402,11 +408,13 @@ algo_list.foreach{ cur_algo =>
       input_seg2.count();
       var acc_loop = 0;
 
+      val ext_cmd_vertex =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","1"))).to_command_line
+      val ext_cmd_edges =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","2"))).to_command_line
+
       if(cur_algo == "belief"){
         println("==== Segmentation with lambda:" + ll + " coef_mult:" + coef_mult +  "  ====")
-        val ext_cmd_vertex =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","1"))).to_command_line
-        val ext_cmd_edges =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","2"))).to_command_line
-        val graph_bp = Graph((graph_reg.vertices union graph_stats.vertices).reduceByKey(_ ::: _ ), graph_tri.edges, List(""))
+
+        val graph_bp = Graph((graph_reg.vertices union graph_stats.vertices).reduceByKey(_ ::: _ ), kvrdd_tri_edges, List(""))
         graph_bp.vertices.setName("graph_bp");
         graph_bp.edges.setName("graph_bp");
         val epsilon = 0.00000001;
@@ -437,88 +445,145 @@ algo_list.foreach{ cur_algo =>
           val rdd_ply_surface = iq.run_pipe_fun_KValue(
             ext_cmd ++ List("--label","ext_spark"  +  ext_name),
             iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
-          val ply_dir = cur_output_dir + "/ply" + ext_name + "_edges_" + loop_acc.toString
+          val ply_dir = cur_output_dir + "/ply" + ext_name + "_edges_" + algo_id_acc.toString
           ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl)
-          // dump_json(params_wasure,ply_dir + "/params_wasure.json",sc);
-          // dump_json(params_scala,ply_dir + "/params_scala.json",sc);
+          dump_json(params_wasure,ply_dir + "/params_wasure.json",sc);
+          dump_json(params_scala,ply_dir + "/params_scala.json",sc);
         }
-        wasure_algo.partition2ply(cur_output_dir, loop_acc.toString,sc);
+        wasure_algo.partition2ply(cur_output_dir, algo_id_acc.toString,sc);
       }else{
         while (acc_loop < max_opt_it) {
           val t0_loop = System.nanoTime()
           val acc_loop_str = "%03d".format(acc_loop)
           val res_seg = iq.run_pipe_fun_KValue(
-            seg_cmd ++ List("--label", "seg" + acc_loop_str),
+            seg_cmd ++ List("--label", "seg" + acc_loop_str) ++ (if(acc_loop == max_opt_it-1) List("--do_finalize") else List()),
             input_seg2
               ,cur_algo, do_dump = false).persist(slvl_loop)
           res_seg.count()
           val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
           input_seg2.unpersist()
 
-          val do_it_stats = (((acc_loop % stats_mod_it) == 0 || acc_loop == 1 || acc_loop == max_opt_it -1) && do_stats)
+          val do_it_stats = (((acc_loop % stats_mod_it) == 0 || acc_loop == 1 || acc_loop == 3 || acc_loop == max_opt_it -1) && do_stats)
+
+          if(acc_loop == max_opt_it -1){
+            ddt_algo.update_time(params_scala,"final_before_dumping");
+          }
+
           // Extract the surface : Last iteration
           if(acc_loop == max_opt_it -1 || do_it_stats ){
-            val graph_seg = Graph(kvrdd_seg, graph_tri.edges, List("")).partitionBy(EdgePartition1D,rep_merge);
-            val rdd_ply_surface = iq.run_pipe_fun_KValue(
-              ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
-              iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
+            val rdd_local_edges = iq.get_edgrdd(res_seg,"e");
+            val graph_seg = Graph(kvrdd_seg, rdd_local_edges, List("")).partitionBy(EdgePartition1D,rep_merge);
 
-            val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_gc_" + loop_acc.toString + "_" + acc_loop_str
-            ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
-            wasure_algo.partition2ply(cur_output_dir,loop_acc.toString,sc);
-          }
-          val rdd_local_edges = iq.get_edgrdd(res_seg,"e");
-          val rdd_shared_edges = iq.get_edgrdd(res_seg,"f")
-          val rdd_stats  = iq.get_kvrdd(res_seg,"s")
-          var stats_1 = rdd_stats.map(x => x._2(0).split(" ").takeRight(2)).map(x => (x(0).toFloat,x(1).toFloat)).reduce( (x,y) => (x._1+y._1,x._2+y._2))
-          var stats_2 = stats_1;
+            if(false){
+              // WARNING!! if true set "do_dump_u = true" in main_wasure_stream.cpp"
 
-          input_seg2 = (
-            rdd_local_edges.map(e => (e.srcId, e.attr)) union
-              rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_seg
-          ).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
-          input_seg2.count()
+              val rdd_local_crown = iq.get_edgrdd(res_seg,"u");
+              val kvrdd_tri_with_crown = (rdd_local_crown.map(e => (e.dstId,e.attr)) union kvrdd_seg).reduceByKey(_ ::: _,rep_loop).persist(iq.get_storage_level_loop()).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
+              val rdd_ply_surface = iq.run_pipe_fun_KValue(
+                ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
+                kvrdd_tri_with_crown, "seg", do_dump = false)
+              val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_xqw_" + algo_id_acc.toString + "_" + acc_loop_str
+              ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
+              wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
+            }
+            if(true){
+              // val rdd_ply_surface = iq.run_pipe_fun_KValue(
+              //   ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
+              //   iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
+              val rdd_ply_surface = iq.run_pipe_fun_KValue(
+                ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
+                kvrdd_seg, "seg", do_dump = false).persist(slvl_glob)
+              rdd_ply_surface.count()
+              res_seg.unpersist()
+              val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str
+              ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
+              wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
+            }
+            if(false){
+              val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
+                ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge" + ext_name),
+                graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false).persist(slvl_glob)
+              val rdd_ply_surface_vertex = iq.run_pipe_fun_KValue(
+                ext_cmd_vertex ++ List("--label","ext_spark_ll_v2_tile" + ext_name),
+                kvrdd_seg, "seg", do_dump = false).persist(slvl_glob)
 
+              rdd_ply_surface_edges.count()
+              rdd_ply_surface_vertex.count()
+              res_seg.unpersist()
 
-          // Compute the global surface and compare
-          if(do_it_stats){
-            val seg_cmd_full =  set_params(params_wasure, List(("step","seg_global_extract"))).to_command_line
-            val input_extract = kvrdd_seg.map(x => (0L,x._2)).reduceByKey(_ ::: _)
-            val res_surface = iq.run_pipe_fun_KValue(
-              seg_cmd_full ++ List("--label", "seg"),
-              input_extract , "seg_lagrange", do_dump = false)
-            val rdd_ply  = res_surface.filter(_(0) == 'p');
-            val rdd_stats  = iq.get_kvrdd(res_surface,"s")
-            stats_2 = rdd_stats.map(x => x._2(0).split(" ").takeRight(2)).map(x => (x(0).toFloat,x(1).toFloat)).reduce( (x,y) => (x._1+y._1,x._2+y._2))
-            rdd_stats.collect()
-            if(acc_loop == 0){
-              val ply_dir = cur_output_dir + "/plyglob_" + ext_name + "_gc_" + loop_acc.toString + "_" + acc_loop_str + "_global3"
-              ddt_algo.saveAsPly(rdd_ply,ply_dir,plot_lvl)
-              wasure_algo.partition2ply(cur_output_dir,loop_acc.toString,sc);
+              val ply_dir_edges = cur_output_dir + "/ply" + ext_name + "_edges_" + acc_loop_str
+              val ply_dir_vertex = cur_output_dir + "/ply" + ext_name + "_vertex_" + acc_loop_str
+              ddt_algo.saveAsPly(rdd_ply_surface_edges,ply_dir_edges,plot_lvl)
+              ddt_algo.saveAsPly(rdd_ply_surface_vertex,ply_dir_vertex,plot_lvl)
+              wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
             }
           }
-          val t1_loop = System.nanoTime();
-          println("[it " + acc_loop_str + "]");
-          ddt_algo.update_time(params_scala,"opt_loop" + loop_acc.toString);
-          val t1 = ( acc_loop,stats_1)
-          stats_list_1 += t1;
-          println("   % overlap -> " + floatFormat.format(100*stats_1._1/stats_1._2.toFloat) + "% " + stats_1 );
-          if(do_it_stats){
-            val t2 = ( acc_loop,stats_2)
-            stats_list_2 += t2;
-            println("   % GC      -> " + floatFormat.format(100*stats_2._1/stats_2._2.toFloat) + "% " + stats_2 );
+
+          if(acc_loop != max_opt_it -1){
+            val rdd_local_edges = iq.get_edgrdd(res_seg,"e");
+            val rdd_shared_edges = iq.get_edgrdd(res_seg,"f")
+            val rdd_stats  = iq.get_kvrdd(res_seg,"s")
+            // Sum the stats between all the tiles
+            var stats_1 = rdd_stats.map(x => x._2(0).split(" ").takeRight(2)).map(x => (x(0).toFloat,x(1).toFloat)).reduce( (x,y) => (x._1+y._1,x._2+y._2))
+            var stats_2 = (0F,0F);
+            var stats_3 = (0F,0F);
+
+            input_seg2 = (
+              rdd_local_edges.map(e => (e.srcId, e.attr)) union
+                rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_seg
+            ).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
+            input_seg2.count()
+            res_seg.unpersist()
+            // Compute the global surface and compare
+            if(do_it_stats){
+              val seg_cmd_full =  set_params(params_wasure, List(("step","seg_global_extract"))).to_command_line
+              val input_extract = kvrdd_seg.map(x => (0L,x._2)).reduceByKey(_ ::: _)
+              val res_surface = iq.run_pipe_fun_KValue(
+                seg_cmd_full ++ List("--label", "seg"),
+                input_extract , "seg_lagrange", do_dump = false)
+              val rdd_ply  = res_surface.filter(_(0) == 'p');
+              val rdd_stats  = iq.get_kvrdd(res_surface,"s")
+              val stats_collect = rdd_stats.map(x => x._2(0).split("]").tail(0).split(" ").filter(_.nonEmpty).map(_.toFloat)).collect()(0)
+              stats_2 = (stats_collect(0),stats_collect(1))
+              stats_3 = (stats_collect(2),stats_collect(3))
+              rdd_stats.collect()
+              if(acc_loop == 0){
+                val ply_dir = cur_output_dir + "/plyglob_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str + "_global3"
+                ddt_algo.saveAsPly(rdd_ply,ply_dir,plot_lvl)
+                wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
+              }
+            }
+            val t1_loop = System.nanoTime();
+            println("[it " + acc_loop_str + "]");
+            ddt_algo.update_time(params_scala,"opt_loop" + algo_id_acc.toString);
+            val t1 = ( acc_loop,stats_1)
+            stats_list_1 += t1;
+            println("   % overlap -> " + floatFormat.format(100*stats_1._1/stats_1._2.toFloat) + "% " + stats_1 );
+            if(do_it_stats){
+              val t2 = ( acc_loop,stats_2)
+              val t3 = ( acc_loop,stats_3)
+              stats_list_2 += t2;
+              stats_list_3 += t3;
+              println("   % GC      -> " + floatFormat.format(100*stats_2._1/stats_2._2.toFloat) + "% " + stats_2 );
+              println("   % Energy  -> " + stats_3  );
+            }
+
+            println("")
           }
-          res_seg.unpersist()
-          println("")
           acc_loop = acc_loop + 1;
         }
       }
       if(do_stats){
-        wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_conv_1.txt",stats_list_1,sc);
-        wasure_algo.dump_it_stats(cur_output_dir + "/" + cur_algo + "_stats_gtdiff_2.txt",stats_list_2,sc);
+        wasure_algo.dump_it_stats(cur_output_dir + "/" + ext_name + "_stats_conv.csv",stats_list_1,sc);
+        wasure_algo.dump_it_stats(cur_output_dir + "/" + ext_name + "_stats_gtdiff.csv",stats_list_2,sc);
+        wasure_algo.dump_it_stats(cur_output_dir + "/" + ext_name + "_stats_energy.csv",stats_list_3,sc);
       }
       stats_list_1.clear()
       stats_list_2.clear()
+      stats_list_3.clear()
     }
   }
 }
+ddt_algo.update_time(params_scala,"final_after_dumping");
+dump_json(params_scala,cur_output_dir + "/full_workflow_params.json",sc);
+// System.exit(0)

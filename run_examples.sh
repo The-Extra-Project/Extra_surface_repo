@@ -10,7 +10,6 @@ BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 # DEBUG_FLAG="-d"
 
-
 ### Run spark-shell with a given script,params and input dir.
 # INPUT_DIR  : The directory with ply file
 # OUTPUT     : The output directcory
@@ -33,7 +32,7 @@ function run_algo_docker
 
 
 ### Reconstruction algorithm 
-function run_ply_mono
+function ex_run_ply_mono
 {
     OUTPUT_DIR=${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}
     docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR} --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "mkdir -p ${OUTPUT_DIR} &&  ${DDT_MAIN_DIR}/build//build-spark-Release-3/bin/wasure-local-exe --output_dir ${OUTPUT_DIR} --input_dir ${DDT_MAIN_DIR}/datas/3d_bench_small --dim 3 --bbox 0000x10000:0000x10000  --pscale 0.1 --nb_samples 5 --rat_ray_sample 0 --mode surface --lambda 10 --step full_stack --seed 18696 --label full_small_CRO --filename ${DDT_MAIN_DIR}/datas/3d_bench_small/croco_small.ply"
@@ -41,9 +40,9 @@ function run_ply_mono
 }
 
 ### 3D Surface reconstruction 
-function run_ply_spark
+function ex_run_ply_tiling
 {
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     INPUT_DIR="${DDT_MAIN_DIR}/datas/3d_bench_small/"
     OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
     PARAMS="${INPUT_DIR}/wasure_metadata_3d.xml"
@@ -56,7 +55,7 @@ function run_ply_spark
 
 
 ### 3D Surface reconstruction 
-function run_lidarhd_crop
+function ex_run_lidarhd_crop
 {
 
 
@@ -68,7 +67,7 @@ function run_lidarhd_crop
 
     INPUT_DIR=${OUTPUT_DIR}
     PARAMS="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/wasure_metadata_3d_gen.xml"
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     run_algo_docker
 }
 
@@ -85,13 +84,13 @@ function run_lidarhd_tiles
 
     INPUT_DIR=${OUTPUT_DIR}
     PARAMS="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/wasure_metadata_3d_gen.xml"
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_generic.scala"
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     run_algo_docker
 }
 
 ### 3D Surface reconstruction
-#run_ply_mono
-#run_ply_spark
-run_lidarhd_crop
+#ex_run_ply_mono
+ex_run_ply_tiling
+#ex_run_lidarhd_crop
 #run_lidarhd_tiles
 

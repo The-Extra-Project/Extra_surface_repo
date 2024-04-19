@@ -85,7 +85,7 @@ object ddt_algo {
     return kvrdd_gid_tri;
   }
 
-  def compute_tiling_2(kvrdd_inputs : RDD[KValue],iq : IQlibSched,params_ddt : params_map,params_scala : params_map ) : RDD[KValue] = {
+  def compute_tiling(kvrdd_inputs : RDD[KValue],iq : IQlibSched,params_ddt : params_map,params_scala : params_map ) : RDD[KValue] = {
 
     val plot_lvl = params_scala("plot_lvl").head.toInt;
     val tile_cmd =  set_params(params_ddt, List(("step","tile_ply"))).to_command_line
@@ -125,14 +125,9 @@ object ddt_algo {
     println("");
     println("");
 
-    // if(ndtree_depth == 0){
-    //   params_scala("nb_leaf") = collection.mutable.Set("1");
-    //   return iq.get_kvrdd(res_tiles,"p");
-    // }
 
 
-    val kvrdd_count: RDD[KValue] = iq.get_kvrdd(res_tiles, "c",txt="count").cache();//.repartition(defaultParallelism_val)
-    //val rddc = kvrdd_count.map(x => (x._1.toInt + id_pad,x.value(0).split(" ").last.toInt)).reduceByKey(_+_,df_par).cache()
+    val kvrdd_count: RDD[KValue] = iq.get_kvrdd(res_tiles, "c",txt="count").cache();
     val rddc = kvrdd_count.map(x => (x._1.toInt + id_pad,x.value(0).split(" ").last.toInt)).reduceByKey(_+_).cache()
     val max_tile = rddc.reduce((x,y) => if(x._2 > y._2) x else y);
     val tot_nbp = rddc.map(x => x._2.toLong).reduce(_ + _);
@@ -148,11 +143,10 @@ object ddt_algo {
 
 
     println("Compute id map ...")
-    //val id_map = nbt.compute_id_map(rddc,max_ppt);
-    val (res_v,lf_new) = nbt.compute_id_rdd_new(rddc,max_ppt);
+
+    val (res_v,lf_new) = nbt.compute_id_rdd(rddc,max_ppt);
     val rdd_idmap = res_v.reduceByKey((u,v) => u).cache()
-    //println("===== idmap =====")
-    //id_map.map(println(_))
+
     update_time(params_scala,"octree");
 
 
@@ -162,7 +156,6 @@ object ddt_algo {
       x => (x._1, x._2._2.head)
     ).collectAsMap
 
-    //    val rdd_idmap = rdd_idmap_raw
 
     println("===== rdd_idmap =====")
 
@@ -171,9 +164,8 @@ object ddt_algo {
     val nb_leaf = rdd_idmap.map(x => x._2).distinct.count
     params_scala("nb_leaf") =  collection.mutable.Set(nb_leaf.toString)
     println("Number of leaf :" + nb_leaf)
-    val rep_value = nb_leaf.toInt;// ((if((nb_leaf/2) < spark_core_max) spark_core_max else  nb_leaf/2)).toInt
+    val rep_value = nb_leaf.toInt;
 
-    //    val kvrdd_points = iq.get_kvrdd(res_tiles,"p").map(x => (id_map(x._1.toInt + id_pad).toLong,x._2)).reduceByKey( (u,v) => u ::: v,rep_value)
 
     if(plot_lvl > 3){
       res_tiles.saveAsTextFile(output_dir + "/rdd_tiles")
@@ -184,21 +176,9 @@ object ddt_algo {
       x => (x._2._2.head.toLong,x._2._1.reduce(_ ::: _))).map(x => (idmap_sorted(x._1),x._2)).reduceByKey(new HashPartitioner(rep_value),(u,v) => u ::: v).setName("KVRDD_TILING");
 
 
-
-    // if(dim == 2){
-    //   iq.run_pipe_fun_KValue(
-    //     tri2geojson_cmd ++ List("--label", "tile_pts"),
-    //     kvrdd_points,"z"), "tile_pts", do_dump = false).collect()
-    //   }
-
-    // val range_p  = new RangePartitioner(rep_value,kvrdd_points) ;
-    // kvrdd_points.partitionBy(range_p)
-
     if(plot_lvl > 3){
       kvrdd_points.saveAsTextFile(output_dir + "/kvrdd_points")
     }
-
-
 
     println("Repartition done")
     kvrdd_points.persist(iq.get_storage_level()).setName("KVRDD_POINT_TILED");
@@ -208,88 +188,10 @@ object ddt_algo {
     println("");
     println("");
     res_tiles.unpersist()
-    // println("kvrdd_points_count:" + kvrdd_points.count)
-    // kvrdd_points.collect().map(x => println(x._1 +"->" + x._2.size))
-    // iq.get_kvrdd(res_tiles,"p").collect().map(x => println(x._1 +"->" + x._2.size))
-    // println("Aggregate done")
 
     return kvrdd_points
   }
 
-  // def compute_tiling(kvrdd_inputs : RDD[KValue],iq : IQlibSched,params_cpp : params_map,params_scala : params_map ) : RDD[KValue] = {
-
-  //   // C++ function 
-  //   val tile_cmd =  set_params(params_cpp, List(("step","tile_ply"))).to_command_line
-  //   val dump_ply_binary_cmd =  set_params(params_cpp, List(("step","dump_ply_binary"))).to_command_line
-
-  //   // Algo params
-  //   val plot_lvl = params_scala("plot_lvl").head.toInt;
-  //   val max_ppt = params_scala("max_ppt").head.toInt;
-  //   val spark_core_max = params_scala("spark_core_max").head.toInt;
-  //   val ndtree_depth = params_scala("ndtree_depth").head.toInt;
-  //   val dim = params_scala("dim").head.toInt
-
-
-  //   val nbt = new nd_tree(dim,10,iq)
-  //   val id_pad = nbt.nb_nodes(ndtree_depth-1);
-  //   val res_tiles = iq.run_pipe_fun_KValue(
-  //     tile_cmd ++ List("--label", "pts_tile"),
-  //     kvrdd_inputs, "tile", do_dump = false).setName("KVRDD_TILING");
-
-  //   if(plot_lvl >= 3){
-  //     iq.run_pipe_fun_KValue(
-  //       dump_ply_binary_cmd ++ List("--label", "tile_pts"),
-  //       iq.get_kvrdd(res_tiles,"z"), "tile_pts", do_dump = false).collect()
-  //   }
-
-
-  //   res_tiles.persist(iq.get_storage_level())
-  //   res_tiles.count
-
-
-  //   if(ndtree_depth == 0){
-  //     params_scala("nb_leaf") = collection.mutable.Set("1");
-  //     return iq.get_kvrdd(res_tiles,"p");
-  //   }
-
-  //   val defaultParallelism_val = spark_core_max;
-  //   val kvrdd_count: RDD[KValue] = iq.get_kvrdd(res_tiles, "c",txt="count");//.repartition(defaultParallelism_val)
-  //   val rddc = kvrdd_count.map(x => (x._1.toInt + id_pad,x.value(0).split(" ").last.toInt)).reduceByKey(_+_)
-  //   val max_tile = rddc.reduce((x,y) => if(x._2 > y._2) x else y);
-  //   println("max depth tile : " + max_tile )
-  //   if(max_tile._2 > max_ppt){
-  //     println("======================  WARNING  =====================")
-  //     println(" A tile contains more point than the maximum allowed  ")
-  //     println("====> To solve it Increase the Octree depth  ")
-  //     println("======================  WARNING  =====================")
-  //   }
-  //   rddc.cache()
-  //   rddc.collect()
-
-  //   println("Compute id map ...")
-  //   //val id_map = nbt.compute_id_map(rddc,max_ppt);
-  //   val rdd_idmap = nbt.compute_id_rdd_new(rddc,max_ppt).reduceByKey((u,v) => u).persist(iq.get_storage_level())
-
-  //   //println("===== idmap =====")
-  //   println("===== rdd_idmap =====")
-  //   println("Mapping keys ...")
-  //   val nb_leaf = rdd_idmap.map(x => x._2).distinct.count
-
-  //   params_scala("nb_leaf") =  collection.mutable.Set(nb_leaf.toString)
-
-  //   println("Number of leaf :" + nb_leaf)
-  //   val rep_value = nb_leaf.toInt;// ((if((nb_leaf/2) < spark_core_max) spark_core_max else  nb_leaf/2)).toInt
-  //   val kvrdd_points : RDD[KValue] = iq.get_kvrdd(res_tiles,"z").map(x => ((x._1+  id_pad),x._2)).cogroup(rdd_idmap).filter(
-  //     x => ((!x._2._2.isEmpty) && (!x._2._1.isEmpty))).map(
-  //     x => (x._2._2.head.toLong,x._2._1.reduce(_ ::: _))).reduceByKey(new HashPartitioner(rep_value),(u,v) => u ::: v).setName("KVRDD_TILING");
-
-
-  //   kvrdd_points.persist(iq.get_storage_level()).setName("KVRDD_POINT_TILED");
-  //   kvrdd_points.count();
-  //   res_tiles.unpersist()
-
-  //   return kvrdd_points
-  // }
 
 
   def algo_loop(cur_tri : RDD[KValue], cur_edges : RDD[TEdge] , iq : IQlibSched , params_cpp : params_map,params_scala : params_map) : (RDD[KValue],RDD[TEdge],ListBuffer[(Int,RDD[VData])]) = {

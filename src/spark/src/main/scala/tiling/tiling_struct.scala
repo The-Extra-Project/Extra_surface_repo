@@ -132,78 +132,14 @@ class nd_tree(dim : Int,depth : Int,iq : IQlibSched) extends Serializable {
   }
 
 
-  def compute_id_map_vold(l1 : RDD[(Int, Int)], lim : Int, min_nbt : Int = 1) : Map[Int,Int] = {
-    var li = l1;
-    li.cache
-    val lf : ListBuffer[RDD[(Int, Int)]] = ListBuffer()
-    lf += li.filter(x => x._2 > lim)
-    println("Nd tree construction ...")
-    while(li.count > 1){
-      val root_li = li.map(x => (root_id(x._1),x._2)).reduceByKey(_ + _)
-      val root_map = root_li.collect.toMap
-//      println(root_map)
-      lf += li.filter(x => root_map(root_id(x._1)) > lim && x._2 <=lim).cache
-      li = root_li
-    }
-
-    //lf+=li;
-    println("Nd tree done")
-    // val lid = lf.reduce(_ union _).collect()
-    // val fff = l1.collect().map(x => (x._1,lid.filter(y => is_root(y._1,x._1))(0)._1))
-    val lid = lf.reduce(_ union _).collect()
-    println("lid done")
-    val fff = l1.map(x => (x._1,lid.filter(y => is_root(y._1,x._1))(0)._1)).collect()
-    println("map done")
-    return fff.toMap
-  }
 
   def compute_id_map(l1 : RDD[(Int, Int)], lim : Int, min_nbt : Int = 1) : scala.collection.Map[Int,Int] = {
     return compute_id_map_break_lineage(l1,lim,min_nbt);
-//    return compute_id_map_full_rdd(l1,lim,min_nbt);
-  }
 
-  def compute_id_map_full_rdd(l1 : RDD[(Int, Int)], lim : Int, min_nbt : Int = 1) : scala.collection.Map[Int,Int] = {
-    var li_new = l1.map(x=> (x._1,(x._2,List(x._1))));
-    li_new.persist(iq.get_storage_level())
-
-    var lf_new = li_new.filter(x => x._2._1 > lim)
-    println("Nd tree construction ...")
-    while(li_new.count > 1){
-      val root_li_new = li_new.map(x => (root_id(x._1),x._2)).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2)).cache()//persist(iq.get_storage_level())
-      val root_map = root_li_new.collect().toMap
-      val unn = (lf_new union li_new.filter(x => root_map(root_id(x._1))._1 > lim && x._2._1 <=lim)).cache()//persist(iq.get_storage_level())
-      lf_new = unn;
-      li_new = root_li_new
-
-    }
-    println("Constructing the nd tree id map")
-    val fff_map = lf_new.flatMap( x=> x._2._2.map(y => (y,x._1)))
-
-    return fff_map.collectAsMap()
-  }
-
-  def compute_id_rdd(l1 : RDD[(Int, Int)], lim : Int, min_nbt : Int = 1) : RDD[(Long, Long)] = {
-    var li_new = l1.map(x=> (x._1,(x._2,List(x._1))));
-    li_new.persist(iq.get_storage_level())
-
-    var lf_new = li_new.filter(x => x._2._1 > lim)
-    println("Nd tree construction ...")
-    while(li_new.count > 1){
-      val root_li_new = li_new.map(x => (root_id(x._1),x._2)).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2),1000).persist(iq.get_storage_level())
-      val root_map = root_li_new.collect().toMap
-      val unn = (lf_new union li_new.filter(x => root_map(root_id(x._1))._1 > lim && x._2._1 <=lim)).persist(iq.get_storage_level())
-      lf_new = unn;
-      li_new = root_li_new
-
-    }
-    println("Constructing the nd tree id map")
-    val fff_map = lf_new.flatMap( x=> x._2._2.map(y => (y.toLong,x._1.toLong)))
-
-    return fff_map
   }
 
 
-  def compute_id_rdd_new(l1 : RDD[(Int, Int)], lim : Int, min_nbt : Int = 1) : (RDD[(Long, Long)],RDD[(Int, (Int, List[Int]))]) = {
+  def compute_id_rdd(l1 : RDD[(Int, Int)], lim : Int, min_nbt : Int = 1) : (RDD[(Long, Long)],RDD[(Int, (Int, List[Int]))]) = {
     var li_new = l1.map(x=> (x._1,(x._2,List(x._1))));
     li_new.cache().count
 
@@ -229,7 +165,6 @@ class nd_tree(dim : Int,depth : Int,iq : IQlibSched) extends Serializable {
     }
     if(lf_new.count() == 0)
       lf_new = li_new.map(x => (1,x._2)).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2));
-    println(" Done : Constructing the nd tree id map")
     val fff_map = lf_new.flatMap( x=> x._2._2.map(y => (y.toLong,x._1.toLong))).persist(iq.get_storage_level()).setName("KDTREE_MAP")
     lf_new.cache().count
     fff_map.count
@@ -238,31 +173,6 @@ class nd_tree(dim : Int,depth : Int,iq : IQlibSched) extends Serializable {
 
     return (fff_map,lf_new)
   }
-
-  def compute_id_rdd_new_good(l1 : RDD[(Int, Int)], lim : Int, min_nbt : Int = 1) : (RDD[(Long, Long)],RDD[(Int, (Int, List[Int]))]) = {
-    var li_new = l1.map(x=> (x._1,(x._2,List(x._1))));
-    li_new.persist(iq.get_storage_level())
-
-    var acc = 0;
-    var lf_new = li_new.filter(x => x._2._1 > lim)
-    println("Distributed Nd tree construction ...")
-    while(li_new.count > 1){
-      val root_li_new = li_new.map(x => (root_id(x._1),x._2)).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2)).persist(iq.get_storage_level()).setName("RDD_ROOT_LI_NEW" + acc)
-      val root_li_stage = li_new.map(x => (root_id(x._1),(x._2._1,List(x._1)))).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2)).flatMap( x=> x._2._2.map(y => (y , x._2._1)))
-      val li_new_filt = li_new.cogroup(root_li_stage).filter(
-        cc => ((!cc._2._2.isEmpty) && (!cc._2._1.isEmpty))).filter(
-        cc => cc._2._2.head > lim && cc._2._1.head._1 <=lim).map(cc => (cc._1,cc._2._1.head));
-      val unn = (lf_new union li_new_filt).persist(iq.get_storage_level()).setName("RDD_UNN_" + acc)
-      lf_new = unn;
-      li_new = root_li_new
-      acc = acc + 1;
-    }
-    println(" Done : Constructing the nd tree id map")
-    val fff_map = lf_new.flatMap( x=> x._2._2.map(y => (y.toLong,x._1.toLong)))
-
-    return (fff_map,lf_new)
-  }
-
 
 
 
@@ -275,13 +185,9 @@ class nd_tree(dim : Int,depth : Int,iq : IQlibSched) extends Serializable {
     println("Nd tree construction ...")
     val list_map : ListBuffer[scala.collection.Map[Int,Int]] = ListBuffer()
     while(li_new.count > 1){
-      println("nd tree loop ==> ")
       val root_li_new = li_new.map(x => (root_id(x._1),x._2)).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2),1000).persist(iq.get_storage_level()).setName("ND_TREE_LOOP")
-      println("  root map collect ...")
       val root_map = root_li_new.collect().toMap
-      println("  collect as map ...")
       list_map += li_new.filter(x => root_map(root_id(x._1))._1 > lim && x._2._1 <=lim).flatMap( x=> x._2._2.map(y => (y,x._1))).collectAsMap()
-      println("  collect done ")
       li_new = root_li_new
 
     }
@@ -289,49 +195,8 @@ class nd_tree(dim : Int,depth : Int,iq : IQlibSched) extends Serializable {
     val fff_map = list_map.reduce(_ ++ _) ++ lf_new
     return fff_map
   }
-
-
-  def compute_id_map_fast_gg(l1 : RDD[(Int, Int)], lim : Int, min_nbt : Int = 1) : Map[Int,Int] = {
-    var li_new = l1.map(x=> (x._1,(x._2,List(x._1))));
-    li_new.cache
-
-    var lf_new = li_new.filter(x => x._2._1 > lim)
-    println("Nd tree construction ...")
-    while(li_new.count > 1){
-      val root_li_new = li_new.map(x => (root_id(x._1),x._2)).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2),100)
-      val root_map = root_li_new.collect().toMap
-      lf_new = (lf_new union li_new.filter(x => root_map(root_id(x._1))._1 > lim && x._2._1 <=lim)).cache
-      li_new = root_li_new
-      li_new.cache()
-    }
-    println("Nd tree done")
-    val fff_map = lf_new.repartition(20).flatMap( x=> x._2._2.map(y => (y,x._1))).collect().toMap
-    println("map done")
-    return fff_map
-  }
-
-
-  def compute_id_map_fast_good(l1 : RDD[(Int, Int)], lim : Int, min_nbt : Int = 1) : Map[Int,Int] = {
-    var li_new = l1.map(x=> (x._1,(x._2,List(x._1))));
-    li_new.cache
-    val lf_new : ListBuffer[RDD[(Int, (Int,List[Int]))]] = ListBuffer()
-    lf_new += li_new.filter(x => x._2._1 > lim)
-    println("Nd tree construction ...")
-    while(li_new.count > 1){
-      val root_li_new = li_new.map(x => (root_id(x._1),x._2)).reduceByKey((x,y) => (x._1+y._1,x._2 ::: y._2))
-      val root_map = root_li_new.collect().toMap
-      lf_new += li_new.filter(x => root_map(root_id(x._1))._1 > lim && x._2._1 <=lim).cache
-      li_new = root_li_new
-    }
-    println("Nd tree done")
-    val lid_new : Array[(Int, (Int,List[Int]))] = lf_new.reduce(_ union _).collect()
-    val fff_map = lid_new.flatMap( x=> x._2._2.map(y => (y,x._1))).toMap
-    println("map done")
-    return fff_map
-  }
-
-
 }
+
 
 
 object geojson_export{

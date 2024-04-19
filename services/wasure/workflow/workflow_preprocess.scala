@@ -58,7 +58,7 @@ import files_opt._;
 
 //=============================================
 //==== Configuration and file sysyem init  ====
-val conf = new SparkConf().setAppName("DDT")
+val conf = new SparkConf().setAppName("preprocess")
 val fs = FileSystem.get(sc.hadoopConfiguration);
 
 // Metadata extraction
@@ -92,7 +92,7 @@ val df_par = sc.defaultParallelism;
 
 // System params
 val dim = params_scala.get_param("dim", "3").toInt
-//val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-D" + dim.toString)
+
 val ddt_kernel_dir = params_scala.get_param("ddt_kernel", "build-spark-Release-" + dim.toString)
 val build_dir = global_build_dir + "/" + ddt_kernel_dir
 val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
@@ -125,47 +125,10 @@ val iq = new IQlibSched(slvl_glob,slvl_loop)
 val current_plateform = get_bash_variable("CURRENT_PLATEFORM");
 
 current_plateform.toLowerCase match {
-  case "cnes" => {
-    println("void")
-    import org.apache.log4j.PropertyConfigurator
-    PropertyConfigurator.configure(ddt_main_dir + "/log4j-executor.properties.v3" )
-  }
-  case "multivac" => {
-    val hdfs_files_dir = get_bash_variable("HDFS_FILES_DIR");
-    val exec_path_list = List("ddt-stream-exe","wasure-stream-exe");
-    // val lib_list = List(
-    //   "libboost_system.so.1.71.0",
-    //   "libboost_filesystem.so.1.71.0","libc.so.6",
-    //   "libddt.so","libgcc_s.so.1","libgmp.so.10","libm.so.6","libpthread.so.0","libstdc++.so.6","libtbmrf.so"
-    // )
-
-    val lib_list = List(
-      "ddt-stream-exe","libboost_system.so.1.67.0",
-      "libboost_filesystem.so.1.67.0","libCGAL.so.13",
-      "libddt.so","libstdc++.so.6","libm.so.6","libtbmrf.so"
-    )
-
-    var inc_dir = sc.parallelize(List("")).map(
-      x => (SparkFiles.get("libCGAL.so.13").split("/").dropRight(1).reduce(_ ++ "/" ++ _)).dropRight(1)
-    ).collect()(0).split("_").dropRight(1).reduce(_ ++ "_" ++ _) + "_"
-    var inc_dir_list = (1 to 100).map(inc_dir  + "%06d".format(_)).reduce(_ ++ ":" ++ _)
-
-    exec_path_list.map(x => sc.addFile(hdfs_files_dir + x))
-    lib_list.map(x => sc.addFile(hdfs_files_dir + x))
-    println("===> SC DEFAUT PAR :" + sc.defaultParallelism)
-
-    env_map = Map(
-      "CLASSPATH" -> sys.env("CLASSPATH"),
-      "LD_LIBRARY_PATH" -> (inc_dir_list + ":/usr/lib/jvm/java-8-oracle/jre/lib/amd64/server:/opt/cloudera/parcels/CDH/lib/")
-    )
-  }
   case "local" => {}
 }
 
 val cpp_exec_path = current_plateform.toLowerCase match {
-  case "cnes"  =>     "/softs/rh7/singularity/3.5.3/bin/singularity exec " + build_dir + "/ddt_img_cnes.simg " + build_dir + "/bin/"
-  case "singularity"  =>     "singularity exec " + build_dir + "/ddt_img_cnes.simg " + build_dir + "/bin/"
-  case "multivac"  =>   "" // Empty string
   case _  => build_dir + "/bin/"
 }
 
@@ -184,7 +147,6 @@ val params_wasure =  set_params(params_new,List(
 fs.mkdirs(new Path( output_dir),new FsPermission("777"))
 params_scala("output_dir") = collection.mutable.Set(output_dir)
 params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)
-
 
 
 println("")
@@ -211,7 +173,6 @@ val nb_ply = fs.listStatus(new Path(input_dir)).map(x => fs.listStatus(x.getPath
 
 if(nb_ply == 0){
   println("!! ERROR: 0 PLY FOUND !!")
-  println("!! ERROR: 0 PLY FOUND !!")
 }
 
 // List of input ply filepath
@@ -222,12 +183,7 @@ val ply_input = getListOfFiles(input_dir).filter(
 kvrdd_inputs = iq.get_kvrdd(sc.parallelize(ply_input.map(
   xx => "p 1 " + xx._2 + " f " + xx._1)),"p").repartition(nb_ply)
 
-// val ply_input = getListOfFiles(input_dir).filter(
-//   x => (((x.toString endsWith ".las") || (x.toString endsWith ".laz")) && ((ss_reg).findFirstIn(x.toString).isDefined)))
-// kvrdd_inputs = iq.get_kvrdd(sc.parallelize(ply_input.map(
-//   fname => "p 1 " + ("([0-9]+)".r).findAllIn(fname.toString).toArray.last + " f " + fname.toString)),"p").repartition(nb_ply)
 
-// process data
 val struct_inputs_bbox = iq.run_pipe_fun_KValue(
   bbox_cmd ++ List("--label", "struct"),
   kvrdd_inputs
@@ -235,7 +191,6 @@ val struct_inputs_bbox = iq.run_pipe_fun_KValue(
 struct_inputs_bbox.collect
 val kvrdd_bbox_ori = iq.get_kvrdd(struct_inputs_bbox,"s").persist(slvl_loop);
 val bba_ori =   kvrdd_bbox_ori.map(x => x._2.head.split("z").tail.head.split(" ").filter(!_.isEmpty).map(x => x.toFloat)).reduce((x,y) => Array(Math.min(x(0),y(0)),Math.max(x(1),y(1)),Math.min(x(2),y(2)),Math.max(x(3),y(3)),Math.min(x(4),y(4)),Math.max(x(5),y(5)), x(6)+y(6)))
-
 
 val preprocess_cmd =  set_params(params_wasure, List(
   ("step","preprocess"),
@@ -260,11 +215,7 @@ val ndtree_depth = Math.max((Math.log(tot_nbp/max_ppt)/Math.log(3)).round,0)
 val lambda = params_scala.get_param("lambda", "1").toFloat
 
 
-// Dump xml
-
-// params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + bba(4) + "x" + (bba(4) + smax))
 params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + 0.0 + "x" + 1000.0)
-
 params_scala("ndtree_depth") = collection.mutable.Set(ndtree_depth.toString)
 params_scala("datatype") = collection.mutable.Set("files")
 params_scala("max_ppt") = collection.mutable.Set(max_ppt.toString)

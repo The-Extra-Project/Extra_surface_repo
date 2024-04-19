@@ -1,6 +1,6 @@
 #!/bin/bash
 
-libs=("./extern/graphcut" "./extern/LAStools" "./extern/QPBO" "./extern/ann_1.1.2" "./extern/double-conv" "./extern/tinyply" "./ddt"  "./create_datas" "./wasure")
+libs=("./extern/graphcut" "./extern/LAStools" "./extern/QPBO" "./extern/ann_1.1.2" "./extern/double-conv" "./extern/tinyply" "./ddt"  "./wasure")
 # "./wasure" "extern/3d_benchmark/")
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/"
 COMPILE_TYPE=Release
