@@ -45,11 +45,8 @@ public :
   void compute_dst_with_center(DTW & tri, wasure_data<Traits>  & datas_tri, wasure_data<Traits>  & datas_pts, wasure_params & params, Id tid);
     void finalize_sample(DT & tri, int nb_samples);
 
-  //   std::vector<double>  get_cell_barycenter(Cell_handle ch);
-  // std::vector<double>  get_cell_barycenter(Cell_const_iterator ch);
     std::vector<double>  Pick_3d(const Point & v0,const Point & v1,const Point & v2,const Point & v3);
     std::vector<double>  Pick_2d(const Point & v0,const Point & v1,const Point & v2);
-  //    std::vector<double>   Pick(Tile_cell_const_handle  ch, int D);
 
 
     void init_sample(DT & tri,int nb_samples, int dim);
@@ -76,32 +73,7 @@ public :
   void center_dst(DTW & tri, wasure_data<Traits>  & datas_tri,std::vector<Point> & center_pts, Id tid);
 
 
-    // Surface extraction
-
     void extract_surface(DTW & tri,  std::map<Id,wasure_data<Traits> >  & datas_tri);
-
-
-//   template<typename CH>
-// std::vector<double>  wasure_algo::get_cell_barycenter(CH ch)
-// {
-
-//   std::vector<double> coords(D);
-//   for(uint d = 0; d < D; d++)
-//     coords[d] = 0;
-//   for(auto vht = ch->vertices_begin() ;
-//       vht != ch->vertices_end() ;
-//       ++vht)
-//     {
-//       Vertex_handle v = *vht;
-//       for(uint d = 0; d < D; d++)
-// 	{
-// 	  coords[d] += (v->point())[d];
-// 	}
-//     }
-//   for(uint d = 0; d < D; d++)
-//     coords[d] /= ((double)D+1);
-//   return coords;
-// }
 
 
   template<typename CH>

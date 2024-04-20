@@ -30,7 +30,7 @@ function run_fun () {
 	    then
 		PROXY_LINE="-e http_proxy='$http_proxy' -e http_proxy_port='$http_proxy_port'  -e http_proxy_ip='$http_proxy_ip'"
 	    fi
-	    CMD="docker run  -d $MOUNT_CMD  --cap-add SYS_ADMIN --privileged --net host $PROXY_LINE -e DDT_MAIN_DIR='$DDT_MAIN_DIR_DOCKER' -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --name $CONTAINER_NAME  -ti ${NAME_IMG}"
+	    CMD="docker run  -d $MOUNT_CMD -u 0 --cap-add SYS_ADMIN --privileged --net host $PROXY_LINE -e DDT_MAIN_DIR='$DDT_MAIN_DIR_DOCKER' -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --name $CONTAINER_NAME  -ti ${NAME_IMG}"
 	    eval $CMD 
 	    #eval $CMD | tee ./log_ndtri.txt
 	    #container_ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
