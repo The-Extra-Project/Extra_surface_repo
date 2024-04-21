@@ -2,7 +2,7 @@
 #define WASURE_MATHS_HPP
 
 #include "wasure_typedefs.hpp"
-#include <Eigen/SVD> 
+#include <Eigen/SVD>
 #include <Eigen/Core>
 
 inline double mEstimator(double a,double t)

@@ -14,10 +14,10 @@
 
 
 const  int flags_ser = double_conversion::DoubleToStringConverter::UNIQUE_ZERO |
-  double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN;
+                       double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN;
 
 const int flags_deser = double_conversion::DoubleToStringConverter::UNIQUE_ZERO |
-  double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN;
+                        double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN;
 
 const char gDigitsLut[200] =
 {

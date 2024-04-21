@@ -87,15 +87,15 @@ public:
 
 
     Tile_vertex_const_iterator tile_vertices_begin(Id tid) const { return tiles[tid].vertices_begin();}
-    Tile_vertex_const_iterator tile_vertices_end  (Id tid) const { return tiles[tid].vertices_end();} 
+    Tile_vertex_const_iterator tile_vertices_end  (Id tid) const { return tiles[tid].vertices_end();}
 
     Tile_cell_const_iterator tile_cells_begin(Id tid) const { return tiles[tid].cells_begin() ;}
     Tile_cell_const_iterator tile_cells_end  (Id tid) const { return tiles[tid].cells_end() ;}
 
     Tile_facet_const_iterator tile_facets_begin(Id tid) const { return tiles[tid].facets_begin();}
-    Tile_facet_const_iterator tile_facets_end  (Id tid) const { return tiles[tid].facets_end();} 
+    Tile_facet_const_iterator tile_facets_end  (Id tid) const { return tiles[tid].facets_end();}
 
-  
+
     Tile_id_const_iterator tile_ids_begin() const { return tiles.begin(); }
     Tile_id_const_iterator tile_ids_end  () const { return tiles.end  (); }
 
@@ -301,33 +301,34 @@ public:
 
 // The function that allow to init the global id of each simplex
 
-  void init_local_id(){
-    typedef typename Traits::Flag_C                    Flag_C;
-    typedef typename Traits::Data_C                    Data_C;
-    typedef typename Traits::Data_V                    Data_V;
-    int nextid = 0;
-    int D = Traits::D;
-    int acc = 0;
+    void init_local_id()
+    {
+        typedef typename Traits::Flag_C                    Flag_C;
+        typedef typename Traits::Data_C                    Data_C;
+        typedef typename Traits::Data_V                    Data_V;
+        int nextid = 0;
+        int D = Traits::D;
+        int acc = 0;
 
-    for(auto vit = vertices_begin(); vit != vertices_end(); ++vit)
-      {
+        for(auto vit = vertices_begin(); vit != vertices_end(); ++vit)
+        {
 
-	const Data_V & vd = vit->vertex_data();
-	Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
-	Id main_id = vit->main_id();
-	vd_quickndirty.gid =  (acc++);
+            const Data_V & vd = vit->vertex_data();
+            Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
+            Id main_id = vit->main_id();
+            vd_quickndirty.gid =  (acc++);
 
-      }
+        }
 
-    acc = 0;
-    for(auto iit = cells_begin(); iit != cells_end(); ++iit)
-      {
-	const Data_C & cd = iit->cell_data();
-	Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
-	Id main_id = iit->main_id();
-	cd_quickndirty.gid =  (acc++);
-      }
-  }  
+        acc = 0;
+        for(auto iit = cells_begin(); iit != cells_end(); ++iit)
+        {
+            const Data_C & cd = iit->cell_data();
+            Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
+            Id main_id = iit->main_id();
+            cd_quickndirty.gid =  (acc++);
+        }
+    }
 
 
     template<class Scheduler> bool is_valid(Scheduler &s) const
@@ -367,7 +368,7 @@ public:
 
 
 
-  
+
 private:
 
     Tile_container tiles;

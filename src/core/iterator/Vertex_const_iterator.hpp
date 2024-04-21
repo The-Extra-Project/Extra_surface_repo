@@ -144,12 +144,12 @@ public:
         return tile_->id(vertex_);
     }
 
-      Id gid() const
+    Id gid() const
     {
         assert(tile_ != end_);
         return tile_->gid(vertex_);
     }
-  
+
     Point point() const { return vertex_->point(); }
 
     Tile_const_iterator        tile  () const { return tile_;   }

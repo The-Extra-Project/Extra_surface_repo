@@ -15,7 +15,7 @@ template <typename DataV,typename DataC> using Traits = ddt::Cgal_traits_2<DataV
 namespace ddt
 {
 template <typename DataV,typename DataC> using Traits = ddt::Cgal_traits_3<DataV,DataC>;
- using Traits_raw = ddt::Cgal_traits_3_Raw;
+using Traits_raw = ddt::Cgal_traits_3_Raw;
 }
 
 #elif defined(DDT_CGAL_TRAITS_D)

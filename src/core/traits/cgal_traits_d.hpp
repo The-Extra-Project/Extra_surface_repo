@@ -39,9 +39,9 @@ struct Cgal_traits_raw_d
     typedef typename Delaunay_triangulation::Full_cell_const_handle                   Cell_const_handle;
     typedef typename Delaunay_triangulation::Full_cell_iterator                       Cell_iterator;
     typedef typename Delaunay_triangulation::Full_cell_handle                         Cell_handle;
-  typedef typename Delaunay_triangulation::Full_cell::Vertex_handle_iterator Vertex_h_iterator;
+    typedef typename Delaunay_triangulation::Full_cell::Vertex_handle_iterator Vertex_h_iterator;
 
-  
+
     typedef typename Delaunay_triangulation::Facet_iterator                 Facet_iterator;
     typedef Facet_iterator                   Facet_const_handle;
 
@@ -116,7 +116,7 @@ struct Cgal_traits_raw_d
         return f->full_cell();
     }
 
-  inline Cell_const_iterator neighbor(const Delaunay_triangulation& dt, Cell_const_iterator c, int i) const
+    inline Cell_const_iterator neighbor(const Delaunay_triangulation& dt, Cell_const_iterator c, int i) const
     {
         return c->neighbor(i);
     }
@@ -142,8 +142,8 @@ struct Cgal_traits_raw_d
             acc += (p1[d] - p2[d])*(p1[d] - p2[d]);
         return acc;
     }
-  
-  template<int D>
+
+    template<int D>
     bool is_inside(const Delaunay_triangulation& dt, const Bbox<D>& bbox, Cell_const_handle c) const
     {
         typename Delaunay_triangulation::Geom_traits::FT res = 0, delta;
@@ -219,7 +219,7 @@ struct Cgal_traits_d
     typedef  CGAL::Unique_hash_map<Vertex_const_handle,bool> v_hmap_bool;
     typedef  CGAL::Unique_hash_map<Vertex_handle,uint> v_hmap_uint;
 
-  typedef typename Delaunay_triangulation::Full_cell::Vertex_handle_iterator Vertex_h_iterator;
+    typedef typename Delaunay_triangulation::Full_cell::Vertex_handle_iterator Vertex_h_iterator;
 
     Delaunay_triangulation triangulation(int dimension) const
     {
@@ -244,8 +244,8 @@ struct Cgal_traits_d
         return v->data().gid;
     }
 
-  
-  
+
+
     inline Flag_V& flag(Vertex_const_handle v) const
     {
         return v->data().flag;
@@ -399,7 +399,8 @@ struct Cgal_traits_d
 
 
 
-  void get_list_vertices(Cell_const_handle fch,std::list<Vertex_const_handle> & lp){
+    void get_list_vertices(Cell_const_handle fch,std::list<Vertex_const_handle> & lp)
+    {
         for(auto vht = fch->vertices_begin() ;
                 vht != fch->vertices_end() ;
                 ++vht)
@@ -408,8 +409,8 @@ struct Cgal_traits_d
             lp.push_back(v);
 
         }
-  }
-  
+    }
+
     template<int D>
     inline bool is_visible(const Delaunay_triangulation& dt, const Bbox<D>& bbox, Cell_const_handle c, int i) const
     {
@@ -596,7 +597,7 @@ struct Cgal_traits_d
     std::vector<double> get_cell_barycenter(Cell_const_handle ch)
     {
         int D = ch->maximal_dimension();
-	std::vector<double>  coords(D,0.0);
+        std::vector<double>  coords(D,0.0);
         for(auto vht = ch->vertices_begin() ;
                 vht != ch->vertices_end() ;
                 ++vht)
@@ -651,7 +652,7 @@ struct Cgal_traits_d
             {
                 coords_v[d] = v_double[ii*D +d];
             }
-	    Point p(D,coords_v.begin(),coords_v.end());
+            Point p(D,coords_v.begin(),coords_v.end());
             //Point p(coords_v[0],coords_v[1],coords_v[2]);
             vertex_map[ii] = tri.new_vertex(p);
         }
@@ -664,7 +665,7 @@ struct Cgal_traits_d
                 int ii = i;
                 vertex_map[ii]->data().id = v_int[ii];
             }
-	    deserialize_b64_vect(v_int,ifile);
+            deserialize_b64_vect(v_int,ifile);
             for(uint i = 1; i <= num_v; ++i)
             {
                 int ii = i;
@@ -707,7 +708,7 @@ struct Cgal_traits_d
                 int ii = i;
                 cell_map[ii]->data().flag =  v_char[ii];
             }
-	    deserialize_b64_vect(v_int,ifile);
+            deserialize_b64_vect(v_int,ifile);
             for(uint i = 0; i < num_c; ++i)
             {
                 int ii = i;
@@ -807,7 +808,7 @@ struct Cgal_traits_d
                 v_int.push_back(vit->data().id);
             }
             serialize_b64_vect(v_int,ofile);
-	    v_int.push_back(0);
+            v_int.push_back(0);
             for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
             {
                 if(tri.is_infinite(vit))
@@ -857,7 +858,7 @@ struct Cgal_traits_d
 
             }
             serialize_b64_vect(v_char,ofile);
-	    for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
+            for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
             {
                 v_int.push_back(it->data().gid);
 
@@ -944,31 +945,31 @@ struct Cgal_traits_d
         }
         // write the number of cells
         n = tri.number_of_full_cells();
-	v_simplex.resize(n*(D+1));
-	v_flags.resize(n);
-	v_nb.resize(n*(D+1));
-	  
+        v_simplex.resize(n*(D+1));
+        v_flags.resize(n);
+        v_nb.resize(n*(D+1));
+
         // write the cells
         std::map<Cell_const_handle, uint> cell_map;
         i = 0;
 
-	
-	int max_id = 0;
 
-	for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
+        int max_id = 0;
+
+        for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
         {
-	  if(it->data().gid > max_id)
-	    max_id = it->data().gid;
-	}
-	max_id++;
+            if(it->data().gid > max_id)
+                max_id = it->data().gid;
+        }
+        max_id++;
         for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
         {
 
 
-	  //int ii = i;
+            //int ii = i;
             int ii =  it->data().gid;
-	    if(ii == -1)
-	      ii = max_id++;
+            if(ii == -1)
+                ii = max_id++;
             cell_map[it] = ii;
             for(int d = 0; d < D+1; d++)
             {
@@ -983,7 +984,7 @@ struct Cgal_traits_d
                 v_nb[ii*(D+1) +j] = nb_id;
             }
             v_flags[ii] = it->data().flag;
-	    ++i;
+            ++i;
             //	      v_cid.push_back(ii);
 
         }
@@ -992,13 +993,13 @@ struct Cgal_traits_d
 
 
 
-	  data.dmap[data.xyz_name].fill_full_uint8_vect(v_xyz);
-	  data.dmap[data.simplex_name].fill_full_uint8_vect(v_simplex);
-	  data.dmap[data.nb_name].fill_full_uint8_vect(v_nb);
+        data.dmap[data.xyz_name].fill_full_uint8_vect(v_xyz);
+        data.dmap[data.simplex_name].fill_full_uint8_vect(v_simplex);
+        data.dmap[data.nb_name].fill_full_uint8_vect(v_nb);
 
-	  data.dmap[data.vid_name].fill_full_uint8_vect(v_vid);
-	  data.dmap[data.flag_vertex_name].fill_full_uint8_vect(v_flagv);
-	  data.dmap[data.flag_simplex_name].fill_full_uint8_vect(v_flags);
+        data.dmap[data.vid_name].fill_full_uint8_vect(v_vid);
+        data.dmap[data.flag_vertex_name].fill_full_uint8_vect(v_flagv);
+        data.dmap[data.flag_simplex_name].fill_full_uint8_vect(v_flags);
 
 
 
@@ -1061,7 +1062,7 @@ struct Cgal_traits_d
         uint ik;
 
 
-	
+
         for(uint ii = 0; ii < num_c; ++ii)
         {
             Cell_handle ch = tri.new_full_cell();

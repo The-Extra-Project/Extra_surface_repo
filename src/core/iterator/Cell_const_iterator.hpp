@@ -180,20 +180,20 @@ public:
     }
 
 
-      Id gid() const
+    Id gid() const
     {
         assert(tile_ != end_);
         return tile_->gid(cell_);
     }
 
 
-  Id lid() const
+    Id lid() const
     {
         assert(tile_ != end_);
         return tile_->lid(cell_);
     }
 
-  
+
 
     Vertex_const_iterator vertex (const int i) const
     {
@@ -249,7 +249,7 @@ public:
     }
 
 
-  
+
     Tile_const_iterator    tile()      const { return tile_; }
     Tile_cell_const_handle full_cell() const { return cell_; }
 
@@ -258,15 +258,15 @@ public:
     bool is_mixed()    const { return tile_->cell_is_mixed(cell_); }
     bool is_foreign()  const { return tile_->cell_is_foreign(cell_); }
     bool is_main()     const { return tile_->cell_is_main(cell_); }
-  bool has_id(Id ii)     const { return tile_->has_id(cell_,ii); }
+    bool has_id(Id ii)     const { return tile_->has_id(cell_,ii); }
     bool is_infinite() const { return tile_->cell_is_infinite(cell_); }
     bool is_inside() const { return tile_->cell_is_inside(cell_); }
 
-  bool circumcircle() const { return tile_->cell_is_inside(cell_); }
-  std::vector<double> barycenter() const { return tile_->get_cell_barycenter(cell_); }
+    bool circumcircle() const { return tile_->cell_is_inside(cell_); }
+    std::vector<double> barycenter() const { return tile_->get_cell_barycenter(cell_); }
 
-  void get_list_vertices(std::list<Tile_vertex_const_handle> & ll) const { return tile_->get_list_vertices(cell_,ll);}
-  
+    void get_list_vertices(std::list<Tile_vertex_const_handle> & ll) const { return tile_->get_list_vertices(cell_,ll);}
+
     bool is_valid()    const
     {
         return tile_ == end_ || cell_ != tile_->cells_end();

@@ -100,7 +100,7 @@ public :
 
     bool is_stream();
     bool is_serialized();
-  void serialize(bool);
+    void serialize(bool);
 
     bool is_file() ;
 
@@ -113,11 +113,12 @@ public :
     }
 
 
-  char get_nl_char(){
-    if(is_file())
-      return '\n';
-    return ';';
-  }
+    char get_nl_char()
+    {
+        if(is_file())
+            return '\n';
+        return ';';
+    }
 
     std::string get_file_name()
     {
@@ -207,10 +208,10 @@ public :
         {
             return ist;
         }
-	std::cerr << "read_stream_api" << std::endl;
-	std::cerr << fip << std::endl;
+        std::cerr << "read_stream_api" << std::endl;
+        std::cerr << fip << std::endl;
         tile_id = stoi(fip);
-	std::cerr << "done" << std::endl;
+        std::cerr << "done" << std::endl;
         ist >> nbd;
         return ist;
     }
@@ -356,8 +357,8 @@ bool stream_data_header::is_serialized()
 
 void stream_data_header::serialize(bool bb)
 {
-  if(bb)
-    type = "z";
+    if(bb)
+        type = "z";
 }
 
 bool stream_data_header::is_file()
@@ -443,18 +444,20 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
         // delete []buffer_in;
     }
     else if (is_stream())
-      {
+    {
         if(log != NULL) log->step("[read]cin2sstream");
         std::string input;
         std::getline(std::cin, input);
         // initialize string stream
         ifile = new std::stringstream(input);
-      }
-    else{
-      std::cout << " ";
-      if(ifile != NULL){
-	delete ifile;
-      }
+    }
+    else
+    {
+        std::cout << " ";
+        if(ifile != NULL)
+        {
+            delete ifile;
+        }
     }
 
     return ist;

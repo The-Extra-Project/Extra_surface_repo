@@ -14,22 +14,22 @@
 class wasure_params
 {
 public :
-  wasure_params() : verbose_flag(0),nbp(0),log_level(2),nbt_side(-1),dump_ply(false),area_processed(0),coef_mult(1),dst_scale(-1),
-		    input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),slabel(std::string("")),mode(-1),rat_ray_sample(0),pscale(1),nb_samples(1),lambda(1),nb_labs(2),graph_type(0),tau(0.5),skip_app_header(false),ray_weight(0)
+    wasure_params() : verbose_flag(0),nbp(0),log_level(2),nbt_side(-1),dump_ply(false),area_processed(0),coef_mult(1),dst_scale(-1),
+        input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),slabel(std::string("")),mode(-1),rat_ray_sample(0),pscale(1),nb_samples(1),lambda(1),nb_labs(2),graph_type(0),tau(0.5),skip_app_header(false),ray_weight(0)
     {
 
 
 
     };
     int verbose_flag,seed,nbp,log_level,id_padding,graph_type,area_processed;
-  bool show_ghost,skip_app_header,dump_ply,process_only_shared;
+    bool show_ghost,skip_app_header,dump_ply,process_only_shared;
     double lambda,terr,rat_ray_sample,rat_extra_pts,min_scale,pscale,coef_mult,tau,dst_scale,ray_weight;
-  int nb_samples,max_it,nb_labs,nb_threads,mode;
-  int center_type,tile_id,nbt_side;
-  bool use_weight = true;
-  bool dump_debug  = false;
-  bool do_finalize = false;
-  std::string bbox_string,input_dir,output_dir,algo_step,slabel,filename;
+    int nb_samples,max_it,nb_labs,nb_threads,mode;
+    int center_type,tile_id,nbt_side;
+    bool use_weight = true;
+    bool dump_debug  = false;
+    bool do_finalize = false;
+    std::string bbox_string,input_dir,output_dir,algo_step,slabel,filename;
     std::ostream& operator<<(std::ostream& os)
     {
         std::default_random_engine er((unsigned int)time(0));
@@ -57,35 +57,35 @@ public :
         int cc;
         int errflg = 2;
         static struct option long_options[] =
-	  {
-	   // /* These options set a flag. */
-	   {"seed",  required_argument, 0, 'a'},
-	   {"bbox",  required_argument, 0, 'b'},
-	   {"lambda",  required_argument, 0, 'c'},
-	   {"dim",  required_argument, 0, 'd'},
-	   {"ray_weight", required_argument,0, 'e'},
-	   {"pscale", required_argument,0, 'f'},
-	   {"step",  required_argument, 0, 's'},
-	   {"nbp",  required_argument, 0, 'n'},
-	   {"filename",  required_argument, 0, 'o'},
-	   {"graph_type",  required_argument, 0, 'i'},
-	   {"input_dir",  required_argument, 0, 'r'},
-	   {"mode",  required_argument, 0, 'm'},
-	   {"output_dir",  required_argument, 0, 'w'},
-	   {"label",  required_argument, 0, 'l'},
-	   {"coef_mult",  required_argument, 0, 'k'},
-	   {"rat_ray_sample",  required_argument, 0, 'u'},
-	   {"dst_scale", required_argument, 0, 't'},
-	   {"nb_samples",  required_argument, 0, 'j'},
-	   {"area_processed",  required_argument, 0, 'p'},
-	   {"nbt_side", required_argument ,0, 'g'},
-	   {"dump_debug",  no_argument, 0, 'q'},
-	   {"dump_ply", no_argument,0, 'x'},
-	   {"do_finalize", no_argument,0, 'z'},
-	   {"verbose", no_argument, &verbose_flag, 1},
-	   {"help",  no_argument, 0, 'h'},
-	   {0, 0, 0, 0}
-	  };
+        {
+            // /* These options set a flag. */
+            {"seed",  required_argument, 0, 'a'},
+            {"bbox",  required_argument, 0, 'b'},
+            {"lambda",  required_argument, 0, 'c'},
+            {"dim",  required_argument, 0, 'd'},
+            {"ray_weight", required_argument,0, 'e'},
+            {"pscale", required_argument,0, 'f'},
+            {"step",  required_argument, 0, 's'},
+            {"nbp",  required_argument, 0, 'n'},
+            {"filename",  required_argument, 0, 'o'},
+            {"graph_type",  required_argument, 0, 'i'},
+            {"input_dir",  required_argument, 0, 'r'},
+            {"mode",  required_argument, 0, 'm'},
+            {"output_dir",  required_argument, 0, 'w'},
+            {"label",  required_argument, 0, 'l'},
+            {"coef_mult",  required_argument, 0, 'k'},
+            {"rat_ray_sample",  required_argument, 0, 'u'},
+            {"dst_scale", required_argument, 0, 't'},
+            {"nb_samples",  required_argument, 0, 'j'},
+            {"area_processed",  required_argument, 0, 'p'},
+            {"nbt_side", required_argument,0, 'g'},
+            {"dump_debug",  no_argument, 0, 'q'},
+            {"dump_ply", no_argument,0, 'x'},
+            {"do_finalize", no_argument,0, 'z'},
+            {"verbose", no_argument, &verbose_flag, 1},
+            {"help",  no_argument, 0, 'h'},
+            {0, 0, 0, 0}
+        };
 
 
         int option_index = 0;
@@ -101,7 +101,7 @@ public :
             case 'r':
                 input_dir = std::string(optarg);
                 break;
-	    case 'o':
+            case 'o':
                 filename = std::string(optarg);
                 break;
             case 'w':
@@ -113,8 +113,8 @@ public :
             case 'l':
                 slabel = std::string(optarg);
                 break;
-	    case 'q':
-	      dump_debug = true;
+            case 'q':
+                dump_debug = true;
                 break;
             case 'b':
                 bbox_string = std::string(optarg);
@@ -132,7 +132,7 @@ public :
                 break;
             case 'e':
                 ray_weight = atof(optarg);
-                break;		
+                break;
             case 'u':
                 rat_ray_sample = atof(optarg);
                 break;
@@ -152,7 +152,7 @@ public :
                 graph_type = atoi(optarg);
                 break;
             case 't':
-	      dst_scale = atof(optarg);
+                dst_scale = atof(optarg);
 
                 break;
             case 'j':
@@ -164,7 +164,7 @@ public :
             case 'x':
                 dump_ply=true;
                 break;
-	    case 'z':
+            case 'z':
                 do_finalize=true;
                 break;
             case 'h':

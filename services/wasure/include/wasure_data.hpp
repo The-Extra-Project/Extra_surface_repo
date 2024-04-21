@@ -23,25 +23,27 @@ public :
         init_wasure_map();
     }
 
-  wasure_data(std::map<std::vector<std::string>, Data_ply > & init_dmap)  {
-    init_name();
-    for ( const auto &ee : init_dmap ) {
-      ddt_data<Traits>::dmap[ee.first] =  Data_ply(ee.first,ee.second.part,Traits::D,ee.second.get_vsize(),ee.second.type);	    
+    wasure_data(std::map<std::vector<std::string>, Data_ply > & init_dmap)
+    {
+        init_name();
+        for ( const auto &ee : init_dmap )
+        {
+            ddt_data<Traits>::dmap[ee.first] =  Data_ply(ee.first,ee.second.part,Traits::D,ee.second.get_vsize(),ee.second.type);
+        }
     }
-  }
 
-  
+
 
     void init_wasure_map()
     {
         int D = Traits::D;
         ddt_data<Traits>::dmap[center_name] = Data_ply(center_name,"vertex",D,D,DATA_FLOAT_TYPE);
-	ddt_data<Traits>::dmap[normal_name] = Data_ply(normal_name,"vertex",D,D,DATA_FLOAT_TYPE);
+        ddt_data<Traits>::dmap[normal_name] = Data_ply(normal_name,"vertex",D,D,DATA_FLOAT_TYPE);
         ddt_data<Traits>::dmap[egv_name] = Data_ply(egv_name,"vertex",D*D,D*D,DATA_FLOAT_TYPE);
-	ddt_data<Traits>::dmap[flags_name] = Data_ply(flags_name,"vertex",1,1,tinyply::Type::INT32);
+        ddt_data<Traits>::dmap[flags_name] = Data_ply(flags_name,"vertex",1,1,tinyply::Type::INT32);
         ddt_data<Traits>::dmap[dst_name] = Data_ply(dst_name,"face",3,3,DATA_FLOAT_TYPE);
         ddt_data<Traits>::dmap[labseg_name] = Data_ply(labseg_name,"face",1,1,tinyply::Type::INT32);
-        ddt_data<Traits>::dmap[gid_name] = Data_ply(gid_name,"face",1,1,tinyply::Type::INT32);       
+        ddt_data<Traits>::dmap[gid_name] = Data_ply(gid_name,"face",1,1,tinyply::Type::INT32);
         ddt_data<Traits>::dmap[sig_name] = Data_ply(sig_name,"vertex",D,D,DATA_FLOAT_TYPE);
     }
 
@@ -53,10 +55,10 @@ public :
         dst_name = {"vpe","vpo","vpu"};
         labseg_name = {"seg"};
         gid_name = {"gid"};
-	glob_scale_name = {"glob_scale"};
-	flags_name = {"flags"};
+        glob_scale_name = {"glob_scale"};
+        flags_name = {"flags"};
         center_name = ddt_data<Traits>::subvect({"x_origin","y_origin","z_origin","t_origin"},D);
-	normal_name = ddt_data<Traits>::subvect({"nx","ny","nz","nt"},D);
+        normal_name = ddt_data<Traits>::subvect({"nx","ny","nz","nt"},D);
         switch(D)
         {
         case 1 :
@@ -78,23 +80,23 @@ public :
     void write_geojson_norms(std::ostream & ofs, bool is_first = true)
     {
 
-      std::cerr << "write geojson norm" << std::endl;
+        std::cerr << "write geojson norm" << std::endl;
         std::vector<Point> raw_points;
         std::vector<Point> raw_centers;
         std::vector<double> raw_egv;
         std::vector<double> raw_sigs;
 
-	std::cerr << "extract pts" << std::endl;
+        std::cerr << "extract pts" << std::endl;
         ddt_data<Traits>::dmap[ddt_data<Traits>::xyz_name].extract_full_uint8_vect(raw_points,false);
-	std::cerr << "extract center" << std::endl;
+        std::cerr << "extract center" << std::endl;
         ddt_data<Traits>::dmap[center_name].extract_full_uint8_vect(raw_centers,false);
-	std::cerr << "extract sigs" << std::endl;
+        std::cerr << "extract sigs" << std::endl;
         ddt_data<Traits>::dmap[sig_name].extract_raw_uint8_vect(raw_sigs,false);
-	std::cerr << "extract egvs" << std::endl;
+        std::cerr << "extract egvs" << std::endl;
         ddt_data<Traits>::dmap[egv_name].extract_raw_uint8_vect(raw_egv,false);
 
-      std::cerr << "parse data done" << std::endl;
-	
+        std::cerr << "parse data done" << std::endl;
+
         bool do_ray = false;
         int D = Traits::D;
         std::vector<std::string> lab_color = {"\"red\"","\"green\"","\"blue\""};
@@ -211,7 +213,7 @@ public :
 //         ddt_data<Traits>::dmap[egv_name].extract_raw_uint8_vect(raw_egv,false);
 
 //       std::cerr << "parse data done" << std::endl;
-	
+
 //         bool do_ray = false;
 //         int D = Traits::D;
 //         std::vector<std::string> lab_color = {"\"red\"","\"green\"","\"blue\""};
@@ -370,17 +372,17 @@ public :
     {
         int D = Traits::D;
         std::vector<double> raw_sigs;
-	std::cerr << "start extract sig" << std::endl;
+        std::cerr << "start extract sig" << std::endl;
         ddt_data<Traits>::dmap[sig_name].extract_raw_uint8_vect(raw_sigs,false);
-	std::cerr << "end extract sig" << std::endl;
-	std::cerr << "raw_sig_size:" << raw_sigs.size() << std::endl;
+        std::cerr << "end extract sig" << std::endl;
+        std::cerr << "raw_sig_size:" << raw_sigs.size() << std::endl;
         double coords[Traits::D];
         std::vector<double> act_vsig;
-	// for(int i = 0 ; i < raw_sigs.size(); i++)
+        // for(int i = 0 ; i < raw_sigs.size(); i++)
         // {
-	//   std::cerr << "    rs:" << raw_sigs[i] << std::endl;
-	// }
-	std::cerr << "rdone" << std::endl;
+        //   std::cerr << "    rs:" << raw_sigs[i] << std::endl;
+        // }
+        std::cerr << "rdone" << std::endl;
         for(int i = 0 ; i < raw_sigs.size(); i++)
         {
 
@@ -399,8 +401,8 @@ public :
     void fill_sigs(std::vector<std::vector<double>>  & format_sigs, bool do_clear = true)
     {
         int D = Traits::D;
-	//        ddt_data<Traits>::dmap[sig_name] = Data_ply(sig_name,"vertex",D,D,DATA_FLOAT_TYPE);
-	//ddt_data<Traits>::Data_ply(sig_name,"vertex",D,D,DATA_FLOAT_TYPE);
+        //        ddt_data<Traits>::dmap[sig_name] = Data_ply(sig_name,"vertex",D,D,DATA_FLOAT_TYPE);
+        //ddt_data<Traits>::Data_ply(sig_name,"vertex",D,D,DATA_FLOAT_TYPE);
         std::vector<double> raw_sigs;
         for(int i = 0 ; i < format_sigs.size(); i++)
         {
@@ -420,25 +422,25 @@ public :
 
 
 
-  // void float2double(std::vector<std::string> & data_name) 
-  // {
+    // void float2double(std::vector<std::string> & data_name)
+    // {
 
-  //   if(ddt_data<Traits>::dmap[data_name].get_nbe_uint8_vect() == 0 &&
-  //      ddt_data<Traits>::dmap[data_name].get_nbe_shpt_vect() != 0){
-  //     ddt_data<Traits>::dmap[data_name].shpt_vect2uint8_vect();
-  //   }
-  //   if(ddt_data<Traits>::dmap[data_name].type == tinyply::Type::FLOAT32){
-  //     std::vector<float> v_float;
-  //     ddt_data<Traits>::dmap[data_name].extract_full_uint8_vect(v_float,true);
-  //     std::vector<double> doubleVec(v_float.begin(),v_float.end());
-  //     ddt_data<Traits>::dmap[data_name].type = tinyply::Type::FLOAT64;
-  //     ddt_data<Traits>::dmap[data_name].fill_full_uint8_vect(doubleVec);
-  //   }
-      
-  // }
-  
+    //   if(ddt_data<Traits>::dmap[data_name].get_nbe_uint8_vect() == 0 &&
+    //      ddt_data<Traits>::dmap[data_name].get_nbe_shpt_vect() != 0){
+    //     ddt_data<Traits>::dmap[data_name].shpt_vect2uint8_vect();
+    //   }
+    //   if(ddt_data<Traits>::dmap[data_name].type == tinyply::Type::FLOAT32){
+    //     std::vector<float> v_float;
+    //     ddt_data<Traits>::dmap[data_name].extract_full_uint8_vect(v_float,true);
+    //     std::vector<double> doubleVec(v_float.begin(),v_float.end());
+    //     ddt_data<Traits>::dmap[data_name].type = tinyply::Type::FLOAT64;
+    //     ddt_data<Traits>::dmap[data_name].fill_full_uint8_vect(doubleVec);
+    //   }
 
-  
+    // }
+
+
+
 
     void extract_dst( std::vector<std::vector<double>>  & format_dst,bool do_clear = true)
     {
@@ -545,25 +547,28 @@ public :
     //     raw_flags.clear();
     // }
 
-  void extract_flags(std::vector<int> & format_flags,bool do_clear = true)
-  {
-    int D = Traits::D;
-    auto ddt_dat = ddt_data<Traits>::dmap[flags_name];
+    void extract_flags(std::vector<int> & format_flags,bool do_clear = true)
+    {
+        int D = Traits::D;
+        auto ddt_dat = ddt_data<Traits>::dmap[flags_name];
 
-    if(tinyply::Type::INT32 == ddt_dat.get_type() ){
-      ddt_dat.extract_full_uint8_vect(format_flags,do_clear);
-    }else{
-      std::vector<char> raw_flags;
-      ddt_data<Traits>::dmap[flags_name].extract_raw_uint8_vect(raw_flags,false);
-      uint num_s = ddt_data<Traits>::dmap[flags_name].get_nbe_shpt_vect();
-      for(int i = 0 ; i < raw_flags.size(); i++)
+        if(tinyply::Type::INT32 == ddt_dat.get_type() )
         {
-	  format_flags.push_back((int)raw_flags[i]);
+            ddt_dat.extract_full_uint8_vect(format_flags,do_clear);
         }
-      if(do_clear)
-	raw_flags.clear();
+        else
+        {
+            std::vector<char> raw_flags;
+            ddt_data<Traits>::dmap[flags_name].extract_raw_uint8_vect(raw_flags,false);
+            uint num_s = ddt_data<Traits>::dmap[flags_name].get_nbe_shpt_vect();
+            for(int i = 0 ; i < raw_flags.size(); i++)
+            {
+                format_flags.push_back((int)raw_flags[i]);
+            }
+            if(do_clear)
+                raw_flags.clear();
+        }
     }
-  }
 
 
 

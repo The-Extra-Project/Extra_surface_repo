@@ -56,7 +56,7 @@ public:
           number_of_main_facets_(0),
           number_of_main_cells_(0)
     {
-      tile_ids =  std::vector<int>(3,0);
+        tile_ids =  std::vector<int>(3,0);
     }
 
     template<class C> Cell_const_handle deref(C c) const { return *c; }
@@ -75,7 +75,7 @@ public:
 
 
 
-  
+
     inline Cell_const_iterator cells_begin() const { return traits_.cells_begin(dt_); }
     inline Cell_const_iterator cells_end  () const { return traits_.cells_end  (dt_); }
 
@@ -117,8 +117,8 @@ public:
     }
 
 
-  inline void get_list_vertices(const Cell_const_handle c,std::list<Vertex_const_handle> & ll) const  {return traits_.get_list_vertices  (c,ll);}
-  
+    inline void get_list_vertices(const Cell_const_handle c,std::list<Vertex_const_handle> & ll) const  {return traits_.get_list_vertices  (c,ll);}
+
     inline void flag(Cell_const_handle c,int f,bool val) const
     {
         Flag_C & fci = flagc(c);
@@ -128,8 +128,11 @@ public:
 
     inline Id   id  (Vertex_const_handle v) const { assert(!vertex_is_infinite(v)); return traits_.id  (v); }
     inline Id   id  (Cell_const_handle c) const { assert(!vertex_is_infinite(c)); return traits_.id  (c); }
-    inline Id   gid  (Vertex_const_handle v) const {
-      assert(!vertex_is_infinite(v)); return tile_ids[0] + traits_.gid  (v); }
+    inline Id   gid  (Vertex_const_handle v) const
+    {
+        assert(!vertex_is_infinite(v));
+        return tile_ids[0] + traits_.gid  (v);
+    }
     inline Id   gid  (Cell_const_handle c) const { assert(!cell_is_infinite(c)); return tile_ids[2] + traits_.gid  (c); }
     inline Id   lid  (Cell_const_handle c) const { assert(!cell_is_infinite(c)); return  traits_.gid  (c); }
     inline Flag_V& flagv(Vertex_const_handle v) const { assert(!vertex_is_infinite(v)); return traits_.flag(v); }
@@ -137,7 +140,7 @@ public:
     inline const Data_C& datac(Cell_const_handle c) const  {  return traits_.data(c); }
     inline const Data_V& datav(Vertex_const_handle v) const  {  return traits_.data(v); }
 
-  
+
 
 
 
@@ -184,10 +187,10 @@ public:
     inline bool cell_is_visible(const Bbox<D>& bbox, Cell_const_handle c, int i) const { return traits_.is_visible(dt_, bbox, c, i); }
     inline bool cell_is_touching(const Bbox<D>& bbox, Cell_const_handle c) const { return traits_.is_touching(dt_, bbox, c); }
 
-  inline const Point circumcenter(Cell_const_handle c) const { return traits_.circumcenter(dt_,c); }
-  
-  //template<typename Unary_op> inline void incident_cells(Vertex_const_handle v, Unary_op op) const { traits_.incident_cells(dt_, v, op); }
-  inline void incident_cells(Vertex_const_handle v, std::vector<Cell_const_handle> & cells  ) const { traits_.incident_cells(dt_, v, cells); }
+    inline const Point circumcenter(Cell_const_handle c) const { return traits_.circumcenter(dt_,c); }
+
+    //template<typename Unary_op> inline void incident_cells(Vertex_const_handle v, Unary_op op) const { traits_.incident_cells(dt_, v, op); }
+    inline void incident_cells(Vertex_const_handle v, std::vector<Cell_const_handle> & cells  ) const { traits_.incident_cells(dt_, v, cells); }
     template<typename Unary_op> inline void finite_adjacent_vertices(Vertex_const_handle v, Unary_op op) const { traits_.finite_adjacent_vertices(dt_, v, op); }
 
 
@@ -333,8 +336,8 @@ public:
     }
 
 
-  template<typename C>
-  bool cell_is_foreign_in_tile(C c, int tid) const
+    template<typename C>
+    bool cell_is_foreign_in_tile(C c, int tid) const
     {
         for(int i=0; i<=current_dimension(); ++i)
         {
@@ -355,26 +358,26 @@ public:
     }
 
 
-  // // Check if the facet is main
-  //   template<typename F>
-  //   bool facet_is_main(F f) const
-  //   {
-  //       int icv = index_of_covertex(f);
-  //       auto c = full_cell(f);
-  //       bool foreign = true;
-  //       for(int i=0; i<=current_dimension(); ++i)
-  //       {
-  //           if (i == icv) continue;
-  //           auto v = vertex(c,i);
-  //           if (vertex_is_infinite(v)) continue;
-  //           Id vid = id(v);
-  //           if ( vid < id() )
-  //               return false;
-  //           else if (vid == id())
-  //               foreign = false;
-  //       }
-  //       return !foreign;
-  //   }
+    // // Check if the facet is main
+    //   template<typename F>
+    //   bool facet_is_main(F f) const
+    //   {
+    //       int icv = index_of_covertex(f);
+    //       auto c = full_cell(f);
+    //       bool foreign = true;
+    //       for(int i=0; i<=current_dimension(); ++i)
+    //       {
+    //           if (i == icv) continue;
+    //           auto v = vertex(c,i);
+    //           if (vertex_is_infinite(v)) continue;
+    //           Id vid = id(v);
+    //           if ( vid < id() )
+    //               return false;
+    //           else if (vid == id())
+    //               foreign = false;
+    //       }
+    //       return !foreign;
+    //   }
 
 
     // Check if the facet is main
@@ -383,27 +386,27 @@ public:
     {
         // return true;
         int icv = index_of_covertex(f);
-	
-	auto c1 = full_cell(f);
-	auto c2 = neighbor(c1,icv);
+
+        auto c1 = full_cell(f);
+        auto c2 = neighbor(c1,icv);
         bool foreign = true;
-	std::vector<int> lid;
-	for(int i=0; i<=current_dimension(); ++i)
+        std::vector<int> lid;
+        for(int i=0; i<=current_dimension(); ++i)
         {
-	  if (i == icv) continue;
-	  auto v = vertex(c1,i);
-	  if (vertex_is_infinite(v)) continue;
-	  Id vid = id(v);
-	  lid.push_back(vid);
-	}
-	std::sort(lid.begin(),lid.end());
+            if (i == icv) continue;
+            auto v = vertex(c1,i);
+            if (vertex_is_infinite(v)) continue;
+            Id vid = id(v);
+            lid.push_back(vid);
+        }
+        std::sort(lid.begin(),lid.end());
         for(int i=0; i<lid.size(); ++i)
         {
-	  int vid = lid[i];
-	  if(!cell_is_foreign_in_tile(c1,vid) && !cell_is_foreign_in_tile(c2,vid))
-	    return vid == id();
-	}
-	return false;
+            int vid = lid[i];
+            if(!cell_is_foreign_in_tile(c1,vid) && !cell_is_foreign_in_tile(c2,vid))
+                return vid == id();
+        }
+        return false;
     }
 
 
@@ -435,7 +438,7 @@ public:
     // 	    imax = it->first;
     // 	  }
     // 	return imax == id();
-	
+
     //     // return !foreign;
     // }
 
@@ -460,7 +463,7 @@ public:
     }
 
 
-  // Check if the facet is main
+    // Check if the facet is main
     template<typename F>
     bool facet_has_id(F f,Id ii) const
     {
@@ -473,18 +476,18 @@ public:
             auto v = vertex(c,i);
             if (vertex_is_infinite(v)) continue;
             Id vid = id(v);
-	    if(vid == ii)
-	      return true;
+            if(vid == ii)
+                return true;
         }
         return false;
     }
 
-  
-  template<typename C>
-  bool has_id(C c,Id ii) const
-  {
-    bool foreign = true;
-    for(int i=0; i<=current_dimension(); ++i)
+
+    template<typename C>
+    bool has_id(C c,Id ii) const
+    {
+        bool foreign = true;
+        for(int i=0; i<=current_dimension(); ++i)
         {
             auto v = vertex(c,i);
             if (vertex_is_infinite(v))
@@ -493,12 +496,12 @@ public:
             }
             Id vid = id(v);
             if ( vid == ii )
-	      return true;
+                return true;
         }
         return false;
     }
 
-  
+
     // Active
     template<typename C>
     bool cell_is_active(const Bbox<D>& bbox, C c) const
@@ -675,7 +678,7 @@ public:
         return count;
     }
 
-  
+
     inline bool send_vertex(
         std::map<Id, std::vector<Point_id>>& inbox, Vertex_const_handle vh, Id source, Id target) const
     {
@@ -703,35 +706,35 @@ public:
     }
 
 
-  // Algo
-  int insert_points_id_id(std::vector<Point_id_id> & vpis, int tid, bool do_insert_local = false)
-  {
-    //    std::vector<Point_id_id> svh_new;
-    std::vector<Point_id> v_pai;
-    int nbi1 = 0;
-    bool do_simplify=true;
-    for(auto & pp : vpis)
-      {
-        Id idp =  std::get<1>(pp);
-        Id id_source =  std::get<2>(pp);
-        if( (id_source==tid && !do_insert_local) )
-	  {
-            continue;
-	  }
-        else
-	  {
-	    //            svh_new.emplace_back(pp);
-            v_pai.emplace_back(std::get<0>(pp), idp);
-	  }
-      }
-    if(v_pai.size()> 0)
-      {
-        nbi1 += insert(v_pai,do_simplify);
-      }
-    return nbi1;
-  }
+    // Algo
+    int insert_points_id_id(std::vector<Point_id_id> & vpis, int tid, bool do_insert_local = false)
+    {
+        //    std::vector<Point_id_id> svh_new;
+        std::vector<Point_id> v_pai;
+        int nbi1 = 0;
+        bool do_simplify=true;
+        for(auto & pp : vpis)
+        {
+            Id idp =  std::get<1>(pp);
+            Id id_source =  std::get<2>(pp);
+            if( (id_source==tid && !do_insert_local) )
+            {
+                continue;
+            }
+            else
+            {
+                //            svh_new.emplace_back(pp);
+                v_pai.emplace_back(std::get<0>(pp), idp);
+            }
+        }
+        if(v_pai.size()> 0)
+        {
+            nbi1 += insert(v_pai,do_simplify);
+        }
+        return nbi1;
+    }
 
-  
+
     int insert_simplified(const std::vector<Point_id>& inbox, std::vector<Vertex_handle>& inserted)
     {
         if(inbox.empty()) return 0;
@@ -837,28 +840,28 @@ public:
 
     Cell_const_handle locate_cell_point(const Tile& t, Point & pp ) const
     {
-	auto cc = traits_.locate_cell_point(dt_,pp);
-	return cc;
-    }
-  
-  // locate the cell by searching the barycenter with the local function on the oposite delaunay triangulation
-  // It it does not work, loop on all the cell
-    Cell_const_handle locate_cell(const Tile& t, Cell_const_handle c) const
-    {
-     
-        assert(!t.cell_is_foreign(c));
-	auto cc = traits_.locate_cell(dt_,c);
-	if(traits_.are_cells_equal(t.dt_, c, dt_, cc))
-	  return cc;
-	else
-	  return locate_cell_slow(t,c);
-	  
+        auto cc = traits_.locate_cell_point(dt_,pp);
+        return cc;
     }
 
-  // slow localisation on the 
-      Cell_const_handle locate_cell_slow(const Tile& t, Cell_const_handle c) const
+    // locate the cell by searching the barycenter with the local function on the oposite delaunay triangulation
+    // It it does not work, loop on all the cell
+    Cell_const_handle locate_cell(const Tile& t, Cell_const_handle c) const
     {
-     
+
+        assert(!t.cell_is_foreign(c));
+        auto cc = traits_.locate_cell(dt_,c);
+        if(traits_.are_cells_equal(t.dt_, c, dt_, cc))
+            return cc;
+        else
+            return locate_cell_slow(t,c);
+
+    }
+
+    // slow localisation on the
+    Cell_const_handle locate_cell_slow(const Tile& t, Cell_const_handle c) const
+    {
+
         assert(!t.cell_is_foreign(c));
         for(auto cit = cells_begin(); cit != cells_end(); ++cit )
         {
@@ -911,44 +914,44 @@ public:
     }
 
 
-  void init_local_id_tile() 
+    void init_local_id_tile()
     {
         int D = Traits::D;
         int acc = 0;
         for(auto vit = vertices_begin(); vit != vertices_end(); ++vit)
         {
             if(!vertex_is_main(vit))
-	      continue;
-	    const Data_V & vd = datav(vit);
-	    Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
-	    vd_quickndirty.gid =  (acc++);
+                continue;
+            const Data_V & vd = datav(vit);
+            Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
+            vd_quickndirty.gid =  (acc++);
         }
-	for(auto vit = vertices_begin(); vit != vertices_end(); ++vit)
+        for(auto vit = vertices_begin(); vit != vertices_end(); ++vit)
         {
             if(vertex_is_main(vit))
-	      continue;
-	    const Data_V & vd = datav(vit);
-	    Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
-	    vd_quickndirty.gid =  (acc++);
+                continue;
+            const Data_V & vd = datav(vit);
+            Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
+            vd_quickndirty.gid =  (acc++);
         }
 
-	acc = 0;
-	for(auto cit = cells_begin(); cit != cells_end(); ++cit)
-	  {
-	    if(!cell_is_main(cit)) continue;
+        acc = 0;
+        for(auto cit = cells_begin(); cit != cells_end(); ++cit)
+        {
+            if(!cell_is_main(cit)) continue;
 
-	    const Data_C & cd = datac(cit);
-	    Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
-	    cd_quickndirty.gid =  (acc++);
-	  }
+            const Data_C & cd = datac(cit);
+            Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
+            cd_quickndirty.gid =  (acc++);
+        }
 
-	for(auto cit = cells_begin(); cit != cells_end(); ++cit)
-	  {
-	    if(cell_is_main(cit)) continue;
-	    const Data_C & cd = datac(cit);
-	    Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
-	    cd_quickndirty.gid =  (acc++);
-	  }
+        for(auto cit = cells_begin(); cit != cells_end(); ++cit)
+        {
+            if(cell_is_main(cit)) continue;
+            const Data_C & cd = datac(cit);
+            Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
+            cd_quickndirty.gid =  (acc++);
+        }
 
     }
 

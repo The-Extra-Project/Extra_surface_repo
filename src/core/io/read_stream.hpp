@@ -56,19 +56,20 @@ template <typename Traits>
 std::istream & read_points_id_source_serialized(std::vector<typename Traits::Point_id_id> & lp,
         std::istream & ifile, const Traits& traits)
 {
-  int D = Traits::D;
-  double coords[Traits::D];
-  std::vector<double> input_v;
-  deserialize_b64_vect(input_v,ifile);
-  for(int n = 0; n< input_v.size()/(D+2);n++){
-    int id1 = input_v[n*(D+2)];
-    int id2 = input_v[n*(D+2)+1];
-    for(int d = 0; d < D;d++)
-      coords[d] = input_v[n*(D+2)+2+d];
-    lp.push_back(std::make_tuple(traits.make_point(coords),id1,id2));
-  }
+    int D = Traits::D;
+    double coords[Traits::D];
+    std::vector<double> input_v;
+    deserialize_b64_vect(input_v,ifile);
+    for(int n = 0; n< input_v.size()/(D+2); n++)
+    {
+        int id1 = input_v[n*(D+2)];
+        int id2 = input_v[n*(D+2)+1];
+        for(int d = 0; d < D; d++)
+            coords[d] = input_v[n*(D+2)+2+d];
+        lp.push_back(std::make_tuple(traits.make_point(coords),id1,id2));
+    }
 
-					     
+
     return ifile;
 }
 
@@ -84,10 +85,10 @@ std::istream& read_json_stream(Tile & tile,std::istream&  ifile)
     auto & bbox = tile->bbox();
     for (auto its : root_node.get_child("bbox"))
     {
-	std::cerr << "read_json_stream" << std::endl;
-	std::cerr << its.first << std::endl;
+        std::cerr << "read_json_stream" << std::endl;
+        std::cerr << its.first << std::endl;
         int iid = std::stoi(its.first);
-	std::cerr << "done" << std::endl;
+        std::cerr << "done" << std::endl;
         Id id = iid;
         std::stringstream ss (its.second.data());
         ss >> bbox[id];
