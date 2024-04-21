@@ -20,7 +20,6 @@ public :
 
     tbmrf_conflict(int nblabs, DTW * t,D_MAP * dm) : pLabsIn(nblabs),pLabsOut(nblabs),pLabsUnk(nblabs),tbmrf<DTW,D_MAP>(nblabs,t,dm)
     {
-
         for(int i = 0; i < nblabs; i++)
         {
             double prob = ((double)i)/(double(nblabs-1));
@@ -30,8 +29,6 @@ public :
             pLabsOut[i] = prob*0.5;
             pLabsUnk[i] = fabs(1-pLabsIn[i]-pLabsOut[i]);
         }
-
-
     }
 
     //std::vector<Point> parse_points(std::string namefile, int D);
@@ -40,12 +37,9 @@ public :
 
     double get_score_linear(Cell_const_iterator fch,int label,D_MAP & data_map)
     {
-
         double volume = 100;
         //  if(!tri->is_infinite(fch))
         volume = tbmrf<DTW,D_MAP>::get_volume(fch);
-
-
         double nbe = 1;//((double)fch->data().dat[3]);
         if(nbe < 1) nbe = 1;
         double coef = volume/nbe;
@@ -54,7 +48,6 @@ public :
         double PIn = data_map[tile_id].format_dst[cell_id][0];
         double POut = data_map[tile_id].format_dst[cell_id][1];
         double PUnk = data_map[tile_id].format_dst[cell_id][2];
-
         double scoreCurr;
         double conflict = (PIn*POut)*10;
         if(label == 0)
@@ -62,7 +55,6 @@ public :
         else
             scoreCurr = (1-conflict > 0) ? (1-conflict) : 0;
         return coef*scoreCurr;
-
     }
 
 
@@ -74,8 +66,6 @@ public :
         // double volume = 100;
         // //  if(!tri->is_infinite(fch))
         //   volume = get_volume(fch);
-
-
         // double nbe = ((double)fch->data().dat[3]);
         // if(nbe < 1) nbe = 1;
         // double coef = volume/nbe;
@@ -86,18 +76,14 @@ public :
         //   PIn = POut = eps;
         //   PUnk = 1-2*eps;
         // }
-
-
         // obs =  (PIn)/(POut+PIn);
         // weight = volume*(1-PUnk);
-
         // if(obs != obs || weight != weight){
         //   std::cout << "/!\\ warning NAN!!!! /!\\" << std::endl;
         //   obs = 0.5;
         //   weight = 0.01;
         // }
         return;
-
     }
 
 

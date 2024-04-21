@@ -17,9 +17,6 @@ public :
     wasure_params() : verbose_flag(0),nbp(0),log_level(2),nbt_side(-1),dump_ply(false),area_processed(0),coef_mult(1),dst_scale(-1),
         input_dir(std::string("")),output_dir(std::string("")),  algo_step(std::string("")),slabel(std::string("")),mode(-1),rat_ray_sample(0),pscale(1),nb_samples(1),lambda(1),nb_labs(2),graph_type(0),tau(0.5),skip_app_header(false),ray_weight(0)
     {
-
-
-
     };
     int verbose_flag,seed,nbp,log_level,id_padding,graph_type,area_processed;
     bool show_ghost,skip_app_header,dump_ply,process_only_shared;
@@ -86,10 +83,7 @@ public :
             {"help",  no_argument, 0, 'h'},
             {0, 0, 0, 0}
         };
-
-
         int option_index = 0;
-
         while ((cc = getopt_long(argc, argv, "s:a:c:k:n:i:d:u:m:e:o:f:j:l:b:p:r:w:t:g:qxzh",long_options,&option_index)) != -1)
         {
             switch (cc)
@@ -153,7 +147,6 @@ public :
                 break;
             case 't':
                 dst_scale = atof(optarg);
-
                 break;
             case 'j':
                 nb_samples = atoi(optarg);
@@ -175,7 +168,6 @@ public :
                 return 0;
             }
         }
-
         if(errflg != 0)
         {
             help_param();

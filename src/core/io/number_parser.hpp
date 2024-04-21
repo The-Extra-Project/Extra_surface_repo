@@ -40,20 +40,17 @@ const char cdigits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 template<typename TT>
 void  deserialize_b64_vect(std::vector<TT> & vv,std::istream & ifile)
 {
-
     int bufflen_in,nb_dat;
     long unsigned int bufflen_out;
     char cc;
     ifile >> nb_dat >> bufflen_in;
     ifile.get(cc);
-
     unsigned char * buffer_char_in = new unsigned char[bufflen_in];
     unsigned char * buffer_char_out;
     ifile.read(((char *)buffer_char_in),bufflen_in);
     buffer_char_out = fast_base64_decode(buffer_char_in,bufflen_in,&bufflen_out);
     vv.clear();
     //      log.step("[deserialize_step]memcpy");
-
     vv.resize(nb_dat);
     memcpy(&vv[0], buffer_char_out, bufflen_out);
     delete [] buffer_char_out;
@@ -71,10 +68,8 @@ void serialize_b64_vect(std::vector<TT> & vv,std::ostream & ss)
     unsigned char * buff_in = new unsigned char[bufflen_in];
     memcpy(buff_in, &vv[0], bufflen_in);
     vv.clear();
-
     unsigned char * buff_out = fast_base64_encode(buff_in, bufflen_in,&bufflen_out);
     ss << nbdat << " " <<  bufflen_out << " ";
-
     //ss.write(reinterpret_cast<char*>(buff_out),bufflen_out);
     int acc = 0;
     // while(acc + buff_size < bufflen_out){
@@ -97,11 +92,8 @@ void serialize_b64_vect(const std::vector<TT> & vv,std::ostream & ss)
     unsigned long int bufflen_out;
     unsigned char * buff_in = new unsigned char[bufflen_in];
     memcpy(buff_in, &vv[0], bufflen_in);
-
-
     unsigned char * buff_out = fast_base64_encode(buff_in, bufflen_in,&bufflen_out);
     ss << nbdat << " " <<  bufflen_out << " ";
-
     //ss.write(reinterpret_cast<char*>(buff_out),bufflen_out);
     int acc = 0;
     // while(acc + buff_size < bufflen_out){
@@ -138,15 +130,11 @@ void base64_read(std::vector<TT> & vv,std::istream&  ifile)
     int nbdat;
     std::string buffer_char;
     ifile  >> nbdat;
-
-
     ifile >> buffer_char;
     vv.resize(nbdat);
     std::vector<BYTE> decodedData = base64_decode(buffer_char);
     memcpy(&vv[0], &decodedData[0], decodedData.size());
     decodedData.clear();
-
-
     //  std::vector<BYTE> decodedData = base64_decode(encodedData);
 }
 

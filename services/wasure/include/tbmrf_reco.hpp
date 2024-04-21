@@ -20,7 +20,6 @@ public :
 
     tbmrf_reco(int nblabs, DTW * t,D_MAP * dm) : mode(-1),pLabsIn(nblabs),pLabsOut(nblabs),pLabsUnk(nblabs),tbmrf<DTW,D_MAP>(nblabs,t,dm)
     {
-
         for(int i = 0; i < nblabs; i++)
         {
             double prob = ((double)i)/(double(nblabs-1));
@@ -30,8 +29,6 @@ public :
             pLabsOut[i] = (prob < 0.5) ? (0.5-prob)*2 : 0;
             pLabsUnk[i] = 1-fabs(prob-0.5)*2;
         }
-
-
     }
 
     void set_mode(int mm)
@@ -46,18 +43,15 @@ public :
     double get_volume_reco(Cell_const_iterator fch)
     {
         return log(1+tbmrf<DTW,D_MAP>::get_volume(fch));
-
     }
 
     double get_score_linear(Cell_const_iterator fch,int label,D_MAP & data_map)
     {
-
         double volume = 1;
         if(!fch->is_infinite())
         {
             //volume =  get_volume_reco(fch);
             //volume = tbmrf<DTW,D_MAP>::get_volume(fch);
-
         }
         int D = Traits::D;
         try
@@ -71,37 +65,27 @@ public :
                     if(fch->neighbor(d)->is_mixed())
                         std::cerr << "mixed detected" << std::endl;
                 }
-
                 //std::cerr << "NOT MIXED, INF STUFF 222222" << std::endl;
                 int id_cov;
                 // for(int d = 0; d < D+1;d++){
                 //   if(fch->vertex(d)->is_infinite())
                 // 	id_cov = d;
                 // }
-
                 auto chn = fch->neighbor(id_cov);
                 int mir = fch->mirror_index(id_cov);
-
                 const Point& a = chn->vertex((mir+1)&3)->point();
                 const Point& b = chn->vertex((mir+2)&3)->point();
                 const Point& c = chn->vertex((mir+3)&3)->point();
                 const Point& d = chn->vertex(mir)->point();
-
-
                 CGAL::Vector_3<typename Traits::K> v1 = a - c;
                 CGAL::Vector_3<typename Traits::K> v2 = b - c;
-
                 auto vn = CGAL::cross_product(v1,v2);
                 double coef_proj = compute_coef_proj(c,d,vn,D);
                 auto bary = chn->barycenter();
-
                 //	  std::cerr << coef_proj << " " << std::endl;
-
                 // for(int d = 0; d < D;d++)
                 //   std::cerr << bary[d] << " ";
                 // std::cerr << std::endl << std::endl;
-
-
                 if((coef_proj > 0 && vn[D-1] < 0) ||
                         (coef_proj < 0 && vn[D-1] > 0) )
                 {
@@ -119,7 +103,6 @@ public :
                     else
                         return 100000000;
                 }
-
             }
         }
         catch (ddt::DDT_exeption& e)
@@ -128,7 +111,6 @@ public :
             std::cerr << "Exception catched : " << e.what() << std::endl;
             return 1000000;
         }
-
 // if(fch->is_infinite() && true){
         //   if((mode == 1 && pLabsOut[label] > 0.5) ||
         //      (mode == 0 && pLabsOut[label] < 0.5)
@@ -137,7 +119,6 @@ public :
         //   else
         //     return 0;
         // }
-
         double nbe = 1;//((double)fch->data().dat[3]);
         double coef = volume/nbe;
         int cell_id = fch->lid();
@@ -146,12 +127,8 @@ public :
         double POut = data_map[tile_id].format_dst[cell_id][1];
         double PUnk = data_map[tile_id].format_dst[cell_id][2];
         double scoreCurr = fabs(pLabsIn[label] - PIn) + fabs(pLabsOut[label] - POut) + fabs(pLabsUnk[label] - PUnk);
-
-
         //	std::cerr << "get_score_linear: coef:" << coef << " lab:" << label << " score:" << scoreCurr << " pin:" << PIn << " pout:" << POut << " punk:" << PUnk << std::endl;
-
         return coef*scoreCurr;
-
     }
 
 
@@ -163,33 +140,21 @@ public :
             {
                 if(fit->main_id() != tid || fit->is_infinite())
                     continue;
-
-
                 Cell_const_iterator tmp_fch = fit.full_cell();
                 int tmp_idx = fit.index_of_covertex();
                 Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
-
-
-
-
                 if(!this->tri->tile_is_loaded(tmp_fch->main_id()) ||
                         !this->tri->tile_is_loaded(tmp_fchn->main_id()))
                     continue;
-
                 bool is_on_convex = false;
                 if(tmp_fch->is_infinite() ||  tmp_fchn->is_infinite() )
                     is_on_convex = true;
-
-
-
                 Cell_const_iterator fch = tmp_fch->main();
                 int id_cov = fit.index_of_covertex();
                 Cell_const_iterator fchn = tmp_fchn->main();
                 //            Vertex_h_iterator vht;
-
                 int cccid = fch->lid();
                 int cccidn = fchn->lid();
-
                 int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
                 int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];
                 // if(
@@ -209,7 +174,6 @@ public :
                     // }
                     lft.push_back(*fit);
                 }
-
             }
             catch (ddt::DDT_exeption& e)
             {
@@ -229,8 +193,6 @@ public :
         // double volume = 100;
         // //  if(!tri->is_infinite(fch))
         //   volume = get_volume(fch);
-
-
         // double nbe = ((double)fch->data().dat[3]);
         // if(nbe < 1) nbe = 1;
         // double coef = volume/nbe;
@@ -241,18 +203,14 @@ public :
         //   PIn = POut = eps;
         //   PUnk = 1-2*eps;
         // }
-
-
         // obs =  (PIn)/(POut+PIn);
         // weight = volume*(1-PUnk);
-
         // if(obs != obs || weight != weight){
         //   std::cout << "/!\\ warning NAN!!!! /!\\" << std::endl;
         //   obs = 0.5;
         //   weight = 0.01;
         // }
         return;
-
     }
 
 

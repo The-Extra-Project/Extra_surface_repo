@@ -79,13 +79,11 @@ public :
 
     void write_geojson_norms(std::ostream & ofs, bool is_first = true)
     {
-
         std::cerr << "write geojson norm" << std::endl;
         std::vector<Point> raw_points;
         std::vector<Point> raw_centers;
         std::vector<double> raw_egv;
         std::vector<double> raw_sigs;
-
         std::cerr << "extract pts" << std::endl;
         ddt_data<Traits>::dmap[ddt_data<Traits>::xyz_name].extract_full_uint8_vect(raw_points,false);
         std::cerr << "extract center" << std::endl;
@@ -94,16 +92,13 @@ public :
         ddt_data<Traits>::dmap[sig_name].extract_raw_uint8_vect(raw_sigs,false);
         std::cerr << "extract egvs" << std::endl;
         ddt_data<Traits>::dmap[egv_name].extract_raw_uint8_vect(raw_egv,false);
-
         std::cerr << "parse data done" << std::endl;
-
         bool do_ray = false;
         int D = Traits::D;
         std::vector<std::string> lab_color = {"\"red\"","\"green\"","\"blue\""};
         ofs << "{" << std::endl;
         ofs << "\"type\": \"FeatureCollection\"," << std::endl;
         ofs << "\"features\": [" << std::endl;
-
         for(int id = 0; id < ddtd::nb_pts_uint8_vect(); id++)
         {
             int id_pts = id*D;
@@ -112,7 +107,6 @@ public :
             if(!is_first)
                 ofs << "," << std::endl;
             is_first=false;
-
             // Center
             if(raw_centers.size() > 0)
             {
@@ -134,7 +128,6 @@ public :
                 ofs << "\"prop1\": { \"this\": \"that\" }" << std::endl;
                 ofs << "}" << std::endl;
                 ofs << "}" << std::endl;
-
                 // Ray
                 if(do_ray)
                 {
@@ -162,7 +155,6 @@ public :
                     ofs << "}" << std::endl;
                 }
             }
-
             if(raw_egv.size() > 0)
             {
                 ofs << "," << std::endl;
@@ -191,8 +183,6 @@ public :
         }
         ofs << "]" << std::endl;
         ofs << "}" << std::endl;
-
-
 //    fo << points[i][0] + dims_norms[i][1][0]*dims_scales[i][1]/3.0 << " " << points[i][1] + dims_norms[i][1][1]*dims_scales[i][1]/3.0 ;
     }
 
@@ -316,12 +306,10 @@ public :
 
     void extract_egv( std::vector<std::vector<Point> >  & format_egv,bool do_clear = true)
     {
-
         int D = Traits::D;
         std::vector<double> raw_egv;
         ddt_data<Traits>::dmap[egv_name].extract_raw_uint8_vect(raw_egv,false);
         double coords[D];
-
         std::vector<Point> act_vect;
         for(int i = 0 ; i < raw_egv.size(); i++)
         {
@@ -347,7 +335,6 @@ public :
         int D = Traits::D;
         //ddt_data<Traits>::dmap[egv_name] = Data_ply(egv_name,"vertex",D*D,D*D,DATA_FLOAT_TYPE);
         std::vector<double> raw_egv;
-
         for(int i = 0 ; i < format_egv.size(); i++)
         {
             for(int d1 = 0 ; d1 < D; d1++)
@@ -358,14 +345,11 @@ public :
                 }
             }
         }
-
         ddt_data<Traits>::dmap[egv_name].fill_full_uint8_vect(raw_egv);
         ddt_data<Traits>::dmap[egv_name].do_exist = true;
-
         if(do_clear)
             format_egv.clear();
         raw_egv.clear();
-
     }
 
     void extract_sigs( std::vector<std::vector<double>>  & format_sigs,bool do_clear = true)
@@ -385,7 +369,6 @@ public :
         std::cerr << "rdone" << std::endl;
         for(int i = 0 ; i < raw_sigs.size(); i++)
         {
-
             act_vsig.push_back(raw_sigs[i]);
             if(i%D == D-1)
             {
@@ -393,7 +376,6 @@ public :
                 act_vsig.clear();
             }
         }
-
         if(do_clear)
             raw_sigs.clear();
     }
@@ -409,15 +391,12 @@ public :
             for(int d = 0 ; d < D; d++)
                 raw_sigs.push_back(format_sigs[i][d]);
         }
-
         ddt_data<Traits>::dmap[sig_name].fill_full_uint8_vect(raw_sigs);
-
         if(do_clear)
         {
             format_sigs.clear();
         }
         raw_sigs.clear();
-
     }
 
 
@@ -447,8 +426,6 @@ public :
         int D = Traits::D;
         std::vector<double> raw_dst;
         ddt_data<Traits>::dmap[dst_name].extract_raw_uint8_vect(raw_dst,false);
-
-
         std::vector<double> act_vdst;
         for(int i = 0 ; i < raw_dst.size(); i++)
         {
@@ -482,13 +459,11 @@ public :
         std::cerr << "ii3" << std::endl;
         ddt_data<Traits>::dmap[dst_name].fill_full_uint8_vect(raw_dst);
         ddt_data<Traits>::dmap[dst_name].do_exist = true;
-
         if(do_clear)
         {
             format_dst.clear();
         }
         raw_dst.clear();
-
     }
 
 
@@ -501,10 +476,8 @@ public :
         {
             raw_labs.push_back(format_labs[i]);
         }
-
         ddt_data<Traits>::dmap[labseg_name].fill_full_uint8_vect(raw_labs);
         ddt_data<Traits>::dmap[labseg_name].do_exist = true;
-
         if(do_clear)
         {
             format_labs.clear();
@@ -517,7 +490,6 @@ public :
         int D = Traits::D;
         std::vector<int> raw_labs;
         ddt_data<Traits>::dmap[labseg_name].extract_raw_uint8_vect(raw_labs,false);
-
         uint num_s = ddt_data<Traits>::dmap[labseg_name].get_nbe_shpt_vect();
         for(int i = 0 ; i < raw_labs.size(); i++)
         {
@@ -551,7 +523,6 @@ public :
     {
         int D = Traits::D;
         auto ddt_dat = ddt_data<Traits>::dmap[flags_name];
-
         if(tinyply::Type::INT32 == ddt_dat.get_type() )
         {
             ddt_dat.extract_full_uint8_vect(format_flags,do_clear);

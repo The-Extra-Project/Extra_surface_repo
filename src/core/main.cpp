@@ -23,13 +23,11 @@ namespace po = boost::program_options;
 int main(int argc, char **argv)
 {
     enum { D = Traits::D };
-
     int NP, threads, loglevel, NK, mode;
     std::vector<int> NT;
     std::string out, iter;
     double range;
     bool simplify;
-
     po::options_description desc("Allowed options");
     desc.add_options()
     ("help,h", "produce help message")
@@ -45,7 +43,6 @@ int main(int argc, char **argv)
     ("iter", po::value<std::string>(&iter), "prefix for iteration dumps (vrt)")
     ("out,o", po::value<std::string>(&out), "output directory")
     ;
-
     po::variables_map vm;
     try
     {
@@ -74,7 +71,6 @@ int main(int argc, char **argv)
     ddt::Bbox<D> bbox(range);
     ddt::grid_partitioner<Traits> partitioner(bbox, NT.begin(), NT.end());
     Scheduler sch(threads);
-
     std::cout << "- Loglevel : " << loglevel << std::endl;
     std::cout << "- Range    : " << range << std::endl;
     std::cout << "- Points   : " << NP << std::endl;
@@ -84,9 +80,7 @@ int main(int argc, char **argv)
     std::cout << "- Tiles    : " << partitioner.size() << " ( ";
     std::copy(partitioner.begin(), partitioner.end(), std::ostream_iterator<int>(std::cout, " "));
     std::cout << ")" << std::endl;
-
     DDT tri;
-
     Random_points points(D, range);
     {
         ddt::logging log("Preprocess   ", loglevel);
@@ -95,14 +89,11 @@ int main(int argc, char **argv)
     }
     {
         ddt::logging log("DDT          ", loglevel);
-
         log.step("Insert Points");
         std::cout << tri.insert(sch, false) << "\t";
-
         log.step("Send Extremes");
         if(NK == 0) std::cout << tri.send_all(sch,ddt::get_bbox_points()) << "\t";
         else std::cout << tri.send_all(sch,ddt::get_kdop_points(NK)) << "\t"; // , NK);
-
         /*
         log.step("Insert Points");
         std::cout << tri.insert(sch, false) << "\t";
@@ -155,23 +146,18 @@ int main(int argc, char **argv)
         ddt::logging log("Post process ", loglevel);
         log.step("Splay  Neighb");
         std::cout << tri.splay_rec2<ddt::get_neighbors>(sch) << "\t";
-
         log.step("Finalize  V  ");
         tri.finalize_vertices(sch);
         std::cout << tri.number_of_vertices() << "\t";
-
         log.step("Finalize  F  ");
         tri.finalize_facets(sch);
         std::cout << tri.number_of_facets() << "\t";
-
         log.step("Finalize  C  ");
         tri.finalize_cells(sch);
         std::cout << tri.number_of_cells() << "\t";
-
         log.step("Sanity check ");
         bool sanity = tri.sanity_check(sch);
         std::cout << sanity << "\t";
-
         log.step("Simplify     ");
         std::cout << sch.transform_sum(tri.tiles_begin(), tri.tiles_end(), std::mem_fn(&Tile::simplify)) << "\t";
     }
@@ -182,12 +168,10 @@ int main(int argc, char **argv)
         ddt::write_vrt_cell(tri, out+"_c.vrt");
         ddt::write_vrt_vert(tri, out+"_v.vrt");
     }
-
     if ( vm.count("check")  )
     {
         ddt::logging log("Validity     ", loglevel);
         std::cout << "Validity     \t" << (tri.is_valid(sch) ? "OK" : "ERROR!") << std::endl;
     }
-
     return 0;
 }

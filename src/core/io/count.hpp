@@ -21,7 +21,6 @@ inline unsigned CountDecimalDigit32(uint32_t n)
         100000000,
         1000000000
     };
-
 #ifdef _MSC_VER
     unsigned long i = 0;
     _BitScanReverse(&i, n | 1);
@@ -71,7 +70,6 @@ inline unsigned CountDecimalDigit64(uint64_t n)
         1000000000000000000,
         10000000000000000000U
     };
-
 #if __GNUC__
     uint32_t t = (64 - __builtin_clzll(n | 1)) * 1233 >> 12;
 #elif _M_IX86

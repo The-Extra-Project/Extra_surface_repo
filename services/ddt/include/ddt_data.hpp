@@ -227,14 +227,12 @@ public :
             int szb = sizeof(uint8_t)*uint8_vect.size();
             formated_data.resize(nbe);
             std::memcpy(formated_data.data(),uint8_vect.data(),szb);
-
             if(do_clean)
             {
                 uint8_vect.clear();
                 do_exist = false;
             }
             //std::cerr << "extract full uint8 done" << std::endl;
-
         }
 
 
@@ -245,14 +243,12 @@ public :
             int szb = sizeof(uint8_t)*uint8_vect.size();
             formated_data.resize(nbe);
             std::memcpy(formated_data.data(),uint8_vect.data(),szb);
-
             if(do_clean)
             {
                 uint8_vect.clear();
                 do_exist = false;
             }
             //std::cerr << "extract raw uint done" << std::endl;
-
         }
 
 
@@ -383,13 +379,11 @@ public :
         int D = Traits::D;
         std::vector<std::string> lab_color = {"\"red\"","\"green\"","\"blue\""};
         bool is_first = is_full;
-
         if(is_full)
         {
             write_geojson_header(ofs_pts);
             write_geojson_header(ofs_spx);
         }
-
         //std::cerr << "vcyz <<<" << std::endl;
         std::vector<double> v_xyz;
         std::vector<int> v_simplex;
@@ -402,7 +396,6 @@ public :
             if(!is_first)
                 ofs_pts << "," << std::endl;
             is_first=false;
-
             // Points
             ofs_pts << "{" << std::endl;
             ofs_pts << "\"type\": \"Feature\"," << std::endl;
@@ -414,7 +407,6 @@ public :
             ofs_pts << v_xyz[id_pts + D-1] << "]" << std::endl;
             ofs_pts << "}," << std::endl;
             ofs_pts << "\"properties\": {" << std::endl;
-
             for ( const auto &ee : dmap )
             {
                 if(dmap[ee.first].part == "vertex" && ee.second.do_exist)
@@ -442,13 +434,11 @@ public :
                     }
                 }
             }
-
             ofs_pts << "\"datatype\":\"point\"," << std::endl;
             ofs_pts << "\"prop1\": { \"this\": \"that\" }" << std::endl;
             ofs_pts << "}" << std::endl;
             ofs_pts << "}" << std::endl;
         }
-
         is_first=true;
         uint num_c = dmap[simplex_name].get_nbe();///(D+1);
         for(int id = 0; id < num_c; id++)
@@ -462,7 +452,6 @@ public :
             }
             if(is_infinite)
                 continue;
-
             if(!is_first)
                 ofs_spx << "," << std::endl;
             is_first = false;
@@ -479,7 +468,6 @@ public :
                     ofs_spx << "],[";
                 }
                 int id_pp = v_simplex[id*(D+1)+(i%(D+1))];
-
                 for(int d=0; d<D-1; ++d) ofs_spx << v_xyz[id_pp*D + d] << ",";
                 ofs_spx << v_xyz[id_pp*D + D-1];
             }
@@ -499,12 +487,10 @@ public :
                 ofs_spx << "\"fill\":\"blue\"," << std::endl;
                 break;
             }
-
             for ( const auto &ee : dmap )
             {
                 if(dmap[ee.first].part == "face" && ee.second.do_exist)
                 {
-
                     for(int nn = 0 ; nn < dmap[ee.first].get_vsize(); nn++)
                     {
                         if(dmap[ee.first].type == tinyply::Type::INT32)
@@ -528,14 +514,11 @@ public :
                     }
                 }
             }
-
             ofs_spx << "\"stroke-width\":\"2\"," <<  std::endl;
             ofs_spx << "\"prop1\": { \"this\": \"that\" }" << std::endl;
             ofs_spx << "}" << std::endl;
             ofs_spx << "}" << std::endl;
-
         }
-
         if(is_full)
         {
             write_geojson_footer(ofs_pts);
@@ -574,7 +557,6 @@ public :
                 }
             }
         }
-
         ss << nn << " ";
         //std::cerr << "----- write: " << nn << std::endl;
         for ( const auto &ee : dmap )
@@ -637,16 +619,13 @@ public :
         try
         {
             tinyply::PlyFile file_out;
-
             std::vector<std::string> & comments_string = file_out.get_comments();
-
             if(do_export_bbox)
             {
                 std::stringstream ss;
                 ss << "bbox " << bbox;
                 comments_string.push_back(ss.str());
             }
-
             for ( const auto &ee : dmap )
             {
                 if(dmap[ee.first].part == "vertex")
@@ -664,7 +643,6 @@ public :
                         {
                             file_out.add_properties_to_element(dmap[ee.first].part, dmap[ee.first].get_name(),
                                                                dmap[ee.first].type, nbe, reinterpret_cast<uint8_t*>(vv), tinyply::Type::INVALID, 0);
-
                         }
                     }
                 }
@@ -693,7 +671,6 @@ public :
                                     file_out.add_properties_to_element(dmap[ee.first].part, dmap[ee.first].get_name(),
                                                                        dmap[ee.first].type, nbe, reinterpret_cast<uint8_t*>(vv), tinyply::Type::INVALID, 0);
                             }
-
                         }
                     }
                 }
@@ -710,21 +687,17 @@ public :
 
     void write_dataset_stream( std::ostream & ss,char nl_char,int tid)
     {
-
         int nbp = nb_pts();
         std::vector<int> raw_ids_vertex(nbp,tid);
         std::vector<int> raw_ids_simplex(nbp,tid);
-
         dmap[vtileid_name] = Data_ply(vtileid_name,"vertex",1,1,tinyply::Type::INT32);
         dmap[ctileid_name] = Data_ply(ctileid_name,"face",1,1,tinyply::Type::INT32);
         dmap[vtileid_name].fill_full_uint8_vect(raw_ids_vertex);
         dmap[ctileid_name].fill_full_uint8_vect(raw_ids_simplex);
         dmap[vtileid_name].do_exist = true;
         dmap[ctileid_name].do_exist = true;
-
         try
         {
-
             tinyply::PlyFile file_out;
             for ( const auto &ee : dmap )
             {
@@ -743,7 +716,6 @@ public :
                         {
                             file_out.add_properties_to_element(dmap[ee.first].part, dmap[ee.first].get_name(),
                                                                dmap[ee.first].type, nbe, reinterpret_cast<uint8_t*>(vv), tinyply::Type::INVALID, 0);
-
                         }
                     }
                 }
@@ -772,13 +744,11 @@ public :
                                     file_out.add_properties_to_element(dmap[ee.first].part, dmap[ee.first].get_name(),
                                                                        dmap[ee.first].type, nbe, reinterpret_cast<uint8_t*>(vv), tinyply::Type::INVALID, 0);
                             }
-
                         }
                     }
                 }
             }
             file_out.write(ss,false,nl_char,true);
-
         }
         catch (const std::exception & e)
         {
@@ -798,7 +768,6 @@ public :
                 if(true)
                 {
                     vsize = e.size;
-
                     std::cerr << "element - " << e.name << " (" << e.size << ")" << std::endl;
                     for (auto p : e.properties)
                     {
@@ -806,7 +775,6 @@ public :
                         bool do_exist = false;
                         for(auto vp : pname)
                             std::cerr << "\tproperty - " << vp << " (" << tinyply::PropertyTable[p.propertyType].str << ")" << std::endl;
-
                         for ( const auto &ee : dmap )
                         {
                             if(ee.second.has_label(p.name))
@@ -828,15 +796,11 @@ public :
                             dmap[pname] = Data_ply(pname,e.name,D,1,p.propertyType);
                             dmap[pname].do_exist = true;
                         }
-
                     }
                 }
             }
             // std::cerr << "vsize:" << vsize << std::endl;
             // std::cerr << "........................................................................\n";
-
-
-
             for ( const auto &ee : dmap )
             {
                 if(ee.second.do_exist)
@@ -847,10 +811,7 @@ public :
                 }
             }
             file.read(ss);
-
-
         }
-
         catch (const std::exception & e)
         {
             std::cerr << "Caught tinyply exception: " << e.what() << std::endl;
@@ -918,7 +879,6 @@ public :
             read_b64_data_fast(dmap[cname],ifile);
             //      dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,get_float_type());
         }
-
     };
 
 
@@ -1021,7 +981,6 @@ public :
             else
             {
                 //std::cerr << "ERROR ATTRIBUTE DOES NOT EXISTS" << std::endl;
-
             }
         }
     }

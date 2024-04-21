@@ -85,7 +85,6 @@ struct multithread_scheduler
         {
             std::vector<Point_and_id> received;
             inbox[tile.id()].swap(received);
-
             std::vector<Vertex_handle> inserted;
             tile.insert_simplified(received, inserted);
             if(inserted.empty()) return 0;
@@ -99,11 +98,8 @@ struct multithread_scheduler
                     return removed.find(v) != removed.end();
                 } ), inserted.end());
             }
-
-
             std::map<Id, std::unordered_set<Vertex_const_handle>> vertices;
             f(tile, inserted.begin(), inserted.end(), vertices);
-
             int count = 0;
             for(auto& v : vertices)
             {
@@ -124,10 +120,8 @@ struct multithread_scheduler
         {
             std::vector<Point_and_id> received;
             inbox[tile.id()].swap(received);
-
             std::map<Id, std::vector<Vertex_const_handle>> vertices;
             if(!tile.insert_splay(received, vertices, do_simplify)) return 0;
-
             int count = 0;
             for(auto& v : vertices)
             {

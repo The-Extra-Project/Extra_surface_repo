@@ -47,7 +47,6 @@ void dump_2 (const char* filename, const std::vector<Point_with_info_2>& points)
                      CGAL::IO::PLY_property<double>("x_origin"),
                      CGAL::IO::PLY_property<double>("y_origin"),
                      CGAL::IO::PLY_property<double>("z_origin")));
-
 }
 
 
@@ -67,45 +66,38 @@ void dump_xml(CGAL::Bbox_3 & bbox, int nbp, Point_3 & cc, std::string fname)
 {
     // Create XML writer context
     xmlTextWriterPtr writer = xmlNewTextWriterFilename(fname.c_str(), 0);
-
     xmlTextWriterSetIndent(writer, 1);
     xmlTextWriterSetIndentString(writer, BAD_CAST "  ");
-
     //    xmlTextWriterPtr writer = xmlNewTextWriterToStdout();
     if (writer == NULL)
     {
         fprintf(stderr, "Error creating the xml writer\n");
         return 1;
     }
-
     // Start the document with the root element
     if (xmlTextWriterStartDocument(writer, NULL, NULL, NULL) < 0)
     {
         fprintf(stderr, "Error at xmlTextWriterStartDocument\n");
         return 1;
     }
-
     // Start the root element <env>
     if (xmlTextWriterStartElement(writer, BAD_CAST "env") < 0)
     {
         fprintf(stderr, "Error at xmlTextWriterStartElement\n");
         return 1;
     }
-
     // Start <datasets> element
     if (xmlTextWriterStartElement(writer, BAD_CAST "datasets") < 0)
     {
         fprintf(stderr, "Error at xmlTextWriterStartElement\n");
         return 1;
     }
-
     // Start <austin> element
     if (xmlTextWriterStartElement(writer, BAD_CAST "austin") < 0)
     {
         fprintf(stderr, "Error at xmlTextWriterStartElement\n");
         return 1;
     }
-
     // Write elements and their values
     //std::string bbstring = std::to_string(bbox.xmin())+"x"+std::to_string(bbox.xmax()) + ":"+ std::to_string(bbox.xmin())+"x"+std::to_string(bbox.ymax()) + ":" + std::to_string(bbox.zmin())+"x"+std::to_string(bbox.zmax());
     std::string bbstring = std::to_string(bbox.xmin())+"x"+std::to_string(bbox.xmax()) + ":"+ std::to_string(bbox.xmin())+"x"+std::to_string(bbox.ymax()) + ":0x100000";
@@ -129,56 +121,44 @@ void dump_xml(CGAL::Bbox_3 & bbox, int nbp, Point_3 & cc, std::string fname)
     xmlTextWriterWriteElement(writer, BAD_CAST "do_process", BAD_CAST "true");
     xmlTextWriterWriteElement(writer, BAD_CAST "do_expand", BAD_CAST "false");
     xmlTextWriterWriteElement(writer, BAD_CAST "dump_debug", BAD_CAST "false");
-
     // End <austin> element
     if (xmlTextWriterEndElement(writer) < 0)
     {
         fprintf(stderr, "Error at xmlTextWriterEndElement\n");
         return 1;
     }
-
     // End <datasets> element
     if (xmlTextWriterEndElement(writer) < 0)
     {
         fprintf(stderr, "Error at xmlTextWriterEndElement\n");
         return 1;
     }
-
     // End <env> element
     if (xmlTextWriterEndElement(writer) < 0)
     {
         fprintf(stderr, "Error at xmlTextWriterEndElement\n");
         return 1;
     }
-
     // End the document
     if (xmlTextWriterEndDocument(writer) < 0)
     {
         fprintf(stderr, "Error at xmlTextWriterEndDocument\n");
         return 1;
     }
-
     // Free the writer context
     xmlFreeTextWriter(writer);
-
     printf("XML file written successfully.\n");
-
     return 0;
-
 }
 
 int main (int argc, char** argv)
 {
-
     std::string fname = argv[1];
     std::string oname = argv[2];
-
     std::string xml_fname = extractDirectoryPath(oname) + std::string("/wasure_metadata.xml");
-
     std::cout << fname << std::endl;
     std::cout << oname << std::endl;
     std::cout << xml_fname << std::endl;
-
     std::vector<Point_with_info> points;
     std::vector<Point_with_info_2> points_2;
     //    std::vector<Vector_3> lines_of_sight;
@@ -208,11 +188,9 @@ int main (int argc, char** argv)
      normal_map (Normal_map()).
      scan_angle_map (Scan_angle_map()).
      scanline_id_map (Scanline_id_map()));
-
     double alpha = 200.0;
     CGAL::Bbox_3 bbox;
     CGAL::Bbox_3 bbox2;
-
     for (auto pp : points)
     {
         auto vx = std::get<0>(pp)[0];
@@ -231,7 +209,6 @@ int main (int argc, char** argv)
         auto lx = std::get<1>(pp)[0];
         auto ly = std::get<1>(pp)[1];
         auto lz = std::get<1>(pp)[2];
-
         Kernel::Vector_3 ori(
             std::get<0>(pp)[0] + alpha*lx - bbox_center[0],
             std::get<0>(pp)[1] + alpha*ly - bbox_center[1],
@@ -242,21 +219,16 @@ int main (int argc, char** argv)
             std::get<0>(pp)[1] - bbox_center[1],
             std::get<0>(pp)[2] - bbox_center[2]
         );
-
-
         points_2.push_back(std::make_tuple(pp_new,std::get<1>(pp),ori));
-
         double vx = pp_new[0];
         double vy = pp_new[1];
         double vz = pp_new[2];
         bbox2 = bbox2 +  CGAL::Bbox_3(vx,vy,vz,
                                       vx,vy,vz);
         acc++;
-
     }
     dump_2(oname.c_str(), points_2);
     dump_xml(bbox2,points.size(),bbox_center,xml_fname);
-
     return EXIT_SUCCESS;
 }
 

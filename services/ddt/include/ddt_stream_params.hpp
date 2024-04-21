@@ -76,10 +76,7 @@ public :
             {"help",  no_argument, 0, 'h'},
             {0, 0, 0, 0}
         };
-
-
         int option_index = 0;
-
         while ((cc = getopt_long(argc, argv, "s:a:n:u:t:l:b:z:j:p:q:k:y:r:w:m:x:gidecfh",long_options,&option_index)) != -1)
         {
             switch (cc)
@@ -164,7 +161,6 @@ public :
                 return 0;
             }
         }
-
         if(errflg != 0)
         {
             help_param();

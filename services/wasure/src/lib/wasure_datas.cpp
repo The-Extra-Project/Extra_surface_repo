@@ -3,14 +3,12 @@
 void wasure_data::parse_points_ply(std::string inputName)
 {
     std::cout << "\t [loading file lbb]open " << inputName << "..." << std::endl;
-
     // Tinyply can and will throw exceptions at you!
     try
     {
         // Read the file and create a std::istringstream suitable
         // for the lib -- tinyply does not perform any file i/o.
         std::ifstream ss(inputName, std::ios::binary);
-
         // Parse the ASCII header fields
         PlyFile file(ss);
         for (auto e : file.get_elements())
@@ -22,7 +20,6 @@ void wasure_data::parse_points_ply(std::string inputName)
             }
         }
         std::cout << std::endl;
-
         // Define containers to hold the extracted data. The type must match
         // the property type given in the header. Tinyply will interally allocate the
         // the appropriate amount of memory.
@@ -31,11 +28,8 @@ void wasure_data::parse_points_ply(std::string inputName)
         std::vector<float> origins;
         std::vector<float> dims_n;
         std::vector<float> dims_s;
-
-
         uint32_t vertexCount, normalCount, originCount,dims_nCount,dims_sCount;
         vertexCount = normalCount = originCount = dims_nCount = dims_sCount;
-
         // The count returns the number of instances of the property group. The vectors
         // above will be resized into a multiple of the property group size as
         // they are "flattened"... i.e. verts = {x, y, z, x, y, z, ...}
@@ -44,12 +38,10 @@ void wasure_data::parse_points_ply(std::string inputName)
         originCount = file.request_properties_from_element("vertex", {"x_origin", "y_origin", "z_origin"}, origins);
         dims_nCount = file.request_properties_from_element("vertex", {"eigenVector1x", "eigenVector1y", "eigenVector1z","eigenVector2x", "eigenVector2y", "eigenVector2z","eigenVector3x", "eigenVector3y", "eigenVector3z"}, dims_n);
         dims_sCount = file.request_properties_from_element("vertex", {"sigma1", "sigma2", "sigma3"}, dims_s);
-
         // Now populate the vectors...
         //timepoint before = now();
         file.read(ss);
         //timepoint after = now();
-
         // Good place to put a breakpoint!
         //std::cout << "Parsing took " << difference_micros(before, after) << "μs: " << std::endl;
         std::cout << "\tRead " << verts.size() << " total vertices (" << vertexCount << " properties)." << std::endl;
@@ -58,7 +50,6 @@ void wasure_data::parse_points_ply(std::string inputName)
         std::cout << "\tRead " << dims_s.size() << " total vertex dims_s (" << dims_sCount << " properties)." << std::endl;
         std::cout << "\tRead " << dims_n.size() << " total vertex dims_n (" << dims_nCount << " properties)." << std::endl;
         int acc = 0;
-
         std::vector<double> coords_v(3);
         for(int i = 0 ; i < verts.size(); i++)
         {
@@ -89,7 +80,6 @@ void wasure_data::parse_points_ply(std::string inputName)
                 centers_pts.push_back(p);
             }
         }
-
         std::vector<Point> act_vect;
         //dims_norms.push_back(
         acc=0;
@@ -107,7 +97,6 @@ void wasure_data::parse_points_ply(std::string inputName)
                 act_vect.clear();
             }
         }
-
         std::vector<double> act_scale;
         acc = 0;
         for(int i = 0 ; i < dims_s.size(); i++)
@@ -125,6 +114,4 @@ void wasure_data::parse_points_ply(std::string inputName)
     {
         std::cerr << "Caught exception: " << e.what() << std::endl;
     }
-
-
 }

@@ -129,14 +129,11 @@ public:
     {
         assert(tile_ != end_);
         Id id = main_id();
-
         if (id == tile_->id()) // <=> is_main
             return *this;
-
         for (Tile_const_iterator t = begin_; t != end_; ++t)
             if (id == t->id())
                 return Facet_const_iterator(begin_, end_, t, t->locate_facet(*tile_, facet_));
-
         std::cerr << "catch neighbor exeption" << std::endl;
         throw DDT_exeption("ex_main_facet_not_found");
         assert(false);
@@ -149,10 +146,8 @@ public:
         int i = tile_->index_of_covertex(facet_);
         Tile_cell_const_iterator c = tile_->full_cell(facet_);
         Tile_cell_const_iterator n = tile_->neighbor(c, i);
-
         if (!tile_->cell_is_foreign(n))
             return Facet_const_iterator(begin_, end_, tile_, tile_->facet(n, tile_->mirror_index(c,i)));
-
         return main()->neighbor();
     }
 

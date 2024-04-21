@@ -79,7 +79,6 @@ void cell_data_wasure::write(std::ostream& os,bool only_iq,bool is_ascii) const
             }
             os << acc << " ";
             //std::cerr  << acc << std::endl;
-
         }
         else
         {

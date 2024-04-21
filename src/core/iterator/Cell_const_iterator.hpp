@@ -234,7 +234,6 @@ public:
         assert(tile_ != end_);
         Id id = main_id();
         if (id == tile_->id()) return *this; // <=> is_main
-
         for (Tile_const_iterator tile = begin_; tile != end_; ++tile)
             if (id == tile->id())
             {

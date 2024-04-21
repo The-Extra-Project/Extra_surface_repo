@@ -17,7 +17,6 @@ namespace ddt
 template <typename Traits>
 std::istream & read_point_set_serialized(std::vector<typename Traits::Point> & lp, std::istream & ifile, const Traits& traits)
 {
-
     //  double_conversion::StringToDoubleConverter sc(flags_ser, 0, false,NULL, NULL);
     char buffer[kBufferSize];
     char cc;
@@ -68,8 +67,6 @@ std::istream & read_points_id_source_serialized(std::vector<typename Traits::Poi
             coords[d] = input_v[n*(D+2)+2+d];
         lp.push_back(std::make_tuple(traits.make_point(coords),id1,id2));
     }
-
-
     return ifile;
 }
 
@@ -79,7 +76,6 @@ std::istream & read_points_id_source_serialized(std::vector<typename Traits::Poi
 template<typename Tile, typename Id>
 std::istream& read_json_stream(Tile & tile,std::istream&  ifile)
 {
-
     boost::property_tree::ptree root_node;
     boost::property_tree::read_xml(ifile, root_node);
     auto & bbox = tile->bbox();
@@ -117,7 +113,6 @@ typename Traits::Point_id_id read_point_id_source(std::istream & ifile, const Tr
     ifile >> id2;
     for(int d = 0 ; d < Traits::D; d++)
         ifile >> coords[d];
-
     return  std::make_tuple(traits.make_point(coords),id1,id2);
 }
 
@@ -176,7 +171,6 @@ template <typename Traits>
 std::istream & read_map_stream(std::map<typename Traits::Id, std::set<typename Traits::Point>> & mp, std::istream & ifile, const Traits& traits)
 {
     int nb_elem;
-
     ifile >> nb_elem;
     for(int i = 0; i < nb_elem; i++)
     {

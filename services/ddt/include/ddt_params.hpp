@@ -74,8 +74,6 @@ public :
 
     int parse(int argc, char **argv)
     {
-
-
         int cc;
         int errflg = 5;
         static struct option long_options[] =
@@ -112,10 +110,7 @@ public :
             {"help",  no_argument, 0, 'h'},
             {0, 0, 0, 0}
         };
-
-
         int option_index = 0;
-
         while ((cc = getopt_long(argc, argv, "i:o:g:t:x:s:l:e:j:f:k:m:q:n:d:a:b:u:v:w:h",long_options,&option_index)) != -1)
         {
             switch (cc)
@@ -181,7 +176,6 @@ public :
             case 'm':
                 max_it = atof(optarg);
                 break;
-
             case 'n':
                 nb_labs = atoi(optarg);
                 break;
@@ -207,15 +201,11 @@ public :
                 return 0;
             }
         }
-
         if(errflg != 0)
         {
             //help();
             // return 1;
         }
-
-
-
     }
 
 };

@@ -16,7 +16,6 @@ float sqrt3(const float x)
         int i;
         float x;
     } u;
-
     u.x = x;
     u.i = (1<<29) + (u.i >> 1) - (1<<22);
     return u.x;
@@ -49,8 +48,6 @@ double doubleRand()
 template <typename DTC,typename CHR,typename TR>
 bool is_inside_bbox(DTC & tri,CHR cit,  ddt::Bbox<TR::D> & tri_bbox, TR ttr)
 {
-
-
     if(tri.is_infinite(cit))
     {
         return false;

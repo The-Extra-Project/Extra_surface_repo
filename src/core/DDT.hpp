@@ -234,10 +234,8 @@ public:
     {
         if (!tile.is_valid())
         {
-
             return false;
         }
-
         for(auto v = tile.vertices_begin(); v != tile.vertices_end(); ++v)
         {
             if(tile.vertex_is_infinite(v)) continue;
@@ -271,7 +269,6 @@ public:
                     return false;
                 }
             }
-
         }
         for(auto c = tile.cells_begin(); c != tile.cells_end(); ++c)
         {
@@ -309,17 +306,13 @@ public:
         int nextid = 0;
         int D = Traits::D;
         int acc = 0;
-
         for(auto vit = vertices_begin(); vit != vertices_end(); ++vit)
         {
-
             const Data_V & vd = vit->vertex_data();
             Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
             Id main_id = vit->main_id();
             vd_quickndirty.gid =  (acc++);
-
         }
-
         acc = 0;
         for(auto iit = cells_begin(); iit != cells_end(); ++iit)
         {
@@ -336,11 +329,9 @@ public:
         bool valid = true;
         size_t invalid_tiles = transform_sum(s, [this](const Tile& t) { return size_t(!this->tile_is_valid(t)); });
         if (invalid_tiles) { std::cerr << invalid_tiles << " invalid tile(s)" << std::endl; valid = false; }
-
         if (number_of_vertices_ != transform_sum(s, std::mem_fn(&Tile::number_of_main_vertices))) { std::cerr << "incorrect number_of_vertices" << std::endl; valid = false; }
         if (number_of_facets_ != transform_sum(s, std::mem_fn(&Tile::number_of_main_facets))) { std::cerr << "incorrect number_of_facets" << std::endl; valid = false; }
         if (number_of_cells_ != transform_sum(s, std::mem_fn(&Tile::number_of_main_cells))) { std::cerr << "incorrect number_of_cells" << std::endl; valid = false; }
-
         return valid;
     }
 

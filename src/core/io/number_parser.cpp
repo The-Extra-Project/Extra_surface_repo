@@ -7,7 +7,6 @@ int u32toa_countlut(uint32_t value, char* buffer)
     unsigned digit = CountDecimalDigit32(value);
     buffer += digit;
     *buffer = ' ';
-
     while (value >= 100)
     {
         const unsigned i = (value % 100) << 1;
@@ -15,7 +14,6 @@ int u32toa_countlut(uint32_t value, char* buffer)
         *--buffer = gDigitsLut[i + 1];
         *--buffer = gDigitsLut[i];
     }
-
     if (value < 10)
     {
         *--buffer = char(value) + '0';
@@ -73,7 +71,6 @@ void u32toa_lut(int value, char* buffer)
 {
     char temp[10];
     char* p = temp;
-
     while (value >= 100)
     {
         const unsigned i = (value % 100) << 1;
@@ -81,7 +78,6 @@ void u32toa_lut(int value, char* buffer)
         *p++ = gDigitsLut[i + 1];
         *p++ = gDigitsLut[i];
     }
-
     if (value < 10)
         *p++ = char(value) + '0';
     else
@@ -90,13 +86,11 @@ void u32toa_lut(int value, char* buffer)
         *p++ = gDigitsLut[i + 1];
         *p++ = gDigitsLut[i];
     }
-
     do
     {
         *buffer++ = *--p;
     }
     while (p != temp);
-
     *buffer = '\0';
 }
 

@@ -49,7 +49,6 @@ public :
 
     stream_data_header() : fis(NULL),fos(NULL),ifile(NULL),ofile(NULL),bool_dump(true),log(NULL)
     {
-
     }
 
     stream_data_header(std::string ll,std::string tt,std::vector<int> v) : stream_data_header()
@@ -189,7 +188,6 @@ public :
 
     stream_app_header() : tile_id(-1),nbd(-1)
     {
-
     }
 
     bool is_void()
@@ -234,25 +232,18 @@ int intRand(const int & min, const int & max)
 std::string time_in_HH_MM_SS_MMM()
 {
     using namespace std::chrono;
-
     // get current time
     auto now = system_clock::now();
-
     // get number of milliseconds for the current second
     // (remainder after division into seconds)
     auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
-
     // convert to std::time_t in order to convert to std::tm (broken time)
     auto timer = system_clock::to_time_t(now);
-
     // convert to broken time
     std::tm bt = *std::localtime(&timer);
-
     std::ostringstream oss;
-
     oss << std::put_time(&bt, "%d-%m-%Y-%H-%M-%S"); // HH:MM:SS
     oss << '.' << std::setfill('0') << std::setw(3) << ms.count();
-
     return oss.str();
 }
 
@@ -267,10 +258,8 @@ std::string stream_data_header::random_string( size_t length )
     start = std::chrono::system_clock::now();
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);
-
     std::ostringstream oss;
     oss << std::put_time(&tm, "%d_%m_%Y_%H_%M_%S");
-
     auto randchar = []() -> char
     {
         const char charset[] =
@@ -288,7 +277,6 @@ std::string stream_data_header::random_string( size_t length )
 void stream_data_header::write_into_file(std::string root_name,std::string ext, bool rand_ext)
 {
     std::string curname;
-
     if(rand_ext)
         curname = root_name  + "_" + random_string(10)  + ext;
     else
@@ -378,7 +366,6 @@ bool stream_data_header::is_hdfs()
 std::istream & stream_data_header::parse_header(std::istream & ist, bool is_binary)
 {
     if(log != NULL) log->step("[read]parse_header");
-
     ist >> lab;
     int size_c;
     ist >> size_c;
@@ -389,7 +376,6 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
         lidx.push_back(idx);
     }
     // std::cerr << "lab:" <<  lab << " " << lidx[0] << std::endl;
-
     if(lab.empty() || lidx.size() == 0)
     {
         std::cerr << "[ERROR] error during header parsing" << std::endl;
@@ -459,7 +445,6 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
             delete ifile;
         }
     }
-
     return ist;
 }
 std::ostream & stream_data_header::write_header(std::ostream & ost, bool is_binary)
@@ -470,12 +455,10 @@ std::ostream & stream_data_header::write_header(std::ostream & ost, bool is_bina
         std::cerr << "[ERROR] error during header writing" << std::endl;
         std::exit (EXIT_FAILURE);
     }
-
     ost << lab << " "  << lidx.size() << " ";
     for(auto ll : lidx)
         ost << ll << " ";
     ost <<  type << " ";
-
     if(is_file())
     {
         ost << filename << " ";
@@ -483,7 +466,6 @@ std::ostream & stream_data_header::write_header(std::ostream & ost, bool is_bina
         fos = new std::ofstream();
         int acc_op = 0;
         bool is_open = false;
-
         while (acc_op++ < 20)
         {
             if(is_binary)
@@ -501,7 +483,6 @@ std::ostream & stream_data_header::write_header(std::ostream & ost, bool is_bina
             }
             else
             {
-
                 std::cerr << "[ERROR] ERROR durring writing header: " << filename << " " << std::endl;
                 std::cerr << filename << std::endl;
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -517,7 +498,6 @@ std::ostream & stream_data_header::write_header(std::ostream & ost, bool is_bina
         // Ply writer
         ost << filename << " ";
         ofile = new std::ostringstream();
-
     }
     return ost;
 }

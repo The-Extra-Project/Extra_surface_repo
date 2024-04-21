@@ -17,7 +17,6 @@ public:
 
     bool flag(int f) const
     {
-
 #ifdef DEBUG
         if(f > CHAR_BIT * sizeof(T) - 1)
         {
@@ -35,7 +34,6 @@ public:
             std::cerr << "FLAG POSITION ERROR" << std::endl;
         }
 #endif
-
         val ? (flags |= static_cast<T>(1 << f)) : (flags &= ~static_cast<T>(1 << f));
     }
 

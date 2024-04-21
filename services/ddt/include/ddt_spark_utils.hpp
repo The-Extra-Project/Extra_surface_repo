@@ -4,7 +4,6 @@
 
 void parse_string(const std::string& str, std::vector<std::string>& elements, char delimeter)
 {
-
     std::stringstream ss(str);
     std::string element;
     while(std::getline(ss, element, delimeter))

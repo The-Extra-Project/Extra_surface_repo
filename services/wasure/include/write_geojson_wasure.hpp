@@ -24,7 +24,6 @@ template <typename DTW>
 void plot_vertex_pts(typename DTW::Vertex_const_iterator  v,std::ostream & ofs)
 {
     using Point = typename DTW::Point;
-
     ofs.setf( std::ios::fixed, std::ios::floatfield );
     ofs.precision(10);
     Point pt = v->point();
@@ -36,28 +35,23 @@ void plot_vertex_pts(typename DTW::Vertex_const_iterator  v,std::ostream & ofs)
             ofs  << "," ;
         }
     }
-
 }
 
 
 template <typename DTW>
 int dump_2d_surface_geojson(std::vector<typename DTW::Facet_const_iterator> & lft, std::ostream & ofs)
 {
-
     using Vertex_const_iterator = typename DTW::Vertex_const_iterator;
     using Cell_const_iterator = typename DTW::Cell_const_iterator;
     using Point = typename DTW::Point;
     using Facet = typename DTW::Facet_const_iterator;
     bool is_first = true,is_first2 = true;
-
     ofs << "{" << std::endl;
     ofs << "\"type\": \"FeatureCollection\"," << std::endl;
     ofs << "\"features\": [" << std::endl;
-
     for(auto fit = lft.begin();  fit != lft.end(); ++fit)
     {
         Facet ft = *fit;
-
         std::vector<Point> pts;
         if(!is_first)
             ofs << ",";
@@ -80,14 +74,10 @@ int dump_2d_surface_geojson(std::vector<typename DTW::Facet_const_iterator> & lf
         }
         ofs << "]]";
         ofs << "]";
-
-
         ofs << "}" << std::endl;
         ofs << "}" << std::endl;
         is_first2 = true;
         is_first = false;
-
-
     }
     ofs << "]" << std::endl;
     ofs << "}" << std::endl;
@@ -101,17 +91,14 @@ int dump_2d_surface_geojson(std::vector<typename DTW::Facet_const_iterator> & lf
 template<typename Iterator>
 void write_geojson_facet_range_wasure(Iterator begin, Iterator end, std::ostream & ofs, bool is_first = true)
 {
-
     typedef typename Iterator::value_type Facet_const_iterator;
     typedef typename Facet_const_iterator::Traits Traits;
     int D = Traits::D;
     for(auto fit = begin; fit != end; ++fit)
     {
-
         //if(fit->is_infinite()) continue;
         if(!is_first)
             ofs << "," << std::endl;
-
         auto cit = fit->full_cell();
         int idx = fit->index_of_covertex();
         ofs << "{" << std::endl;
@@ -145,8 +132,6 @@ void write_geojson_facet_range_wasure(Iterator begin, Iterator end, std::ostream
         ofs << "\"prop1\": { \"this\": \"that\" }" << std::endl;
         ofs << "}" << std::endl;
         ofs << "}" << std::endl;
-
-
     }
 }
 
@@ -188,7 +173,6 @@ void write_geojson_vert_range_wasure(Iterator begin, Iterator end, std::ostream 
 template<typename Iterator>
 void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream & ofs, std::map<Id,wasure_data<Traits> > & w_datas_tri,bool is_first = true)
 {
-
     typedef typename Iterator::value_type Cell_const_iterator;
     std::map<Cell_const_iterator, int> cmap;
     int nextid = 0;
@@ -218,10 +202,8 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
             for(int d=0; d<D-1; ++d) ofs << p[d] << ",";
             ofs << p[D-1];
         }
-
         int tid = int(iit->tile()->id());
         int id = iit->cell_data().id;
-
         ofs << "]]";
         ofs << "]";
         ofs << "}," << std::endl;
@@ -232,10 +214,8 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
         ofs << "\"main_id\": " <<  int(iit->main_id())  << "," << std::endl;
         ofs << "\"tid\": " << tid  << "," << std::endl;
         ofs << "\"data_id\": " << int(iit->cell_data().id)  << "," << std::endl;
-
         if(true)
         {
-
             if(!cmap.count(*iit)) cmap[*iit] = nextid++;
             ofs << "\"opt_id\": " << cmap[*iit] << "," << std::endl;
             for(int i = 0 ; i < D+1; i++)
@@ -251,15 +231,11 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
                 }
                 catch (...)
                 {
-
                 }
                 ofs << "\"neigbhor " << i << "\": " << iid << "," << std::endl;
             }
         }
-
-
         auto dmap = w_datas_tri[tid].dmap;
-
         for ( const auto &ee : dmap )
         {
             if(dmap[ee.first].part == "face" && ee.second.do_exist)
@@ -287,8 +263,6 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
                 }
             }
         }
-
-
         //	iit->data().dump_geojson(ofs);
         ofs << "\"prop1\": { \"this\": \"that\" }" << std::endl;
         ofs << "}" << std::endl;
@@ -299,7 +273,6 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
 template<typename DDT>
 void write_geojson_tri_wasure(const DDT& ddt,   std::map<Id,wasure_data<Traits> > & w_datas_tri, std::ostream & ofs)
 {
-
     ofs << "{" << std::endl;
     ofs << "\"type\": \"FeatureCollection\"," << std::endl;
     ofs << "\"features\": [" << std::endl;
@@ -314,7 +287,6 @@ void write_geojson_tri_wasure(const DDT& ddt,   std::map<Id,wasure_data<Traits> 
 template<typename DDT>
 void write_geojson_tri_wasure(const DDT& ddt, std::ostream & ofs,wasure_data<typename DDT::Traits> ddtd)
 {
-
     ofs << "{" << std::endl;
     ofs << "\"type\": \"FeatureCollection\"," << std::endl;
     ofs << "\"features\": [" << std::endl;

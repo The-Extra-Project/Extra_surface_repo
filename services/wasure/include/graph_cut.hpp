@@ -38,11 +38,9 @@ struct g_vert
 
 int gc_on_stream(std::istream & ifile,std::ostream & ofile)
 {
-
     int nb_dat,tt;
     std::vector<g_edge> v_edges;
     std::vector<g_vert> v_verts;
-
     int acc = 0;
     while(ifile  >> tt)
     {
@@ -77,31 +75,25 @@ int gc_on_stream(std::istream & ifile,std::ostream & ofile)
     {
         g -> add_node();
     }
-
     for(auto vv = v_verts.begin();
             vv != v_verts.end(); vv++)
     {
         g->add_tweights(vv->id1, vv->e0, vv->e1);
     }
-
     for(auto ee = v_edges.begin();
             ee != v_edges.end(); ee++)
     {
         g->add_edge(ee->id1, ee->id2,ee->e0,ee->e1);
     }
-
     std::cerr << "\t Max flow algorithm ..." << std::endl;
     double flow = g->maxflow();
     std::cerr << "\t\t flow value : " << flow << std::endl;
     int nb_merge = 0;
-
     for(int i = 0; i < N; i++)
     {
         int lab = g->what_segment(i);
         ofile << i << " " << lab << std::endl;
     }
-
-
     delete g;
     std::cerr << "perfect!" << std::endl;
     return 0;

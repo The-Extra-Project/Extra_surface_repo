@@ -276,7 +276,6 @@ public:
     template<typename C>
     int cell_local_score(C c) const
     {
-
         int local = 0;
         for(int i=0; i<=current_dimension(); ++i)
         {
@@ -331,7 +330,6 @@ public:
             if ( vertex_is_infinite(v) ) continue;
             if ( vertex_is_local(v) ) return false;
         }
-
         return true;
     }
 
@@ -345,7 +343,6 @@ public:
             if ( vertex_is_infinite(v) ) continue;
             if ( vertex_is_local_in_tile(v,tid) ) return false;
         }
-
         return true;
     }
 
@@ -386,7 +383,6 @@ public:
     {
         // return true;
         int icv = index_of_covertex(f);
-
         auto c1 = full_cell(f);
         auto c2 = neighbor(c1,icv);
         bool foreign = true;
@@ -543,7 +539,6 @@ public:
         for(auto vit = vbegin; vit != vend; ++vit)
             if(!vertex_is_infinite(vit))
                 flag(vit,0,1);
-
         // set flags of vertices incident to non-foreign cells to 0
         for(auto cit = cbegin; cit != cend; ++cit)
         {
@@ -559,7 +554,6 @@ public:
                 }
             }
         }
-
         // gather vertices that are to be removed
         std::vector<Vertex_handle> todo;
         for(auto vit = vbegin; vit != vend; ++vit)
@@ -578,7 +572,6 @@ public:
         for(auto it = begin; it != end; ++it)
             if (vertex_is_foreign(*it))
                 finite_adjacent_vertices(*it, [&neighbors](Vertex_handle v) { neighbors.insert(v); });
-
         // remove if they have a foreign star
         std::vector<Vertex_handle> vertices;
         vertices.reserve(32);
@@ -848,20 +841,17 @@ public:
     // It it does not work, loop on all the cell
     Cell_const_handle locate_cell(const Tile& t, Cell_const_handle c) const
     {
-
         assert(!t.cell_is_foreign(c));
         auto cc = traits_.locate_cell(dt_,c);
         if(traits_.are_cells_equal(t.dt_, c, dt_, cc))
             return cc;
         else
             return locate_cell_slow(t,c);
-
     }
 
     // slow localisation on the
     Cell_const_handle locate_cell_slow(const Tile& t, Cell_const_handle c) const
     {
-
         assert(!t.cell_is_foreign(c));
         for(auto cit = cells_begin(); cit != cells_end(); ++cit )
         {
@@ -934,17 +924,14 @@ public:
             Data_V & vd_quickndirty = const_cast<Data_V &>(vd);
             vd_quickndirty.gid =  (acc++);
         }
-
         acc = 0;
         for(auto cit = cells_begin(); cit != cells_end(); ++cit)
         {
             if(!cell_is_main(cit)) continue;
-
             const Data_C & cd = datac(cit);
             Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
             cd_quickndirty.gid =  (acc++);
         }
-
         for(auto cit = cells_begin(); cit != cells_end(); ++cit)
         {
             if(cell_is_main(cit)) continue;
@@ -952,21 +939,17 @@ public:
             Data_C & cd_quickndirty = const_cast<Data_C &>(cd);
             cd_quickndirty.gid =  (acc++);
         }
-
     }
 
     void update_local_flag() const
     {
-
         int D = Traits::D;
         int acc = 0;
-
         for(auto vit = vertices_begin(); vit != vertices_end(); ++vit)
         {
             if(!vertex_is_main(vit))
                 flagv(vit) = vertex_is_local(vit);
         }
-
         for(auto cit = cells_begin(); cit != cells_end(); ++cit)
         {
             if(!cell_is_main(cit)) continue;
@@ -1012,19 +995,16 @@ public:
         std::map<std::vector<Id>,size_t> empty_map;
         // self-assessed counts of mixed and local cells of this tile
         auto& c1 = at_with_default(map, id1, empty_map);
-
         for(const auto& pair: map)
         {
             Id id2 = pair.first;
             if(id1==id2) continue;
             auto& c2 = pair.second;
-
             // check that maps have the same counts on keys that reference both id1 and id2
             auto it1 = c1.begin();
             auto it2 = c2.begin();
             while(it1 != c1.end() && it2 != c2.end())
             {
-
                 if (!std::binary_search(it1->first.begin(), it1->first.end(), id2)) { ++it1; continue; }
                 if (!std::binary_search(it2->first.begin(), it2->first.end(), id1)) { ++it2; continue; }
                 if (!(it1->first == it2->first && it1->second == it2->second))

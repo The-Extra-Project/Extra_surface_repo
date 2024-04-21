@@ -47,11 +47,9 @@ void write_ply_property_cell(const Tile& tile, std::ostream& out)
     unsigned char N = (unsigned char)(tile.maximal_dimension()+1);
     unsigned char tid = tile.id();
     std::map<typename Tile::Vertex_const_handle, int> dict;
-
     int id = 0;
     for(auto it = tile.vertices_begin(); it != tile.vertices_end(); ++it)
         if(!tile.vertex_is_infinite(it)) dict[it] = id++;
-
     for(auto cit = tile.cells_begin(); cit != tile.cells_end(); ++cit)
     {
         if(tile.cell_is_infinite(cit)) continue;
@@ -66,7 +64,6 @@ void write_ply_property_cell(const Tile& tile, std::ostream& out)
         }
         out.write(reinterpret_cast<char *>(&tid), sizeof(tid));
         out.write(reinterpret_cast<char *>(&local), sizeof(local));
-
     }
 }
 
@@ -134,16 +131,13 @@ void write_ply(const DDT& tri, const std::string& filename)
 template <typename TTr,typename DTC, typename FTC,typename Id>
 std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int nbc_finalized,std::string dump_mode,Id tid)
 {
-
     TTr traits;
     typedef typename TTr::Vertex_handle                            Vertex_handle_raw;
     typedef typename TTr::Cell_handle                            Cell_handle_raw;
-
     int D = TTr::D;
     char buffer[kBufferSize];
     double_conversion::StringBuilder builder(buffer, kBufferSize);
     double_conversion::DoubleToStringConverter dc(flags_deser, "Infinity", "NaN", 'e', 0, 0, 0, 0);
-
     int full_bufflen;
     char * buffer_char;
     int nbb;
@@ -151,26 +145,19 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
     int acc_pose = 0;
     char cc;
     bool do_simplex = false;
-
     int NB_DIGIT_OUT_PLY  = 3;
-
     // ======= Serializing  Vertex ==============
-
     CGAL::Unique_hash_map<Vertex_handle_raw, uint> vertex_map;
-
-
     int nb_vert = tri.number_of_vertices();
     int nb_cell = nbc_finalized;
     int nb_cell2 = 0;
     int nb_ply = 0;
     int max_bnc = 1000000;
-
     if(dump_mode == "TRIANGLE_SOUP")
     {
         nb_cell = nbc_finalized*4;
         max_bnc = 4000000;
     }
-
     std::string buffer_header("ply;");
     buffer_header.append("format ascii 1.0;");
     buffer_header.append("comment tid_" + std::to_string(tid) + "_0 ;");
@@ -182,16 +169,10 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
     buffer_header.append("property list uchar int vertex_index ;");
     buffer_header.append("end_header;");
     ofile << buffer_header ;
-
-
     std::stringstream sstr_d;
-
-
     full_bufflen = kBufferSize*nb_vert*D;
     buffer_char  = new char[full_bufflen];
-
     pos = 0;
-
     int ii=0;
     for(auto vit = traits.vertices_begin(tri); vit != traits.vertices_end(tri); ++vit)
     {
@@ -213,21 +194,16 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
             buffer_char[pos-1] = ';';
         vertex_map[vit] = ii++;
     }
-
     ofile.write(buffer_char,pos);
     ofile << " ";
     delete[] buffer_char;
-
-
     if(nb_cell < max_bnc)
         full_bufflen = nb_cell*kBufferSize*(D+1);
     else
         full_bufflen = max_bnc*kBufferSize*(D+1);
     buffer_char = new char[full_bufflen];
     pos = 0;
-
     int acc = 0;
-
     if(dump_mode == "SIMPLEX_SOUP")
     {
         for(auto cit = traits.cells_begin(tri); cit != traits.cells_end(tri); ++cit)
@@ -284,7 +260,6 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
             }
         }
     }
-
     ofile.write(buffer_char,pos);
     delete [] buffer_char;
     return ofile;

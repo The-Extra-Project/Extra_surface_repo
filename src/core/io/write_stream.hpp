@@ -19,7 +19,6 @@ namespace ddt
 template <typename Point>
 std::ostream & write_point_set_serialized(const std::vector<Point> & lv, std::ostream & ofile, uint D)
 {
-
     int num_v = lv.size();
     ofile << D << " " << num_v << " ";
     std::vector<double> outputv;
@@ -63,11 +62,8 @@ std::ostream & write_json_stream(const Tile & tile,std::ostream & ofile)
         ss << iter->second;
         bbox_node.put(std::to_string(iter->first),ss.str());
     }
-
     root_node.add_child("bbox", bbox_node);
-
     std::stringstream ss;
-
     boost::property_tree::write_xml(ss, root_node);
     std::string str = ss.str();
     str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
@@ -79,7 +75,6 @@ std::ostream & write_json_stream(const Tile & tile,std::ostream & ofile)
 template <typename Point>
 std::ostream & write_point(Point & pp,std::ostream & ofile,int D)
 {
-
     for(int d = 0 ; d < D; d++)
         write_double(pp[d],ofile);
     return ofile;
@@ -89,7 +84,6 @@ std::ostream & write_point(Point & pp,std::ostream & ofile,int D)
 template <typename Point_id_source,typename Point>
 std::ostream & write_point_id_source(Point_id_source & pp,std::ostream & ofile,int D)
 {
-
     ofile << std::get<1>(pp) << " " << std::get<2>(pp) << " ";
     for(int d = 0 ; d < D; d++)
         write_double(std::get<0>(pp)[d],ofile);
@@ -98,7 +92,6 @@ std::ostream & write_point_id_source(Point_id_source & pp,std::ostream & ofile,i
 template <typename Vertex_const_handle>
 int write_vch_stream(const std::vector<Vertex_const_handle> & lp, std::ostream & ofile, uint D)
 {
-
     ofile << D << " " << lp.size() << " ";
     for(auto pp : lp)
     {
@@ -109,7 +102,6 @@ int write_vch_stream(const std::vector<Vertex_const_handle> & lp, std::ostream &
 template <typename set_pts>
 int write_points_stream(const set_pts & lp, std::ostream & ofile, uint D)
 {
-
     ofile << D << " " << lp.size() << " ";
     for(auto pp : lp)
     {
@@ -122,7 +114,6 @@ int write_points_stream(const set_pts & lp, std::ostream & ofile, uint D)
 template <typename Point_id_source,typename Point>
 int write_points_id_source_serialized(const std::vector<Point_id_source> & lp, std::ostream & ofile, uint D)
 {
-
     std::vector<double> outputv;
     for(auto pp : lp)
     {
@@ -132,7 +123,6 @@ int write_points_id_source_serialized(const std::vector<Point_id_source> & lp, s
             outputv.emplace_back(std::get<0>(pp)[d]);
     }
     serialize_b64_vect(outputv,ofile);
-
     // ofile << D << " " << lp.size() << " ";
     // for(auto pp : lp)
     //   {
@@ -157,7 +147,6 @@ int write_points_id_source_serialized(const std::vector<Point_id_source> & lp, s
 template <typename Point_id_source,typename Point>
 int write_points_id_source_stream(const std::vector<Point_id_source> & lp, std::ostream & ofile, uint D)
 {
-
     std::vector<double> outputv;
     for(auto pp : lp)
     {
@@ -167,7 +156,6 @@ int write_points_id_source_stream(const std::vector<Point_id_source> & lp, std::
             outputv.emplace_back(std::get<0>(pp)[d]);
     }
     serialize_b64_vect(outputv,ofile);
-
     // ofile << D << " " << lp.size() << " ";
     // for(auto pp : lp)
     //   {
@@ -181,7 +169,6 @@ int write_points_id_source_stream(const std::vector<Point_id_source> & lp, std::
 template <typename Point>
 std::ostream & write_vertex_set_stream(const std::set<Point> & lv, std::ostream & ofile, uint D)
 {
-
     ofile << D << " " << lv.size() << " ";
     for(auto vv : lv)
     {

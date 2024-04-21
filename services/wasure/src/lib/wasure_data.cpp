@@ -15,14 +15,12 @@ int wasure_data::dump_surface(std::vector<Facet> & lft, int nblabs, std::string 
     std::vector<Point> point_list;
     int acc = 0;
     Vertex_iterator fvit;
-
     for(auto fit = lft.begin();  fit != lft.end(); ++fit)
     {
         Facet ft = *fit;
         Full_cell_handle fch = ft.full_cell();
         int idx = ft.index_of_covertex();
         Full_cell_handle fchn = fch->neighbor(idx);
-
         for(int i = 0; i < dim+1; ++i)
         {
             if(i != ft.index_of_covertex())
@@ -36,21 +34,15 @@ int wasure_data::dump_surface(std::vector<Facet> & lft, int nblabs, std::string 
             }
         }
     }
-
     int nbv = vertex_map.size();
     int nbf = lft.size();
-
-
     // for(auto fit = lft.begin();  fit != lft.end(); ++fit){
     //   Facet ft = *fit;
     //   Full_cell_handle fch = ft.full_cell();
     //   int idx = ft.index_of_covertex();
     //   Full_cell_handle fchn = fch->neighbor(idx);
-
-
     //   int ch1lab = fch->data().lab;
     //   int chnlab = fchn->data().lab;
-
     //   std::vector<Point> lp;
     //   std::vector<Vertex_handle> lid;
     //   for(int i = 0 ; i < dim +1; i++){
@@ -60,11 +52,9 @@ int wasure_data::dump_surface(std::vector<Facet> & lft, int nblabs, std::string 
     // 	}
     //   }
     // }
-
     std::ofstream fo;
     fo.open (fileName.c_str());
     std::cout << "\t Writing " << fileName << "..." << std::endl;
-
     fo << "ply" << std::endl;
     fo << "format ascii 1.0" << std::endl;
     fo << "comment VCGLIB generated" << std::endl;
@@ -83,19 +73,16 @@ int wasure_data::dump_surface(std::vector<Facet> & lft, int nblabs, std::string 
     fo << "end_header" << std::endl;
     fo << std::setprecision(12);
     std::cout << "wasure_data:dumping point...." << std::endl;
-
     // for(auto const &ent1 : vertex_map) {
     //   auto const &outer_key = ent1.first;
     //   auto const &inner_map = ent1.second;
     //   Point pi = outer_key->point();
     //   fo << pi[0] << " " <<  pi[1]  << " " <<  pi[2]  << " " <<  255  <<  " " << 255 << " " << 255 << std::endl;
     // }
-
     for(auto const &pi : point_list)
     {
         fo << pi[0] << " " <<  pi[1]  << " " <<  pi[2]  << " " <<  255  <<  " " << 255 << " " << 255 << std::endl;
     }
-
     std::cout << "wasure_data:dumping facets...." << std::endl;
     for(auto fit = lft.begin();  fit != lft.end(); ++fit)
     {
@@ -125,7 +112,6 @@ int wasure_data::dump_surface(std::vector<Facet> & lft, int nblabs, std::string 
         int cr = 200;
         int cg = fabs(plab - pnlab)*255;
         int cb = fabs(plab - pnlab)*255;
-
         // Rustine
         bool is_inf = false;
         for(auto ppp : lp)
@@ -138,7 +124,6 @@ int wasure_data::dump_surface(std::vector<Facet> & lft, int nblabs, std::string 
                 break;
             }
         }
-
         int o1 = !is_inf ? CGAL::orientation(lp.begin(),lp.end()) :  0 ;
         bool bl =  ((o1 == -1 && pnlab >= 0.5) || ( o1 == 1 && pnlab < 0.5));
         if(bl)
@@ -182,13 +167,11 @@ void dump_vrt_norms(std::string name_out_vrt,std::string name_out_csv)
 {
     std::ofstream f;
     f.open(name_out_vrt.c_str());
-
     if(!f)
     {
         std::cout << "ERROR :" << name_out_vrt << " cannot be open" << std::endl;
         return;
     }
-
     f <<"<OGRVRTDataSource>" << std::endl;
     f <<  "<OGRVRTLayer name=\"" << remove_path(remove_extension(name_out_csv)) <<  "\">" << std::endl;
     f <<    "<SrcDataSource relativeToVRT=\"1\">" << remove_path(name_out_csv) << "</SrcDataSource>" << std::endl;
@@ -198,21 +181,17 @@ void dump_vrt_norms(std::string name_out_vrt,std::string name_out_csv)
     f <<    "<Field name=\"idx\" type=\"Integer\"/>" << std::endl;
     f <<  "</OGRVRTLayer>" << std::endl;
     f <<"</OGRVRTDataSource>" << std::endl;
-
 }
 
 
 void wasure_data::dump2qgis(std::string namefile)
 {
-
     std::string name_out_norms_csv = remove_extension(namefile) + "_norms.csv";
     std::string name_out_norms_vrt = remove_extension(namefile) + "_norms.vrt";
-
     dump_vrt_norms(name_out_norms_vrt,name_out_norms_csv);
     uint D = 2;
     std::ofstream fo;
     fo.open (name_out_norms_csv.c_str());
-
     fo << "idx,geom"<< std::endl;
     fo.precision(10);
     for(int i = 0 ; i < points.size(); i++)
@@ -224,26 +203,19 @@ void wasure_data::dump2qgis(std::string namefile)
         fo << points[i][0] << " " << points[i][1] << ",";
         fo << points[i][0] + dims_norms[i][1][0]*dims_scales[i][1]/3.0 << " " << points[i][1] + dims_norms[i][1][1]*dims_scales[i][1]/3.0 ;
         fo << "))\""  << std::endl;
-
     }
-
-
 }
 
 
 inline  std::ostream & wasure_data::dump_double(double dd,std::ostream & ofile)
 {
-
     //ofile.write(reinterpret_cast<char *>(&dd), sizeof(dd));
-
     ofile << dd << " ";
 }
 
 inline  std::ostream & wasure_data::dump_int(int ii,std::ostream & ofile)
 {
-
     //ofile.write(reinterpret_cast<char *>(&dd), sizeof(dd));
-
     ofile << ii << " ";
 }
 
@@ -291,7 +263,6 @@ Point wasure_data::read_point(std::istream & ifile)
 
 std::ostream & wasure_data::dump_stream(std::ostream & ofile)
 {
-
     ofile << std::setprecision(NB_DIGIT_OUT);
     ofile << D << " " << points.size() << " ";
     for(auto pp : source_label)
@@ -329,14 +300,10 @@ std::ostream & wasure_data::dump_stream(std::ostream & ofile)
 
 std::ostream & wasure_data::dump_xyz(std::ostream & ofile)
 {
-
     ofile << std::setprecision(NB_DIGIT_OUT);
     for(int i = 0 ; i < points.size() ; i++)
     {
-
-
         dump_int(source_label[i],ofile);
-
         Point & p1 = points[i];
         dump_point(p1,ofile);
         if(centers_pts.size() > 0)
@@ -344,7 +311,6 @@ std::ostream & wasure_data::dump_xyz(std::ostream & ofile)
             Point & p2 = centers_pts[i];
             dump_point(p2,ofile);
         }
-
         if(dims_norms.size() > 0)
         {
             for(int dn = 0; dn < dims_norms[i].size(); dn++)
@@ -423,7 +389,6 @@ std::istream & wasure_data::read_stream(std::istream & ifile)
     {
         glob_scale.push_back(read_double(ifile));
     }
-
     for(int i = 0; i < nbp; i++)
     {
         std::vector<Point> ll;
@@ -447,9 +412,7 @@ std::istream & wasure_data::read_stream(std::istream & ifile)
 
 std::istream & wasure_data::read_stream_raw(std::istream & ifile)
 {
-
     int lab = -1;
-
     while(ifile >> lab)
     {
         if(lab == -1)

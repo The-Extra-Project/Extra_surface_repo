@@ -16,7 +16,6 @@ public :
     wasure_algo()
     {
         int D = Traits::D;
-
     }
 
     // ============ Dim ====================

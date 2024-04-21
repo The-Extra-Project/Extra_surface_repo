@@ -84,7 +84,6 @@ public:
     {
         m_shutdown = true;
         m_conditional_lock.notify_all();
-
         for (size_t i = 0; i < m_threads.size(); ++i)
         {
             m_threads[i].join();
@@ -99,19 +98,15 @@ public:
         std::function<decltype(f(args...))()> func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
         // Encapsulate it into a shared ptr in order to be able to copy construct / assign
         auto task_ptr = std::make_shared<std::packaged_task<decltype(f(args...))()>>(func);
-
         // Wrap packaged task into void function
         std::function<void()> wrapper_func = [task_ptr]()
         {
             (*task_ptr)();
         };
-
         // Enqueue generic wrapper function
         m_queue.enqueue(wrapper_func);
-
         // Wake up one thread if its waiting
         m_conditional_lock.notify_one();
-
         // Return future from promise
         return task_ptr->get_future();
     }

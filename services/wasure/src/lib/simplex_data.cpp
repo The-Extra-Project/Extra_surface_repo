@@ -43,7 +43,6 @@ bool cell_data::is_main()
 
 void cell_data::write(std::ostream& os,bool only_iq,bool is_ascii) const
 {
-
     if(is_ascii)
     {
         os << flags << " "  << idx << " " << tile_idx << " " << state << " ";

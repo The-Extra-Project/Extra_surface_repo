@@ -53,9 +53,7 @@ n_volume(std::list<T_PTS> & lp, int D)
             mat(d,acc) = pn[d] - p0[d];
         acc++;
     }
-
     return fabs(mat.determinant()/factorial(D));
-
 }
 
 
@@ -69,7 +67,6 @@ compute_pts_proj(const T_PTS & A, const T_PTS & C, const T_PTS & v1, int D)
     {
         p[d] = A[d] + lambda*v1[d];
     }
-
     return p;
 }
 
@@ -86,7 +83,6 @@ compute_coef_proj(const T_PTS & A, const T_PTS & C, const T_VECT & v1, int D)
         acc2 += v1[d]*v1[d];
     }
     return acc1/acc2;
-
 }
 
 
@@ -124,7 +120,6 @@ std::vector<double>  get_barycenter(std::list<Point> & lp, int D)
     std::vector<double> coords(D);
     for(int d = 0; d < D; d++)
         coords[d] = 0;
-
     for(typename std::list<Point>::iterator pit = lp.begin(); pit != lp.end(); ++pit)
     {
         Point pn = *pit;
@@ -133,9 +128,7 @@ std::vector<double>  get_barycenter(std::list<Point> & lp, int D)
     }
     for(int d = 0; d < D; d++)
         coords[d] /= lp.size();
-
     return coords;
-
 }
 
 template <typename Point,typename Traits>
@@ -146,7 +139,6 @@ Point get_barycenter_pts(std::list<Point> & lp, int D)
     //  std::vector<double> coords(D);
     for(int d = 0; d < D; d++)
         coords[d] = 0;
-
     for(typename std::list<Point>::iterator pit = lp.begin(); pit != lp.end(); ++pit)
     {
         Point pn = *pit;
@@ -155,9 +147,7 @@ Point get_barycenter_pts(std::list<Point> & lp, int D)
     }
     for(int d = 0; d < D; d++)
         coords[d] /= lp.size();
-
     return traits.make_point(coords);
-
 }
 
 
@@ -203,13 +193,10 @@ double n_surface(typename std::list<Point> & lp, int D)
             mat(acc,d) = pn[d] - p0[d];
         acc++;
     }
-
     Eigen::MatrixXd m = mat.rowwise() - mat.colwise().mean();
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(m, Eigen::ComputeThinU | Eigen::ComputeThinV);
     Eigen::MatrixXd sv = svd.singularValues() ;
     Eigen::MatrixXd ev =  svd.matrixV();
-
-
     std::vector<Point> nb;
     double coords[Traits::D];
     std::vector<double> coords_v(D);
@@ -220,7 +207,6 @@ double n_surface(typename std::list<Point> & lp, int D)
         /* std::cout << "nb :" << Point(coords) << std::endl; */
         nb.push_back(traits.make_point(coords));
     }
-
     std::list<Point> nbl;
     Point ori = p0;
     for(auto pit = lp.begin();
@@ -233,14 +219,9 @@ double n_surface(typename std::list<Point> & lp, int D)
         for(int d = 0; d < D; d++)
             coords[d] = coords_v[d];
         /* std::cout << Point(coords) << std::endl; */
-
         nbl.push_back(traits.make_point(coords));
-
     }
-
-
     return n_volume(nbl,D-1);
-
 }
 
 
