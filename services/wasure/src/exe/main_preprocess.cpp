@@ -5,7 +5,7 @@
 #include <CGAL/jet_estimate_normals.h>
 
 
-#include <scanline_orient_normals_ori.hpp>
+#include <scanline_orient_normals.hpp>
 #include <typeinfo>
 
 #include <iostream>

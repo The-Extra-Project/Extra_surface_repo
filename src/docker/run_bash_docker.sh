@@ -136,6 +136,6 @@ fi
 # echo "Mount : $MOUNT_CMD"
 # echo "Img : $NAME_IMG"
 run_fun
-echo "DONE!!!"
+
 
 exit 0;

@@ -1,20 +1,16 @@
-#include "wasure_typedefs.hpp"
-#include "write_geojson_wasure.hpp"
-
 #include <unordered_map>
 
 #include "io/stream_api.hpp"
 #include "io/write_stream.hpp"
 #include "io/write_vrt.hpp"
-//#include "io/write_geojson.hpp"
 #include "io/read_stream.hpp"
 #include "io/logging_stream.hpp"
 
-
+#include "wasure_typedefs.hpp"
+#include "write_geojson_wasure.hpp"
 #include "wasure_data.hpp"
 #include "wasure_algo.hpp"
 #include "tbmrf_reco.hpp"
-#include "tbmrf_conflict.hpp"
 #include "io_ddt_stream.hpp"
 #include "graph_cut.hpp"
 

@@ -29,11 +29,10 @@
 #include "wasure_data.hpp"
 #include "wasure_algo.hpp"
 #include "tbmrf_reco.hpp"
-#include "tbmrf_conflict.hpp"
 #include "io_ddt_stream.hpp"
 #include "graph_cut.hpp"
 #include "ddt_spark_utils.hpp"
-#include <scanline_orient_normals_ori.hpp>
+#include <scanline_orient_normals.hpp> 
 
 typedef std::map<Id,wasure_data<Traits> > D_MAP;
 typedef std::map<Id,std::list<wasure_data<Traits>> > D_LMAP;

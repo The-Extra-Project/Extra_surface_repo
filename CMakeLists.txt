@@ -131,8 +131,6 @@ set(libddt_SOURCES
   ${CPP_CORE_LOCAL_DIR}/io/number_parser.cpp
   ${CPP_CORE_LOCAL_DIR}/io/base64.hpp
   ${CPP_CORE_LOCAL_DIR}/io/base64.cpp
-  ${CPP_CORE_LOCAL_DIR}/io/base64_new.hpp
-  ${CPP_CORE_LOCAL_DIR}/io/base64_new.cpp
 
   ${CPP_CORE_LOCAL_DIR}/iterator/Cell_const_iterator.hpp
   ${CPP_CORE_LOCAL_DIR}/iterator/Facet_const_iterator.hpp

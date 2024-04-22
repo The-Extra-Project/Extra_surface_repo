@@ -1,78 +1,144 @@
 #include "base64.hpp"
-
-std::string base64_encode(BYTE const* buf, unsigned int bufLen)
+/**
+ * base64_encode - Base64 encode
+ * @src: Data to be encoded
+ * @len: Length of the data to be encoded
+ * @out_len: Pointer to output length variable, or %NULL if not used
+ * Returns: Allocated buffer of out_len bytes of encoded data,
+ * or %NULL on failure
+ *
+ * Caller is responsible for freeing the returned buffer. Returned buffer is
+ * nul terminated to make it easier to use as a C string. The nul terminator is
+ * not included in out_len.
+ */
+unsigned char * fast_base64_encode(const unsigned char *src, size_t len,
+                                   size_t *out_len)
 {
-    std::string ret;
-    int i = 0;
-    int j = 0;
-    BYTE char_array_3[3];
-    BYTE char_array_4[4];
-    while (bufLen--)
+    unsigned char *out, *pos;
+    const unsigned char *end, *in;
+    size_t olen;
+    int line_len;
+    int line_max = 1000000000;
+    olen = len * 4 / 3 + 4; /* 3-byte blocks to 4-byte */
+    olen += olen / 72; /* line feeds */
+    olen++; /* nul termination */
+    if (olen < len)
+        return NULL; /* integer overflow */
+    out = new unsigned char[olen];
+    if (out == NULL)
+        return NULL;
+    end = src + len;
+    in = src;
+    pos = out;
+    line_len = 0;
+    while (end - in >= 3)
     {
-        char_array_3[i++] = *(buf++);
-        if (i == 3)
+        *pos++ = base64_table[in[0] >> 2];
+        *pos++ = base64_table[((in[0] & 0x03) << 4) | (in[1] >> 4)];
+        *pos++ = base64_table[((in[1] & 0x0f) << 2) | (in[2] >> 6)];
+        *pos++ = base64_table[in[2] & 0x3f];
+        in += 3;
+        line_len += 4;
+        if (line_len >= line_max)
         {
-            char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-            char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-            char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-            char_array_4[3] = char_array_3[2] & 0x3f;
-            for(i = 0; (i <4) ; i++)
-                ret += base64_chars[char_array_4[i]];
-            i = 0;
+            //      *pos++ = '\n';
+            line_len = 0;
         }
     }
-    if (i)
+    if (end - in)
     {
-        for(j = i; j < 3; j++)
-            char_array_3[j] = '\0';
-        char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-        char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-        char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-        char_array_4[3] = char_array_3[2] & 0x3f;
-        for (j = 0; (j < i + 1); j++)
-            ret += base64_chars[char_array_4[j]];
-        while((i++ < 3))
-            ret += '=';
+        *pos++ = base64_table[in[0] >> 2];
+        if (end - in == 1)
+        {
+            *pos++ = base64_table[(in[0] & 0x03) << 4];
+            *pos++ = '=';
+        }
+        else
+        {
+            *pos++ = base64_table[((in[0] & 0x03) << 4) |
+                                                  (in[1] >> 4)];
+            *pos++ = base64_table[(in[1] & 0x0f) << 2];
+        }
+        *pos++ = '=';
+        line_len += 4;
     }
-    return ret;
+    if (line_len)
+    {
+        // *pos++ = '\n';
+    }
+    *pos = '\0';
+    if (out_len)
+        *out_len = pos - out;
+    return out;
 }
 
-std::vector<BYTE> base64_decode(std::string const& encoded_string)
+
+/**
+ * base64_decode - Base64 decode
+ * @src: Data to be decoded
+ * @len: Length of the data to be decoded
+ * @out_len: Pointer to output length variable
+ * Returns: Allocated buffer of out_len bytes of decoded data,
+ * or %NULL on failure
+ *
+ * Caller is responsible for freeing the returned buffer.
+ */
+unsigned char * fast_base64_decode(const unsigned char *src, size_t len,
+                                   size_t *out_len)
 {
-    int in_len = encoded_string.size();
-    int i = 0;
-    int j = 0;
-    int in_ = 0;
-    BYTE char_array_4[4], char_array_3[3];
-    std::vector<BYTE> ret;
-    while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_]))
+    unsigned char dtable[256], *out, *pos, block[4], tmp;
+    size_t i, count, olen;
+    int pad = 0;
+    memset(dtable, 0x80, 256);
+    for (i = 0; i < sizeof(base64_table) - 1; i++)
+        dtable[base64_table[i]] = (unsigned char) i;
+    dtable['='] = 0;
+    count = 0;
+    for (i = 0; i < len; i++)
     {
-        char_array_4[i++] = encoded_string[in_];
-        in_++;
-        if (i ==4)
+        if (dtable[src[i]] != 0x80)
+            count++;
+    }
+    if (count == 0 || count % 4)
+        return NULL;
+    olen = count / 4 * 3;
+    out = new unsigned char[olen];
+    pos = out;
+    if (out == NULL)
+        return NULL;
+    count = 0;
+    for (i = 0; i < len; i++)
+    {
+        tmp = dtable[src[i]];
+        if (tmp == 0x80)
+            continue;
+        if (src[i] == '=')
+            pad++;
+        block[count] = tmp;
+        count++;
+        if (count == 4)
         {
-            for (i = 0; i <4; i++)
-                char_array_4[i] = base64_chars.find(char_array_4[i]);
-            char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-            char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-            char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-            for (i = 0; (i < 3); i++)
-                ret.push_back(char_array_3[i]);
-            i = 0;
+            *pos++ = (block[0] << 2) | (block[1] >> 4);
+            *pos++ = (block[1] << 4) | (block[2] >> 2);
+            *pos++ = (block[2] << 6) | block[3];
+            count = 0;
+            if (pad)
+            {
+                if (pad == 1)
+                    pos--;
+                else if (pad == 2)
+                    pos -= 2;
+                else
+                {
+                    /* Invalid padding */
+                    delete [] out;
+                    return NULL;
+                }
+                break;
+            }
         }
     }
-    if (i)
-    {
-        for (j = i; j <4; j++)
-            char_array_4[j] = 0;
-        for (j = 0; j <4; j++)
-            char_array_4[j] = base64_chars.find(char_array_4[j]);
-        char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-        char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-        char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-        for (j = 0; (j < i - 1); j++) ret.push_back(char_array_3[j]);
-    }
-    return ret;
+    *out_len = pos - out;
+    return out;
 }
-
 

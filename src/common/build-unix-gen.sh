@@ -3,10 +3,6 @@
 
 COMPILE_TYPE=Release
 
-
-
-
-
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/"
 MAIN_PROJECT_DIR="$(dirname ${CUR_DIR})"
 echo "MAIN_PROJECT_DIR ==> ${MAIN_PROJECT_DIR}"

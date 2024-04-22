@@ -73,17 +73,7 @@ function run_master (){
     else
      	echo ":load ${INPUT_SCRIPT}" | eval ${CMD}
     fi
-    #--conf "spark.kryoserializer.buffer.max=2000m" \
-	# --conf "spark.executor.extraJavaOptions=-XX:-UseGCOverheadLimit" \
-	# --conf spark.memory.offheap.size=8G \
-	# --conf spark.memory.offheap.enabled=true
-    #--conf "spark.executor.extraJavaOptions=-Xss256k -XX:MaxPermSize=128m -XX:-UseGCOverheadLimit -XX:PermSize=96m -XX:MaxTenuringThreshold=2 -XX:SurvivorRatio=6 -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:CMSInitiatingOccupancyFraction=75 - XX:+UseCMSInitiatingOccupancyOnly -XX:+AggressiveOpts -XX:+UseCompressedOops"
 
-    #        -Dspark.shuffle.file.buffer=256k  spark.kryoserializer.buffer.max=256m
-    #        --conf "spark.executor.extraJavaOptions=-Djava.io.tmpdir=${SPARK_TMP_DIR}" \
-	#	--conf "mapreduce.cluster.local.dir=${SPARK_TMP_DIR}"
-    # --conf "spark.executor.extraJavaOptions=-Djava.io.tmpdir=${SPARK_TMP_DIR}"
-    #	--conf "yarn.nodemanager.local-dirs=${SPARK_TMP_DIR}"  \
 	}
 
 function run_slave (){
@@ -151,9 +141,6 @@ fi
 
 
 
-
-
-
 if [ -z "$SPARK_CONF" ]
 then
     SPARK_CONF="local"
@@ -179,14 +166,7 @@ case "$SPARK_CONF" in
             exit 1;
         fi
 	echo "===================="
-	# if [ "$DEBUG_MODE" = true ] ; then
-	#     echo "OUTPUT_DATA_DIR=\"${OUTPUT_DATA_DIR}\"  exists" 
-	#     read -p "do yo want to clear it? [y/n] " -n 1 -r
-	#     if [[ $REPLY =~ ^[Yy]$ ]]
-	#     then
-	# 	rm -rf  ${OUTPUT_DATA_DIR}/*
-	#     fi
-	# fi
+
 	run_master
         ;;
     "slave")

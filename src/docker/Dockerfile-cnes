@@ -1,4 +1,0 @@
-FROM ddt_img_base_20_04
-
-ADD ./build/build-spark-Release-3/libddt.so /usr/lib/x86_64-linux-gnu/
-ADD ./build/build-spark-Release-3/lib/ /usr/lib/x86_64-linux-gnu/

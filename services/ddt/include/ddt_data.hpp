@@ -8,7 +8,7 @@
 
 #include "io/number_parser.hpp"
 #include "io/logging_stream.hpp"
-#include "io/base64_new.hpp"
+#include "io/base64.hpp"
 
 // #define PLY_CHAR (';')
 #define DATA_FLOAT_TYPE (tinyply::Type::FLOAT64)

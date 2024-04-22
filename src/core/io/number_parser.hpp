@@ -6,7 +6,7 @@
 #include "string-to-double.h"
 #include "double-to-string.h"
 #include "base64.hpp"
-#include "base64_new.hpp"
+
 
 
 #define kBufferSize (10)
@@ -107,36 +107,6 @@ void serialize_b64_vect(const std::vector<TT> & vv,std::ostream & ss)
 }
 
 
-
-
-template<typename TT>
-void base64_write(std::vector<TT> & vv,std::ostream & ofile)
-{
-    int nbdat = vv.size();
-    int bufflen = sizeof(TT)*nbdat;
-    std::vector<BYTE> myData(bufflen);
-    memcpy(&myData[0], &vv[0], bufflen);
-    std::string encodedData = base64_encode(&myData[0], myData.size());
-    ofile << nbdat << " ";
-    ofile << encodedData;
-    ofile << " ";
-    //  std::vector<BYTE> decodedData = base64_decode(encodedData);
-}
-
-
-template<typename TT>
-void base64_read(std::vector<TT> & vv,std::istream&  ifile)
-{
-    int nbdat;
-    std::string buffer_char;
-    ifile  >> nbdat;
-    ifile >> buffer_char;
-    vv.resize(nbdat);
-    std::vector<BYTE> decodedData = base64_decode(buffer_char);
-    memcpy(&vv[0], &decodedData[0], decodedData.size());
-    decodedData.clear();
-    //  std::vector<BYTE> decodedData = base64_decode(encodedData);
-}
 
 
 
