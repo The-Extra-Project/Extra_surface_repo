@@ -296,7 +296,6 @@ public:
     }
 
 
-// The function that allow to init the global id of each simplex
 
     void init_local_id()
     {
@@ -337,8 +336,7 @@ public:
 
     template<class Scheduler> bool sanity_check(Scheduler &s) const
     {
-        // counts[id1][id2][ids] is the number of cells id1 thinks it shares with id2 with vertex ids.
-        // ids is sorted and has size D for infinite and D+1 for finite cells
+
         typedef std::map<std::vector<Id>,size_t> count_map;
         typedef std::unordered_map<Id,count_map> count_map_map;
         std::unordered_map<Id,count_map_map> counts1, counts2;

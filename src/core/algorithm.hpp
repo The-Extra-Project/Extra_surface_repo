@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <unordered_set>
-#include <cmath> // for std::pow
+#include <cmath>
 #include "bbox.hpp"
 
 namespace ddt
@@ -26,22 +26,6 @@ double doubleRand()
 {
     return double(std::rand()) / (double(RAND_MAX) + 1.0);
 }
-
-
-// template <typename TR>
-// struct filter_cell
-// {
-
-//     filter_cell(ddt::Bbox<TR::D> bb) : tri_bbox(bb) {}
-//     template <typename DTC,typename CHR>
-//     bool do_keep(DTC & tri,CHR cit)
-//     {
-//         TR ttr;
-//         return is_inside_bbox(tri,cit,tri_bbox,ttr);
-//     }
-//     ddt::Bbox<TR::D> tri_bbox;
-
-// };
 
 
 
@@ -69,35 +53,6 @@ bool is_inside_bbox(DTC & tri,CHR cit,  ddt::Bbox<TR::D> & tri_bbox, TR ttr)
         return true;
     }
 }
-
-// template <typename TR>
-// struct filter_cell_ddt
-// {
-
-//     filter_cell_ddt(ddt::Bbox<TR::D> bb, int ii) : tri_bbox(bb),tid(ii) {}
-//     template <typename DTC,typename CHR>
-//     bool do_keep(DTC & tri,CHR cit)
-//     {
-//         TR ttr;
-//         int local_score = 0;
-//         bool is_main = true;
-//         if(tri.is_infinite(cit))
-//             return false;
-//         for(int d = 0; d < TR::D +1; d++)
-//         {
-//             int pid = ttr.id(cit->vertex(d));
-//             if(pid < tid)
-//                 is_main = false;
-//             if(pid == tid)
-//                 local_score++;
-//         }
-//         return (!is_inside_bbox(tri,cit,tri_bbox,ttr) && local_score != 0 && is_main);
-//     }
-//     ddt::Bbox<TR::D> tri_bbox;
-//     int tid;
-
-// };
-
 
 
 // filter the cell, if cells are inside or outside the bounding box.
@@ -181,18 +136,6 @@ OutputIterator get_bbox_points_raw(DT& tri, OutputIterator out,TR traits)
     }
     return out;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 struct get_bbox_points

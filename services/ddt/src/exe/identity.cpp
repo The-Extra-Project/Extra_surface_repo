@@ -2,16 +2,9 @@ typedef int Id;
 typedef int Flag;
 typedef int FlagC;
 
-
-
-
 #include <CGAL/Random.h>
-
-#include <stdio.h>      /* printf */
+#include <stdio.h>  
 #include <math.h>
-
-
-
 
 int main(int argc, char **argv)
 {
