@@ -35,7 +35,6 @@ import spark_ddt.util._;
 import spark_ddt.core.IQlibCore._;
 import spark_ddt.ddt_algo._;
 import spark_ddt.wasure._;
-import spark_ddt.bp_algo._;
 import tiling._;
 
 import algo_spark_ddt._
