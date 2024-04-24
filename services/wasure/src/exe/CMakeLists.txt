@@ -30,16 +30,7 @@ target_link_libraries(wasure-stream-exe
   ${DOUBLE_CONV_LIBRARIES}
   )
 
-set(spark-wasure_SOURCES
-  main_preprocess.cpp
-  )
-add_executable( main_preprocess  ${spark-wasure_SOURCES} )
-set_property(TARGET main_preprocess PROPERTY CXX_STANDARD 11)
-target_link_libraries(main_preprocess
-  ddt
-  tbmrf
-  ${WASURE_EXE_LIB_DEP}
-  )
+
 
 set(CGAL_SCANLINE_ORIENT_VERBOSE 1)
 

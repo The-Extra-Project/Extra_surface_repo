@@ -66,7 +66,6 @@ void wasure_algo::tessel_adapt(std::vector<Point> & points,std::vector<Point> & 
         }
     }
     tessel(tri,points,vps,norms,scales,maxit,tid);
-    //std::cout << "nb inserted :" << nb_inserted << "/" << l1.size() << std::endl;
 }
 
 
@@ -219,7 +218,7 @@ wasure_algo::tessel(DT_raw  & tri,
         for(int ii = 0; ii < points.size(); ii++)
         {
             Point pp = points[ii];
-            double ss = 1;//exp(-(scales[ii][D-1]*scales[ii][D-1])/0.1);
+            double ss = 1;
             auto vv = tri.nearest_vertex(pp);
             for(int d = 0; d < D; d++)
             {
@@ -245,7 +244,7 @@ wasure_algo::tessel(DT_raw  & tri,
                 vn[d]=vn[d]/vpn[D];
                 vs[d]=vs[d]/vpn[D];
             }
-            //auto pp = Point(vpn[0],vpn[1],vpn[2]);
+
             auto pp = Point(vpo[0] +(vpn[0]-vpo[0]),
                             vpo[1] +(vpn[1]-vpo[1]),
                             vpo[2] +(vpn[2]-vpo[2]));
@@ -263,12 +262,7 @@ wasure_algo::tessel(DT_raw  & tri,
                 auto pp2 = Point(vpn[0]-vn[0]*scll,vpn[1]-vn[1]*scll,vpn[2]-vn[2]*scll);
                 extra_pts.push_back(pp2);
             }
-            // if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1){
-            // 	auto pp2 = Point(vp[0]-vn[0],vp[1]-vn[1],vp[2]-vn[2]);
-            // 	std::cerr << "insert new " << pp2 <<  std::endl;
-            // 	insert_np(tri,pp2,bbox_min,bbox_max,D);
-            // 	std::cerr << "insert done " <<  std::endl;
-            // }
+
         }
         if(it == max_it-1)
         {
@@ -276,7 +270,7 @@ wasure_algo::tessel(DT_raw  & tri,
             dump_vector_pts(extra_pts,it,tid);
         }
     }
-    std::cerr << "filter out bbox" << std::endl;
+
     for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv)
     {
         bool do_insert = true;
@@ -310,7 +304,7 @@ wasure_algo::simplify(std::vector<Point> & points, std::vector<bool> & do_keep, 
     int K_T = 150;
     if(K_T > points.size() -1)
         K_T = points.size() - 1;
-    //std::cerr << "step1" << std::endl;
+
     ANNpointArray	dataPts;
     ANNpoint	queryPt;
     ANNidxArray	nnIdx;
@@ -342,7 +336,7 @@ wasure_algo::simplify(std::vector<Point> & points, std::vector<bool> & do_keep, 
         for(int k = 1; k < K_T; k++)
         {
             double kdist = dists[k];
-            //  std::cerr << kdist << std::endl;
+
             if(kdist > dist)
             {
                 do_keep[cur_id] = true;
@@ -355,12 +349,12 @@ wasure_algo::simplify(std::vector<Point> & points, std::vector<bool> & do_keep, 
         }
         cur_id++;
     }
-    std::cerr << "done!" << std::endl;
+
     delete kdTree;
-    delete [] nnIdx;                                                  // clean things up
+    delete [] nnIdx;  
     delete [] dists;
     return 0;
-    //std::cerr << "step3" << std::endl;
+
 }
 
 
@@ -376,10 +370,7 @@ wasure_algo::compute_svd(int K_T, const  ANNidxArray & nnIdx, const std::vector<
         int idx = nnIdx[i];
         loc_pts.push_back(points[idx]);
     }
-    // std::pair<Point,Point> norm = get_norm(loc_pts,D);
-    // -----------------------------
-    // ------- Compute svd ---------
-    // -----------------------------
+
     int N = loc_pts.size();
     Eigen::MatrixXf mat(N,D);
     int acc = 0;
@@ -429,9 +420,7 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
     if(K_T/step < 1)
         step = K_T;
     int K_T_min = 10;
-    // if(K_T_min > points.size() -1)
-    //   K_T_min = points.size() - 1;
-    //std::cerr << "step1" << std::endl;
+
     ANNpointArray	dataPts;
     ANNpoint	queryPt;
     ANNidxArray	nnIdx;
@@ -451,7 +440,7 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
         npts++;
     }
     kdTree = new ANNkd_tree(dataPts,npts,D);
-    //std::cerr << "step2" << std::endl;
+
     loggin.step("compute_dim_on_pts");
     for(std::vector<Point>::iterator pit = points.begin(); pit != points.end(); ++pit)
     {
@@ -475,7 +464,7 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
         for(int d = 0; d < D; d++)
             queryPt[d] = p1[d];
         kdTree->annkSearch(queryPt,K_T, nnIdx,dists,eps);
-        //    for(int k = K_T_min; k < K_T; k+=K_T/step){
+
         for(int k = K_T_min; k < K_T; k++)
         {
             if(dists[k] < 0.02 && k < 30)
@@ -505,9 +494,7 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
                 coords_scale = cur_coords_scale;
             }
         }
-        // -----------------------------
-        // ------- Dump values ---------
-        // -----------------------------
+
         if(pts_norms.size() < D )
         {
             std::cerr << "error !! " << "dim:" << D << " kt:" << K_T << " entropy:" << entropy  << std::endl;
@@ -537,12 +524,12 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
             scales.push_back(coords_scale);
         }
     }
-    std::cerr << "done!" << std::endl;
+
     delete kdTree;
-    delete [] nnIdx;                                                  // clean things up
+    delete [] nnIdx;                                                  
     delete [] dists;
     return 0;
-    //std::cerr << "step3" << std::endl;
+
 }
 
 
@@ -556,7 +543,7 @@ wasure_algo::compute_dim_with_simp(std::vector<Point> & points, std::vector<std:
     int K_T = 150;
     if(K_T > points.size() -1)
         K_T = points.size() - 1;
-    //std::cerr << "step1" << std::endl;
+
     ANNpointArray	dataPts;
     ANNpoint	queryPt;
     ANNidxArray	nnIdx;
@@ -588,7 +575,7 @@ wasure_algo::compute_dim_with_simp(std::vector<Point> & points, std::vector<std:
         npts++;
     }
     kdTree = new ANNkd_tree(dataPts,npts,D);
-    //std::cerr << "step2" << std::endl;
+
     for(std::vector<Point>::iterator pit = points.begin(); pit != points.end(); ++pit)
     {
         Point p1 = *pit;
@@ -626,9 +613,7 @@ wasure_algo::compute_dim_with_simp(std::vector<Point> & points, std::vector<std:
             }
         }
         entropy_vect.push_back(entropy);
-        // -----------------------------
-        // ------- Dump values ---------
-        // -----------------------------
+
         if(pts_norms.size() < D)
         {
             std::cerr << "error !! " << "dim:" << D << " kt:" << K_T << " entropy:" << entropy  << std::endl;
@@ -660,10 +645,10 @@ wasure_algo::compute_dim_with_simp(std::vector<Point> & points, std::vector<std:
     }
 
     delete kdTree;
-    delete [] nnIdx;                                                  // clean things up
+    delete [] nnIdx;                                                  
     delete [] dists;
     return 0;
-    //std::cerr << "step3" << std::endl;
+
 }
 
 
@@ -692,7 +677,7 @@ void wasure_algo::flip_dim_ori( std::vector<Point> & points, std::vector<std::ve
         {
         }
     }
-    std::cerr << "nb flips:" << nb_flip << "/" << nbp << std::endl;
+
 }
 
 void wasure_algo::flip_dim( std::vector<Point> & points, std::vector<std::vector<Point> > & norms, Point p1)
@@ -722,12 +707,6 @@ void wasure_algo::flip_dim( std::vector<Point> & points, std::vector<std::vector
 
 
 
-// ====================================================
-// ======================== DST =======================
-// ====================================================
-
-
-
 
 std::vector<double>  wasure_algo::Pick_2d(const Point & v0,const Point & v1,const Point & v2)
 {
@@ -746,12 +725,12 @@ std::vector<double>  wasure_algo::Pick_3d(const Point & v0,const Point & v1,cons
     double s = (((double) rand() / (RAND_MAX)));
     double t = (((double) rand() / (RAND_MAX)));
     double u = (((double) rand() / (RAND_MAX)));
-    if(s+t>1.0)   // cut'n fold the cube into a prism
+    if(s+t>1.0)   
     {
         s = 1.0 - s;
         t = 1.0 - t;
     }
-    if(t+u>1.0)   // cut'n fold the prism into a tetrahedron
+    if(t+u>1.0)   
     {
         double tmp = u;
         u = 1.0 - s - t;
@@ -776,48 +755,13 @@ std::vector<double>  wasure_algo::Pick_3d(const Point & v0,const Point & v1,cons
 
 void wasure_algo::init_sample(DT & tri,int nb_samples, int dim)
 {
-    // std::cout << "init samples ...." << std::endl;
-    // for( auto cit = tri.full_cells_begin();
-    //      cit != tri.full_cells_end(); ++cit ){
-    //   Cell_handle ch;
-    //   cit->data().resize(nb_samples);
-    //   if( tri.is_infinite(cit) ){
-    //   }else{
-    //     for(int x = 0; x < nb_samples; x++){
-    // 	std::vector<double> & C = (x == 0) ? get_cell_barycenter(cit) : Pick(cit,dim);
-    // 	cit->data().pts[x] = C;
-    //     }
-    //   }
-    // }
+    // void
 }
 
 
 void wasure_algo::finalize_sample(DT & tri, int nb_samples)
 {
-    //  std::cout << "finalize samples ...." << std::endl;
-    // for( auto cit = tri.full_cells_begin();
-    //      cit != tri.full_cells_end(); ++cit ){
-    //   // if( tri.is_infinite(cit)  )
-    //   //   continue;
-    //   std::vector<double> & vpe = (cit->data()).vpe;
-    //   std::vector<double> & vpo = (cit->data()).vpo;
-    //   std::vector<double> & vpu = (cit->data()).vpu;
-    //   double res_pe = 0, res_po = 0, res_pu = 0;
-    //   for(int x = 0; x < nb_samples; x++){
-    //     res_pe += vpe[x];
-    //     res_po += vpo[x];
-    //     res_pu += vpu[x];
-    //   }
-    //   if(res_pe != res_pe || res_po != res_po || res_pu != res_pu){
-    //     std::cout << "/!\\ fch->data().lab NAN /!\\" << std::endl;
-    //     res_pe = res_po = 0;
-    //     res_pu = nb_samples;
-    //   }
-    //   (cit->data()).dat[0] = res_pe;
-    //   (cit->data()).dat[1] = res_po;
-    //   (cit->data()).dat[2] = res_pu;
-    //   (cit->data()).dat[3] = nb_samples;
-    // }
+    // void
 }
 
 double get_min_scale(std::vector<double> &v)
@@ -893,13 +837,10 @@ void wasure_algo::compute_dst_mass_norm(std::vector<double> coefs, std::vector<d
 
 
 
-//void compute_dst_tri(DT & tri,std::vector<Point> points_dst,std::vector<std::vector<Point>> & norms,std::vector<std::vector<double>> & scales,int D){
-
-
 double
 get_conf_volume(const std::vector<double> & pts_scales, int dim)
 {
-    //double c1 = *std::max_element(pts_scales.begin(),pts_scales.end()--)/(*pts_scales.end());
+
     double c1 = MIN(pts_scales[dim-1]/pts_scales[0],1);
     return 1-c1;
 }
@@ -908,25 +849,24 @@ void
 wasure_algo::get_params_surface_dst(const std::vector<double> & pts_scales,double glob_scale,double min_scale, double & pdf_smooth,double & coef_conf, int D)
 {
     double data_scale = *std::max_element(pts_scales.begin(),pts_scales.end());
-    //double data_scale = 10;
+
     if(glob_scale > 0)
     {
         pdf_smooth = glob_scale*3;
     }
     else
     {
-        //double data_scale = *std::max_element(pts_scales.begin(),pts_scales.end());
+
         pdf_smooth = data_scale;
     }
-    //  coef_conf = 1- (*std::min_element(pts_scales.begin(),pts_scales.end()))/(*std::max_element(pts_scales.begin(),pts_scales.end()));
+
     double mins = *std::min_element(pts_scales.begin(),pts_scales.end());
     double maxs = *std::max_element(pts_scales.begin(),pts_scales.end());
     double rat = (mins/maxs);
     coef_conf = 1;
-    //coef_conf = exp(-(rat*rat)/0.05);
-    //coef_conf = exp(-(rat*rat)/0.002);
+
     if(min_scale > 0)
-        coef_conf = coef_conf*MIN(MAX(min_scale/data_scale,0.000001),1);//*get_conf_volume(pts_scales,D);
+        coef_conf = coef_conf*MIN(MAX(min_scale/data_scale,0.000001),1);
 }
 
 
@@ -945,9 +885,8 @@ wasure_algo::get_params_conflict_dst(const std::vector<double> & pts_scales,doub
     double mins = *std::min_element(pts_scales.begin(),pts_scales.end());
     double maxs = *std::max_element(pts_scales.begin(),pts_scales.end());
     double rat = (mins/maxs);
-    //  coef_conf = exp(-(rat/0.01)*(rat/0.01));
-    //  coef_conf = exp(-(rat*rat)/0.01);
-    coef_conf = 1;//MIN(min_scale/data_scale,1);//*get_conf_volume(pts_scales,D);
+
+    coef_conf = 1;
 }
 
 
@@ -956,18 +895,16 @@ wasure_algo::get_params_conflict_dst(const std::vector<double> & pts_scales,doub
 void
 wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure_data<Traits>  & datas_pts, wasure_params & params)
 {
-    std::cerr << "    compute dst norm ..." << std::endl;
+
     std::vector<Point> & points_dst =  datas_pts.format_points;
     std::vector<std::vector<Point>> & norms = datas_pts.format_egv;
     std::vector<std::vector<double>> & scales = datas_pts.format_sigs;
     std::vector<int> & format_flags = datas_pts.format_flags;
     std::vector<Point> & centers = datas_pts.format_centers;
     std::vector<std::vector<double>> & v_dst = datas_tri.format_dst;
-    std::cerr << points_dst.size() << " " << norms.size() << " " << scales.size() << " " << v_dst.size() << std::endl;
+
     int D = datas_pts.D;
-    // ---------------------------------------
-    //           KD-tree creation
-    // --------------------------------------
+
     int nbp = points_dst.size();
     int K_T = 30;
     if(K_T >= nbp)
@@ -990,138 +927,56 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
             dataPts[npts][d] = p1[d];
         npts++;
     }
-    std::cerr << "    init" << std::endl;
+
     kdTree = new ANNkd_tree(dataPts,npts,D);
     std::vector<double> v_scale(scales.size());
-    std::cerr << "print_scale:";
+
     for(int i = 0; i < scales.size() ; i++)
     {
         v_scale[i] = scales[i][D-1];
     }
     std::sort(v_scale.begin(), v_scale.end());
-    std::cerr << "dst_scale : " << params.dst_scale << std::endl;
+
     if(params.dst_scale < 0)
     {
-        //    params.min_scale = get_min_scale(v_scale);
         params.min_scale = -1;
-        // for(auto ss : v_scale)
-        //   std::cerr << "sss:" << ss << std::endl;
     }
     else
     {
         params.min_scale = params.dst_scale;
     }
-    // ---------------------------------------
-    //           DST computation
-    // --------------------------------------
+
     bool do_debug = false;
-    std::cerr << "    dst computation" << std::endl;
     int debug_acc=0;
     int accid = 0;
     for( auto cit = tri.cells_begin();
             cit != tri.cells_end(); ++cit )
     {
-        // Cell_handle ch = cit;
+
         if( cit->is_infinite() )
             continue;
         int cid = cit->lid();
         double  vpe = v_dst[cid][0];
         double  vpo = v_dst[cid][1];
         double  vpu = v_dst[cid][2];
-        //Find close ray
-        // std::vector<int> ray_id;
-        // std::vector<double> C =   cit->barycenter();
-        // Point  PtSample = traits.make_point(C.begin());
-        // for(int id = 0;  id < points_dst.size();id++){
-        // 	Point & Pt3d = points_dst[id];
-        // 	Point & PtCenter = centers[id];
-        // 	double angle = compute_angle_rad(PtSample,Pt3d,PtCenter,D);
-        // 	if(angle < 0.01){
-        // 	  ray_id.push_back(id);
-        // 	}
-        // }
-        //    std::cerr << "    id : " << vpe << " " << "vop:" << vpo <<  std::endl;
+
         double pe_acc=0;
         double po_acc=0;
         double pu_acc=0;
         for(int x = 0; x < params.nb_samples; x++)
         {
-            //Point PtSample = traits.make_point((cit->data()).pts[x].begin());
+
             std::vector<double>  C =  (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
-            //std::vector<double>  C = (x == 0) ? cit->barycenter() : Pick(cit->full_cell(),D);
+
             Point  PtSample = traits.make_point(C.begin());
-            if(C[0] > 4100 && C[0] < 4102 &&
-                    C[1] > 4987 && C[1] < 4988 &&
-                    C[2] > 150.22 && C[2] < 150.8)
-            {
-                do_debug = false;
-                debug_acc++;
-            }
-            else
-                do_debug = false;
-            // // ================= RAY DST =======================
-            // //std::cerr << "NBRAY:" << ray_id.size() << std::endl;
-            // for(auto rid : ray_id){
-            //   double pe1,po1,pu1,pe2,po2,pu2;
-            //   Point & Pt3d = points_dst[rid];
-            //   Point & PtCenter = centers[rid];
-            //   std::vector<Point> & pts_norm = datas_pts.format_egv[rid];
-            //   std::vector<double> & pts_scale = datas_pts.format_sigs[rid];
-            //   pe1 = vpe;
-            //   po1 = vpe;
-            //   pu1 = vpe;
-            //   std::vector<double> center_coefs = compute_base_coef<Point>(Pt3d,PtCenter,pts_norm,D);
-            //   std::vector<double> pts_coefs = compute_base_coef<Point>(Pt3d,PtSample,pts_norm,D);
-            //   double angle = compute_angle_rad(PtSample,Pt3d,PtCenter,D);
-            //   double pdf_smooth = -1;
-            //   double coef_conf = -1;
-            //   double gbl_scale = -1;// (format_glob_scale.size() > 0)  ? format_glob_scale[rid] : -1;
-            //   get_params_surface_dst(pts_scale,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
-            //   compute_dst_mass_beam(pts_coefs,pts_scale,angle,ANGLE_SCALE,coef_conf,pe2,po2,pu2);
-            //   ds_score(pe1,po1,pu1,pe2,po2,pu2,pe1,po1,pu1);
-            //   regularize(pe1,po1,pu1);
-            //   // NAN check
-            //   if(pe1 == pe1 &&
-            //      po1 == po1 &&
-            //      pu1 == pu1){
-            //     vpe = pe1;
-            //     vpo = po1 ;
-            //     vpu = pu1 ;
-            //   }
-            // }
-            // ================= NORM DST =======================
+            
+
             for(int d = 0; d < D; d++)
             {
                 queryPt[d] = PtSample[d];
             }
             std::ofstream myfile;
-            if(do_debug)
-            {
-                std::string filename("/home/laurent/shared_spark/tmp/bary_" + std::to_string(debug_acc) + ".ply");
-                myfile.open (filename);
-                myfile << "ply" <<  std::endl;
-                myfile << "format ascii 1.0" << std::endl;
-                myfile << "element vertex "  << std::to_string(K_T + 1)  << std::endl;
-                myfile << "property float x" << std::endl;
-                myfile << "property float y" << std::endl;
-                myfile << "property float z" << std::endl;
-                myfile << "property float nx" << std::endl;
-                myfile << "property float ny" << std::endl;
-                myfile << "property float nz" << std::endl;
-                myfile << "property uchar red                   { start of vertex color }" << std::endl;
-                myfile << "property uchar green" << std::endl;
-                myfile << "property uchar blue" << std::endl;
-                myfile << "end_header" << std::endl;
-                std::cerr << "=============" <<  std::endl;
-                std::cerr << "debug acc " << debug_acc <<  std::endl;
-                std::cerr << "id : " << cid <<  std::endl;
-                std::cerr << "bary  :";
-                for(int d = 0; d < D; d++)
-                {
-                    std::cerr << C[d] << " ";
-                }
-                std::cerr << std::endl;
-            }
+            
             kdTree->annkSearch(queryPt,K_T, nnIdx,dists,eps);
             vpe = vpo = 0;
             vpu = 1;
@@ -1132,32 +987,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
                 Point Pt3d = points_dst[idx];
                 std::vector<Point> pts_norms = norms[idx];
                 std::vector<double> pts_scales = scales[idx];
-                if(do_debug)
-                {
-                    std::cerr << "----------- " << std::endl;
-                    std::cerr << "   kidx : " << idx << std::endl;
-                    std::cerr << "   pt3D  :";
-                    for(int d = 0; d < D; d++)
-                    {
-                        std::cerr << Pt3d[d] << " ";
-                        myfile << Pt3d[d] << " ";
-                    }
-                    std::cerr << std::endl;
-                    std::cerr << "   Norm  :";
-                    for(int d = 0; d < D; d++)
-                    {
-                        std::cerr << pts_norms[D-1][d] << " ";
-                        myfile << pts_norms[D-1][d] << " ";
-                    }
-                    myfile << " 0 0 0 " << std::endl;
-                    std::cerr << std::endl;
-                    std::cerr << "   scale  :";
-                    for(int d = 0; d < D; d++)
-                    {
-                        std::cerr << pts_scales[d] << " ";
-                    }
-                    std::cerr << std::endl;
-                }
+                
                 if(((int)format_flags[idx]) < 0)
                     continue;
                 double pdf_smooth = -1;
@@ -1179,28 +1009,10 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
                 pe1=vpe;
                 po1=vpo;
                 pu1=vpu;
-                // std::cerr << "  K  "<< k << " " << pe1 << " " << po1 << " " << pu1 <<  std::endl;
-                // std::cerr << "  K  "<< k << " " << pe2 << " " << po2 << " " << pu2 <<  std::endl;
+
                 ds_score(pe1,po1,pu1,pe2,po2,pu2,pe1,po1,pu1);
                 regularize(pe1,po1,pu1);
-                if(do_debug)
-                {
-                    for(int d = 0; d < D; d++)
-                    {
-                        std::cerr << Pt3d[d] << " ";
-                    }
-                    std::cerr << std::endl;
-                    std::cerr << "  pe2  "<< k << " " << pe2 << " " << po2 << " " << pu2 <<  std::endl;
-                    std::cerr << "  pe1  "<< k << " " << pe1 << " " << po1 << " " << pu1 <<  std::endl;
-                    std::cerr << "  new  "<< k << " " << vpe << " " << vpo << " " << vpu <<  std::endl;
-                    std::cerr << " " << std::endl;
-                    for(int d = 0; d < D; d++)
-                    {
-                        std::cerr << C[d] << " ";
-                        myfile << C[d] << " ";
-                    }
-                    myfile << " 0 0 0 " << ((int)(pe1*255)) << " " << ((int)(po1*255)) << " " << ((int)(pu1*255)) << std::endl;
-                }
+                
                 vpe = pe1;
                 vpo = po1;
                 vpu = pu1;
@@ -1211,7 +1023,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
             if(do_debug)
                 myfile.close();
         }
-        //std::cerr << "  cid  "<< cid << " " << vpe << " " << vpo << " " << vpu <<  std::endl;
+
         // NAN check
         if(vpe == vpe &&
                 vpo == vpo &&
@@ -1223,35 +1035,11 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
         }
         else
         {
-            // v_dst[cid][0] = v_dst[cid][1] = 0;
-            // v_dst[cid][2] = 1;
             std::cerr << "NAN ERROR DST" << std::endl;
         }
     }
-    std::cerr << "    done" << std::endl;
 }
 
-// Point_3 inline pointd23(const Point  & a){
-//   return Point_3(a[0],a[1],a[2]);
-// }
-
-// double
-// wasure_algo::compute_angle_rad_3D(const Point_3 & a, const Point_3 & b, const Point_3 & c ){
-
-//   CGAL::Vector_3<K3> v1 = c - a;
-//   CGAL::Vector_3<K3> v2 = c - b;
-//   double cosine = v1 * v2 / CGAL::sqrt(v1*v1) / CGAL::sqrt(v2 * v2);
-//   return std::acos(cosine);
-// }
-
-// double
-// wasure_algo::compute_angle_rad_2D(const Point & a, const Point & b, const Point & c ){
-//   std::vector<double> v1 = {c[0]-a[0], c[1]-a[1]};
-//   std::vector<double> v2 = {c[0]-b[0], c[1]-b[1]};
-//   double cosine = (v1[0]*v2[0]+v1[1]*v2[1])/sqrt(v1[0]*v1[0]+v1[1]*v1[1])/sqrt(v2[0]*v2[0]+v2[1]*v2[1]);
-//   return std::acos(cosine);
-
-// }
 
 double
 wasure_algo::compute_angle_rad(const Point & a, const Point & b, const Point & c, int dim)
@@ -1275,8 +1063,6 @@ wasure_algo::compute_angle_rad(const Point & a, const Point & b, const Point & c
 }
 
 
-
-
 void
 wasure_algo::compute_dst_mass_beam(std::vector<double> & coefs, std::vector<double> & scales,double angle,double angle_scale, double coef_conf, double & v_e1, double & v_o1, double & v_u1)
 {
@@ -1297,33 +1083,10 @@ wasure_algo::compute_dst_mass_beam(std::vector<double> & coefs, std::vector<doub
     v_e1 = v_e1*coef_conf;
     v_o1 = v_o1*coef_conf;
     regularize(v_e1,v_o1,v_u1);
-    // std::cerr << std::endl;
+
 }
 
 
-//#ifdef DDT_CGAL_TRAITS_D
-
-// std::vector<double> get_cell_barycenter_new(Cell_handle ch,int D)
-//     {
-//         std::vector<double> coords;// = get_vect_barycenter(ch);
-//         for(uint d = 0; d < D; d++)
-//             coords[d] = 0;
-//         for(auto vht = ch->vertices_begin() ;
-//                 vht != ch->vertices_end() ;
-//                 ++vht)
-//         {
-//             Vertex_handle v = *vht;
-//             for(uint d = 0; d < D; d++)
-//             {
-//                 coords[d] += (v->point())[d];
-//             }
-//         }
-//         for(uint d = 0; d < D; d++)
-//             coords[d] /= ((double)D+1);
-//         return coords;
-//     }
-
-//#endif
 
 void
 wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasure_data<Traits>  & datas_tri, wasure_data<Traits>  & datas_pts, wasure_params & params, int rid, int dim)
@@ -1333,12 +1096,7 @@ wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasur
     std::vector<double> & pts_scale = datas_pts.format_sigs[rid];
     std::vector<std::vector<double>> & v_dst = datas_tri.format_dst;
     std::vector<int> & format_flags = datas_pts.format_flags;
-    // if(cid < 0 || cid > v_dst.size())
-    //   return;
-    // //  if((ch->data()).seg == cid) return;
-    // std::vector<double> & vpe = (ch->data()).vpe;
-    // std::vector<double> & vpo = (ch->data()).vpo;
-    // std::vector<double> & vpu = (ch->data()).vpu;
+
     Traits  traits;
     for(int x = 0; x < params.nb_samples; x++)
     {
@@ -1348,19 +1106,18 @@ wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasur
         pe1 = v_dst[cid][0];
         po1 = v_dst[cid][1];
         pu1 = v_dst[cid][2];
-        //    std::vector<double> center_coefs = compute_base_coef<Point>(Pt3d,PtCenter,pts_norm,dim);
+
         std::vector<double> pts_coefs = compute_base_coef<Point>(Pt3d,PtSample,pts_norm,dim);
         double angle = compute_angle_rad(PtSample,Pt3d,PtCenter,dim);
         double pdf_smooth = -1;
         double coef_conf = -1;
-        double gbl_scale = -1;//(datas.glob_scale.size() > 0)  ? datas.glob_scale[cid] : -1;
+        double gbl_scale = -1;
         get_params_surface_dst(pts_scale,gbl_scale,params.min_scale,pdf_smooth,coef_conf,dim);
-        // if(((int)format_flags[rid]) > 0)
-        //   coef_conf = 0.2*coef_conf;
+
         compute_dst_mass_beam(pts_coefs,pts_scale,angle,ANGLE_SCALE,coef_conf,pe2,po2,pu2);
         ds_score(pe1,po1,pu1,pe2,po2,pu2,pe1,po1,pu1);
         regularize(pe1,po1,pu1);
-        // NAN check
+
         if(pe1 == pe1 &&
                 po1 == po1 &&
                 pu1 == pu1)
@@ -1396,7 +1153,7 @@ wasure_algo::sample_cell_raw(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, w
         double angle=0;
         double pdf_smooth = -1;
         double coef_conf = -1;
-        double gbl_scale = -1;//(datas.glob_scale.size() > 0)  ? datas.glob_scale[cid] : -1;
+        double gbl_scale = -1;
         get_params_surface_dst(pts_scale,gbl_scale,params.min_scale,pdf_smooth,coef_conf,dim);
         compute_dst_mass_beam(pts_coefs,pts_scale,angle,ANGLE_SCALE,coef_conf,pe2,po2,pu2);
         pe1 = pe1*params.ray_weight;
@@ -1404,7 +1161,7 @@ wasure_algo::sample_cell_raw(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, w
         pu1 = 1-pe1;
         ds_score(pe1,po1,pu1,pe2,po2,pu2,pe1,po1,pu1);
         regularize(pe1,po1,pu1);
-        // NAN check
+
         if(pe1 == pe1 &&
                 po1 == po1 &&
                 pu1 == pu1)
@@ -1430,19 +1187,18 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
 {
 #if defined(DDT_CGAL_TRAITS_D)
     typedef typename DT::Face Face;
-    DT::Locate_type  loc_type;// type of result (full_cell, face, vertex)
-    Face face(tri.maximal_dimension());// the face containing the query in its interior (when appropriate)
-    DT::Facet  facet;// the facet containing the query in its interior (when appropriate)
-    //std::cerr << "start locate" << std::endl;
+    DT::Locate_type  loc_type;
+    Face face(tri.maximal_dimension());
+    DT::Facet  facet;
     Cell_handle start = tri.locate(Ptcenter,start_cell);
-    //std::cerr << "located" << std::endl;
+
     start_cell = start;
     DT::Geom_traits geom_traits;
     CGAL::Random                      rng_;
     Traits::K::Orientation_d orientation_pred = geom_traits.orientation_d_object();
     int cur_dim = tri.current_dimension();
     std::vector<CGAL::Oriented_side>  orientations_(cur_dim+1);
-    std::cerr << "start walk" << std::endl;
+
     if( cur_dim == -1 )
     {
         loc_type = DT::OUTSIDE_AFFINE_HULL;
@@ -1483,20 +1239,7 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
             s = s->neighbor(inf_v_index);
         }
     }
-    // Check if query |p| is outside the affine hull
-    // if( cur_dim < tri.maximal_dimension() )
-    // {
-    //     if( ! geom_traits.contained_in_affine_hull_d_object()(
-    // 							      Point_const_iterator(s->vertices_begin()),
-    // 							      Point_const_iterator(s->vertices_end()) + tri.current_dimension() + 1,
-    // 							      p) )
-    //     {
-    // 	  loc_type = DT::OUTSIDE_AFFINE_HULL;
-    //         return Cell_handle();
-    //     }
-    // }
-    // we remember the |previous|ly visited full_cell to avoid the evaluation
-    // of one |orientation| predicate
+
     Cell_handle previous = Cell_handle();
     bool full_cell_not_found = true;
     while(full_cell_not_found) // we walk until we locate the query point |p|
@@ -1521,14 +1264,10 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
             DT::Full_cell::Vertex_handle_const_iterator>
             spivi(s->vertex(i), &Ptcenter_mir);
             orientations_[i] = orientation_pred(boost::make_transform_iterator(s->vertices_begin(), spivi), boost::make_transform_iterator(s->vertices_begin() + cur_dim + 1, spivi));
-            // orientations_[i] = 	K::orientation_d_object(
-            //   boost::make_transform_iterator(s->vertices_begin(), spivi),
-            //   boost::make_transform_iterator(s->vertices_begin() + cur_dim + 1,
-            //                                  spivi));
+
             if( orientations_[i] != CGAL::NEGATIVE )
             {
-                // from this facet's point of view, we are inside the
-                // full_cell or on its boundary, so we continue to next facet
+
                 continue;
             }
             // At this point, we know that we have to jump to the |next|
@@ -1602,7 +1341,6 @@ Cell_handle wasure_algo::walk_locate(DT & tri,
     return s;
 #endif
 #if defined(DDT_CGAL_TRAITS_3)
-    //  std::cerr << "start walk begin T3" << std::endl;
     int n_of_turns = 10000;
     auto seg =  Traits::K::Segment_3(Ptcenter, Pt3d);
     if(tri.dimension() < 3)
@@ -1665,11 +1403,7 @@ try_next_cell:
             // We are outside the convex hull.
             return start_cell;
         }
-        // for(int ii = 0; ii <= 3; ii++){
-        //   Cell_handle s_nbr = c->neighbor(ii);
-        //   if(!tri.is_infinite(s_nbr))
-        // 	sample_cell(s_nbr,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
-        // }
+
         previous = c;
         c = next;
         if(n_of_turns) goto try_next_cell;
@@ -1708,11 +1442,9 @@ void wasure_algo::center_dst(DTW & ttri, wasure_data<Traits>  & datas_tri,std::v
 }
 
 
-//void compute_dst_ray(DT & tri,std::vector<Point> & points,std::vector<Point> & centers,std::vector<std::vector<Point>> & norms,std::vector<std::vector<double>> & scales,double rat_ray_sample, int D){
 
 void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,wasure_data<Traits>  & datas_pts, wasure_params & params)
 {
-    std::cerr << "    compute dst ray ..." << std::endl;
     Traits traits;
     std::vector<Point> & points = datas_pts.format_points;
     std::vector<Point> & centers = datas_pts.format_centers;
@@ -1720,7 +1452,6 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
     std::vector<std::vector<double>> & scales = datas_pts.format_sigs;
     std::vector<int> & format_flags = datas_pts.format_flags;
     double rat_ray_sample = params.rat_ray_sample;
-    std::cerr << "    rat ray sample  ..." << rat_ray_sample << std::endl;
     if(rat_ray_sample == 0)
         return;
     int D = Traits::D;
@@ -1738,8 +1469,7 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
             for(int d = 0; d < D; d++)
                 coords[d] = Pt3d[d] -(Ptcenter[d] - Pt3d[d]);
             Point Ptcenter_mir = traits.make_point(coords);
-            //std::cerr << n << " -- pt:" << Pt3d << " -- center:" << Ptcenter << std::endl;
-            //Cell_handle loc = walk_locate(tri,Pt,Ptcenter,norms[n],scales[n],acc++);
+
             if(((int)format_flags[n]) ==0)
             {
                 walk_locate(tri,Pt3d,Ptcenter,Pt3d,datas_tri,datas_pts,params,n,start_walk);
@@ -1755,7 +1485,7 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
 
 void wasure_algo::compute_dst_with_center(DTW & tri, wasure_data<Traits>  & datas_tri, wasure_data<Traits>  & datas_pts, wasure_params & params, Id tid)
 {
-    //std::vector<Point> & points_3d,std::vector<Point> & centers,std::vector<std::vector<Point>> & norms,std::vector<std::vector<double>> & scales, double rat_ray_sample, int dim){
+
     compute_dst_tri(tri,datas_tri,datas_pts,params);
     DT & tri_tile  = tri.get_tile(tid)->triangulation();
     compute_dst_ray(tri_tile,datas_tri,datas_pts,params);
@@ -1771,21 +1501,13 @@ void wasure_algo::extract_surface(DTW & tri, std::map<Id,wasure_data<Traits> >  
     std::vector<int> v_simplex;
     std::map<Vertex_const_iterator, uint> vertex_map;
     int acc = 0;
-    std::cerr << " extract step1" << std::endl;
+
     for(auto fit = tri.facets_begin(); fit != tri.facets_end(); fit++)
     {
         Cell_const_iterator fch = fit.full_cell();
         int id_cov = fit.index_of_covertex();
         Cell_const_iterator fchn = fch->neighbor(id_cov);
-        //Vertex_h_iterator vht;
-        // if(fch->is_infinite() && fchn->is_infinite())
-        //   continue;
-        // if(!fit->is_local())
-        //   continue;
-        // if(fit->main_id() != tid)
-        //   continue;
-        // if(fit->is_infinite())
-        //   continue;
+
         int cccid = fch->cell_data().id;
         int cccidn = fchn->cell_data().id;
         if( w_datas_tri.find(fch->main_id()) == w_datas_tri.end() ||
@@ -1812,26 +1534,15 @@ void wasure_algo::extract_surface(DTW & tri, std::map<Id,wasure_data<Traits> >  
             }
         }
     }
-    std::cerr << " extract step2" << std::endl;
-    for(auto mit = vertex_map.begin(); mit != vertex_map.end(); mit++)
-    {
-        //format_points.push_back(mit->first->point());
-    }
-    std::cerr << " extract step3" << std::endl;
+
     for(auto fit = tri.facets_begin(); fit != tri.facets_end(); fit++)
     {
         Cell_const_iterator fch = fit.full_cell();
         int id_cov = fit.index_of_covertex();
         Cell_const_iterator fchn = fch->neighbor(id_cov);
-        //    Vertex_h_iterator vht;
+
         int cccid = fch->cell_data().id;
         int cccidn = fchn->cell_data().id;
-        // if(fch->is_infinite() && fchn->is_infinite())
-        //   continue;
-        // if(!fch->is_main() || !fchn->is_main())
-        //   continue;
-        // if(!fit->is_local())
-        //   continue;
         if( w_datas_tri.find(fch->main_id()) == w_datas_tri.end() ||
                 w_datas_tri.find(fchn->main_id()) == w_datas_tri.end()
           )
@@ -1839,14 +1550,7 @@ void wasure_algo::extract_surface(DTW & tri, std::map<Id,wasure_data<Traits> >  
             continue;
         }
         bool do_skip = false;
-        // for(int i = 0; i < dim+1; ++i){
-        //   for(int j = 0; j < dim+1; ++j){
-        // 	if(vertex_map[fch->vertex(i)] == 0)
-        // 	  do_skip = true;
-        // 	if(i != j && vertex_map[fch->vertex(i)] == vertex_map[fch->vertex(j)])
-        // 	  do_skip = true;
-        //   }
-        // }
+
         int ch1lab = w_datas_tri[fch->main_id()].format_labs[cccid];
         int chnlab = w_datas_tri[fchn->main_id()].format_labs[cccidn];
         if(ch1lab != chnlab && !do_skip)
@@ -1861,9 +1565,9 @@ void wasure_algo::extract_surface(DTW & tri, std::map<Id,wasure_data<Traits> >  
             }
         }
     }
-    std::cerr << " extract step4" << std::endl;
+
     ddt_data<Traits> datas_out;
-    std::cerr << "==>" << format_points.size() << " " << v_simplex.size() << " " << std::endl;
+
     datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",dim,dim,DATA_FLOAT_TYPE);
     datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",dim,dim,tinyply::Type::INT32);
     datas_out.dmap[datas_out.xyz_name].fill_full_uint8_vect(format_points);

@@ -602,8 +602,6 @@ int dst_conflict(const Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     for(auto & wd_tri : l_tri)
     {
         std::cout << "dst_acc:" << acc << std::endl;
-        // if(acc++ == 1)
-        //   continue;
         std::vector<std::vector<double>>  & format_dst_pts = wd_tri.format_dst;
         for(int ss = 0; ss < nbs ; ss++)
         {
@@ -786,7 +784,7 @@ int regularize_slave_focal(Id tid,wasure_params & params,int nb_dat,ddt::logging
             if(tid_l == tid_k)
                 continue;
             Tile_iterator tile_l = tri.get_tile(tid_l);
-            // If
+
             auto cit_l = tile_l->locate_cell(*tile_k,cit_k);
             Id lid_l = tile_l->lid(cit_l);
             if(shared_data_map.find(tid_l) == shared_data_map.end())
@@ -802,7 +800,7 @@ int regularize_slave_focal(Id tid,wasure_params & params,int nb_dat,ddt::logging
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
     std::cout << std::endl;
-    // Dum edges
+
     for(auto ee : shared_data_map)
     {
         Id tid2 = ee.first;
@@ -997,7 +995,7 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
             if(shared_data_map.find(tid_l) == shared_data_map.end())
                 shared_data_map[tid_l] = std::map<Id,SharedData>();
             shared_data_map[tid_l][lid_k] = std::make_tuple(lid_l,0,1,0);
-            // if main
+
             if(cmid == tid_l)
             {
                 for(int i = 0 ; i < 3; i++)
@@ -1176,7 +1174,7 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
         datas_out.write_ply_stream(oth.get_output_stream(),oth.get_nl_char(),false,false,true);
         break;
     }
-    default :             // Note the colon, not a semicolon
+    default :             
     {
         return 1;
         break;
@@ -1417,11 +1415,7 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
                     continue;
             }
             bool do_keep_local = false;
-            if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
-                    !tri.tile_is_loaded(tmp_fchn->main_id()))
-            {
-                //  continue;
-            }
+
             Cell_const_iterator fch = tmp_fch;
             int id_cov = fit.index_of_covertex();
             Cell_const_iterator fchn = tmp_fchn;
@@ -1532,7 +1526,7 @@ int extract_surface_area(Id tid,wasure_params & params,int nb_dat,ddt::logging_s
         datas_out.write_ply_stream(oth.get_output_stream(),oth.get_nl_char(),false,false,true);
         break;
     }
-    default :             // Note the colon, not a semicolon
+    default :             
     {
         return 1;
         break;
@@ -1807,7 +1801,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
                 double old_lagrange = new_lagrange;
                 double old_diff = std::get<3>(shared_data_map[tid_2][lid_1]);
                 if(edges_data_map[tid_2].find(lid_2) == edges_data_map[tid_2].end())
-                    std::cerr << "EDGES_DATA_MAP_V2 ERROR!" << std::endl;
+                    std::cerr << "Warning !" << std::endl;
                 int lab_2 = std::get<1>(edges_data_map[tid_2][lid_2]);
                 if(lab_2 != lab_1)
                     acc_diff++;
@@ -1834,98 +1828,8 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
             shared_data_map[tid_2][lid_1] = std::make_tuple(lid_2,new_lagrange,cur_tau,v_diff);
         }
     }
-    // ============== Debug results ============
-    if(params.dump_debug && params.do_finalize)
-    {
-        int D = tile_1->current_dimension();
-        Traits  traits;
-        std::vector<Point> pvect;
-        std::vector<int> v_labs;
-        ddt_data<Traits> datas_out;
-        std::vector<std::string> label_name = {"lab"};
-        int acc_nbp = 0;
-        for( auto cit_k = tile_1->cells_begin();
-                cit_k != tile_1->cells_end(); ++cit_k )
-        {
-            bool do_keep = true;
-            if(!tile_1->cell_is_mixed(cit_k) || tile_1->cell_is_infinite(cit_k))
-                continue;
-            for(int i=0; i<=D; ++i)
-            {
-                auto pp = tile_1->vertex(cit_k,i)->point();
-                if(std::fabs(pp[0] - (-14.26)) < 0.02 &&
-                        std::fabs(pp[1] - 0.98)  < 0.02  &&
-                        std::fabs(pp[2] - 0.70) < 0.02 )
-                {
-                    do_keep = true;
-                }
-            }
-            if(do_keep)
-                acc_nbp++;
-        }
-        std::ofstream myfile;
-        std::string filename(params.output_dir + "/" + params.slabel + "_" + std::to_string(tid_1) + "_debug.ply");
-        myfile.open (filename);
-        myfile << "ply" <<  std::endl;
-        myfile << "format ascii 1.0" << std::endl;
-        myfile << "element vertex "  << acc_nbp  << std::endl;
-        myfile << "property float x" << std::endl;
-        myfile << "property float y" << std::endl;
-        myfile << "property float z" << std::endl;
-        myfile << "property uchar red " << std::endl;
-        myfile << "property uchar green" << std::endl;
-        myfile << "property uchar blue" << std::endl;
-        myfile << "end_header                " << std::endl;
-        std::string filename_debug(params.output_dir + "/" + params.slabel + "_" + std::to_string(tid_1) + "_debug.ply");
-        for( auto cit_k = tile_1->cells_begin();
-                cit_k != tile_1->cells_end(); ++cit_k )
-        {
-            Cell_const_iterator fch = Cell_const_iterator(tile_1,tile_1, tile_1, cit_k);
-            if(!tile_1->cell_is_mixed(cit_k) || tile_1->cell_is_infinite(cit_k))
-                continue;
-            bool do_keep = true;
-            for(int i=0; i<=D; ++i)
-            {
-                auto pp = tile_1->vertex(cit_k,i)->point();
-                if(std::fabs(pp[0] - (-14.26)) < 0.02 &&
-                        std::fabs(pp[1] - 0.98)  < 0.02  &&
-                        std::fabs(pp[2] - 0.70) < 0.02)
-                {
-                    do_keep = true;
-                }
-            }
-            if(!do_keep)
-                continue;
-            Id lid_1 = tile_1->lid(cit_k);
-            int lab_1 = w_datas_tri[tid_1].format_labs[lid_1];
-            for(int i=0; i<=D; ++i)
-            {
-                // Select only id != tid_1
-                Id tid_2 = tile_1->id(tile_1->vertex(cit_k,i));
-                if(tid_2 == tid_1)
-                    continue;
-                Id lid_2 = std::get<0>(shared_data_map[tid_2][lid_1]);
-                if (edges_data_map[tid_2].find(lid_2) == edges_data_map[tid_2].end())
-                {
-                    std::cerr << "EDGES_DATA_MAP_3 NOT FOUND" << std::endl;
-                }
-            }
-            std::vector<double> bary = tile_1->get_cell_barycenter(cit_k);
-            for(int d = 0; d < D; d++)
-            {
-                myfile << bary[d] << " ";
-            }
-            if(lab_1 == 0)
-                myfile << "255 0 0 " << std::endl;
-            else
-                myfile << "0 255 0 " << std::endl;
-            pvect.push_back(traits.make_point(bary.begin()));
-            v_labs.push_back(lab_1);
-        }
-        myfile.close();
-        std::ofstream ofile;
-    }
-    // === Do a graphcut ============
+
+
     log.step("compute");
     if(!params.do_finalize)
         mrf.opt_gc_lagrange(1,tri,w_datas_tri,shared_data_map,tid_1,params.use_weight);
@@ -2000,7 +1904,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
     log.step("finalize");
     w_datas_tri[tid_1].fill_labs(w_datas_tri[tid_1].format_labs);
     // ============== Dump results =================
-    //  log.step("Write header");
+
     ddt::stream_data_header oth("t","z",tid_1);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid_1));
     oth.write_header(std::cout);
@@ -2047,7 +1951,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
         hto.finalize();
         std::cout << std::endl;
     }
-    // Dump stats
+
     ddt::stream_data_header sth("s","z",tid_1);
     sth.write_header(std::cout);
     std::cout << "[diff:tot] " << acc_diff << " " << acc_tot ;
@@ -2101,11 +2005,9 @@ int seg(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log)
     w_datas_tri[tid].fill_labs(w_datas_tri[tid].format_labs);
     log.step("write");
     std::cout.clear();
-    //  log.step("Write header");
     ddt::stream_data_header oth("t","z",tid);
     std::string filename(params.output_dir + "/" + params.slabel + "_id" + std::to_string(tid));
-    // if(params.dump_ply)
-    //     oth.write_into_file(filename,".ply");
+
     oth.write_header(std::cout);
     ddt::write_ddt_stream(tri, w_datas_tri[tid], oth.get_output_stream(),tid,false,log);
     oth.finalize();
@@ -2159,23 +2061,23 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     mrf_ori.lambda = params.lambda;
     mrf_ori.set_mode(params.mode);
     double energy_largrange = mrf_ori.get_energy(tri,w_datas_tri);
-    // Clean new struct
+
     for (auto it = w_datas_tri.begin(); it != w_datas_tri.end(); it++)
     {
-        int hid = it->first;    // string (key)
+        int hid = it->first;    
         std::vector<int>  & format_labs = w_datas_tri[hid].format_labs ;
         std::vector<int> format_labs_new(format_labs);
         v_map[hid] = format_labs_new;
         std::fill(format_labs.begin(), format_labs.end(), 0);
     }
-    // ===== Init the id of each cell
+
     log.step("compute");
     tbmrf_reco<DTW,D_MAP> mrf(params.nb_labs,&tri,&w_datas_tri);
     mrf.lambda = params.lambda;
     mrf.set_mode(params.mode);
     mrf.opt_gc(1,tri,w_datas_tri);
     double energy_full = mrf.get_energy(tri,w_datas_tri);
-    // Stats and finalizing
+
     int acc_tot = 0;
     int acc_diff = 0;
     double wacc_tot = 0;
@@ -2190,7 +2092,6 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
         int cccid = cit->lid();
         Cell_const_iterator fch = *cit;
         double cur_tau =  mrf.get_volume_reco(fch);
-        // En théorie lcurr = 0, mais ici on a une fonction générique.
         int lcurr = w_datas_tri[fch->tile()->id()].format_labs[cccid];
         int lnew = v_map[fch->tile()->id()][cccid];
         if(lcurr != lnew)
@@ -2214,8 +2115,7 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
         {
             if(fit->is_infinite())
                 continue;
-            // if(fit->is_infinite())
-            //   continue;
+
             Cell_const_iterator tmp_fch = fit.full_cell();
             int tmp_idx = fit.index_of_covertex();
             Cell_const_iterator tmp_fchn = tmp_fch->neighbor(tmp_idx);
@@ -2231,7 +2131,6 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
             Cell_const_iterator fch = tmp_fch->main();
             int id_cov = fit.index_of_covertex();
             Cell_const_iterator fchn = tmp_fchn->main();
-            //            Vertex_h_iterator vht;
             int cccid = fch->lid();
             int cccidn = fchn->lid();
             int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
@@ -2260,7 +2159,7 @@ int seg_global_extract(Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     }
     std::string ply_name(params.output_dir +  "/" + params.slabel + "_id_surface");
     std::cout.clear();
-    // Dump stats
+
     ddt::stream_data_header sth("s","z",tid);
     sth.write_header(std::cout);
     std::cout << "[diff:tot:e_ori:e_new] " << wacc_diff << " " << wacc_tot << " " << energy_largrange << " " << energy_full;
@@ -2457,7 +2356,6 @@ using Conf_map = CGAL::Nth_of_tuple_property_map<3, Point_with_info_2>;
 void dump_2(const char* filename, const std::vector<Point_with_info_2>& points)
 {
     std::ofstream ofile (filename, std::ios::binary);
-    //std::ofstream ofile (filename);
     CGAL::IO::set_binary_mode(ofile);
     CGAL::IO::write_PLY_with_properties
     (ofile, points,
@@ -2470,20 +2368,19 @@ void dump_2(const char* filename, const std::vector<Point_with_info_2>& points)
                      CGAL::IO::PLY_property<double>("x_origin"),
                      CGAL::IO::PLY_property<double>("y_origin"),
                      CGAL::IO::PLY_property<double>("z_origin")));
-    // std::make_tuple(Conf_map(),
-    //  		 CGAL::IO::PLY_property<double>("conf")));
+
     return;
 }
 
 
 std::string extractDirectoryPath(const std::string& filePath)
 {
-    size_t found = filePath.find_last_of("/\\"); // Find the last occurrence of '/' or '\'
+    size_t found = filePath.find_last_of("/\\"); 
     if (found != std::string::npos)
     {
         return filePath.substr(0, found);
     }
-    return ""; // If no directory separator found, return an empty string
+    return ""; 
 }
 
 
@@ -2501,7 +2398,6 @@ int compute_bbox(Id tid,wasure_params & params, int nb_dat)
     for(int i = 0; i < nb_dat; i++)
     {
         ddt::stream_data_header hpi;
-        //        wasure_data<Traits> w_datas;
         hpi.parse_header(std::cin);
         Id hid = hpi.get_id(0);
         std::string fname = hpi.get_file_name();
@@ -2510,7 +2406,7 @@ int compute_bbox(Id tid,wasure_params & params, int nb_dat)
         std::vector<Point_with_info_2> points_2;
         if(hpi.get_lab() == "p")
         {
-            //datas_map[hid].read_ply_stream();
+
             if (!ifile ||
                     !CGAL::IO::read_LAS_with_properties
                     (ifile, std::back_inserter (points),
@@ -2536,7 +2432,7 @@ int compute_bbox(Id tid,wasure_params & params, int nb_dat)
             bbox = bbox +  CGAL::Bbox_3(vx,vy,vz,
                                         vx,vy,vz);
         }
-        // Dump stats
+
         ddt::stream_data_header sth("s","z",0);
         sth.write_header(std::cout);
         std::cout <<  bbox.xmin() << " " <<  bbox.xmax() <<  " " << bbox.ymin() << " " << bbox.ymax()<<  " " << bbox.zmin() << " " << bbox.zmax() << " " << points.size();
@@ -2566,7 +2462,6 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
     for(int i = 0; i < nb_dat; i++)
     {
         ddt::stream_data_header hpi;
-        //        wasure_data<Traits> w_datas;
         hpi.parse_header(std::cin);
         Id hid = hpi.get_id(0);
         std::string fname = hpi.get_file_name();
@@ -2575,7 +2470,6 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
         std::vector<Point_with_info_2> points_2;
         if(hpi.get_lab() == "p")
         {
-            //datas_map[hid].read_ply_stream();
             if (!ifile ||
                     !CGAL::IO::read_LAS_with_properties
                     (ifile, std::back_inserter (points),
@@ -2628,7 +2522,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
         }
         std::string oname(params.output_dir + "/" + params.slabel +"_id_"+ std::to_string(hid) + ".ply");
         dump_2(oname.c_str(), points_2);
-        // Dump stats
+
         ddt::stream_data_header sth("s","z",0);
         sth.write_header(std::cout);
         std::cout <<  bbox.xmin() << " " <<  bbox.xmax() <<  " " << bbox.ymin() << " " << bbox.ymax()<<  " " << bbox.zmin() << " " << bbox.zmax() << " " << points.size();
@@ -2661,7 +2555,7 @@ int main(int argc, char **argv)
             tile_id = ((Id)sah.tile_id);
             nb_dat = sah.get_nb_dat();
         }
-        //        srand(params.seed*tile_id);
+
         srand(time(NULL));
         ddt::logging_stream log(std::to_string(tile_id) + "_" + params.algo_step, params.log_level);
         if(acc == 0)
@@ -2732,12 +2626,12 @@ int main(int argc, char **argv)
                     rv = extract_surface_new(tile_id,params,nb_dat,log);
                 else
                     rv = extract_surface_area(tile_id,params,nb_dat,log);
-                //		do_dump_log = false;
+
             }
             else if(params.algo_step == std::string("extract_graph"))
             {
                 rv = extract_graph(tile_id,params,nb_dat,log);
-                //                do_dump_log = false;
+
             }
             else if(params.algo_step == std::string("fill_graph"))
             {
@@ -2750,9 +2644,9 @@ int main(int argc, char **argv)
             else if(params.algo_step == std::string("gc_on_stream"))
             {
                 rv = gc_on_stream(tile_id,params,nb_dat,log);
-                std::cerr << "finish" << std::endl;
+
                 return 0;
-                //                do_dump_log = false;
+
             }
             else if(params.algo_step == std::string("tri2geojson"))
             {
