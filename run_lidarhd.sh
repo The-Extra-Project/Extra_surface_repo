@@ -79,7 +79,7 @@ function run_lidarhd_full
     INPUT_DIR="/media/laurent/ssd2/datas/shared_spark/datas/lidar_hd_raw/"
     OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    run_algo_docker
+    #run_algo_docker
 
     INPUT_DIR=${OUTPUT_DIR}
     PARAMS="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/wasure_metadata_3d_gen.xml"
