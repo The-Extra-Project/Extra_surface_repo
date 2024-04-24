@@ -201,10 +201,7 @@ public :
         {
             return ist;
         }
-        std::cerr << "read_stream_api" << std::endl;
-        std::cerr << fip << std::endl;
         tile_id = stoi(fip);
-        std::cerr << "done" << std::endl;
         ist >> nbd;
         return ist;
     }

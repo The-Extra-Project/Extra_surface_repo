@@ -214,8 +214,7 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
         ofs << "\"main_id\": " <<  int(iit->main_id())  << "," << std::endl;
         ofs << "\"tid\": " << tid  << "," << std::endl;
         ofs << "\"data_id\": " << int(iit->cell_data().id)  << "," << std::endl;
-        if(true)
-        {
+
             if(!cmap.count(*iit)) cmap[*iit] = nextid++;
             ofs << "\"opt_id\": " << cmap[*iit] << "," << std::endl;
             for(int i = 0 ; i < D+1; i++)
@@ -234,7 +233,7 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
                 }
                 ofs << "\"neigbhor " << i << "\": " << iid << "," << std::endl;
             }
-        }
+
         auto dmap = w_datas_tri[tid].dmap;
         for ( const auto &ee : dmap )
         {

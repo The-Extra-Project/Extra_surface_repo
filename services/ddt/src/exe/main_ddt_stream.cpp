@@ -1644,14 +1644,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 	  
 	  
 
-	  if(false){
-	    std::vector<double> coords(Traits::D);
-	    for(int d = 0 ; d < D; d++){
-	      double range = bbox.max(d) - bbox.min(d);
-	      coords[d] = p[d];
-	    }
-	    vp_map[id].emplace_back(traits.make_point(coords.begin()));
-	  }else{
+
 	    auto it = datas_map.find(id);
 	    
 	    if(it==datas_map.end())
@@ -1659,7 +1652,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 		datas_map[id] = ddt_data<Traits>(w_datas.dmap);
 	      }
 	    datas_map[id].copy_point(w_datas,count);
-	  }
+
 	}
     }
   std::cout.clear();

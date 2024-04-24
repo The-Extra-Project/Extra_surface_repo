@@ -89,8 +89,8 @@ function run_lidarhd_tiles
 }
 
 ### 3D Surface reconstruction
-ex_run_ply_mono
-ex_run_ply_tiling
+#ex_run_ply_mono
+#ex_run_ply_tiling
 ex_run_lidarhd_crop
 #run_lidarhd_tiles
 

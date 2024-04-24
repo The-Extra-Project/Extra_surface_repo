@@ -66,19 +66,14 @@ void cell_data_wasure::write(std::ostream& os,bool only_iq,bool is_ascii) const
     cell_data::write(os,only_iq, is_ascii);
     if(!only_iq)
     {
-        //std::cerr << "=======================> dump wasure 2!!" << std::endl;
         if(is_ascii)
         {
-            //std::cerr << "=======================> in ascii!!" << std::endl;
             os << lab << " ";
-            //std::cerr << lab << " - sz"  << dat.size() << " ";
             for(int i = 0; i < dat.size(); i++)
             {
                 os << dat[i] << " ";
-                //std::cerr << dat[i] << " - " << std::endl;
             }
             os << acc << " ";
-            //std::cerr  << acc << std::endl;
         }
         else
         {
@@ -90,10 +85,7 @@ void cell_data_wasure::write(std::ostream& os,bool only_iq,bool is_ascii) const
             os.write((char*)(&(acc)), sizeof(acc));
         }
     }
-    else
-    {
-        //std::cerr << "=======================> skip wasure 2!!" << std::endl;
-    }
+
 }
 
 void cell_data_wasure::read(std::istream& is,bool only_iq,bool is_ascii)
@@ -101,10 +93,8 @@ void cell_data_wasure::read(std::istream& is,bool only_iq,bool is_ascii)
     cell_data::read(is,only_iq,is_ascii);
     if(!only_iq)
     {
-        //std::cerr << "=======================> read wasure 2!!" << std::endl;
         if(is_ascii)
         {
-            //std::cerr << "=======================> in ascii!!" << std::endl;
             is >> lab;
             for(int i = 0; i < dat.size(); i++)
                 is >> dat[i];

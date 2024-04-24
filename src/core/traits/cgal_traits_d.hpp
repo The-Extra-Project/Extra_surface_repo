@@ -637,8 +637,7 @@ struct Cgal_traits_d
             Point p(D,coords_v.begin(),coords_v.end());
             vertex_map[ii] = tri.new_vertex(p);
         }
-        if(true)
-        {
+
             deserialize_b64_vect(v_int,ifile);
             for(uint i = 1; i <= num_v; ++i)
             {
@@ -657,7 +656,7 @@ struct Cgal_traits_d
                 int ii = i;
                 vertex_map[ii]->data().flag = v_int[ii];
             }
-        }
+
         uint ik;
         deserialize_b64_vect(v_int,ifile);
         num_c = v_int.size()/(D+1);
@@ -804,8 +803,7 @@ struct Cgal_traits_d
             }
         }
         serialize_b64_vect(v_int,ofile);
-        if(true)
-        {
+
             for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
             {
                 v_char.push_back(it->data().flag);
@@ -816,7 +814,7 @@ struct Cgal_traits_d
                 v_int.push_back(it->data().gid);
             }
             serialize_b64_vect(v_int,ofile);
-        }
+
 
         for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
         {
@@ -985,7 +983,7 @@ struct Cgal_traits_d
                 ch->set_neighbor(d, cell_map[ik]);
             }
         }
-
+        // compute the mirror indices
         for(uint j = 0; j < num_c; ++j)
         {
             Cell_handle s  = cell_map[j];

@@ -1072,11 +1072,7 @@ struct Cgal_traits_3
         for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
         {
             int ii = i;
-            if(false)
-            {
-                cell_map[it] = 0;
-                continue;
-            }
+
             cell_map[it] = ii;
             ++i;
             for(int d = 0; d < D+1; d++)
@@ -1100,8 +1096,7 @@ struct Cgal_traits_3
 
         for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
         {
-            if(false)
-                continue;
+
             for(int j = 0; j < D+1; j++)
             {
                 int nb_id = cell_map[it->neighbor(j)];

@@ -1,11 +1,11 @@
-//#include "utils.hpp"
-#include "ANN/ANN.h"
-#include "wasure_maths.hpp"
-
 #include "wasure_algo.hpp"
-#include "input_params.hpp"
+
 #include <algorithm>
 #include <random>
+
+#include "ANN/ANN.h"
+#include "wasure_maths.hpp"
+#include "input_params.hpp"
 #include "wasure_typedefs.hpp"
 
 
@@ -17,7 +17,7 @@ void wasure_algo::tessel_adapt(std::vector<Point> & points,std::vector<Point> & 
     std::iota(lidx.begin(), lidx.end(), 0);
     int nb_inserted = 0;
     random_shuffle(std::begin(lidx), std::end(lidx));
-    //  typedef typename DT_raw::Vertex_handle                            Vertex_const_handle;
+
     typedef DT_raw::Cell_handle    Cell_handle;
     typedef DT_raw::Vertex_handle  Vertex_handle;
     typedef DT_raw::Locate_type    Locate_type;
@@ -31,9 +31,6 @@ void wasure_algo::tessel_adapt(std::vector<Point> & points,std::vector<Point> & 
         std::vector<double> & pts_scale = scales[pidx];
         Locate_type lt;
         int li, lj;
-        // DTW::Face f(D-1);
-        // Facet ft;
-        // DTW::Locate_type lt;
         auto loc = tri.locate(p1,lt, li, lj);
         if(lt != DT_raw::CELL)
         {
@@ -42,9 +39,7 @@ void wasure_algo::tessel_adapt(std::vector<Point> & points,std::vector<Point> & 
             continue;
         }
         bool do_insert = true;
-        // for(auto vht = loc->vertices_begin() ;
-        // 	vht != loc->vertices_end() ;
-        // 	++vht){
+
         for(uint dd = 0; dd < D+1; dd++)
         {
             Point & pii = loc->vertex(dd)->point();
@@ -108,7 +103,6 @@ int dump_tessel(DT_raw  & tri, int it, int max_it,int tid, double * bbox_min,dou
         }
     }
     l_cir.clear();
-    std::cerr << "dump" << std::endl;
     std::ofstream myfile;
     std::string filename("/home/laurent/shared_spark/tmp/tessel_" + std::to_string(it) + "_" + std::to_string(tid) + ".ply");
     myfile.open (filename);
@@ -153,9 +147,7 @@ int dump_tessel(DT_raw  & tri, int it, int max_it,int tid, double * bbox_min,dou
         }
         myfile << std::endl;
     }
-    std::cerr << "close" << std::endl;
     myfile.close();
-    std::cerr << "dump done" << std::endl;
     return 0;
 }
 
@@ -179,9 +171,7 @@ int dump_vector_pts(std::vector<Point> vp, int it, int tid)
     {
         myfile << vv << " " << std::endl;
     }
-    std::cerr << "close" << std::endl;
     myfile.close();
-    std::cerr << "dump done" << std::endl;
     return 0;
 }
 
@@ -215,7 +205,6 @@ wasure_algo::tessel(DT_raw  & tri,
     std::vector<Point> extra_pts;
     for(int it = 0; it < max_it; it++)
     {
-        std::cerr << "tessel:" << it << std::endl;
         CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> vertex_map;
         CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> norm_map;
         CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> scale_map;
@@ -260,7 +249,6 @@ wasure_algo::tessel(DT_raw  & tri,
             auto pp = Point(vpo[0] +(vpn[0]-vpo[0]),
                             vpo[1] +(vpn[1]-vpo[1]),
                             vpo[2] +(vpn[2]-vpo[2]));
-            //std::cerr << "move:" << vv->point() << " -> " << pp << "(" << vp[D] << ")"<<std::endl;
             bool do_insert = true;
             for(int d = 0; d < D; d++)
                 if(pp[d] > bbox_max[d] || pp[d] < bbox_min[d])
@@ -670,92 +658,7 @@ wasure_algo::compute_dim_with_simp(std::vector<Point> & points, std::vector<std:
             scales.push_back(coords_scale);
         }
     }
-    if(false)
-    {
-        //  if(pscale > 0){
-        int K_T2 = K_T;
-        for(int ii = 0; ii < nbp; ii++)
-        {
-            Point p1 = points[ii];
-            for(int d = 0; d < D; d++)
-                queryPt[d] = p1[d];
-            kdTree->annkSearch(queryPt,K_T2, nnIdx,dists,eps);
-            bool is_min = true;
-            int dd = -1;
-            double coords_new_pts[Traits::D];
-            for(int d = 0; d < D; d++)
-                coords_new_pts[d] = 0;
-            double ww_acc = 0;
-            int k;
-            for(k = 0; k < K_T2; k++)
-            {
-                if(entropy_vect[ii] > entropy_vect[nnIdx[k]])
-                {
-                    is_min = false;
-                    break;
-                }
-                double ww = exp(-(dists[k]*dists[k])/scales[ii][D-1]);
-                ww_acc += ww;
-                for(int d = 0; d < D; d++)
-                {
-                    coords_new_pts[d] += points[nnIdx[k]][d]*ww;
-                }
-                if(dists[k] > scales[ii][D-1]*pscale)
-                {
-                    dd = dists[k];
-                    break;
-                }
-            }
-            if(is_min)
-            {
-                bool is_in_bbox = true;
-                for(int d = 0; d < D; d++)
-                {
-                    if(coords_new_pts[d] > bbox_max[d] || coords_new_pts[d] < bbox_min[d])
-                        is_in_bbox = false;
-                    coords_new_pts[d] /= ww_acc;
-                }
-                if(is_in_bbox)
-                    simp.push_back(traits.make_point(coords_new_pts));
-                //	simp.push_back(p1);
-                //kdTree->annkSearch(queryPt,K_T2, nnIdx,dists,eps);
-                // Adding extra points
-                if(((double) rand() / (RAND_MAX)) > 0.7)
-                {
-                    double coords_extra_pts[Traits::D];
-                    bool is_in_bbox = true;
-                    for(int d = 0; d < D; d++)
-                    {
-                        //coords_extra_pts[d] = coords_new_pts[d] + scales[ii][Traits::D-1]*norms[ii][D-1][d]*6;
-                        coords_extra_pts[d] = coords_new_pts[d] + scales[ii][Traits::D-1]*norms[ii][D-1][d]*6;
-                        queryPt[d] = coords_extra_pts[d];
-                        if(coords_extra_pts[d] > bbox_max[d] || coords_extra_pts[d] < bbox_min[d])
-                            is_in_bbox = false;
-                    }
-                    if(is_in_bbox)
-                    {
-                        simp.push_back(traits.make_point(coords_extra_pts));
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        // int acc = 0;
-        // if(nbp*pscale < 10)
-        //   pscale = 10/nbp;
-        // for(int ii = 0; ii < nbp; ii++){
-        //   if(acc++ % ((int)(1.0/(pscale)))  == 0){
-        // 	simp.push_back(points[ii]);
-        //   }
-        // }
-        // if(simp.size() < 50){
-        //   simp.clear();
-        //   simp.insert(simp.end(),points.begin(),points.end());
-        // }
-    }
-    std::cerr << "done!" << std::endl;
+
     delete kdTree;
     delete [] nnIdx;                                                  // clean things up
     delete [] dists;
@@ -1260,9 +1163,8 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
                 double pdf_smooth = -1;
                 double coef_conf = -1;
                 double gbl_scale = -1;
-                //	std::cerr << "glob scale:" << gbl_scale << std::endl;
-                if(true)
-                {
+
+
                     get_params_surface_dst(pts_scales,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
                     std::vector<double> pts_coefs = compute_base_coef(Pt3d,PtSample,pts_norms,D);
                     if(params.dst_scale > 0)
@@ -1273,14 +1175,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
                         }
                     }
                     compute_dst_mass_norm(pts_coefs,pts_scales,coef_conf,pdf_smooth,pdf_smooth,pe2, po2,pu2);
-                }
-                else if(false)
-                {
-                    // conflict stuff
-                    // get_params_surface_dst(pts_scales,gbl_scale,params.min_scale,pdf_smooth,coef_conf,D);
-                    // std::vector<double> pts_coefs = compute_base_coef(Pt3d,PtSample,pts_norms,D);
-                    // compute_dst_mass_norm(pts_coefs,pts_scales,coef_conf, pdf_smooth,pe2, po2,pu2);
-                }
+
                 pe1=vpe;
                 po1=vpo;
                 pu1=vpu;
