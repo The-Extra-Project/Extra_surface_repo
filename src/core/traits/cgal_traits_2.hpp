@@ -251,11 +251,11 @@ struct Cgal_traits_2
                 ++inserted_count;
             }
         }
-        // std::cout << "\n" << int(id) << ":" << vertex_count << "+" << inserted_count << "("<< foreign_count<< "+" << exist_count << ")" << std::flush;
+
     }
     template<class It> inline void insert(Delaunay_triangulation& dt, It begin, It end) const
     {
-        //dt.insert(begin, end);
+
         Vertex_handle hint;
         for(auto it=begin; it!=end; ++it)
         {
@@ -285,7 +285,7 @@ struct Cgal_traits_2
 
     inline bool is_visible(const Delaunay_triangulation& dt, const Bbox<D>& bbox, Cell_const_handle c, int i) const
     {
-        // TODO
+
         return true;
     }
 
@@ -335,13 +335,7 @@ struct Cgal_traits_2
         return dt.is_infinite(v);
     }
 
-    // inline bool facet_is_infinite(const Delaunay_triangulation& dt, Facet_const_handle f) const
-    // {
-    //     for(int i = 0; i<=D; ++i)
-    //         if(i!=f->second && dt.is_infinite(f->first->vertex(i)))
-    //             return true;
-    //     return false;
-    // }
+
 
     inline bool facet_is_infinite(const Delaunay_triangulation& dt, Facet_const_handle f) const
     {
@@ -476,7 +470,7 @@ struct Cgal_traits_2
         }
         std::vector<double> v_xyz;
         std::vector<int> v_simplex,v_nb,v_vid,v_cid,v_flagv,v_flags;
-        //    uint n = tri.number_of_vertices();
+
         std::map<Vertex_const_handle, uint> vertex_map;
         vertex_map[tri.infinite_vertex()] = 0;
         v_vid.push_back(0);
@@ -486,28 +480,15 @@ struct Cgal_traits_2
             v_xyz.push_back(0.0);
         }
         uint i = 1;
-        // Infinite hack
-        // for(int d = 0; d < D; d++)
-        //   {
-        // 	v_xyz.push_back(0);
-        //   }
+
         for(auto vit = tri.all_vertices_begin(); vit != tri.all_vertices_end(); ++vit)
         {
             if(tri.is_infinite(vit))
             {
-                // vertex_map[vit] = 0;
-                // v_vid.push_back(0);
-                // v_flagv.push_back(0);
-                // for(int d = 0; d < D; d++)
-                //   {
-                // 	v_xyz.push_back(0.0);
-                //   }
-                // i++;
                 continue;
             }
             int ii = i;
-            // if(!do_init_id)
-            //   ii = vit->info().id;
+
             for(int d = 0; d < D; d++)
             {
                 double pv = vit->point()[d];
@@ -521,15 +502,12 @@ struct Cgal_traits_2
             vertex_map[vit] = ii;
             i++;
         }
-        // write the number of cells
-        //n = tri.number_of_faces();
-        // write the cells
+
         std::map<Cell_const_handle, uint> cell_map;
         i = 0;
         for(auto it = tri.all_faces_begin(); it != tri.all_faces_end(); ++it)
         {
-            // if(tri.is_infinite(it))
-            // 	continue;
+
             int ii = i;
             if(!do_init_id)
                 int ii =  it->info().id;
@@ -539,7 +517,7 @@ struct Cgal_traits_2
             {
                 int vertex_id = vertex_map[it->vertex(d)] ;
                 v_simplex.push_back(vertex_id);
-                // write the id
+
             }
             if(add_data)
             {
@@ -547,7 +525,7 @@ struct Cgal_traits_2
                 v_cid.push_back(ii);
             }
         }
-        // write the neighbors of the cells
+
         for(auto it = tri.all_faces_begin(); it != tri.all_faces_end(); ++it)
         {
             for(int j = 0; j < D+1; j++)
@@ -599,16 +577,16 @@ struct Cgal_traits_2
         tri.clear();
         tri.tds().set_dimension(D);
         auto cit = tri.all_faces_begin();
-        //auto vit = tri.all_vertices_begin();
+
         Cell_handle inf_ch = cit;
         tri.tds().delete_face(cit);
-        //tri.tds().delete_vertex(vit);
-        // 4) read the number of vertices
+
+
         uint num_v = data.dmap[data.xyz_name].get_nbe_input();
         std::vector<Vertex_handle> vertex_map(num_v);
-        //vertex_map[]] = tri.tds().create_vertex();
+
         vertex_map[0] = tri.infinite_vertex();
-        // 5) read and create the vertices
+
         for(uint i = 1; i < num_v; ++i)
         {
             int ii = i;
@@ -630,12 +608,12 @@ struct Cgal_traits_2
                 vertex_map[ii]->info().flag = 1;
             }
         }
-        // 6) read the number of faces
+
         uint num_c = data.dmap[data.simplex_name].get_nbe_input();///(D+1);
-        // 7) read and create the faces
+
         std::vector<Cell_handle> cell_map(num_c);
         uint ik;
-        //std::cout << "number of faces to read.." << num_c << std::endl;
+
         for(uint i = 0; i < num_c; ++i)
         {
             int ii = i;
@@ -658,8 +636,7 @@ struct Cgal_traits_2
                 ch->info().id = ii;//v_cid[ii];
             }
         }
-        //std::cout << "number of faces created : " << tri.number_of_full_faces() << std::endl;
-        // 8) read and construct neighbourhood relationships for faces
+
         for(uint j = 0; j < num_c; ++j)
         {
             Cell_handle ch  = cell_map[j];
@@ -671,24 +648,7 @@ struct Cgal_traits_2
         }
         tri.set_infinite_vertex(vertex_map[0]);
         CGAL_triangulation_assertion(tri.is_valid());
-        // // compute the mirror indices
-        // for(uint j = 0; j < num_c; ++j)
-        //   {
-        // 	Cell_handle s  = cell_map[j];
-        // 	for( uint j = 0; j <= D; ++j )
-        // 	  {
-        // 	    if( -1 != s->mirror_index(j) )
-        // 	      continue;
-        // 	    Cell_handle n = s->neighbor(j);
-        // 	    int k = 0;
-        // 	    Cell_handle nn = n->neighbor(k);
-        // 	    while( s != nn )
-        // 	      nn = n->neighbor(++k);
-        // 	    //    	    s->set_mirror_index(j,k);
-        // 	    //    	    n->set_mirror_index(k,j);
-        // 	    tri.tds().set_adjacency(n,j,s,k);
-        // 	  }
-        //   }
+
     }
 
 };

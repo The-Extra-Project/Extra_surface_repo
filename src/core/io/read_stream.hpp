@@ -1,14 +1,13 @@
 #ifndef DDT_READ_STREAM_HPP
 #define DDT_READ_STREAM_HPP
 
-#include "io/stream_api.hpp"
 #include <unordered_map>
 #include <map>
 #include <set>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/json_parser.hpp>
-
+#include "io/stream_api.hpp"
 
 namespace ddt
 {
@@ -17,7 +16,6 @@ namespace ddt
 template <typename Traits>
 std::istream & read_point_set_serialized(std::vector<typename Traits::Point> & lp, std::istream & ifile, const Traits& traits)
 {
-    //  double_conversion::StringToDoubleConverter sc(flags_ser, 0, false,NULL, NULL);
     char buffer[kBufferSize];
     char cc;
     uint D;
@@ -191,13 +189,13 @@ int read_tile_stream(DDTT & ddt, std::istream & ifile, typename DDTT::Id tid, bo
     read_json_stream<typename DDTT::Tile_iterator, typename DDTT::Id>(tile,ifile);
     tile->set_id(tid);
     tile->finalize();
-    return 0; // FIXME ?
+    return 0; 
 }
 
 template<typename DDTT>
 int read_full_stream(DDTT & ddt, std::istream & ifile, int nb_dat, bool do_data = true, bool is_ascii = true)
 {
-    //std::cout << "start read stream, nbdat : " << nb_dat << std::endl;
+
     for(int i = 0; i < nb_dat; i++)
     {
         stream_data_header hpi;
@@ -207,7 +205,7 @@ int read_full_stream(DDTT & ddt, std::istream & ifile, int nb_dat, bool do_data 
             read_tile_stream(ddt, hpi.get_input_stream(), hpi.get_id(0),do_data,is_ascii);
         }
     }
-    return 0; // FIXME ?
+    return 0; 
 }
 
 template<typename DDTT>
@@ -223,4 +221,4 @@ void read_stream(DDTT & ddt, std::string ss)
 
 }
 
-#endif // DDTT_READ_STREAM_HPP
+#endif 

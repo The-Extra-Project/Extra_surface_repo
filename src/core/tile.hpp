@@ -13,7 +13,7 @@
 namespace ddt
 {
 
-// look in map at key k, with default t
+
 template<class Map, typename K, typename T>
 const T& at_with_default(const Map& map, K k, const T& t)
 {

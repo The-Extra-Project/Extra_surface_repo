@@ -118,7 +118,6 @@ set(libddt_SOURCES
   ${CPP_CORE_LOCAL_DIR}/io/logging.hpp
   ${CPP_CORE_LOCAL_DIR}/io/logging_stream.hpp
   ${CPP_CORE_LOCAL_DIR}/io/read.hpp
-  ${CPP_CORE_LOCAL_DIR}/io/read_cgal.hpp
   ${CPP_CORE_LOCAL_DIR}/io/read_stream.hpp
   ${CPP_CORE_LOCAL_DIR}/io/stream_api.hpp
   ${CPP_CORE_LOCAL_DIR}/io/write.hpp

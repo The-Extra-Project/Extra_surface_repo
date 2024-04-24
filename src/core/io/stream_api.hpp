@@ -9,8 +9,8 @@
 #include <utility>
 #include <sstream>
 #include <string>
-#include <stdio.h>      // printf, scanf, puts, NULL
-#include <stdlib.h>     // srand, rand
+#include <stdio.h>     
+#include <stdlib.h>    
 #include <time.h>
 
 #include <chrono>
@@ -25,13 +25,9 @@
 #include <limits>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
+
 #include "io/logging_stream.hpp"
-
 #include "conf_header/conf.hpp"
-
-// #ifdef DDT_USE_HDFS
-// #include "hdfs.h"
-// #endif
 
 #define MAXBUFLEN (10000000)
 #define SPARK_BUF_SIZE (65536)
@@ -121,7 +117,6 @@ public :
 
     std::string get_file_name()
     {
-        //    assert(is_file());
         return filename;
     }
 
@@ -232,17 +227,12 @@ int intRand(const int & min, const int & max)
 std::string time_in_HH_MM_SS_MMM()
 {
     using namespace std::chrono;
-    // get current time
     auto now = system_clock::now();
-    // get number of milliseconds for the current second
-    // (remainder after division into seconds)
     auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
-    // convert to std::time_t in order to convert to std::tm (broken time)
     auto timer = system_clock::to_time_t(now);
-    // convert to broken time
     std::tm bt = *std::localtime(&timer);
     std::ostringstream oss;
-    oss << std::put_time(&bt, "%d-%m-%Y-%H-%M-%S"); // HH:MM:SS
+    oss << std::put_time(&bt, "%d-%m-%Y-%H-%M-%S"); 
     oss << '.' << std::setfill('0') << std::setw(3) << ms.count();
     return oss.str();
 }
@@ -271,7 +261,7 @@ std::string stream_data_header::random_string( size_t length )
     };
     std::string str(length,0);
     std::generate_n( str.begin(), length, randchar );
-    return str;//oss.str();
+    return str;
 }
 
 void stream_data_header::write_into_file(std::string root_name,std::string ext, bool rand_ext)
@@ -305,26 +295,9 @@ void stream_data_header::finalize()
             fos->flush();
             fos->close();
             delete fos;
-            // int res = system(std::string("chmod 777 " + filename).c_str());
-            // if (res!=0) std::cerr << "chmod 777 " << filename << " failed" << std::endl;
         }
     }
-    // else if(is_hdfs())
-    // {
-    //     if(ifile != NULL)
-    //     {
-    //         delete ifile;
-    //     }
-    //     if(ofile != NULL)
-    //     {
-    //         if(log != NULL) log->step("[write]hdfs_create_buffer");
-    //         std::string str =  ofile->str();
-    //         const char* buffer_out = str.c_str();
-    //         write_buffer_hdfs(filename,buffer_out,log);
-    //         if(log != NULL) log->step("[write]hdfs_finalize");
-    //         delete ofile;
-    //     }
-    // }
+
     else
     {
         if(ifile != NULL)
@@ -375,19 +348,19 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
         ist >> idx;
         lidx.push_back(idx);
     }
-    // std::cerr << "lab:" <<  lab << " " << lidx[0] << std::endl;
+
     if(lab.empty() || lidx.size() == 0)
     {
         std::cerr << "[ERROR] error during header parsing" << std::endl;
         std::exit (EXIT_FAILURE);
     }
     ist >> type;
-    //std::cerr << "type =:" << type << std::endl;
+
     if(is_file())
     {
         ist >> filename;
-        // int res = system(std::string("touch " + filename).c_str());
-        // if (res!=0) std::cerr << "touch " << filename << " failed" << std::endl;
+
+
         fis = new std::ifstream();
         int acc_op = 0;
         bool is_open = false;
@@ -420,21 +393,13 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
     }
     else if (is_hdfs())
     {
-        // ist >> filename;
-        // if(log != NULL) log->step("[read]hdfs_create_buffer");
-        // char * buffer_in = new  char[MAXBUFLEN+1];
-        // int nbr = read_buffer_hdfs(filename,buffer_in,log);
-        // ifile = new std::stringstream();
-        // if(log != NULL) log->step("[read]hdfs_buffer_stringstream");
-        // (*ifile) << buffer_in;
-        // delete []buffer_in;
+	std::cerr << "[error] not suported anymore" << std::endl;
     }
     else if (is_stream())
     {
         if(log != NULL) log->step("[read]cin2sstream");
         std::string input;
         std::getline(std::cin, input);
-        // initialize string stream
         ifile = new std::stringstream(input);
     }
     else
@@ -449,7 +414,6 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
 }
 std::ostream & stream_data_header::write_header(std::ostream & ost, bool is_binary)
 {
-    //init_file_name(OUTPUT_DIR);
     if(lab.empty() || lidx.size() == 0)
     {
         std::cerr << "[ERROR] error during header writing" << std::endl;
@@ -495,7 +459,6 @@ std::ostream & stream_data_header::write_header(std::ostream & ost, bool is_bina
     }
     else if (is_hdfs())
     {
-        // Ply writer
         ost << filename << " ";
         ofile = new std::ostringstream();
     }

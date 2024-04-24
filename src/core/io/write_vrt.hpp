@@ -17,7 +17,6 @@
 namespace ddt
 {
 
-// VRT header writers
 
 void add_qgis_style(const std::string& filename,const std::string& stylename);
 void write_vrt_header_vert (std::ofstream& csv, const std::string& filename);
@@ -26,7 +25,6 @@ void write_vrt_header_cell (std::ofstream& csv, const std::string& filename);
 void write_vrt_header_tin  (std::ofstream& csv, const std::string& filename);
 void write_vrt_header_bbox (std::ofstream& csv, const std::string& filename);
 
-// CSV tile writers (Tile)
 
 template<typename Tile>
 void write_csv_vert(const Tile& tile, std::ostream& csv, bool main_only=false)
@@ -172,7 +170,6 @@ void write_csv_bbox_vert(const Tile& tile, std::ostream& csv)
     }
 }
 
-// VRT+CSV writers (iterators)
 
 template<typename Iterator>
 void write_vrt_vert_range(Iterator begin, Iterator end, const std::string& filename)
@@ -308,7 +305,6 @@ void write_vrt_bbox_vert(const DDT& tri, const std::string& filename)
         write_csv_bbox_vert(*tile, csv);
 }
 
-// VRT+CSV writers (DDT tiles)
 
 template<typename DDT>
 void write_vrt_verts(const DDT& tri, const std::string& dirname)

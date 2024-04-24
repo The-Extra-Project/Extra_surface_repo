@@ -1,60 +1,53 @@
 import sys.process._
-import scala.io.Source
-import java.io._
+
 import scala.xml._
-import java.lang.Double
 import scala.concurrent._
 import scala.collection.parallel._
 import scala.collection.mutable.ListBuffer
+import collection.mutable
 
+import java.io._
+import java.lang.Double
 import java.util.concurrent.Executors
 import java.util.Date;
+import java.util.Calendar;
 import java.text.SimpleDateFormat;
 import java.text.DecimalFormat
-import java.util.Calendar;
+import java.io.PrintWriter
+import java.nio.file.{Paths, Files}
+import java.nio.charset.StandardCharsets
+
 
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.fs.permission.FsPermission
 
-import java.io.PrintWriter
-import java.nio.file.{Paths, Files}
-import java.nio.charset.StandardCharsets
-// Spark Import
-import org.apache.spark._;
-import org.apache.spark.graphx._;
+
+import org.apache.spark._
+import org.apache.spark.graphx._
 import org.apache.spark.graphx.PartitionStrategy._
 import org.apache.spark.rdd.RDD;
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.SparkConf
 
-// Iqlib Import
-import spark_ddt.core._;
-import spark_ddt.util._;
-import spark_ddt.core.IQlibCore._;
-import spark_ddt.ddt_algo._;
-import spark_ddt.wasure._;
-import tiling._;
+import spark_ddt.core._
+import spark_ddt.util._
+import spark_ddt.core.IQlibCore._
+import spark_ddt.ddt_algo._
+import spark_ddt.wasure._
 
-import algo_spark_ddt._
-import algo_stats._;
-import xml_parsing._;
-import dataset_processing._;
-import bash_funcs._
-import strings_opt._;
-import params_parser._;
-import files_opt._;
-import geojson_export._;
-// Belief propagation
 import sparkle.graph._
-
-import collection.mutable
-import xml_parsing._;
+import tiling._
+import algo_spark_ddt._
+import algo_stats._
+import dataset_processing._
 import bash_funcs._
-import strings_opt._;
-import params_parser._;
-import files_opt._;
+import geojson_export._
+import xml_parsing._
+import strings_opt._
+import params_parser._
+import files_opt._
 
 
 //=============================================
@@ -259,7 +252,7 @@ var kvrdd_inputs = format_data(
   iq
 )
 
-// =========== Start of the algorithm ==============
+
 val t0 = System.nanoTime()
 params_scala("t0") = collection.mutable.Set(t0.toString)
 println("======== Tiling =============")
@@ -291,7 +284,7 @@ val res_dim_python = iq.run_pipe_fun_KValue(
   kvrdd_points, "dim", do_dump = false).persist(slvl_glob)
 
 var input_ddt = kvrdd_points;
-// If we have a simplified point cloud, do the delaunay triangulation of the simplfied point cloud
+
 if(pscale > 0)
   input_ddt = kvrdd_simp;
 ddt_algo.update_time(params_scala,"Dimensionality");
@@ -352,38 +345,25 @@ res_regularize_extract.unpersist()
 input_insert.unpersist()
 val kvrdd_reg = iq.get_kvrdd(res_regularize,"t");
 val kvrdd_shr = iq.get_edgrdd(res_regularize,"e")
-// Useless
+
+
 val graph_reg = Graph(kvrdd_reg, kvrdd_tri_edges, List("")).partitionBy(EdgePartition1D,rep_merge);
 graph_reg.vertices.setName("graph_reg");
 graph_reg.edges.setName("graph_reg");
 
-println("============= Optimiation ===============")
+
 ddt_algo.update_time(params_scala,"optimization");
 val lambda_list = params_scala("lambda").map(_.toDouble).toList.map(fmt.format(_).replace(',','.'))
 var coef_mult_list = params_scala("coef_mult").map(_.toDouble).toList.sortWith(_ > _).map(fmt.format(_).replace(',','.'))
 val algo_list = params_scala("algo_opt").toList
-// val algo_list = List("seg_lagrange_weight","belief");
 
 
-// Only for stats
 var stats_list_1 = new ListBuffer[(Int,(Float,Float))]()
 var stats_list_2 = new ListBuffer[(Int,(Float,Float))]()
 var stats_list_3 = new ListBuffer[(Int,(Float,Float))]()
 
 val test_name = "coef_mult_lag"
 var algo_id_acc = 0;
-// Loop on different algo
-
-//val coef_mult_list = List("110000000000".toLong,"110000000".toLong,"110000".toLong)
-// vcppp faot ieitii
-
-/*
- val ll = lambda_list.head
- val coef_mult = coef_mult_list.head
- val cur_algo = algo_list.head
- */
-
-// val lambda_list = List("0.05","0.3")
 
 algo_list.foreach{ cur_algo =>
   if(cur_algo != "seg_lagrange_weight"){
@@ -391,9 +371,7 @@ algo_list.foreach{ cur_algo =>
   }
   lambda_list.foreach{ ll =>
     coef_mult_list.foreach{ coef_mult =>
-      //= Init filename and parmas
-      //val coef_mult  =   "110000000000".toLong
-      //  val coef_mult  =   "110000000000".toLong
+
       params_wasure("lambda") = collection.mutable.Set(ll)
       params_wasure("coef_mult") = collection.mutable.Set(coef_mult)
       val datestring = dateFormatter.format(Calendar.getInstance().getTime());
@@ -428,27 +406,12 @@ algo_list.foreach{ cur_algo =>
             ddt_algo.update_time(params_scala,"final_before_dumping");
           }
 
-          // Extract the surface : Last iteration
+
           if(acc_loop == max_opt_it -1 || do_it_stats ){
             val rdd_local_edges = iq.get_edgrdd(res_seg,"e");
             val graph_seg = Graph(kvrdd_seg, rdd_local_edges, List("")).partitionBy(EdgePartition1D,rep_merge);
 
-            if(false){
-              // WARNING!! if true set "do_dump_u = true" in main_wasure_stream.cpp"
 
-              val rdd_local_crown = iq.get_edgrdd(res_seg,"u");
-              val kvrdd_tri_with_crown = (rdd_local_crown.map(e => (e.dstId,e.attr)) union kvrdd_seg).reduceByKey(_ ::: _,rep_loop).persist(iq.get_storage_level_loop()).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
-              val rdd_ply_surface = iq.run_pipe_fun_KValue(
-                ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
-                kvrdd_tri_with_crown, "seg", do_dump = false)
-              val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_xqw_" + algo_id_acc.toString + "_" + acc_loop_str
-              ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
-              wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
-            }
-            if(true){
-              // val rdd_ply_surface = iq.run_pipe_fun_KValue(
-              //   ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
-              //   iq.aggregate_value_clique(graph_seg, 1), "seg", do_dump = false)
               val rdd_ply_surface = iq.run_pipe_fun_KValue(
                 ext_cmd ++ List("--label","ext_seg" + ext_name + "_" + acc_loop_str),
                 kvrdd_seg, "seg", do_dump = false).persist(slvl_glob)
@@ -457,25 +420,7 @@ algo_list.foreach{ cur_algo =>
               val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str
               ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
               wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
-            }
-            if(false){
-              val rdd_ply_surface_edges = iq.run_pipe_fun_KValue(
-                ext_cmd_edges ++ List("--label","ext_spark_ll_v2_edge" + ext_name),
-                graph_seg.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr)), "seg", do_dump = false).persist(slvl_glob)
-              val rdd_ply_surface_vertex = iq.run_pipe_fun_KValue(
-                ext_cmd_vertex ++ List("--label","ext_spark_ll_v2_tile" + ext_name),
-                kvrdd_seg, "seg", do_dump = false).persist(slvl_glob)
 
-              rdd_ply_surface_edges.count()
-              rdd_ply_surface_vertex.count()
-              res_seg.unpersist()
-
-              val ply_dir_edges = cur_output_dir + "/ply" + ext_name + "_edges_" + acc_loop_str
-              val ply_dir_vertex = cur_output_dir + "/ply" + ext_name + "_vertex_" + acc_loop_str
-              ddt_algo.saveAsPly(rdd_ply_surface_edges,ply_dir_edges,plot_lvl)
-              ddt_algo.saveAsPly(rdd_ply_surface_vertex,ply_dir_vertex,plot_lvl)
-              wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
-            }
           }
 
           if(acc_loop != max_opt_it -1){
@@ -545,4 +490,4 @@ algo_list.foreach{ cur_algo =>
 }
 ddt_algo.update_time(params_scala,"final_after_dumping");
 dump_json(params_scala,cur_output_dir + "/full_workflow_params.json",sc);
-// System.exit(0)
+

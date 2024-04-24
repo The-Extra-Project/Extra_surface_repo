@@ -134,7 +134,7 @@ public:
         for(Tile_const_iterator tile = begin_; tile != end_; ++tile)
             if (tile->id() == id)
                 return Vertex_const_iterator(begin_, end_, tile, tile->locate_vertex(*tile_, vertex_));
-        //assert(false);
+
         return Vertex_const_iterator(begin_, end_, end_);
     }
 

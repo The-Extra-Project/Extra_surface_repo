@@ -4,9 +4,10 @@
 #include <string>
 #include <fstream>
 #include <map>
-#include "number_parser.hpp"
 #include <CGAL/Random.h>
 #include <CGAL/Unique_hash_map.h>
+
+#include "number_parser.hpp"
 namespace ddt
 {
 
@@ -123,7 +124,6 @@ void write_ply(const DDT& tri, const std::string& filename)
 }
 
 
-
 // Create a ply from the cgal structure
 template <typename TTr,typename DTC, typename FTC,typename Id>
 std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int nbc_finalized,std::string dump_mode,Id tid)
@@ -143,7 +143,7 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
     char cc;
     bool do_simplex = false;
     int NB_DIGIT_OUT_PLY  = 3;
-    // ======= Serializing  Vertex ==============
+
     CGAL::Unique_hash_map<Vertex_handle_raw, uint> vertex_map;
     int nb_vert = tri.number_of_vertices();
     int nb_cell = nbc_finalized;

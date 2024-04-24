@@ -1,7 +1,6 @@
 #ifndef NUMBER_PARSER_HPP
 #define NUMBER_PARSER_HPP
 
-
 #include "count.hpp"
 #include "string-to-double.h"
 #include "double-to-string.h"
@@ -50,7 +49,6 @@ void  deserialize_b64_vect(std::vector<TT> & vv,std::istream & ifile)
     ifile.read(((char *)buffer_char_in),bufflen_in);
     buffer_char_out = fast_base64_decode(buffer_char_in,bufflen_in,&bufflen_out);
     vv.clear();
-    //      log.step("[deserialize_step]memcpy");
     vv.resize(nb_dat);
     memcpy(&vv[0], buffer_char_out, bufflen_out);
     delete [] buffer_char_out;
@@ -70,12 +68,7 @@ void serialize_b64_vect(std::vector<TT> & vv,std::ostream & ss)
     vv.clear();
     unsigned char * buff_out = fast_base64_encode(buff_in, bufflen_in,&bufflen_out);
     ss << nbdat << " " <<  bufflen_out << " ";
-    //ss.write(reinterpret_cast<char*>(buff_out),bufflen_out);
     int acc = 0;
-    // while(acc + buff_size < bufflen_out){
-    // 	ss.write(reinterpret_cast<char*>(buff_out+acc),buff_size);
-    // 	acc+=buff_size;
-    // }
     ss.write(reinterpret_cast<char*>(buff_out+acc), bufflen_out - acc);
     ss << " ";
     delete [] buff_in;
@@ -94,20 +87,12 @@ void serialize_b64_vect(const std::vector<TT> & vv,std::ostream & ss)
     memcpy(buff_in, &vv[0], bufflen_in);
     unsigned char * buff_out = fast_base64_encode(buff_in, bufflen_in,&bufflen_out);
     ss << nbdat << " " <<  bufflen_out << " ";
-    //ss.write(reinterpret_cast<char*>(buff_out),bufflen_out);
     int acc = 0;
-    // while(acc + buff_size < bufflen_out){
-    // 	ss.write(reinterpret_cast<char*>(buff_out+acc),buff_size);
-    // 	acc+=buff_size;
-    // }
     ss.write(reinterpret_cast<char*>(buff_out+acc), bufflen_out - acc);
     ss << " ";
     delete [] buff_in;
     delete [] buff_out;
 }
-
-
-
 
 
 int u32toa_countlut(uint32_t value, char* buffer);
@@ -117,7 +102,4 @@ int i32toa_count(int32_t value, char* buffer);
 void u32toa_lut(int value, char* buffer) ;
 
 
-
-
-
-#endif // DDTT_READ_STREAM_HPP
+#endif 

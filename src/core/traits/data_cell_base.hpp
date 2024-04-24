@@ -40,16 +40,6 @@ struct Data_cell_base
     Id id;
 };
 
-// template<typename T1, typename T2>
-// struct Pair2nd : public std::unary_function<const T1&, std::pair<T1,T2>>
-// {
-//     T2 _2;
-//     Pair2nd(const T2& x) : _2(x) {}
-//     inline std::pair<T1,T2> operator()(const T1& _1) const
-//     {
-//         return std::make_pair(_1, _2);
-//     }
-// };
 
 }
 
