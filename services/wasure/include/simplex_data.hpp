@@ -79,8 +79,7 @@ std::istream& operator>>(std::istream& is, vertex_data& dt);
 bool operator==(const vertex_data& left, const vertex_data& right);
 bool operator!=(const vertex_data& left, const vertex_data& right);
 
-// std::string get_csv_line();
-// std::string get_csv_header();
+
 
 }      // namespace iqlib
 #endif // SIMPLEX_DATA_HPP

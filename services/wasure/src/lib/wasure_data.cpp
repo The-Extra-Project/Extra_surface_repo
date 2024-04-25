@@ -36,22 +36,7 @@ int wasure_data::dump_surface(std::vector<Facet> & lft, int nblabs, std::string 
     }
     int nbv = vertex_map.size();
     int nbf = lft.size();
-    // for(auto fit = lft.begin();  fit != lft.end(); ++fit){
-    //   Facet ft = *fit;
-    //   Full_cell_handle fch = ft.full_cell();
-    //   int idx = ft.index_of_covertex();
-    //   Full_cell_handle fchn = fch->neighbor(idx);
-    //   int ch1lab = fch->data().lab;
-    //   int chnlab = fchn->data().lab;
-    //   std::vector<Point> lp;
-    //   std::vector<Vertex_handle> lid;
-    //   for(int i = 0 ; i < dim +1; i++){
-    // 	if(i != ft.index_of_covertex()){
-    // 	  lp.push_back(ft.full_cell()->vertex(i)->point());
-    // 	  lid.push_back(ft.full_cell()->vertex(i));
-    // 	}
-    //   }
-    // }
+
     std::ofstream fo;
     fo.open (fileName.c_str());
     std::cout << "\t Writing " << fileName << "..." << std::endl;
@@ -73,12 +58,7 @@ int wasure_data::dump_surface(std::vector<Facet> & lft, int nblabs, std::string 
     fo << "end_header" << std::endl;
     fo << std::setprecision(12);
     std::cout << "wasure_data:dumping point...." << std::endl;
-    // for(auto const &ent1 : vertex_map) {
-    //   auto const &outer_key = ent1.first;
-    //   auto const &inner_map = ent1.second;
-    //   Point pi = outer_key->point();
-    //   fo << pi[0] << " " <<  pi[1]  << " " <<  pi[2]  << " " <<  255  <<  " " << 255 << " " << 255 << std::endl;
-    // }
+
     for(auto const &pi : point_list)
     {
         fo << pi[0] << " " <<  pi[1]  << " " <<  pi[2]  << " " <<  255  <<  " " << 255 << " " << 255 << std::endl;
@@ -107,12 +87,12 @@ int wasure_data::dump_surface(std::vector<Facet> & lft, int nblabs, std::string 
         }
         lid.push_back(ft.index_of_covertex());
         lp.push_back(ft.full_cell()->vertex(ft.index_of_covertex())->point());
-        //    assert(vertex_map.find(ft.full_cell()->vertex(ft.index_of_covertex())) != vertex_map.end());
+
         assert(lid.size() == 4 && lp.size() == 4);
         int cr = 200;
         int cg = fabs(plab - pnlab)*255;
         int cb = fabs(plab - pnlab)*255;
-        // Rustine
+
         bool is_inf = false;
         for(auto ppp : lp)
         {
@@ -196,9 +176,6 @@ void wasure_data::dump2qgis(std::string namefile)
     fo.precision(10);
     for(int i = 0 ; i < points.size(); i++)
     {
-        // fo << "1,\"MULTILINESTRING((";
-        // fo << points[i][0] << " " << points[i][1] << ",";
-        // fo << points[i][0] + dims_norms[i][0][0]*dims_scales[i][0]/10.0 << " " << points[i][1] + dims_norms[i][0][1]*dims_scales[i][0]/10.0 << "))\"" << std::endl;
         fo << "1,\"MULTILINESTRING((";
         fo << points[i][0] << " " << points[i][1] << ",";
         fo << points[i][0] + dims_norms[i][1][0]*dims_scales[i][1]/3.0 << " " << points[i][1] + dims_norms[i][1][1]*dims_scales[i][1]/3.0 ;
@@ -209,13 +186,11 @@ void wasure_data::dump2qgis(std::string namefile)
 
 inline  std::ostream & wasure_data::dump_double(double dd,std::ostream & ofile)
 {
-    //ofile.write(reinterpret_cast<char *>(&dd), sizeof(dd));
     ofile << dd << " ";
 }
 
 inline  std::ostream & wasure_data::dump_int(int ii,std::ostream & ofile)
 {
-    //ofile.write(reinterpret_cast<char *>(&dd), sizeof(dd));
     ofile << ii << " ";
 }
 
@@ -236,11 +211,6 @@ inline int wasure_data::read_int(std::istream & ifile)
     return ii;
 }
 
-// inline int wasure_data::read_label(std::istream & ifile){
-//   int ii;
-//   ifile >> ii;
-//   return ii;
-// }
 
 
 std::ostream & wasure_data::dump_point(Point & pp,std::ostream & ofile)
@@ -335,7 +305,6 @@ std::ostream & wasure_data::dump_xyz(std::ostream & ofile)
             dump_double(gs,ofile);
         }
         ofile << "\n";
-        //ofile << std::endl;
     }
 }
 

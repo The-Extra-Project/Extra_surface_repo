@@ -214,20 +214,7 @@ public:
         return tile_->flagc(cell_);
     }
 
-    // void id(Id & ff){
-    //    tile_->flag(ff);
-    //  }
 
-
-    // void  set_id(int ii){
-
-    //   cell_->data().id == ii;
-
-    // }
-
-    // Id id(){
-    //     return cell_->data().id;
-    // }
 
     Cell_const_iterator main() const
     {

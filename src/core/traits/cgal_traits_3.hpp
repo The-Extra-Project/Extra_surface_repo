@@ -408,9 +408,7 @@ struct Cgal_traits_3
             int li, lj;
             Cell_handle c = dt.locate(it->first, lt, li, lj, hint);
             if (lt == Delaunay_triangulation::VERTEX)
-                return v; // Point already exists
-            // Get the cells that conflict with it->first in a vector V,
-            // and a facet on the boundary of this hole in f.
+                return v; 
             std::vector<Cell_handle> cells;
             cells.reserve(32);
             std::vector<Facet> facets;
@@ -443,9 +441,9 @@ struct Cgal_traits_3
                 return v; // future star of "it" is entirely foreign, skipping
             v = dt.insert_in_hole(it->first, cells.begin(), cells.end(), facets.begin()->first, facets.begin()->second);
         }
-        // send all vertices to pid (if != id)
+
         for(auto vit = vertices.begin(); vit != vertices.end(); ++vit)
-            if(!dt.is_infinite(*vit) && pid != (*vit)->info().id) // better(?): && they have no neighbor from pid
+            if(!dt.is_infinite(*vit) && pid != (*vit)->info().id) 
                 out[pid].push_back(*vit);
         // send it to all ids (if != id)
         for(auto iit = ids.begin(); iit != ids.end(); ++iit)
@@ -580,7 +578,7 @@ struct Cgal_traits_3
                                    c->vertex(1)->point(),
                                    c->vertex(2)->point(),
                                    c->vertex(3)->point());
-        //        return dt.dual(c);
+
     }
 
     inline bool vertex_is_infinite(const Delaunay_triangulation& dt, Vertex_const_handle v) const

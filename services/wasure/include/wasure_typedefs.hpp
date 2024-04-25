@@ -42,7 +42,7 @@ typedef ddt::DDT<Traits> DTW;
 typedef ddt::grid_partitioner<Traits> Grid_partitioner;
 
 
-//typedef Traits::Random_points_in_box Random_points;
+
 typedef typename DTW::Tile_const_iterator  Tile_const_iterator ;
 typedef typename DTW::Tile_cell_const_handle Tile_cell_const_handle;
 typedef typename DTW::Tile_iterator  Tile_iterator ;
@@ -67,7 +67,7 @@ typedef typename Traits::Vertex_handle                                    Vertex
 typedef typename DTW::Facet_const_iterator  Facet_const_iterator;
 typedef typename DTW::Vertex_const_iterator  Vertex_const_iterator;
 typedef typename DTW::Tile_cell_const_handle              Tile_cell_const_handle;
-//typedef typename Traits::Vertex_h_iterator Vertex_h_iterator;
+
 typedef typename DTW::Cell_const_iterator                 Cell_const_iterator;
 typedef typename DTW::Facet_const_iterator                Facet_const_iterator;
 

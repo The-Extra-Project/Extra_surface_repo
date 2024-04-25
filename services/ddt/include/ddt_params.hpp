@@ -116,22 +116,21 @@ public :
             switch (cc)
             {
             case 'i':
-                //get_tile_name(argc,argv,list_name);
                 input_wasure_dir = std::string(optarg);
                 errflg--;
                 break;
             case 'o':
-                //get_tile_name(argc,argv,list_name);
+
                 output_wasure_dir = std::string(optarg);
                 errflg--;
                 break;
             case 'u':
-                //get_tile_name(argc,argv,list_name);
+
                 input_tri_dir = std::string(optarg);
                 errflg--;
                 break;
             case 'v':
-                //get_tile_name(argc,argv,list_name);
+
                 output_tri_dir = std::string(optarg);
                 errflg--;
                 break;

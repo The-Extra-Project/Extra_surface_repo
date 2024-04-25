@@ -36,8 +36,6 @@ public :
         mode = mm;
     }
 
-    //std::vector<Point> parse_points(std::string namefile, int D);
-    //void dump_points(std::vector<Point> & points, std::string namefile, int D);
 
 
     double get_volume_reco(Cell_const_iterator fch)
@@ -48,11 +46,7 @@ public :
     double get_score_linear(Cell_const_iterator fch,int label,D_MAP & data_map)
     {
         double volume = 1;
-        if(!fch->is_infinite())
-        {
-            //volume =  get_volume_reco(fch);
-            //volume = tbmrf<DTW,D_MAP>::get_volume(fch);
-        }
+
         int D = Traits::D;
         try
         {
@@ -65,12 +59,9 @@ public :
                     if(fch->neighbor(d)->is_mixed())
                         std::cerr << "mixed detected" << std::endl;
                 }
-                //std::cerr << "NOT MIXED, INF STUFF 222222" << std::endl;
+
                 int id_cov;
-                // for(int d = 0; d < D+1;d++){
-                //   if(fch->vertex(d)->is_infinite())
-                // 	id_cov = d;
-                // }
+
                 auto chn = fch->neighbor(id_cov);
                 int mir = fch->mirror_index(id_cov);
                 const Point& a = chn->vertex((mir+1)&3)->point();
@@ -82,14 +73,11 @@ public :
                 auto vn = CGAL::cross_product(v1,v2);
                 double coef_proj = compute_coef_proj(c,d,vn,D);
                 auto bary = chn->barycenter();
-                //	  std::cerr << coef_proj << " " << std::endl;
-                // for(int d = 0; d < D;d++)
-                //   std::cerr << bary[d] << " ";
-                // std::cerr << std::endl << std::endl;
+
                 if((coef_proj > 0 && vn[D-1] < 0) ||
                         (coef_proj < 0 && vn[D-1] > 0) )
                 {
-                    //	    std::cerr << c << " " << vn  << " " << std::endl;
+
                     if(pLabsOut[label] > 0.5)
                         return 100000000;
                     else
@@ -97,7 +85,7 @@ public :
                 }
                 else
                 {
-                    //	    std::cout << c << " " << vn  << " " << std::endl;
+
                     if(pLabsOut[label] > 0.5)
                         return 0;
                     else
@@ -111,15 +99,8 @@ public :
             std::cerr << "Exception catched : " << e.what() << std::endl;
             return 1000000;
         }
-// if(fch->is_infinite() && true){
-        //   if((mode == 1 && pLabsOut[label] > 0.5) ||
-        //      (mode == 0 && pLabsOut[label] < 0.5)
-        //      )
-        //     return 1000000;
-        //   else
-        //     return 0;
-        // }
-        double nbe = 1;//((double)fch->data().dat[3]);
+
+        double nbe = 1;
         double coef = volume/nbe;
         int cell_id = fch->lid();
         int tile_id = fch->tile()->id();
@@ -127,7 +108,7 @@ public :
         double POut = data_map[tile_id].format_dst[cell_id][1];
         double PUnk = data_map[tile_id].format_dst[cell_id][2];
         double scoreCurr = fabs(pLabsIn[label] - PIn) + fabs(pLabsOut[label] - POut) + fabs(pLabsUnk[label] - PUnk);
-        //	std::cerr << "get_score_linear: coef:" << coef << " lab:" << label << " score:" << scoreCurr << " pin:" << PIn << " pout:" << POut << " punk:" << PUnk << std::endl;
+
         return coef*scoreCurr;
     }
 
@@ -152,26 +133,16 @@ public :
                 Cell_const_iterator fch = tmp_fch->main();
                 int id_cov = fit.index_of_covertex();
                 Cell_const_iterator fchn = tmp_fchn->main();
-                //            Vertex_h_iterator vht;
+
                 int cccid = fch->lid();
                 int cccidn = fchn->lid();
                 int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
                 int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];
-                // if(
-                //     (ch1lab != chnlab) ||
-                //     (((fch->is_infinite() && !fchn->is_infinite()) ||
-                //       (!fch->is_infinite() && fchn->is_infinite())) && ch1lab == mode )
-                // )
+
                 if(
                     (ch1lab != chnlab) ||  (mode == 0 && (is_on_convex && (ch1lab == 0 || chnlab == 0))))
                 {
-                    // if(tmp_fch->is_infinite()){
-                    // 	w_datas_tri[fch->tile()->id()].format_labs[cccid] = 1;
-                    // 	w_datas_tri[fchn->tile()->id()].format_labs[cccidn] = 0;
-                    // }else if(tmp_fchn->is_infinite()) {
-                    // 	w_datas_tri[fch->tile()->id()].format_labs[cccid] = 0;
-                    // 	w_datas_tri[fchn->tile()->id()].format_labs[cccidn] = 1;
-                    // }
+
                     lft.push_back(*fit);
                 }
             }
@@ -187,32 +158,7 @@ public :
 
 
 
-    void get_obs_cut_pursuit(Cell_const_iterator fch,double & obs, double & weight)
-    {
-        // double eps = 0.001;
-        // double volume = 100;
-        // //  if(!tri->is_infinite(fch))
-        //   volume = get_volume(fch);
-        // double nbe = ((double)fch->data().dat[3]);
-        // if(nbe < 1) nbe = 1;
-        // double coef = volume/nbe;
-        // double PIn = (fch->data().dat[1])/nbe;
-        // double POut = (fch->data().dat[0])/nbe;
-        // double PUnk = (fch->data().dat[2])/nbe;
-        // if(PIn < eps && POut < eps){
-        //   PIn = POut = eps;
-        //   PUnk = 1-2*eps;
-        // }
-        // obs =  (PIn)/(POut+PIn);
-        // weight = volume*(1-PUnk);
-        // if(obs != obs || weight != weight){
-        //   std::cout << "/!\\ warning NAN!!!! /!\\" << std::endl;
-        //   obs = 0.5;
-        //   weight = 0.01;
-        // }
-        return;
-    }
-
+   
 
     void hello_reco()
     {

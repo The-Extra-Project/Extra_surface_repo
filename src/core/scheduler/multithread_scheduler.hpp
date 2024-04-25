@@ -106,8 +106,7 @@ struct multithread_scheduler
                 std::vector<Point_and_id> outgoing;
                 count += tile.send_one(v.first, v.second.begin(), v.second.end(), std::back_inserter(outgoing));
                 inbox[v.first].append(outgoing);
-                //int simplify_size = 1;//tile.simplify();
-                //std::cout<<std::endl << int(tile.id()) << "->" << int(v.first) << "\tr="<<received.size() << "\ti="<<inserted_size << "\tr="<<removed.size() << "\tv="<<v.second.size() << "\to="<<outgoing.size() << "\ts="<<simplify_size <<"\t";
+                
             }
             return count;
         };

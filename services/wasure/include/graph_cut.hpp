@@ -2,9 +2,9 @@
 #define IQ_GC_H
 #define MULT (1.0)
 
-//#include "wasure_typedefs.hpp"
-#include <stdio.h>      /* printf */
-#include <iostream>      /* printf */
+
+#include <stdio.h>     
+#include <iostream>    
 
 #include <vector>
 #include "io/write.hpp"
@@ -44,9 +44,8 @@ int gc_on_stream(std::istream & ifile,std::ostream & ofile)
     int acc = 0;
     while(ifile  >> tt)
     {
-        std::cerr << "acc:" << acc++ << "tt:" << tt << std::endl;
-        //      for(int i = 0; i < nb_dat;i++){
-        //	ifile >> tt;
+
+
         switch(tt)
         {
         case 1 :
@@ -68,9 +67,7 @@ int gc_on_stream(std::istream & ifile,std::ostream & ofile)
     //    }
     int N = v_verts.size();
     int NF = v_edges.size();
-    std::cerr << "N:" << N << " NF:" << NF <<  std::endl;
     GraphType *g = new GraphType(N,NF*2 );
-    std::cerr << "init graph struct " << std::endl;
     for(int i = 0; i < v_verts.size(); i++)
     {
         g -> add_node();
@@ -85,9 +82,7 @@ int gc_on_stream(std::istream & ifile,std::ostream & ofile)
     {
         g->add_edge(ee->id1, ee->id2,ee->e0,ee->e1);
     }
-    std::cerr << "\t Max flow algorithm ..." << std::endl;
     double flow = g->maxflow();
-    std::cerr << "\t\t flow value : " << flow << std::endl;
     int nb_merge = 0;
     for(int i = 0; i < N; i++)
     {
@@ -95,7 +90,6 @@ int gc_on_stream(std::istream & ifile,std::ostream & ofile)
         ofile << i << " " << lab << std::endl;
     }
     delete g;
-    std::cerr << "perfect!" << std::endl;
     return 0;
 }
 

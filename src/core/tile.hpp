@@ -189,7 +189,7 @@ public:
 
     inline const Point circumcenter(Cell_const_handle c) const { return traits_.circumcenter(dt_,c); }
 
-    //template<typename Unary_op> inline void incident_cells(Vertex_const_handle v, Unary_op op) const { traits_.incident_cells(dt_, v, op); }
+
     inline void incident_cells(Vertex_const_handle v, std::vector<Cell_const_handle> & cells  ) const { traits_.incident_cells(dt_, v, cells); }
     template<typename Unary_op> inline void finite_adjacent_vertices(Vertex_const_handle v, Unary_op op) const { traits_.finite_adjacent_vertices(dt_, v, op); }
 
@@ -355,26 +355,7 @@ public:
     }
 
 
-    // // Check if the facet is main
-    //   template<typename F>
-    //   bool facet_is_main(F f) const
-    //   {
-    //       int icv = index_of_covertex(f);
-    //       auto c = full_cell(f);
-    //       bool foreign = true;
-    //       for(int i=0; i<=current_dimension(); ++i)
-    //       {
-    //           if (i == icv) continue;
-    //           auto v = vertex(c,i);
-    //           if (vertex_is_infinite(v)) continue;
-    //           Id vid = id(v);
-    //           if ( vid < id() )
-    //               return false;
-    //           else if (vid == id())
-    //               foreign = false;
-    //       }
-    //       return !foreign;
-    //   }
+
 
 
     // Check if the facet is main
@@ -406,37 +387,7 @@ public:
     }
 
 
-    // // Check if the facet is main
-    // template<typename F>
-    // bool facet_is_main(F f) const
-    // {
-    //     int icv = index_of_covertex(f);
-    //     auto c1 = full_cell(f);
-    // 	auto c2 = f->neighbor(icv);
-    //     bool foreign = true;
-    // 	std::map<int,int> cmap;
-    //     for(int i=0; i<=current_dimension(); ++i)
-    //     {
-    //         if (i == icv) continue;
-    //         auto v = vertex(c,i);
-    //         if (vertex_is_infinite(v)) continue;
-    //         Id vid = id(v);
-    // 	    if(cmap.find(vid) == cmap.end())
-    // 	      cmap[vid] = 0;
-    // 	    else
-    // 	      cmap[vid] += 1;
-    //     }
-    // 	int vmax = -1;
-    // 	int imax = 0;
-    // 	for(auto it = cmap.begin(); it != cmap.end(); it++)
-    // 	  if(it->second > vmax){
-    // 	    vmax = it->second;
-    // 	    imax = it->first;
-    // 	  }
-    // 	return imax == id();
 
-    //     // return !foreign;
-    // }
 
     template<typename C>
     bool cell_is_main(C c) const

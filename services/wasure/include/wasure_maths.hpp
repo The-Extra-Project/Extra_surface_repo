@@ -8,7 +8,7 @@
 inline double mEstimator(double a,double t)
 {
     return ((1.0/a)*(pow((1+t),a) - 1.0));
-    // y = (1./a).*((1+t).^a -1);
+
 };
 
 // First order derivative of the Mestimator
@@ -110,7 +110,7 @@ double squared_dist(Point & p1, Point & p2, int D)
 }
 
 
-//void regularize2(double & a);
+
 void regularize(double & a, double & b, double & c);
 
 
@@ -136,7 +136,7 @@ Point get_barycenter_pts(std::list<Point> & lp, int D)
 {
     Traits traits;
     double coords[Traits::D];
-    //  std::vector<double> coords(D);
+
     for(int d = 0; d < D; d++)
         coords[d] = 0;
     for(typename std::list<Point>::iterator pit = lp.begin(); pit != lp.end(); ++pit)
@@ -152,27 +152,6 @@ Point get_barycenter_pts(std::list<Point> & lp, int D)
 
 
 
-// template <typename chdl,vhdl>
-// std::vector<double> get_cell_barycenter(chdl ch)
-//     {
-//         int D = ch->maximal_dimension();
-//         std::vector<double> coords(D);
-//         for(uint d = 0; d < D; d++)
-//             coords[d] = 0;
-//         for(auto vht = ch->vertices_begin() ;
-//                 vht != ch->vertices_end() ;
-//                 ++vht)
-//         {
-//             Vertex_handle v = *vht;
-//             for(uint d = 0; d < D; d++)
-//             {
-//                 coords[d] += (v->point())[d];
-//             }
-//         }
-//         for(uint d = 0; d < D; d++)
-//             coords[d] /= ((double)D+1);
-//         return coords;
-//     }
 
 
 
@@ -183,7 +162,7 @@ double n_surface(typename std::list<Point> & lp, int D)
     Traits traits;
     Point p0 = get_barycenter_pts<Point,Traits>(lp,D);
     int nbp = lp.size();
-    //lp.pop_front();
+
     int acc=0;
     Eigen::MatrixXd mat(D,D);
     for(auto pit = lp.begin(); pit != lp.end(); ++pit)
@@ -204,7 +183,7 @@ double n_surface(typename std::list<Point> & lp, int D)
     {
         for(int d = 0 ; d < D ; d++)
             coords[d] = ev(d,i);
-        /* std::cout << "nb :" << Point(coords) << std::endl; */
+
         nb.push_back(traits.make_point(coords));
     }
     std::list<Point> nbl;
@@ -218,32 +197,12 @@ double n_surface(typename std::list<Point> & lp, int D)
         coords_v.pop_back();
         for(int d = 0; d < D; d++)
             coords[d] = coords_v[d];
-        /* std::cout << Point(coords) << std::endl; */
+
         nbl.push_back(traits.make_point(coords));
     }
     return n_volume(nbl,D-1);
 }
 
-
-
-/* template<typename T_PTS> */
-/* double compute_coef_proj(const T_PTS & A, const T_PTS & C, const T_PTS & v1, int D); */
-
-
-
-/* template<typename T_PTS> */
-/* T_PTS */
-/* compute_pts_proj(const T_PTS & A, const T_PTS & C, const T_PTS & v1, int D); */
-
-
-/* template<typename T_PTS>  */
-/* std::vector<double> */
-/* compute_base_coef(const T_PTS & A, const T_PTS & C, const std::vector<T_PTS>  norms, int D); */
-
-
-/* template<typename T_PTS>  */
-/* double  */
-/* n_volume(std::list<T_PTS> lp, int D); */
 
 
 

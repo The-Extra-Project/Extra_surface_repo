@@ -68,5 +68,5 @@ protected:
 
     T flags;
 };
-//}      // namespace iqlib
+
 #endif // FLAGS_HPP

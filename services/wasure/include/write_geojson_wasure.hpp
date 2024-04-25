@@ -96,7 +96,7 @@ void write_geojson_facet_range_wasure(Iterator begin, Iterator end, std::ostream
     int D = Traits::D;
     for(auto fit = begin; fit != end; ++fit)
     {
-        //if(fit->is_infinite()) continue;
+
         if(!is_first)
             ofs << "," << std::endl;
         auto cit = fit->full_cell();
@@ -179,7 +179,7 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
     int D = Traits::D;
     for(auto iit = begin; iit != end; ++iit)
     {
-        //if(iit->is_infinite()) continue;
+
         if(!is_first)
             ofs << "," << std::endl;
         is_first=false;
@@ -190,7 +190,7 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
         ofs << "\"coordinates\": [" << std::endl;
         int local = 0;
         ofs << "[[";
-        for(int i=0; i<=D+1; ++i) // repeat first to close the polygon
+        for(int i=0; i<=D+1; ++i) 
         {
             auto v = iit->vertex(i % (D+1));
             if(i>0)
@@ -220,7 +220,7 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
             for(int i = 0 ; i < D+1; i++)
             {
                 int iid = -1;
-                // Maybe neighbors does not exists if not loaded completly
+
                 try
                 {
                     auto nb0 = iit->neighbor(i);
@@ -262,7 +262,7 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
                 }
             }
         }
-        //	iit->data().dump_geojson(ofs);
+
         ofs << "\"prop1\": { \"this\": \"that\" }" << std::endl;
         ofs << "}" << std::endl;
         ofs << "}" << std::endl;

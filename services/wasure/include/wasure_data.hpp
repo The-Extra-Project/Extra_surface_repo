@@ -120,11 +120,7 @@ public :
                 ofs << raw_centers[id][D-1] << "]" << std::endl;
                 ofs << "}," << std::endl;
                 ofs << "\"properties\": {" << std::endl;
-                // if(labs.size() > 0){
-                //   ofs << "\"type\":\"point\"," << std::endl;
-                //   ofs << "\"lab\":" << labs[id] <<  "," << std::endl;
-                //   ofs << "\"marker-color\":" << lab_color[labs[id]] <<  "," << std::endl;
-                // }
+
                 ofs << "\"prop1\": { \"this\": \"that\" }" << std::endl;
                 ofs << "}" << std::endl;
                 ofs << "}" << std::endl;
@@ -183,125 +179,12 @@ public :
         }
         ofs << "]" << std::endl;
         ofs << "}" << std::endl;
-//    fo << points[i][0] + dims_norms[i][1][0]*dims_scales[i][1]/3.0 << " " << points[i][1] + dims_norms[i][1][1]*dims_scales[i][1]/3.0 ;
+
     }
 
 
 
-//       void write_geojson_norms(std::ostream & ofs, bool is_first = true)
-//     {
 
-//       std::cerr << "write geojson norm" << std::endl;
-//         std::vector<Point> raw_points;
-//         std::vector<Point> raw_centers;
-//         std::vector<double> raw_egv;
-//         std::vector<double> raw_sigs;
-
-//         ddt_data<Traits>::dmap[ddt_data<Traits>::xyz_name].extract_full_uint8_vect(raw_points,false);
-//         ddt_data<Traits>::dmap[center_name].extract_full_uint8_vect(raw_centers,false);
-//         ddt_data<Traits>::dmap[sig_name].extract_raw_uint8_vect(raw_sigs,false);
-//         ddt_data<Traits>::dmap[egv_name].extract_raw_uint8_vect(raw_egv,false);
-
-//       std::cerr << "parse data done" << std::endl;
-
-//         bool do_ray = false;
-//         int D = Traits::D;
-//         std::vector<std::string> lab_color = {"\"red\"","\"green\"","\"blue\""};
-//         ofs << "{" << std::endl;
-//         ofs << "\"type\": \"FeatureCollection\"," << std::endl;
-//         ofs << "\"features\": [" << std::endl;
-
-//         for(int id = 0; id < ddtd::nb_pts_shpt_vect(); id++)
-//         {
-//             int id_pts = id*D;
-//             int id_sigs = id*D;
-//             int id_egv = id*D*D;
-//             if(!is_first)
-//                 ofs << "," << std::endl;
-//             is_first=false;
-
-//             // Center
-//             if(raw_centers.size() > 0)
-//             {
-//                 ofs << "{" << std::endl;
-//                 ofs << "\"type\": \"Feature\"," << std::endl;
-//                 ofs << "\"geometry\": {" << std::endl;
-//                 ofs << "\"type\": \"Point\"," << std::endl;
-//                 ofs << "\"coordinates\": [";
-//                 for(int d=0; d<D-1; ++d)
-//                     ofs << raw_centers[id_pts +d] << ",";
-//                 ofs << raw_centers[id_pts + D-1] << "]" << std::endl;
-//                 ofs << "}," << std::endl;
-//                 ofs << "\"properties\": {" << std::endl;
-//                 // if(labs.size() > 0){
-//                 //   ofs << "\"type\":\"point\"," << std::endl;
-//                 //   ofs << "\"lab\":" << labs[id] <<  "," << std::endl;
-//                 //   ofs << "\"marker-color\":" << lab_color[labs[id]] <<  "," << std::endl;
-//                 // }
-//                 ofs << "\"prop1\": { \"this\": \"that\" }" << std::endl;
-//                 ofs << "}" << std::endl;
-//                 ofs << "}" << std::endl;
-
-//                 // Ray
-//                 if(do_ray)
-//                 {
-//                     ofs << "," << std::endl;
-//                     ofs << "{" << std::endl;
-//                     ofs << "\"type\": \"Feature\"," << std::endl;
-//                     ofs << "\"geometry\": {" << std::endl;
-//                     ofs << "\"type\": \"LineString\"," << std::endl;
-//                     ofs << "\"coordinates\": [[";
-//                     for(int d=0; d<D-1; ++d)
-//                         ofs << raw_centers[id_pts +d] << ",";
-//                     ofs << raw_centers[id_pts + D-1] << "]," << std::endl;
-//                     ofs << "[";
-//                     for(int d=0; d<D-1; ++d)
-//                         ofs << raw_points[id_pts +d] << ",";
-//                     ofs << raw_points[id_pts + D-1] << "]]" << std::endl;
-//                     ofs << "}," << std::endl;
-//                     ofs << "\"properties\": {" << std::endl;
-//                     if(raw_centers.size() > 0)
-//                     {
-//                         ofs << "\"type\":\"ray\"," << std::endl;
-//                     }
-//                     ofs << "\"prop1\": { \"this\": \"that\" }" << std::endl;
-//                     ofs << "}" << std::endl;
-//                     ofs << "}" << std::endl;
-//                 }
-//             }
-
-//             if(raw_egv.size() > 0)
-//             {
-//                 ofs << "," << std::endl;
-//                 ofs << "{" << std::endl;
-//                 ofs << "\"type\": \"Feature\"," << std::endl;
-//                 ofs << "\"geometry\": {" << std::endl;
-//                 ofs << "\"type\": \"LineString\"," << std::endl;
-//                 ofs << "\"coordinates\": [[";
-//                 for(int d=0; d<D-1; ++d)
-//                     ofs << raw_points[id_pts +d] << ",";
-//                 ofs << raw_points[id_pts + D-1] << "]," << std::endl;
-//                 ofs << "[";
-//                 for(int d=0; d<D-1; ++d)
-//                     ofs << (raw_points[id_pts +d] + (raw_sigs[id_sigs+ D-1]/3.0)*raw_egv[id_egv+D+d])  << ",";
-//                 ofs << (raw_points[id_pts + D-1] + (raw_sigs[id_sigs+ D-1]/3.0)*raw_egv[id_egv+D+D-1]) << "]]" << std::endl;
-//                 ofs << "}," << std::endl;
-//                 ofs << "\"properties\": {" << std::endl;
-//                 if(raw_egv.size() > 0)
-//                 {
-//                     ofs << "\"type\":\"norms\"," << std::endl;
-//                 }
-//                 ofs << "\"prop1\": { \"this\": \"that\" }" << std::endl;
-//                 ofs << "}" << std::endl;
-//                 ofs << "}" << std::endl;
-//             }
-//         }
-//         ofs << "]" << std::endl;
-//         ofs << "}" << std::endl;
-
-
-// //    fo << points[i][0] + dims_norms[i][1][0]*dims_scales[i][1]/3.0 << " " << points[i][1] + dims_norms[i][1][1]*dims_scales[i][1]/3.0 ;
-//     }
 
 
     void extract_egv( std::vector<std::vector<Point> >  & format_egv,bool do_clear = true)
@@ -333,7 +216,7 @@ public :
     void fill_egv(std::vector<std::vector<Point> > & format_egv, bool do_clear = true)
     {
         int D = Traits::D;
-        //ddt_data<Traits>::dmap[egv_name] = Data_ply(egv_name,"vertex",D*D,D*D,DATA_FLOAT_TYPE);
+
         std::vector<double> raw_egv;
         for(int i = 0 ; i < format_egv.size(); i++)
         {
@@ -362,10 +245,8 @@ public :
         std::cerr << "raw_sig_size:" << raw_sigs.size() << std::endl;
         double coords[Traits::D];
         std::vector<double> act_vsig;
-        // for(int i = 0 ; i < raw_sigs.size(); i++)
-        // {
-        //   std::cerr << "    rs:" << raw_sigs[i] << std::endl;
-        // }
+
+
         std::cerr << "rdone" << std::endl;
         for(int i = 0 ; i < raw_sigs.size(); i++)
         {
@@ -383,8 +264,7 @@ public :
     void fill_sigs(std::vector<std::vector<double>>  & format_sigs, bool do_clear = true)
     {
         int D = Traits::D;
-        //        ddt_data<Traits>::dmap[sig_name] = Data_ply(sig_name,"vertex",D,D,DATA_FLOAT_TYPE);
-        //ddt_data<Traits>::Data_ply(sig_name,"vertex",D,D,DATA_FLOAT_TYPE);
+
         std::vector<double> raw_sigs;
         for(int i = 0 ; i < format_sigs.size(); i++)
         {
@@ -398,25 +278,6 @@ public :
         }
         raw_sigs.clear();
     }
-
-
-
-    // void float2double(std::vector<std::string> & data_name)
-    // {
-
-    //   if(ddt_data<Traits>::dmap[data_name].get_nbe_uint8_vect() == 0 &&
-    //      ddt_data<Traits>::dmap[data_name].get_nbe_shpt_vect() != 0){
-    //     ddt_data<Traits>::dmap[data_name].shpt_vect2uint8_vect();
-    //   }
-    //   if(ddt_data<Traits>::dmap[data_name].type == tinyply::Type::FLOAT32){
-    //     std::vector<float> v_float;
-    //     ddt_data<Traits>::dmap[data_name].extract_full_uint8_vect(v_float,true);
-    //     std::vector<double> doubleVec(v_float.begin(),v_float.end());
-    //     ddt_data<Traits>::dmap[data_name].type = tinyply::Type::FLOAT64;
-    //     ddt_data<Traits>::dmap[data_name].fill_full_uint8_vect(doubleVec);
-    //   }
-
-    // }
 
 
 
@@ -500,24 +361,7 @@ public :
     }
 
 
-    //   void fill_flags(std::vector<int> & format_flags,bool do_clear = true)
-    // {
-    //     ddt_data<Traits>::dmap[flags_name] = Data_ply(flags_name,"face",1,1,tinyply::Type::INT32);
-    //     std::vector<int> raw_flags;
-    //     for(int i = 0 ; i < format_flags.size(); i++)
-    //     {
-    //         raw_flags.push_back(format_flags[i]);
-    //     }
 
-    //     ddt_data<Traits>::dmap[flags_name].fill_full_uint8_vect(raw_flags);
-    //     ddt_data<Traits>::dmap[flags_name].do_exist = true;
-
-    //     if(do_clear)
-    //     {
-    //         format_flags.clear();
-    //     }
-    //     raw_flags.clear();
-    // }
 
     void extract_flags(std::vector<int> & format_flags,bool do_clear = true)
     {

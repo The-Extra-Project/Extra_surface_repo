@@ -68,7 +68,7 @@ std::ostream & write_json_stream(const Tile & tile,std::ostream & ofile)
     std::string str = ss.str();
     str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
     ofile << str;
-    //    boost::property_tree::write_xml(ofile, root_node);
+
     return ofile;
 }
 

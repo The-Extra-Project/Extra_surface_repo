@@ -1382,14 +1382,7 @@ try_next_cell:
     {
         Cell_handle next = c->neighbor(i);
         if(previous == next) continue;
-        if(!next->has_vertex(tri.infinite_vertex()))
-        {
-            // if(CGAL::do_intersect(seg, tet)){
-            //sample_cell_raw(c,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
-            // }
-            //if(CGAL::do_intersect(seg, tet))
-            //sample_cell(next,Pt3d,Ptcenter,datas_tri,datas_pts,params,idr, D);
-        }
+
         // We temporarily put p at i's place in pts.
         const Point* backup = pts[i];
         pts[i] = &Ptcenter_mir;

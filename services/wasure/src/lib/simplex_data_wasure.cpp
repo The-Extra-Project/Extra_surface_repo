@@ -36,14 +36,6 @@ cell_data_wasure& cell_data_wasure::operator =(const cell_data_wasure& dt)
     return *this;
 }
 
-// cell_data_wasure& cell_data_wasure::operator=(const cell_data_wasure& dt) {
-//     flags = dt.flags;
-//     idx = dt.idx;
-//     tile_idx = dt.tile_idx;
-//     state = dt.state;
-//     return *this;
-// }
-
 void cell_data_wasure::init_dat()
 {
     for(int i = 0; i < dat.size(); i++)
@@ -112,7 +104,7 @@ void cell_data_wasure::read(std::istream& is,bool only_iq,bool is_ascii)
 
 std::ostream& iqlib::operator<<(std::ostream& os, const cell_data_wasure& dt)
 {
-    //os << std::to_string(dt.flags);
+
     return os;
 }
 
@@ -120,7 +112,7 @@ std::istream& iqlib::operator>>(std::istream& is, cell_data_wasure& dt)
 {
     std::string read{""};
     is >> read;
-    //dt.flags = std::stoull(read);
+
     return is;
 }
 
@@ -137,32 +129,19 @@ vertex_data_wasure::vertex_data_wasure(const vertex_data_wasure& dt)
     copy(dt);
 }
 
-// vertex_data_wasure& vertex_data_wasure::operator =(const vertex_data_wasure& dt) {
-//     flags = dt.flags;
-//     idx = dt.idx;
-//     tile_idx = dt.idx;
-//     state = dt.state;
-//     return *this;
-// }
 
 
 
 void vertex_data_wasure::write(std::ostream& os,bool only_iq,bool is_ascii ) const
 {
     vertex_data::write(os,only_iq,is_ascii);
-    // for(auto it = tacc.begin() it != tacc.end() ; it++)
-    //   os.write((char*)(&(*it)), sizeof(*it));
-    // for(auto it = tweig.begin() it != tweig.end() ; it++)
-    //   os.write((char*)(&(*it)), sizeof(*it));
+
 }
 
 void vertex_data_wasure::read(std::istream& is,bool only_iq,bool is_ascii )
 {
     vertex_data::read(is,only_iq,is_ascii);
-    // for(auto it = tacc.begin() it != tacc.end() ; it++)
-    //   os.write((char*)(&(*it)), sizeof(*it));
-    // for(auto it = tweig.begin() it != tweig.end() ; it++)
-    //   os.write((char*)(&(*it)), sizeof(*it));
+
 }
 
 std::ostream& iqlib::operator<<(std::ostream& os, const vertex_data_wasure& dt)
@@ -191,10 +170,3 @@ bool iqlib::operator!=(const vertex_data_wasure& left, const vertex_data_wasure&
 
 
 
-// bool iqlib::operator==(const cell_data_wasure& left, const cell_data_wasure& right) {
-//     return left.flags == right.flags;
-// }
-
-// bool iqlib::operator!=(const cell_data_wasure& left, const cell_data_wasure& right) {
-//     return !(left == right);
-// }
