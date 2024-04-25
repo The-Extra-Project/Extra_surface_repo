@@ -53,11 +53,11 @@ object ddt_algo {
 
   def saveAsPly2(rdd_ply : RDD[VData],output_dir : String){
     val nbp = rdd_ply.count.toInt
-      rdd_ply.zipWithIndex().map(
-        x => (x._2,x._1)
-      ).partitionBy(new HashPartitioner(nbp)).map(
-        x => x._2.replace(';','\n')
-      ).saveAsTextFile(output_dir)
+    rdd_ply.zipWithIndex().map(
+      x => (x._2,x._1)
+    ).partitionBy(new HashPartitioner(nbp)).map(
+      x => x._2.replace(';','\n')
+    ).saveAsTextFile(output_dir)
 
   }
 
@@ -96,7 +96,6 @@ object ddt_algo {
     val output_dir = params_scala("output_dir").head;
     val dim = params_scala("dim").head.toInt
     val t0_init = params_scala("t0").head.toLong
-
     val nbt = new nd_tree(dim,10,iq)
     val id_pad = nbt.nb_nodes(ndtree_depth-1);
 
@@ -110,9 +109,9 @@ object ddt_algo {
 
     if(plot_lvl >= 3){
       if(dim == 3){
-      iq.run_pipe_fun_KValue(
-        dump_ply_binary_cmd ++ List("--label", "tile_pts"),
-        iq.get_kvrdd(res_tiles,"z"), "tile_pts", do_dump = false).collect()
+        iq.run_pipe_fun_KValue(
+          dump_ply_binary_cmd ++ List("--label", "tile_pts"),
+          iq.get_kvrdd(res_tiles,"z"), "tile_pts", do_dump = false).collect()
       }
     }
 
@@ -160,7 +159,7 @@ object ddt_algo {
     println("===== rdd_idmap =====")
 
     println("Mapping keys ...")
-    //val nb_leaf = id_map.values.toArray.distinct.size
+
     val nb_leaf = rdd_idmap.map(x => x._2).distinct.count
     params_scala("nb_leaf") =  collection.mutable.Set(nb_leaf.toString)
     println("Number of leaf :" + nb_leaf)
@@ -197,7 +196,6 @@ object ddt_algo {
   def algo_loop(cur_tri : RDD[KValue], cur_edges : RDD[TEdge] , iq : IQlibSched , params_cpp : params_map,params_scala : params_map) : (RDD[KValue],RDD[TEdge],ListBuffer[(Int,RDD[VData])]) = {
 
 
-    // Algo param extraction
     val rep_loop = params_scala("rep_loop").head.toInt;
     val output_dir = params_scala("output_dir").head;
     val plot_lvl = params_scala("plot_lvl").head.toInt;
@@ -233,7 +231,6 @@ object ddt_algo {
       kvrdd_cur_tri  = iq.get_kvrdd(res_tri_insert_nbr, "t",txt = "tri_loop" + acc.toString) union kvrdd_insert_non_pts;
       kvrdd_cur_tri.persist(iq.get_storage_level_loop()).setName("KVRDD_CUR_TRI_" + acc)
       kvrdd_cur_tri.count
-
 
       //Extract the edge of the merging graph
       rdd_cur_edges = iq.get_edgrdd(res_tri_insert_nbr, "e");
@@ -280,7 +277,6 @@ object ddt_algo {
     val ply2geojson_fun =  set_params(params_cpp, List(("step","ply2geojson"))).to_command_line
     val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
 
-
     // Algo variables
     // Olg log system
     val kvrdd_log_list : ListBuffer[RDD[KValue]] = ListBuffer()
@@ -315,19 +311,18 @@ object ddt_algo {
     update_time(params_scala,"bbox");
 
 
-    // ============= DO LOOP ==============
     var kvrdd_cur_tri  : RDD[KValue] = iq.get_kvrdd(res_tri_bbox, "t",txt = "tri_bbox")
     var rdd_cur_edges = iq.get_edgrdd(res_tri_bbox, "e");
     val defaultV = (List(""));
     val (kvrdd_last_tri,kvrdd_last_edges,kvrdd_finalized_ply_list) = {
-        algo_loop(kvrdd_cur_tri,rdd_cur_edges,iq, params_cpp,params_scala);
+      algo_loop(kvrdd_cur_tri,rdd_cur_edges,iq, params_cpp,params_scala);
     }
 
     var kvrdd_finalized_tri = kvrdd_last_tri;
     var kvrdd_stats = kvrdd_last_tri;
 
     // Insert finalized point into global triangulation (non optimal)
-    var kvrdd_b4_union =  kvrdd_last_tri; 
+    var kvrdd_b4_union =  kvrdd_last_tri;
     if(dump_mode == "NONE"){
       kvrdd_b4_union =  (kvrdd_last_tri union kvrdd_pts_finalized).reduceByKey((u,v) => u ::: v)
     }
@@ -360,8 +355,8 @@ object ddt_algo {
       saveAsPly(rdd_finalized_ply_crown,output_dir + "/rdd_ply_finalized_last",plot_lvl)
       kvrdd_last_tri.unpersist();
       update_time(params_scala,"shareddumped");
-      if(true)
-        saveAsPly(rdd_finalized_ply_local,output_dir + "/rdd_ply_finalized_init",plot_lvl)
+
+      saveAsPly(rdd_finalized_ply_local,output_dir + "/rdd_ply_finalized_init",plot_lvl)
       update_time(params_scala,"localdumped");
       update_time(params_scala,"W:Dumpingdone");
     }
@@ -373,9 +368,7 @@ object ddt_algo {
   }
 
 
-
-
-    def compute_ddt_nograph(kvrdd_points: RDD[KValue], iq : IQlibSched , params_cpp : params_map, params_scala : params_map): (RDD[KValue],RDD[TEdge],ListBuffer[RDD[KValue]],RDD[KValue])  = {
+  def compute_ddt_nograph(kvrdd_points: RDD[KValue], iq : IQlibSched , params_cpp : params_map, params_scala : params_map): (RDD[KValue],RDD[TEdge],ListBuffer[RDD[KValue]],RDD[KValue])  = {
 
     val dim_algo = params_scala("dim").head
     val rep_loop = params_scala("rep_loop").head.toInt;
@@ -429,14 +422,14 @@ object ddt_algo {
     var rdd_cur_edges = iq.get_edgrdd(res_tri_bbox, "e");
     val defaultV = (List(""));
     val (kvrdd_last_tri,kvrdd_last_edges,kvrdd_finalized_ply_list) = {
-        algo_loop(kvrdd_cur_tri,rdd_cur_edges,iq, params_cpp,params_scala);
+      algo_loop(kvrdd_cur_tri,rdd_cur_edges,iq, params_cpp,params_scala);
     }
 
     var kvrdd_finalized_tri = kvrdd_last_tri;
     var kvrdd_stats = kvrdd_last_tri;
 
     // Insert finalized point into global triangulation (non optimal)
-    var kvrdd_b4_union =  kvrdd_last_tri; 
+    var kvrdd_b4_union =  kvrdd_last_tri;
     if(dump_mode == "NONE"){
       kvrdd_b4_union =  (kvrdd_last_tri union kvrdd_pts_finalized).reduceByKey((u,v) => u ::: v)
     }
@@ -469,15 +462,12 @@ object ddt_algo {
       saveAsPly(rdd_finalized_ply_crown,output_dir + "/rdd_ply_finalized_last",plot_lvl)
       kvrdd_last_tri.unpersist();
       update_time(params_scala,"shareddumped");
-      if(true)
-        saveAsPly(rdd_finalized_ply_local,output_dir + "/rdd_ply_finalized_init",plot_lvl)
+
+      saveAsPly(rdd_finalized_ply_local,output_dir + "/rdd_ply_finalized_init",plot_lvl)
       update_time(params_scala,"localdumped");
       update_time(params_scala,"W:Dumpingdone");
     }
 
-    // val final_graph = Graph(kvrdd_finalized_tri, kvrdd_finalized_edges, defaultV)
-    // final_graph.vertices.setName("graph_final_tri");
-    // final_graph.edges.setName("graph_");
     return (kvrdd_finalized_tri, kvrdd_finalized_edges,kvrdd_log_list,kvrdd_stats)
   }
 
@@ -489,14 +479,10 @@ object ddt_algo {
     val extract_graph_local_cmd =  set_params(params_cpp, List(("step","extract_voronoi"),("area_processed","1"))).to_command_line
     val extract_graph_shared_cmd =  set_params(params_cpp, List(("step","extract_voronoi"),("area_processed","2"))).to_command_line
 
-    // // Update global id of the voronoi function
-    // val res_tri_gid = iq.run_pipe_fun_KValue(
-    //   update_global_id_cmd,
-    //   (graph_tri.vertices union stats_cum).reduceByKey(_ ::: _), "ext_gr", do_dump = false).filter(!_.isEmpty())
     val kvrdd_gid_tri = graph_tri.vertices //iq.get_kvrdd(res_tri_gid)
 
     // Build the full graph
-    val graph_full = graph_tri //Graph((kvrdd_gid_tri union stats_cum).reduceByKey(_ ::: _) , graph_tri.edges, List(""))
+    val graph_full = graph_tri 
     val input_vertex : RDD[KValue] =  graph_full.vertices
     val input_edges : RDD[KValue] =  graph_full.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr))
 
@@ -550,9 +536,4 @@ object ddt_algo {
 
   }
 }
-
-
-
-
-//
 

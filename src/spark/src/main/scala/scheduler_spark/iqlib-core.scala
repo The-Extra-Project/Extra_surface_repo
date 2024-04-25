@@ -4,14 +4,9 @@ import sys.process._
 import org.apache.spark._;
 import org.apache.spark.graphx._;
 import scala.io.Codec
-//import scala.xml._;
-
-
-
 
 
 import org.apache.spark.rdd.RDD;
-
 import org.apache.spark.SparkContext._
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
@@ -68,9 +63,6 @@ object IQlibCore {
     return (get_fpath_value(vdat) == 'f')
   }
 
-  // Quick and dirty, usin "getFileSystem" to detect if we are on hdfs or local                                                      
-  // TODO : https://hadoop.apache.org/docs/r2.8.2/api/org/apache/hadoop/fs/Path.html                                                 
-
 }
 
 
@@ -84,40 +76,13 @@ class IQlibSched(
 
 
 
-  // val hadoopConf = new Configuration()
-  // val hdfs = FileSystem.get(hadoopConf)
-
-  // // =============== hdfs stuff ========================
-
-  // def copy_hdfs_data(vdat : VData,output_dir:String, hdfs_prefix : String) {
-  //   if(is_data_file(vdat)){
-  //     val ndat = output_dir + "/" + vdat.split(" ").last
-  //     val old_path = new Path(vdat.split(" ").last)
-  //     val new_path = new Path(output_dir + "/" + old_path.getName())
-  //      if ((old_path.toString() contains hdfs_prefix) && ! (new_path.toString() contains hdfs_prefix)) {
-  //        println("copy to local")
-  //        hdfs.copyToLocalFile(old_path,new_path);
-  //      }else if (! (old_path.toString() contains hdfs_prefix) && (new_path.toString() contains hdfs_prefix)){
-  //        println("copy to remote")
-  //        hdfs.copyFromLocalFile(old_path,new_path);
-  //      }else{
-  //        println("error!");
-  //      }    
-  //    }
-  // }
-
-  // def kvrdd_hdfs_interface(vrdd: Value,output_dir:String,hdfs_prefix : String = "hdfs:"){
-  //    val res = vrdd.map(copy_hdfs_data(_,output_dir,hdfs_prefix))
-  //    print(res)
-  // }  
-
   def get_storage_level() : StorageLevel = {
     return slvl_glob;
   }
 
   def get_storage_level_loop() : StorageLevel = {
     return slvl_loop;
-//    return StorageLevel.MEMORY_AND_DISK_SER;
+
   }
 
 
@@ -130,7 +95,6 @@ class IQlibSched(
   }
 
   // =============== Schedul stuff ========================
-
   def print_rdde_vdat(record: KValue, f: String => Unit) = {
     f(record._1 + " " + record._2.size + " ")
     for (e <- record._2) { f(e + " ") }
@@ -154,16 +118,9 @@ class IQlibSched(
       env = env_map,
       printRDDElement = print_rdde_vdat);
 
-//    rdd.unpersist()
-    // if (do_dump) {
-    //   println("output saved in :" + outname);
-    //   rdd2.saveAsTextFile(outname);
-    // }
+
     println("==================================");
-    //    rdd.cache()
-    // if(do_persist)
-    //   rdd2.persist(slvl)
-    //    rdd2.cache()
+
     rdd2.setName("RDD_PIPED_" + txt)
     rdd2;
   }
@@ -230,21 +187,14 @@ class IQlibSched(
     else
       res = rdd.map(split_key_value2(_));
 
-
-    // if(!persist_input){
-    //   rdd.unpersist()
-    // }
-    // if(persist_output)
-    //   return res.setName("GetKVRDD_" + txt).persist(slvl);
-    // else
       return res.setName("GetKVRDD_" + txt);
    }
 
   def get_edgrdd(rdd: RDD[VData], ss: String = ""): RDD[TEdge] = {
     if (!ss.isEmpty())
-      rdd.filter(_(0) == ss(0)).map(split_key_value3(_))//.persist(slvl)
+      rdd.filter(_(0) == ss(0)).map(split_key_value3(_))
     else
-      rdd.map(split_key_value3(_))//.persist(slvl)
+      rdd.map(split_key_value3(_))
   }
 
   // ================ Graph stuff ====================
@@ -268,7 +218,7 @@ class IQlibSched(
 
     def msgFunTvertIni(triplet: EdgeContext[Value, Value, Value]) {
       triplet.sendToDst(triplet.srcAttr)
-      //triplet.sendToSrc(triplet.dstAttr)
+
     }
     def reduceFunTvertIni(a: Value, b: Value): Value = a ::: b
 
@@ -284,7 +234,7 @@ class IQlibSched(
 
     def msgFunTvertIni(triplet: EdgeContext[Value, Value, Value]) {
       triplet.sendToDst(triplet.srcAttr)
-      //triplet.sendToSrc(triplet.dstAttr)
+
     }
     def reduceFunTvertIni(a: Value, b: Value): Value = a ::: b
 
@@ -298,8 +248,6 @@ class IQlibSched(
 
 
 
-
-  // Envoyer le point inserssé a ses nouveaux voisins
   def aggregate_edge_clique(graph: TGraph): RDD[KValue] = {
 
     def msgFunEdge1(triplet: EdgeContext[Value, Value, Value]) {

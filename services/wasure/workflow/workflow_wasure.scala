@@ -388,7 +388,6 @@ algo_list.foreach{ cur_algo =>
       val ext_cmd_vertex =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","1"))).to_command_line
       val ext_cmd_edges =  set_params(params_wasure, List(("step","extract_surface"),("area_processed","2"))).to_command_line
 
-
         while (acc_loop < max_opt_it) {
           val t0_loop = System.nanoTime()
           val acc_loop_str = "%03d".format(acc_loop)

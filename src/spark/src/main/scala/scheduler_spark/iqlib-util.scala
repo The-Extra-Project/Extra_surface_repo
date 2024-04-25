@@ -29,23 +29,20 @@ import collection.mutable
 
 
 object files_opt {
-def getListOfFiles(dir: String): List[File] = {
-  val d = new File(dir)
-  if (d.exists && d.isDirectory) {
-    d.listFiles.filter(_.isFile).toList
-  } else {
-    List[File]()
+  def getListOfFiles(dir: String): List[File] = {
+    val d = new File(dir)
+    if (d.exists && d.isDirectory) {
+      d.listFiles.filter(_.isFile).toList
+    } else {
+      List[File]()
+    }
   }
-}
 }
 
 object strings_opt {
   def get_bname(ss: String) = { ss.substring(0, ss.lastIndexOf('.')) }
   def parsable(ss: String) = { ss.replaceAll("\\s", "").replaceAll("//", "/") };
 }
-
-
-
 
 object bash_funcs {
   def get_bash_variable(vname: String,def_val: String = ""): String = {
@@ -54,7 +51,7 @@ object bash_funcs {
       return res
     } catch {
       case _:
-        Throwable => return def_val
+          Throwable => return def_val
     }
   }
 
@@ -68,7 +65,6 @@ object bash_funcs {
 }
 
 object xml_parsing {
-
 
   def get_param_from_xml_old(ss: String, lab_name: String, def_val: String = ""): String = {
     if (!does_exist(ss))
@@ -84,9 +80,6 @@ object xml_parsing {
     }
     return def_val;
   }
-
-
-
 
   def get_param_from_xml(ss: String, lab_name: String, def_val: String = ""): String = {
     if (!does_exist(ss))
@@ -157,12 +150,6 @@ object xml_parsing {
 object algo_stats {
 
 
-  // def simplex_global_id(id_simplex : Int) :  Array[(Int, Int)] = {
-  //   val stats_tri_sorted = stats_tri.last.map(x => (x.key,x.content.split(" ")(id_simplex).toLong)).
-  // sortByKey().map(x => (x._1.toLong,x._2.toLong)).collect
-  //  return stats_tri_sorted.map(x => List(x)).foldLeft(List((0,0)))((res,y) => res ::: List((y.last._1 + 1,res.last._2 +  y.head._2)))
-  // }
-
   def sum_simplex_id( stats_tri_last : RDD[KValue]) : List[(Int, List[Int])] = {
     val stats_tri_last_sorted = stats_tri_last.map(x => (x.key,x.content.split(" ").map(_.toInt))).sortByKey().collect.map(x => (x._1.toInt,x._2))
     val array_id = (stats_tri_last_sorted.map(x => (x._1)) :+ -1).drop(1)
@@ -187,29 +174,7 @@ object algo_stats {
       val ll = dat_stat.filter(x => (label_filter.map( y => x._1 contains y).reduce(_ && _)))
       return ll.map( x => x._2.toFloat).reduce(_ + _)
     }
-}
-
-//   def dump_stats(kvrdd_ll : ListBuffer[RDD[KValue]],nbp : Int, curr_nbt : Int,
-//     fprefix : String,scala_time : Long, stats_dir : String, sc : SparkContext ) {
-
-//     val fs = FileSystem.get(sc.hadoopConfiguration);
-
-//   val time_cpp = kvrdd_ll.map( x => x.map(y => y.data.split(" ", 5).last.split(";").map(x => x.split(":")).map(x => (x(0),x(1))))).reduce(_ ++ _).reduce(_ ++ _);
-//   val list_label = time_cpp.map( x => x._1.filter(!_.isDigit)).distinct;
-//   val output = fs.create(new Path(stats_dir + "/" + fprefix  + "_" + scala_time + "_" +
-//     "_nbp_" + nbp.toString +
-//     "_currnbt_" + curr_nbt.toString +
-//     ".csv"));
-//   val os = new BufferedOutputStream(output)
-//   os.write(("number_of_points ,number_of_tiles ,nb_exec, time_tot_scala," + list_label.reduce(_ + "," + _) + "\n").getBytes);
-//   os.write((nbp + ",").getBytes);
-//   os.write((curr_nbt*curr_nbt + "," ).getBytes);
-//   os.write(((sc.getExecutorMemoryStatus.size -1).toString + ",").getBytes )
-//   os.write((scala_time  + ",").getBytes)
-//   os.write(list_label.map(x => compute_time(time_cpp,List(x)).toString).reduce(_ ++ "," ++ _).getBytes)
-//   os.close()
-// }
-
+  }
 
 
   def dump_stats(kvrdd_ll : RDD[KValue],stats_filename : String, sc : SparkContext ) {
@@ -224,41 +189,19 @@ object algo_stats {
   }
 
 
-
-//   def dump_stats(nbp : Int, curr_nbt : Int,
-//     fprefix : String,scala_time : Long, stats_dir : String, sc : SparkContext ) {
-
-//     val fs = FileSystem.get(sc.hadoopConfiguration);
-
-
-//   val output = fs.create(new Path(stats_dir + "/" + fprefix  + "_" + scala_time + "_" +
-//     "_nbp_" + nbp.toString +
-//     "_currnbt_" + curr_nbt.toString +
-//     ".csv"));
-//   val os = new BufferedOutputStream(output)
-//   os.write(("number_of_points ,number_of_tiles ,nb_exec, time_tot_scala," +  "\n").getBytes);
-//   os.write((nbp + ",").getBytes);
-//   os.write((curr_nbt*curr_nbt + "," ).getBytes);
-//   os.write(((sc.getExecutorMemoryStatus.size -1).toString + ",").getBytes )
-//   os.write((scala_time  + ",").getBytes)
-//   os.close()
-// }
-
-
-
 }
 
 
 object dataset_processing {
   def ply2type(typename: String) : DataType = {
     typename match {
-      case "uchar" => ByteType case "uint8" => ByteType // UnsignedByteType ???
+      case "uchar" => ByteType case "uint8" => ByteType
       case "char" => ByteType case "int8" => ByteType
-      case "ushort" => ShortType case "uint16" => ShortType // UnsignedShortType ???
+      case "ushort" => ShortType case "uint16" => ShortType
       case "short" => ShortType case "int16" => ShortType
-      case "uint" => IntegerType case "uint32" => IntegerType // UnsignedIntegerType ???
+      case "uint" => IntegerType case "uint32" => IntegerType
       case "int" => IntegerType case "int32" => IntegerType
-      case "ulong" => LongType case "uint64" => LongType // UnsignedLongType ???
+      case "ulong" => LongType case "uint64" => LongType
       case "long" => LongType case "int64" => LongType
       case "float" => FloatType case "float32" => FloatType
       case "double" => DoubleType case "float64" => DoubleType
@@ -288,38 +231,8 @@ object dataset_processing {
       List(StructField(elems.last, ply2type(elems(1))))).reduce(_ ::: _))
   }
 
-
-  // def Schema2header( schema: StructType, nbv ) : StructType = {
-  //   frame_pts.schema.map(x => "property " + type2ply(x.dataType) + " " + name)
-  // }
-
 }
 
-
-
-
-// object params_parser {
-//   type params_map = Map[String,List[String]];
-
-//   def get_command_line_from_param(pmap : params_map) : List[String] = {
-//     pmap.map{case(k,v)=>List("--" + k, v(0))}.reduce(_ ++_)
-//   }
-
-//   def set_params(pmap : params_map,vals : List[(String,String)]) : params_map = {
-//     var nmap = pmap
-//     for(cc <- vals){
-//       nmap = nmap + (cc._1 -> List(cc._2));
-//     }
-//     nmap
-//   }
-
-//   implicit class cparam(pmap: params_map) {
-//     def to_command_line = pmap("exec_path") ++ pmap.map{
-//       case(k,v)=> (if(k != "exec_path") List("--" + k, v(0)) else List(""))
-//     }.reduce(_ ++ _)
-//   }
-
-// }
 
 
 object params_parser {
@@ -327,10 +240,6 @@ object params_parser {
   type Hash_StringSeq = mutable.HashMap[String, mutable.Set[String]]
   type params_map = Hash_StringSeq with mutable.MultiMap[String, String]
   type Param_List = ListBuffer[params_map]
-
-
-
-
 
   def format_data(
     params_scala : params_map,
@@ -379,7 +288,7 @@ object params_parser {
           println(" NB_kernel == 0, set to 1")
           nb_kernel = 1
         }
-        rep_value = nbp/max_ppt 
+        rep_value = nbp/max_ppt
         val nbp_per_kernel = nbp/nb_kernel;
         val input_rdd_raw: RDD[KValue] = sc.parallelize(List.range(0,nb_kernel)).map(
           x => (x.toLong, List(""))).repartition(rep_value.toInt)
@@ -397,11 +306,7 @@ object params_parser {
           x => ((x.toString endsWith ".ply") && ((ss_reg).findFirstIn(x.toString).isDefined)))
         kvrdd_inputs = iq.get_kvrdd(sc.parallelize(ply_input.map(
           fname => "p 1 " + ("([0-9]+)".r).findAllIn(fname.toString).toArray.last + " f " + fname.toString)),"p")
-
-        // val struct_inputs = iq.run_pipe_fun_KValue(
-        //   ser2datastruct_cmd ++ List("--label", "struct"),
-        //   kvrdd_inputs, "struct", do_dump = false)
-        kvrdd_inputs_struct = kvrdd_inputs//iq.get_kvrdd(struct_inputs)
+        kvrdd_inputs_struct = kvrdd_inputs
       }
 
       case "laz" => {
@@ -412,12 +317,8 @@ object params_parser {
           x => ((x.toString endsWith ".laz") && ((ss_reg).findFirstIn(x.toString).isDefined)))
         kvrdd_inputs = iq.get_kvrdd(sc.parallelize(ply_input.map(
           fname => "p 1 " + ("([0-9]+)".r).findAllIn(fname.toString).toArray.last + " f " + fname.toString)),"p")
-
-        // val struct_inputs = iq.run_pipe_fun_KValue(
-        //   ser2datastruct_cmd ++ List("--label", "struct"),
-        //   kvrdd_inputs, "struct", do_dump = false)
         kvrdd_inputs_struct = kvrdd_inputs//iq.get_kvrdd(struct_inputs)
-      }        
+      }
 
       case "plystream" => {
         println("")
@@ -452,80 +353,40 @@ object params_parser {
 
         kvrdd_inputs_struct = sc.textFile(input_dir + "*.stream").zipWithIndex.map(
           e => (e._2.toLong,List("z 1 " + e._2.toString + " z " +  e._1.toString))
-          ).repartition(nb_file).setName("KVRDD_INPUT")
+        ).repartition(nb_file).setName("KVRDD_INPUT")
       }
       case _ => {
         println(" ERROR : DATATYPE " + datatype + " does not exists")
-        println(" ERROR : DATATYPE " + datatype + " does not exists")
       }
-      // case "filestream" => {
-      //   println("")
-      //   println("======== LOAD DATA filestream =============")
-      //   val ss_reg = regexp_filter.r
-      //   val nb_ply = fs.listStatus(new Path(input_dir)).map(x => fs.listStatus(x.getPath)).reduce(_ ++ _).map(_.getPath).filter(
-      //     x => ((x.toString endsWith ".ply")) && ((ss_reg).findFirstIn(x.toString).isDefined)
-      //   ).size
-      //   // val nb_ply = fs.listStatus(new Path(input_dir)).map(_.getPath).filter(
-      //   //   x => ((x.toString endsWith ".ply"))
-      //   // ).size
 
-      //   if(regexp_filter == ""){
-      //     kvrdd_inputs = sc.textFile(input_dir + "*/*.ply").zipWithIndex.map(
-      //     e => (e._2.toLong,List("g 1 " + e._2.toString + " s " +  e._1.toString))
-      //     ).repartition(nb_ply/10+1).setName("KVRDD_INPUT")
-      //   }else{
-      //     kvrdd_inputs = sc.textFile(input_dir + regexp_filter + "/*.ply").zipWithIndex.map(
-      //     e => (e._2.toLong,List("g 1 " + e._2.toString + " s " +  e._1.toString))
-      //     ).repartition(nb_ply/10+1).setName("KVRDD_INPUT")
-      //   }
-      // }
 
     }
 
-
-
-    // if(plot_lvl >=3 && dim == 2){
-    //   val rdd_json_tri_simp = iq.run_pipe_fun_KValue(
-    //     ply2geojson_cmd ++ List("--label", "tri_locale_simp","--style","tri1.qml"),
-    //     kvrdd_inputs, "tri_locale_simp", do_dump = false)
-    //   rdd_json_tri_simp.collect()
-    // }
 
     return kvrdd_inputs_struct
 
   }
 
 
-
-
-
-
-
   def dump_json(pm : params_map,json_filename : String, sc : SparkContext)  = {
     println()
-    // val fs = FileSystem.get(sc.hadoopConfiguration);
-    // val output = fs.create(new Path(json_filename));
-    // val os = new BufferedOutputStream(output)
-    // os.write((scala.util.parsing.json.JSONObject(pm.toMap.map(x => (x._1,x._2.head))).toString()).getBytes);
-    // os.close()
   }
 
 
-
   def get_param_map(xml_params : scala.xml.Node) : params_map = {
-      val mm1 = new Hash_StringSeq with mutable.MultiMap[String, String]
-      for (xml_param <- xml_params(0).child) {
-        val label = xml_param.label;
-//        println("label =>" + label)
-        if(label != "#PCDATA"){
-          val value: String = xml_param.text
-          for(it <- value.split(","))
-            mm1.addBinding(label,it)
-        }
+    val mm1 = new Hash_StringSeq with mutable.MultiMap[String, String]
+    for (xml_param <- xml_params(0).child) {
+      val label = xml_param.label;
+
+      if(label != "#PCDATA"){
+        val value: String = xml_param.text
+        for(it <- value.split(","))
+          mm1.addBinding(label,it)
       }
-      if(mm1.size !=0){
-        mm1.addBinding("name",xml_params.label)
-      }
+    }
+    if(mm1.size !=0){
+      mm1.addBinding("name",xml_params.label)
+    }
     return mm1;
   }
 
@@ -538,7 +399,7 @@ object params_parser {
       if(mm1.size !=0 && mm1.get_param("do_process", "true").toBoolean ){
         val do_expand_joker = mm1.get_param("do_expand", "false").toBoolean
         if(do_expand_joker){
-          // =============
+
           val param_list_2 = new Param_List()
           val temp_map = new Hash_StringSeq with mutable.MultiMap[String, String]
           for((kk,svv) <- mm1){
@@ -642,9 +503,7 @@ object params_parser {
     return ll_params;
   }
 
-
-
-    def parse_xml_datasets_string(ss : String) : Param_List = {
+  def parse_xml_datasets_string(ss : String) : Param_List = {
     val ll_params : Param_List  = ListBuffer()
     val xml = XML.loadString(ss);
     val xml_datasets = xml \ "datasets";
@@ -712,14 +571,12 @@ object params_parser {
     return ll_params;
   }
 
-
   def parse_xml_params(ss : String) : params_map = {
     val xml = XML.loadFile(ss);
     val xml_datasets = xml \ "params";
     val mm = get_param_map(xml_datasets(0).child.head)
     return mm
   }
-
 
 
   def get_command_line_from_param(pmap : params_map) : List[String] = {
@@ -739,21 +596,20 @@ object params_parser {
   implicit class cparam(pmap: params_map) {
     def to_command_line = {
       pmap("exec_path").head.split(" ").toList  ++ pmap.map{
-      case(k,v)=> (if(k != "exec_path") List("--" + k, v.head) else List(""))
-    }.reduce(_ ++ _)}.toList
+        case(k,v)=> (if(k != "exec_path") List("--" + k, v.head) else List(""))
+      }.reduce(_ ++ _)}.toList
 
     def get_param(ss : String,df : String) : String = {
       if(pmap.keySet.exists(_ == ss))
         return pmap(ss).head
       else {
-         pmap(ss) = collection.mutable.Set(df)
-         return df
-       }
+        pmap(ss) = collection.mutable.Set(df)
+        return df
+      }
     }
 
     def exists(ll : List[String]) = { ll.map(x => pmap.keySet.exists(_ == x)).reduce(_ && _)}
   }
-
 
 }
 
