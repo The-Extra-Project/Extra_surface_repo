@@ -305,11 +305,9 @@ public :
 
     void fill_dst(std::vector<std::vector<double>>  & format_dst, bool do_clear = true)
     {
-        std::cerr << "ii1" << std::endl;
         int D = Traits::D;
         ddt_data<Traits>::dmap[dst_name] = Data_ply(dst_name,"face",3,3,DATA_FLOAT_TYPE);
         std::vector<double> raw_dst;
-        std::cerr << "ii2 : " << format_dst.size() << std::endl;
         for(int i = 0 ; i < format_dst.size(); i++)
         {
             for(int d = 0 ; d < 3; d++)
@@ -317,7 +315,7 @@ public :
                 raw_dst.push_back(format_dst[i][d]);
             }
         }
-        std::cerr << "ii3" << std::endl;
+
         ddt_data<Traits>::dmap[dst_name].fill_full_uint8_vect(raw_dst);
         ddt_data<Traits>::dmap[dst_name].do_exist = true;
         if(do_clear)

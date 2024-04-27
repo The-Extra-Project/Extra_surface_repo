@@ -39,16 +39,17 @@ import geojson_export._;
 
 object ddt_algo {
 
-  def saveAsPly(rdd_ply : RDD[VData],output_dir : String,plot_lvl : Int = 3){
+  def saveAsPly(rdd_ply : RDD[VData],output_dir : String,plot_lvl : Int = 3)
+  {
     if(plot_lvl > 2)
       saveAsPly2(rdd_ply,output_dir)
     else
       saveAsPly2(rdd_ply,output_dir)
   }
 
-  def saveAsPly1(rdd_ply : RDD[VData],output_dir : String){
+  def saveAsPly1(rdd_ply : RDD[VData],output_dir : String)
+  {
     rdd_ply.saveAsTextFile(output_dir)
-
   }
 
   def saveAsPly2(rdd_ply : RDD[VData],output_dir : String){
@@ -61,8 +62,8 @@ object ddt_algo {
 
   }
 
-
-  def update_time(params_scala : params_map, label : String, ps : Char = '_'){
+  def update_time(params_scala : params_map, label : String, ps : Char = '_')
+  {
     val t0_init = params_scala("t0").head.toLong
     val t_curr = System.nanoTime();
     val time_string = ((t_curr - t0_init)/1000000000.0).toString
@@ -72,10 +73,8 @@ object ddt_algo {
     params_scala("[time]" + "%03d".format(id) + "_" + label) = collection.mutable.Set(time_string)
   }
 
-
-
-  def update_global_ids(kvrdd_finalized_tri : RDD[KValue],kvrdd_stats : RDD[KValue],rep_merge : Int,iq : IQlibSched , params_cpp : params_map, sc : SparkContext) : RDD[KValue] = {
-
+  def update_global_ids(kvrdd_finalized_tri : RDD[KValue],kvrdd_stats : RDD[KValue],rep_merge : Int,iq : IQlibSched , params_cpp : params_map, sc : SparkContext) : RDD[KValue] =
+  {
     val stats_cum = kvrdd_simplex_id(kvrdd_stats,sc);
     val update_global_id_cmd =  set_params(params_cpp, List(("step","update_global_id"))).to_command_line
     val res_tri_gid = iq.run_pipe_fun_KValue(
@@ -85,8 +84,8 @@ object ddt_algo {
     return kvrdd_gid_tri;
   }
 
-  def compute_tiling(kvrdd_inputs : RDD[KValue],iq : IQlibSched,params_ddt : params_map,params_scala : params_map ) : RDD[KValue] = {
-
+  def compute_tiling(kvrdd_inputs : RDD[KValue],iq : IQlibSched,params_ddt : params_map,params_scala : params_map ) : RDD[KValue] =
+  {
     val plot_lvl = params_scala("plot_lvl").head.toInt;
     val tile_cmd =  set_params(params_ddt, List(("step","tile_ply"))).to_command_line
     val dump_ply_binary_cmd =  set_params(params_ddt, List(("step","dump_ply_binary"))).to_command_line
@@ -101,11 +100,9 @@ object ddt_algo {
 
     kvrdd_inputs.count;
 
-
     val res_tiles = iq.run_pipe_fun_KValue(
       tile_cmd ++ List("--label", "pts_tile"),
       kvrdd_inputs, "tile", do_dump = false).setName("KVRDD_TILING");
-
 
     if(plot_lvl >= 3){
       if(dim == 3){
@@ -115,23 +112,14 @@ object ddt_algo {
       }
     }
 
-
     res_tiles.persist(iq.get_storage_level())
     res_tiles.count
-
-
     update_time(params_scala,"tiling");
-    println("");
-    println("");
-
-
-
     val kvrdd_count: RDD[KValue] = iq.get_kvrdd(res_tiles, "c",txt="count").cache();
     val rddc = kvrdd_count.map(x => (x._1.toInt + id_pad,x.value(0).split(" ").last.toInt)).reduceByKey(_+_).cache()
     val max_tile = rddc.reduce((x,y) => if(x._2 > y._2) x else y);
     val tot_nbp = rddc.map(x => x._2.toLong).reduce(_ + _);
-    println("max depth tile : " + max_tile )
-    println("tot_nbp : " + tot_nbp )
+    println("total number of points : " + tot_nbp )
     params_scala("tot_nbp") =  collection.mutable.Set(tot_nbp.toString)
     if(max_tile._2 > max_ppt){
       println("======================  WARNING  =====================")
@@ -142,13 +130,10 @@ object ddt_algo {
 
 
     println("Compute id map ...")
-
     val (res_v,lf_new) = nbt.compute_id_rdd(rddc,max_ppt);
     val rdd_idmap = res_v.reduceByKey((u,v) => u).cache()
 
     update_time(params_scala,"octree");
-
-
     val rdd_idmap_sorted = lf_new.map(x => (x._1,x._2._1)).sortBy(_._2,false).zipWithIndex().map( x=> (x._1._1.toLong,x._2))
     val idmap_sorted = rdd_idmap.map(x => (x._2,x._1)).cogroup(rdd_idmap_sorted).filter(
       x => ((!x._2._2.isEmpty) && (!x._2._1.isEmpty))).map(
@@ -157,12 +142,11 @@ object ddt_algo {
 
 
     println("===== rdd_idmap =====")
-
     println("Mapping keys ...")
 
     val nb_leaf = rdd_idmap.map(x => x._2).distinct.count
     params_scala("nb_leaf") =  collection.mutable.Set(nb_leaf.toString)
-    println("Number of leaf :" + nb_leaf)
+    println("Number of leafs :" + nb_leaf)
     val rep_value = nb_leaf.toInt;
 
 
@@ -184,8 +168,6 @@ object ddt_algo {
     kvrdd_points.count();
 
     update_time(params_scala,"mapping");
-    println("");
-    println("");
     res_tiles.unpersist()
 
     return kvrdd_points
@@ -278,16 +260,13 @@ object ddt_algo {
     val tri2geojson_cmd =  set_params(params_cpp, List(("step","tri2geojson"))).to_command_line
 
     // Algo variables
-    // Olg log system
     val kvrdd_log_list : ListBuffer[RDD[KValue]] = ListBuffer()
-
 
     //==== Starts algo ==========
     kvrdd_points.count
     val res_tri_local = iq.run_pipe_fun_KValue(
       insert_in_triangulation_fun ++ List("--label", "tri_tile","--extract_tri_crown",""),
       kvrdd_points, "insert_in_triangulation", do_dump = false)
-
 
     res_tri_local.persist(iq.get_storage_level()).setName("KVRDD_RES_TRI_LOCAL")
     res_tri_local.count
@@ -300,8 +279,6 @@ object ddt_algo {
     rdd_finalized_ply_local.persist(iq.get_storage_level())
     val kvrdd_bbox : RDD[KValue] = iq.get_kvrdd(res_tri_local, "q",txt = "tri_full").setName("bbox")
     val kvrdd_count : RDD[KValue] = iq.get_kvrdd(res_tri_local, "c",txt="stats");
-
-
     val ll_bbox_pts = kvrdd_bbox.map(x => x.value).reduce(_ ++ _)
     val llrdd_input_tri = kvrdd_pts_crown.map(x => (x.key, (x.value ++ ll_bbox_pts)))
     val res_tri_bbox = iq.run_pipe_fun_KValue(
@@ -309,7 +286,6 @@ object ddt_algo {
       llrdd_input_tri, "insert_in_triangulation_bbox", do_dump = false).persist(iq.get_storage_level_loop())
     res_tri_bbox.count
     update_time(params_scala,"bbox");
-
 
     var kvrdd_cur_tri  : RDD[KValue] = iq.get_kvrdd(res_tri_bbox, "t",txt = "tri_bbox")
     var rdd_cur_edges = iq.get_edgrdd(res_tri_bbox, "e");
@@ -338,7 +314,6 @@ object ddt_algo {
     kvrdd_stats = iq.get_kvrdd(res_finalized_tri, "s",txt="stats").cache()
     val kvrdd_finalized_edges =  iq.get_edgrdd(res_finalized_tri, "e");
     kvrdd_stats.count();
-
     update_time(params_scala,"ddtdone");
 
     // Ploting section
@@ -478,11 +453,10 @@ object ddt_algo {
     val update_global_id_cmd =  set_params(params_cpp, List(("step","update_global_id"))).to_command_line
     val extract_graph_local_cmd =  set_params(params_cpp, List(("step","extract_voronoi"),("area_processed","1"))).to_command_line
     val extract_graph_shared_cmd =  set_params(params_cpp, List(("step","extract_voronoi"),("area_processed","2"))).to_command_line
-
     val kvrdd_gid_tri = graph_tri.vertices //iq.get_kvrdd(res_tri_gid)
 
     // Build the full graph
-    val graph_full = graph_tri 
+    val graph_full = graph_tri
     val input_vertex : RDD[KValue] =  graph_full.vertices
     val input_edges : RDD[KValue] =  graph_full.convertToCanonicalEdges().triplets.map(ee => (ee.srcId,ee.srcAttr ++ ee.dstAttr))
 

@@ -72,10 +72,8 @@ function run_fun () {
 		echo ""
 		eval $DOCKER_EXE
 		rc=$?;
-		echo "RC ===> $rc" 
 		if [[ $rc != 0 ]];
 		then
-		    echo "RC ===> $rc" 
 		    exit $rc;
 		else
 		    return 0;

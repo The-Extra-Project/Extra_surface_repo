@@ -120,7 +120,7 @@ public :
         return filename;
     }
 
-    void write_into_file(std::string root_dir,std::string ext, bool rand_ext = true);
+    void write_into_file(std::string root_dir,std::string ext, bool rand_ext = false);
     void set_file_name(std::string fname);
 
 
