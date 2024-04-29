@@ -36,8 +36,6 @@ public :
         return os;
     }
 
-
-    // --- help function ----
     void help_param()
     {
         std::cerr << "--------------------------------------------------" << std::endl
@@ -51,7 +49,7 @@ public :
     int parse(int argc, char **argv)
     {
         int cc;
-        int errflg = 2;
+        int errflg = 0;
         static struct option long_options[] =
         {
             // /* These options set a flag. */
@@ -89,7 +87,6 @@ public :
             {
             case 's':
                 algo_step = std::string(optarg);
-                errflg--;
                 break;
             case 'r':
                 input_dir = std::string(optarg);
