@@ -131,7 +131,6 @@ public :
                 if(tmp_fch->is_infinite() ||  tmp_fchn->is_infinite() )
                     is_on_convex = true;
                 Cell_const_iterator fch = tmp_fch->main();
-                int id_cov = fit.index_of_covertex();
                 Cell_const_iterator fchn = tmp_fchn->main();
 
                 int cccid = fch->lid();

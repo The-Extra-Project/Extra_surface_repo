@@ -609,7 +609,7 @@ struct Cgal_traits_2
             }
         }
 
-        uint num_c = data.dmap[data.simplex_name].get_nbe_input();///(D+1);
+        uint num_c = data.dmap[data.simplex_name].get_nbe_input();
 
         std::vector<Cell_handle> cell_map(num_c);
         uint ik;
@@ -628,12 +628,12 @@ struct Cgal_traits_2
             if(do_data)
             {
                 ch->info().flag = v_flags[ii];
-                ch->info().id = ii;//v_cid[ii];
+                ch->info().id = ii;
             }
             else
             {
                 ch->info().flag = 1;
-                ch->info().id = ii;//v_cid[ii];
+                ch->info().id = ii;
             }
         }
 

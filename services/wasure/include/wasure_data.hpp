@@ -18,14 +18,13 @@ public :
 
     wasure_data() : ddt_data<Traits>(), tile_ids(3)
     {
-        int D = Traits::D;
         init_wasure_name();
         init_wasure_map();
     }
 
     wasure_data(std::map<std::vector<std::string>, Data_ply > & init_dmap)
     {
-        init_name();
+        init_wasure_name();
         for ( const auto &ee : init_dmap )
         {
             ddt_data<Traits>::dmap[ee.first] =  Data_ply(ee.first,ee.second.part,Traits::D,ee.second.get_vsize(),ee.second.type);
@@ -274,7 +273,6 @@ public :
 
     void extract_dst( std::vector<std::vector<double>>  & format_dst,bool do_clear = true)
     {
-        int D = Traits::D;
         std::vector<double> raw_dst;
         ddt_data<Traits>::dmap[dst_name].extract_raw_uint8_vect(raw_dst,false);
         std::vector<double> act_vdst;
@@ -295,7 +293,7 @@ public :
 
     void fill_dst(std::vector<std::vector<double>>  & format_dst, bool do_clear = true)
     {
-        int D = Traits::D;
+
         ddt_data<Traits>::dmap[dst_name] = Data_ply(dst_name,"face",3,3,DATA_FLOAT_TYPE);
         std::vector<double> raw_dst;
         for(int i = 0 ; i < format_dst.size(); i++)

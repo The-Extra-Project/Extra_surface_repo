@@ -673,29 +673,13 @@ struct Cgal_traits_d
             }
             cell_map[ii] = ch;
         }
-        if(true)
-        {
-            deserialize_b64_vect(v_char,ifile);
-            for(uint i = 0; i < num_c; ++i)
-            {
-                int ii = i;
-                cell_map[ii]->data().flag =  v_char[ii];
-            }
-            deserialize_b64_vect(v_int,ifile);
-            for(uint i = 0; i < num_c; ++i)
-            {
-                int ii = i;
-                cell_map[ii]->data().gid =  v_int[ii];
-            }
-        }
-        else
-        {
-            for(uint i = 0; i < num_c; ++i)
+
+	for(uint i = 0; i < num_c; ++i)
             {
                 int ii = i;
                 cell_map[ii]->data() =  0;
             }
-        }
+
         deserialize_b64_vect(v_int,ifile);
         for(uint j = 0; j < num_c; ++j)
         {
@@ -789,11 +773,6 @@ struct Cgal_traits_d
         for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
         {
             int ii = i;
-            if(false)
-            {
-                cell_map[it] = 0;
-                continue;
-            }
             cell_map[it] = ii;
             ++i;
             for(int d = 0; d < D+1; d++)
@@ -818,8 +797,7 @@ struct Cgal_traits_d
 
         for(auto it = tri.full_cells_begin(); it != tri.full_cells_end(); ++it)
         {
-            if(false)
-                continue;
+
             for(int j = 0; j < D+1; j++)
             {
                 int nb_id = cell_map[it->neighbor(j)];

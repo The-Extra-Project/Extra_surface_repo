@@ -366,7 +366,6 @@ public:
         int icv = index_of_covertex(f);
         auto c1 = full_cell(f);
         auto c2 = neighbor(c1,icv);
-        bool foreign = true;
         std::vector<int> lid;
         for(int i=0; i<=current_dimension(); ++i)
         {
@@ -471,8 +470,6 @@ public:
     template<typename C>
     bool cell_is_inside(C c) const
     {
-        //      const std::map<Id, Bbox<D>> & bb1 = bbox();
-        //const Bbox<D> & bb1 = bbox_[id_];
         return traits_.is_inside(dt_,bbox(id_), c);
     }
 
@@ -499,8 +496,7 @@ public:
                 Vertex_const_handle v = vertex(cit, i);
                 if(!vertex_is_infinite(v))
                 {
-                    // Point p = v->point();
-                    // std::cout << p << std::endl;
+
                     flag(v,0,0);
                 }
             }
@@ -653,7 +649,6 @@ public:
     // Algo
     int insert_points_id_id(std::vector<Point_id_id> & vpis, int tid, bool do_insert_local = false)
     {
-        //    std::vector<Point_id_id> svh_new;
         std::vector<Point_id> v_pai;
         int nbi1 = 0;
         bool do_simplify=true;
@@ -667,7 +662,6 @@ public:
             }
             else
             {
-                //            svh_new.emplace_back(pp);
                 v_pai.emplace_back(std::get<0>(pp), idp);
             }
         }

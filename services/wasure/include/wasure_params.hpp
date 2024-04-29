@@ -36,14 +36,13 @@ public :
         return os;
     }
 
-    // ---
+
     // --- help function ----
     void help_param()
     {
         std::cerr << "--------------------------------------------------" << std::endl
                   << "INPUTS" << std::endl
-                  << "--algo_step <string> : input_data_dir " << std::endl
-                  << "--dim <int> : output_data_dir " << std::endl
+		  << "[TODO]" << std::endl
                   << "[ --help ]  : print this message" << std::endl
                   << "--------------------------------------------------" << std::endl ;
     }
@@ -112,7 +111,7 @@ public :
                 break;
             case 'b':
                 bbox_string = std::string(optarg);
-                std::replace( bbox_string.begin(), bbox_string.end(), ':', ' '); // replace all 'x' to 'y'
+                std::replace( bbox_string.begin(), bbox_string.end(), ':', ' '); 
                 std::replace( bbox_string.begin(), bbox_string.end(), 'x', ' ');
                 break;
             case 'n':
@@ -131,7 +130,6 @@ public :
                 rat_ray_sample = atof(optarg);
                 break;
             case 'd':
-                std::cerr << "void" << std::endl;
                 break;
             case 'p':
                 area_processed = atoi(optarg);
@@ -163,13 +161,13 @@ public :
             case 'h':
                 char * optc = (argv[optind]);
                 std::cout << "value:" << (char)cc << "  :  " << optc  << std::endl;
-                //help_param();
+                help_param();
                 return 0;
             }
         }
         if(errflg != 0)
         {
-            //help_param();
+            help_param();
             return 1;
         }
         return 0;

@@ -196,7 +196,6 @@ int main(int argc, char **argv)
             }
         }
         // ===== Init the id of each cell
-        int acc = 0;
         init_local_ids(tri1);
         w_algo.compute_dst_with_center(tri1,w_datas_tri[tid],wdp,params,tid);
         w_datas_tri[tid].fill_dst(w_datas_tri[tid].format_dst,false);

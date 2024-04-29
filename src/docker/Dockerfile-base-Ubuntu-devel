@@ -4,11 +4,6 @@ MAINTAINER Laurent Caraffa "caraffa.laurent@gmail.com"
 
 ENV DEBIAN_FRONTEND noninteractive
 
-# ENV http_proxy http://proxy.ign.fr:3128/ 
-# ENV https_proxy http://proxy.ign.fr:3128/
-# ENV HTTP_HTTP http://proxy.ign.fr:3128/ 
-# ENV HTTPS_PROXY http://proxy.ign.fr:3128/ 
-
 # Genebrals
 RUN apt-get update &&  apt-get install -y cmake nano sudo gdb libboost-all-dev g++ wget  --assume-yes
 

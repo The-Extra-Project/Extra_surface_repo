@@ -299,7 +299,6 @@ public:
 
     void init_local_id()
     {
-        typedef typename Traits::Flag_C                    Flag_C;
         typedef typename Traits::Data_C                    Data_C;
         typedef typename Traits::Data_V                    Data_V;
         int nextid = 0;

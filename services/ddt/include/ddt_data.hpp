@@ -10,7 +10,7 @@
 #include "io/logging_stream.hpp"
 #include "io/base64.hpp"
 
-// #define PLY_CHAR (';')
+
 #define DATA_FLOAT_TYPE (tinyply::Type::FLOAT64)
 #define NB_DIGIT_OUT (5)
 
@@ -112,11 +112,7 @@ public :
                 ss << ee << "\t";
             }
             ss << std::endl;
-            // for(int i = 0; i < uint8_vect.size(); i++){
-            // 	ss << uint8_vect[i] << "\t";
-            // 	if(i % vsize == vsize-1)
-            // 	  ss << std::endl;
-            // }
+
         }
 
         int get_vsize() const
@@ -173,7 +169,7 @@ public :
             }
             else
             {
-                //vv =  reinterpret_cast<DT &>(uint8_vect[id*vnbb+i*tinyply::PropertyTable[type].stride]);
+
                 std::memcpy(&vv,&uint8_vect[id*vnbb+i*tinyply::PropertyTable[type].stride],tinyply::PropertyTable[type].stride);
             }
         }
@@ -295,7 +291,6 @@ public :
     void init_map()
     {
         int D = Traits::D;
-        //    dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,tinyply::Type::INVALID);
         dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
         dmap[conf_vertex_name] = Data_ply(conf_vertex_name,"vertex",1,1,DATA_FLOAT_TYPE);
         dmap[simplex_name] = Data_ply(simplex_name,"face",D+1,D+1,tinyply::Type::INT32);
@@ -327,7 +322,6 @@ public :
 
     ddt_data()
     {
-        int D = Traits::D;
         init_name();
         init_map();
     }
@@ -393,7 +387,7 @@ public :
             if(!is_first)
                 ofs_pts << "," << std::endl;
             is_first=false;
-            // Points
+
             ofs_pts << "{" << std::endl;
             ofs_pts << "\"type\": \"Feature\"," << std::endl;
             ofs_pts << "\"geometry\": {" << std::endl;
@@ -560,7 +554,6 @@ public :
         {
             if(ee.second.do_exist)
             {
-                int nbe = dmap[ee.first].get_nbe_uint8_vect();
 
                 auto vv = dmap[ee.first].uint8_vect;
                 ss << dmap[ee.first].vname.size() << " ";
@@ -589,7 +582,6 @@ public :
             std::vector<std::string> data_name;
             std::string tt_name("vertex");
             int dim,vs,dn_size;
-            tinyply::Type tt;
             ss >> dn_size;
             std::string nnn;
             for(int i = 0; i < dn_size; i++)
@@ -756,11 +748,10 @@ public :
         {
             tinyply::PlyFile file;
             file.parse_header(ss,nl_char);
-            int vsize = 0;
+
             for (auto e : file.get_elements())
             {
 
-                    vsize = e.size;
                     for (auto p : e.properties)
                     {
                         std::vector<std::string> pname({p.name});
@@ -858,7 +849,7 @@ public :
             ifile >> part >> dim >> vsize >> tt;
             dmap[cname] = Data_ply(cname,part,dim,vsize,static_cast<tinyply::Type>(tt));
             read_b64_data_fast(dmap[cname],ifile);
-            //      dmap[xyz_name] = Data_ply(xyz_name,"vertex",D,D,get_float_type());
+
         }
     };
 
@@ -918,17 +909,6 @@ public :
     }
 
 
-    // void copy_point(ddt_data & wd, int id){
-    //   for ( const auto &ee : wd.dmap ) {
-    //     if(ee.second.do_exist){
-    // 	int vnbb =  ee.second.get_vnbb();
-    // 	for(int i = 0 ; i < vnbb; i++){
-    // 	  dmap[ee.first].uint8_vect.push_back(wd.dmap[ee.first].shpt_vect->buffer.get()[id*vnbb+i]);
-    // 	}
-    // 	dmap[ee.first].do_exist = true;
-    //     }
-    //   }
-    // }
 
 
     void copy_point(ddt_data & wd, int id)

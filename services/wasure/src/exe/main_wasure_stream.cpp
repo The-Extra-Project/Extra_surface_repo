@@ -226,7 +226,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
         w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(w_datas.format_points,false);
         w_datas.dmap[w_datas.center_name].extract_full_uint8_vect(w_datas.format_centers,false);
         w_datas.extract_flags(w_datas.format_flags,false);
-        int acc = 0;
+
         std::vector<Point> p_simp;
         log.step("compute_dim");
         if(w_datas.format_centers.size() == 0)
@@ -282,7 +282,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
             CGAL::Vector_3<typename Traits::K> v1{pp[0],pp[1],pp[2]};
             CGAL::Vector_3<typename Traits::K> u = {-v1[1], v1[0], 0.0};
             auto v2 = normalize(CGAL::cross_product(v1,u));
-            auto v3 = CGAL::cross_product(v1, v2);
+
         }
         if(w_datas_full.format_centers.size() == 0)
         {
@@ -330,8 +330,6 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
                 std::cout.clear();
                 log.step("write");
                 ddt::stream_data_header oth("z","s",tid);
-                if(params.dump_ply && false)
-                    oth.write_into_file(ply_name,".ply");
                 oth.write_header(std::cout);
                 if(params.dump_ply)
                     w_datas.write_ply_stream(oth.get_output_stream(),oth.get_nl_char(),true);
@@ -397,7 +395,7 @@ int dst(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log
     std::cout.setstate(std::ios_base::failbit);
     DTW tri;
     Scheduler sch(1);
-    int D = Traits::D;
+
     wasure_algo w_algo;
     D_LMAP w_datas_pts;
     D_MAP w_datas_tri;
@@ -455,7 +453,7 @@ int dst(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log
     }
     Tile_iterator  tile1  = tri.get_tile(tid);
     int nbs = tile1->number_of_cells();
-    int accll = 0;
+
     if(w_data_full.format_flags.size() == 0)
     {
         for(int ss = 0; ss < nbs ; ss++)
@@ -493,7 +491,7 @@ int dst_conflict(const Id tid,wasure_params & params,int nb_dat,ddt::logging_str
     std::cout.setstate(std::ios_base::failbit);
     DTW tri;
     Scheduler sch(1);
-    int D = Traits::D;
+
     wasure_algo w_algo;
     D_LMAP w_datas_pts;
     D_MAP w_datas_tri;
@@ -635,7 +633,7 @@ int dst_good(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream 
     std::cout.setstate(std::ios_base::failbit);
     DTW tri;
     Scheduler sch(1);
-    int D = Traits::D;
+
     wasure_algo w_algo;
     D_LMAP w_datas_pts;
     D_MAP w_datas_tri;
@@ -725,7 +723,7 @@ int regularize_slave_focal(Id tid,wasure_params & params,int nb_dat,ddt::logging
     DTW tri;
     Scheduler sch(1);
     wasure_algo w_algo;
-    int D = Traits::D;
+
     D_MAP w_datas_tri;
     log.step("read");
     for(int i = 0; i < nb_dat; i++)
@@ -824,9 +822,9 @@ int regularize_slave_extract(Id tid_1,wasure_params & params,int nb_dat,ddt::log
     DTW tri;
     Scheduler sch(1);
     wasure_algo w_algo;
-    int D = Traits::D;
+
     D_MAP w_datas_tri;
-    Traits  traits;
+
     std::map<Id,std::map<Id,SharedDataDst> > edges_dst_map;
     log.step("read");
     for(int i = 0; i < nb_dat; i++)
@@ -928,7 +926,6 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
         if(hpi.get_lab() == "f")
         {
             Id eid1 = hpi.get_id(0);
-            Id eid2 = hpi.get_id(1);
             edges_dst_map[eid1] = std::map<Id,SharedDataDst>();
             std::map<Id,SharedDataDst>  & lp = edges_dst_map[eid1];
             read_id_dst_serialized(lp, hpi.get_input_stream(),tid == 3);
@@ -979,17 +976,7 @@ int regularize_slave_insert(Id tid,wasure_params & params,int nb_dat,ddt::loggin
                 }
                 is_cell_equal = is_cell_equal && is_pts_equal;
             }
-            if(!is_cell_equal && false)
-            {
-                for(int d1 = 0; d1 < D; d1++)
-                {
-                    auto pd1 = main_cell->vertex(d1)->point();
-                }
-                for(int d1 = 0; d1 < D; d1++)
-                {
-                    auto pd1 = vpp[d1];
-                }
-            }
+
             Id cmid = tile_k->cell_main_id(main_cell);
             Id lid_k = tile_k->lid(main_cell);
             if(shared_data_map.find(tid_l) == shared_data_map.end())

@@ -130,7 +130,6 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
 {
     TTr traits;
     typedef typename TTr::Vertex_handle                            Vertex_handle_raw;
-    typedef typename TTr::Cell_handle                            Cell_handle_raw;
     int D = TTr::D;
     char buffer[kBufferSize];
     double_conversion::StringBuilder builder(buffer, kBufferSize);

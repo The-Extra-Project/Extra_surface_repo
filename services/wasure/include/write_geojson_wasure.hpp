@@ -42,7 +42,6 @@ template <typename DTW>
 int dump_2d_surface_geojson(std::vector<typename DTW::Facet_const_iterator> & lft, std::ostream & ofs)
 {
     using Vertex_const_iterator = typename DTW::Vertex_const_iterator;
-    using Cell_const_iterator = typename DTW::Cell_const_iterator;
     using Point = typename DTW::Point;
     using Facet = typename DTW::Facet_const_iterator;
     bool is_first = true,is_first2 = true;

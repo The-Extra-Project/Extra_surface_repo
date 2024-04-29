@@ -161,7 +161,6 @@ double n_surface(typename std::list<Point> & lp, int D)
 {
     Traits traits;
     Point p0 = get_barycenter_pts<Point,Traits>(lp,D);
-    int nbp = lp.size();
 
     int acc=0;
     Eigen::MatrixXd mat(D,D);

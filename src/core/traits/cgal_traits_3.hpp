@@ -373,8 +373,6 @@ struct Cgal_traits_3
 
     Cell_const_handle locate_cell_point(const Delaunay_triangulation& dt,Point & pp) const
     {
-        typename Delaunay_triangulation::Locate_type lt;
-        int li, lj;
         Cell_handle cc = dt.locate(pp);
         return cc;
     }

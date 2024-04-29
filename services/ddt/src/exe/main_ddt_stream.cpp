@@ -82,16 +82,13 @@ int extract_tri_crown(DDT & tri1, std::vector<Point> & vp_crown,int tid,int D,dd
 {
   Scheduler sch(1);
   ddt::const_partitioner<Traits> part(tid);
-  int nbi = 0;
 
-  typedef typename DDT::Tile_vertex_handle   Vertex_handle;
   typedef typename DDT::DT DT;
 
   Traits::v_hmap_bool out_v;
   log.step("[process]extract_tri_crown_gettile");
   Tile_iterator  tile1  = tri1.get_tile(tid);
   log.step("[process]extract_tri_crown_getttri");
-  const DT & ttri1 = tile1->triangulation();
 
   log.step("[process]extract_tri_crown_labelize");
   auto bbox = tile1->bbox();
@@ -139,7 +136,6 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   // We use a traits with a raw triangulation
   int D = Traits::D;
   Traits_raw traits_raw;
-  Traits traits;
   DT_raw  tri_raw = traits_raw.triangulation(D) ;
 
   typedef Traits_raw::Vertex_handle_raw                            Vertex_handle_raw;
@@ -223,7 +219,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
         }
       else
         {
-	  if(params.dump_mode == "NONE" && true)
+	  if(params.dump_mode == "NONE")
             {
 	      for(int d = 0; d < D+1; d++)
                 {
@@ -241,7 +237,7 @@ int insert_raw(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
   // ==== Stat dumping section ======
   std::cout.clear();
 
-  if(params.dump_mode == "NONE" && true)
+  if(params.dump_mode == "NONE")
     {
       std::vector<Point_id_id> vvp_finalized;
       for(auto vv : vh_finalized)
@@ -374,7 +370,6 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
   Scheduler sch(1);
 
   log.step("read");
-  int D = Traits::D;
   std::map<Id,std::vector<int>> tile_ids;;
 
   for(int i = 0; i < nb_dat; i++)
@@ -386,7 +381,6 @@ int update_global_id(Id tid,algo_params & params, int nb_dat,ddt::logging_stream
       if(hpi.get_lab() == "t")
         {
 	  bool do_clean_data = true;
-	  bool do_serialize = false;
 	  read_ddt_stream(tri, hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
 									      
         }
@@ -449,8 +443,7 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
   log.step("[read]Start_parse_data");
   parse_datas(tri1,vp,vpis,nb_dat,tid,log,params);
 
-  int nbi1 = 0,nbi2 = 0;
-  bool do_data = true;
+  int nbi1 = 0;
 
   // Insertion section
   if(vp.size() > 0) // If points without label recieved, classic insertion
@@ -476,8 +469,7 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
   if(params.extract_tri_crown) // If dump 2 tri
     {
       log.step("[process]extract_tri_crown");
-      do_data=false;
-      nbi2 = extract_tri_crown(tri1,vp_crown,tid,D,log);
+      int nbi2 = extract_tri_crown(tri1,vp_crown,tid,D,log);
     }
 
 
@@ -543,7 +535,7 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
       oth.set_logger(&log);
       oth.write_header(std::cout);
       log.step("[write]write_tri");
-      Tile_iterator tci = tri1.get_tile(tid);
+
       ddt::write_ddt_stream(tri1, oth.get_output_stream(),tid,oth.is_serialized(),log);
       oth.finalize();
       std::cout << std::endl;
@@ -798,7 +790,7 @@ int serialized2geojson(Id tid,algo_params & params, int nb_dat,ddt::logging_stre
 int extract_struct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 {
 
-  int D = Traits::D;
+
   std::cout.setstate(std::ios_base::failbit);
   std::vector<Point_id_id> vpis;
   std::vector<Point> vp;
@@ -806,7 +798,6 @@ int extract_struct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream &
 
   Scheduler sch(1);
   DDT tri;
-  Traits traits;
 
   for(int i = 0; i < nb_dat; i++)
     {
@@ -830,9 +821,6 @@ int extract_struct(Id tid,algo_params & params, int nb_dat,ddt::logging_stream &
 
   send_neighbors(tid,params,outbox_nbrs,true);
   std::cout << std::endl;
-
-  typedef typename ddt_data<Traits>::Data_ply Data_ply;
-  typedef typename Traits::Data_V Data_V;
 
 
   auto tile = tri.get_tile(tid);
@@ -861,21 +849,14 @@ int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std
   typedef typename DDT::Cell_const_iterator                 Cell_const_iterator;
   typedef typename DDT::Vertex_const_iterator                 Vertex_const_iterator;
 
-    
-  int chunk_size = 10;
-  int sourceId = 0;
-  int targetId = 1;
-  int  N = tri.number_of_cells();
   int NF = 0;
   int dim = Traits::D;
-  chunk_size = 1;
+
 
   for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
     {
       NF++;
     }
-
-  double e0,e1;
 
   int acc = 0;
   std::map<Vertex_const_iterator,int> vid_map;
@@ -898,14 +879,10 @@ int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std
     for( auto cit = tri.cells_begin();
 	 cit != tri.cells_end(); ++cit )
       {
-	Cell_const_iterator fch = *cit;
 	if(!cit->is_main())
 	  continue;
    
-	int tid = cit->tile()->id();
-	int lid = cit->lid();
 	int gid = cit->gid();
-	int lcurr = 0;
 
 	std::vector<double> cent(dim,0);
 	for(int i = 0 ; i < dim+1;i++)
@@ -954,17 +931,8 @@ int extract_tri_voronoi(DDT & tri, std::map<int,std::vector<int>> & tile_ids,std
 	    continue;
 
 	  Cell_const_iterator fch = tmp_fch->main();
-	  int idx = tmp_idx;
 	  Cell_const_iterator fchn = tmp_fchn->main();
 
-
-
-
-	  int lidc = fch->lid();
-	  int lidn = fchn->lid();
-
-	  int tidc = fch->tile()->id();
-	  int tidn = fchn->tile()->id();
 
 	  int gidc = fch->gid();
 	  int gidn = fchn->gid();
@@ -994,7 +962,6 @@ int extract_voronoi(Id tid,algo_params & params,int nb_dat,ddt::logging_stream &
 
 
   log.step("read");
-  int D = Traits::D;
   std::map<int,std::vector<int>> tile_ids;;
 
   for(int i = 0; i < nb_dat; i++)
@@ -1006,7 +973,6 @@ int extract_voronoi(Id tid,algo_params & params,int nb_dat,ddt::logging_stream &
       if(hpi.get_lab() == "t")
         {
 	  bool do_clean_data = true;
-	  bool do_serialize = false;
 	  read_ddt_stream(tri,hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
 
 									      
@@ -1180,7 +1146,6 @@ int extract_simplex_soup_main(Id tid,algo_params & params,int nb_dat,ddt::loggin
 
 
   log.step("read");
-  int D = Traits::D;
   std::map<int,std::vector<int>> tile_ids;;
 
   for(int i = 0; i < nb_dat; i++)
@@ -1192,7 +1157,6 @@ int extract_simplex_soup_main(Id tid,algo_params & params,int nb_dat,ddt::loggin
       if(hpi.get_lab() == "t")
         {
 	  bool do_clean_data = true;
-	  bool do_serialize = false;
 	  read_ddt_stream(tri,hpi.get_input_stream(),hpi.get_id(0),hpi.is_serialized(),do_clean_data,log);
         }
       if(hpi.get_lab() == "s")
@@ -1210,7 +1174,6 @@ int extract_simplex_soup_main(Id tid,algo_params & params,int nb_dat,ddt::loggin
   log.step("compute");
   std::cout.clear();
   ddt::stream_data_header oth("t","s",tid);
-  int nbc = 0;
 
   oth.finalize();
   std::cout << std::endl;
@@ -1363,7 +1326,6 @@ int preprocess(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log
 
 
 int datastruct_identity(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log){
-  int D = Traits::D;
   D_MAP datas_map;
     
   for(int i = 0; i < nb_dat; i++){
@@ -1373,7 +1335,6 @@ int datastruct_identity(Id tid,algo_params & params, int nb_dat,ddt::logging_str
 
 
     DDT tri1;
-    Traits traits;
 
     Id hid = hpi.get_id(0);
 
@@ -1428,7 +1389,6 @@ int generate_points_normal(Id tid,algo_params & params,ddt::logging_stream & log
   double bb_l = bbox.max(0)-bbox.min(0);
   
   std::vector<Point> vp;
-  int nbs = 1;
   const int tot_count= params.nbp;
   int acc = 0;
 
@@ -1512,8 +1472,6 @@ int generate_points_uniform(Id tid,algo_params & params,ddt::logging_stream & lo
       base[n] = bbox.min(n) + (d % ND )/(ND/(range*2)) - range;
       d = d/ND;
     }
-  int py =tid % ND;
-  int px = ((int)tid)/ND;
   int count = NP/NT;
   std::vector<Point> vp;
 
@@ -1561,10 +1519,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
   std::cout.setstate(std::ios_base::failbit);
   int D = Traits::D;
   Id ND = params.nbt_side;
-  Id NP = params.nbp;
   Id NT = pow(ND,D);
-  double range = 1000.;
-
 
   ddt::Bbox<Traits::D> bbox;
   std::stringstream ss;
@@ -1575,13 +1530,7 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
   std::map<Id,ddt_data<Traits> > datas_map;
   std::map<Id,ddt_data<Traits> > datas_map_crown;
   std::map<Id,std::vector<Point> > vp_map;
-  Traits traits;
 
-  double eps_side[Traits::D];
-  for(int d = 0; d > D; d++)
-    eps_side[d] = ((bbox.max(d) - bbox.min(d))/params.nbt_side)*0.1;
-  
-  bool do_debug = true;
   for(int i = 0; i < nb_dat; i++)
     {
       std::vector<Point> vp_in;    
@@ -1589,7 +1538,6 @@ int tile_ply(Id tid,algo_params & params, int nb_dat,ddt::logging_stream & log)
 
       int count;
       hpi.parse_header(std::cin);
-      Id hid = hpi.get_id(0);
       ddt_data<Traits>  w_datas;
       if(hpi.get_lab() == "p")
       	{
@@ -1700,7 +1648,7 @@ int dump_ply_binary(Id tid,algo_params & params, int nb_dat,ddt::logging_stream 
 
   std::cout.setstate(std::ios_base::failbit);
   int D = Traits::D;
-  Traits traits;
+
   for(int i = 0; i < nb_dat; i++)
     {
       ddt::stream_data_header hpi;

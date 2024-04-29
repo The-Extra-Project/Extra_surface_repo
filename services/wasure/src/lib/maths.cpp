@@ -4,8 +4,6 @@
 double score_pdf(double a,double scale)
 {
     return exp(-(a/scale)*(a/scale));
-    //return exp(-(fabs(a)/scale));
-    //return m_pdf(fabs((a/scale)*(a/scale)),1);
 }
 
 void regularize2(double & a)

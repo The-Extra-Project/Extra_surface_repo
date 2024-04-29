@@ -231,7 +231,6 @@ public :
     {
         Tile_cell_const_handle fch = cci->full_cell();
         Tile_cell_const_handle fchn = fch->neighbor(idx);
-        int idx2 = fch->index(fch);
         std::list<Point> lp;
         std::list<Vertex_const_handle> lvh;
         cci->get_list_vertices(lvh);
@@ -243,8 +242,6 @@ public :
             lp.push_back(v->point());
         }
         double nff = n_surface<Point,Traits>(lp,D);
-        double min_d = std::numeric_limits<double>::max();
-        double max_d = 0.000001;
         bool do_deb = do_debug(lp);
         double ccf = 1;
 
@@ -479,7 +476,6 @@ public :
                         !tri.tile_is_loaded(tmp_fchn->main_id()))
                     continue;
                 Cell_const_iterator fch = tmp_fch->main();
-                int idx = tmp_idx;
                 Cell_const_iterator fchn = tmp_fchn->main();
                 int c1Id = id_map[fch];
                 int cnId = id_map[fchn];
@@ -920,7 +916,6 @@ public :
                         !tri.tile_is_loaded(tmp_fchn->main_id()))
                     continue;
                 Cell_const_iterator fch = tmp_fch->main();
-                int idx = tmp_idx;
                 Cell_const_iterator fchn = tmp_fchn->main();
                 int c1Id = id_map[fch];
                 int cnId = id_map[fchn];

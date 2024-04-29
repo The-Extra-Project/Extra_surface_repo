@@ -41,7 +41,7 @@ int gc_on_stream(std::istream & ifile,std::ostream & ofile)
     int nb_dat,tt;
     std::vector<g_edge> v_edges;
     std::vector<g_vert> v_verts;
-    int acc = 0;
+
     while(ifile  >> tt)
     {
 
@@ -83,7 +83,6 @@ int gc_on_stream(std::istream & ifile,std::ostream & ofile)
         g->add_edge(ee->id1, ee->id2,ee->e0,ee->e1);
     }
     double flow = g->maxflow();
-    int nb_merge = 0;
     for(int i = 0; i < N; i++)
     {
         int lab = g->what_segment(i);

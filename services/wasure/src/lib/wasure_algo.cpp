@@ -18,8 +18,6 @@ void wasure_algo::tessel_adapt(std::vector<Point> & points,std::vector<Point> & 
     int nb_inserted = 0;
     random_shuffle(std::begin(lidx), std::end(lidx));
 
-    typedef DT_raw::Cell_handle    Cell_handle;
-    typedef DT_raw::Vertex_handle  Vertex_handle;
     typedef DT_raw::Locate_type    Locate_type;
     typedef DT_raw::Point          Point;
     DT_raw  tri = traits_raw.triangulation(D) ;
@@ -103,7 +101,7 @@ int dump_tessel(DT_raw  & tri, int it, int max_it,int tid, double * bbox_min,dou
     }
     l_cir.clear();
     std::ofstream myfile;
-    std::string filename("/home/laurent/shared_spark/tmp/tessel_" + std::to_string(it) + "_" + std::to_string(tid) + ".ply");
+    std::string filename("/tmp/tessel_" + std::to_string(it) + "_" + std::to_string(tid) + ".ply");
     myfile.open (filename);
     myfile << "ply" <<  std::endl;
     myfile << "format ascii 1.0" << std::endl;
@@ -156,7 +154,7 @@ int dump_tessel(DT_raw  & tri, int it, int max_it,int tid, double * bbox_min,dou
 int dump_vector_pts(std::vector<Point> vp, int it, int tid)
 {
     std::ofstream myfile;
-    std::string filename("/home/laurent/shared_spark/tmp/extra_" + std::to_string(it) + "_" + std::to_string(tid) + ".ply");
+    std::string filename("/tmp/extra_" + std::to_string(it) + "_" + std::to_string(tid) + ".ply");
     myfile.open (filename);
     myfile << "ply" <<  std::endl;
     myfile << "format ascii 1.0" << std::endl;
@@ -165,7 +163,6 @@ int dump_vector_pts(std::vector<Point> vp, int it, int tid)
     myfile << "property float y" << std::endl;
     myfile << "property float z" << std::endl;
     myfile << "end_header                " << std::endl;
-    int acc = 0;
     for(auto vv : vp)
     {
         myfile << vv << " " << std::endl;
@@ -657,7 +654,6 @@ void wasure_algo::flip_dim_ori( std::vector<Point> & points, std::vector<std::ve
     int nb_flip = 0;
     for(int n = 0; n < nbp; n++)
     {
-        Point pts_norm = norms[n][D-1];
         Point pi  = ori[n];
         Point p1 = points[n];
         std::vector<double> pts_coefs = compute_base_coef<Point>(p1,pi,norms[n],D);
@@ -684,7 +680,6 @@ void wasure_algo::flip_dim( std::vector<Point> & points, std::vector<std::vector
     int D = Traits::D;
     for(int n = 0; n < nbp; n++)
     {
-        Point pts_norm = norms[n][D-1];
         Point pi  = points[n];
         std::vector<double> pts_coefs = compute_base_coef<Point>(p1,pi,norms[n],D);
         if(pts_coefs[D-1] < 0)
@@ -860,7 +855,6 @@ wasure_algo::get_params_surface_dst(const std::vector<double> & pts_scales,doubl
 
     double mins = *std::min_element(pts_scales.begin(),pts_scales.end());
     double maxs = *std::max_element(pts_scales.begin(),pts_scales.end());
-    double rat = (mins/maxs);
     coef_conf = 1;
 
     if(min_scale > 0)
@@ -882,7 +876,6 @@ wasure_algo::get_params_conflict_dst(const std::vector<double> & pts_scales,doub
     }
     double mins = *std::min_element(pts_scales.begin(),pts_scales.end());
     double maxs = *std::max_element(pts_scales.begin(),pts_scales.end());
-    double rat = (mins/maxs);
 
     coef_conf = 1;
 }
@@ -898,7 +891,6 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
     std::vector<std::vector<Point>> & norms = datas_pts.format_egv;
     std::vector<std::vector<double>> & scales = datas_pts.format_sigs;
     std::vector<int> & format_flags = datas_pts.format_flags;
-    std::vector<Point> & centers = datas_pts.format_centers;
     std::vector<std::vector<double>> & v_dst = datas_tri.format_dst;
 
     int D = datas_pts.D;
@@ -945,8 +937,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
     }
 
     bool do_debug = false;
-    int debug_acc=0;
-    int accid = 0;
+
     for( auto cit = tri.cells_begin();
             cit != tri.cells_end(); ++cit )
     {
@@ -1093,7 +1084,6 @@ wasure_algo::sample_cell(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, wasur
     std::vector<Point> & pts_norm = datas_pts.format_egv[rid];
     std::vector<double> & pts_scale = datas_pts.format_sigs[rid];
     std::vector<std::vector<double>> & v_dst = datas_tri.format_dst;
-    std::vector<int> & format_flags = datas_pts.format_flags;
 
     Traits  traits;
     for(int x = 0; x < params.nb_samples; x++)
@@ -1138,7 +1128,7 @@ wasure_algo::sample_cell_raw(Cell_handle & ch,Point &  Pt3d, Point & PtCenter, w
     std::vector<std::vector<double>> & v_dst = datas_tri.format_dst;
     std::vector<Point> & pts_norm = datas_pts.format_egv[rid];
     std::vector<double> & pts_scale = datas_pts.format_sigs[rid];
-    std::vector<int> & format_flags = datas_pts.format_flags;
+
     for(int x = 0; x < params.nb_samples; x++)
     {
         std::vector<double>  C = (x == 0) ? traits.get_cell_barycenter(ch) : Pick(ch,D);
@@ -1409,7 +1399,6 @@ void wasure_algo::center_dst(DTW & ttri, wasure_data<Traits>  & datas_tri,std::v
     auto & tri = ttri.get_tile(tid)->tri();
     auto  tile = ttri.get_tile(tid);
     std::vector<std::vector<double>> & v_dst = datas_tri.format_dst;
-    Cell_handle cloc =  Cell_handle();
     Cell_handle cloc_start =  Cell_handle();
     for(auto pit : center_pts)
     {
@@ -1439,8 +1428,6 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
     Traits traits;
     std::vector<Point> & points = datas_pts.format_points;
     std::vector<Point> & centers = datas_pts.format_centers;
-    std::vector<std::vector<Point>> & norms = datas_pts.format_egv;
-    std::vector<std::vector<double>> & scales = datas_pts.format_sigs;
     std::vector<int> & format_flags = datas_pts.format_flags;
     double rat_ray_sample = params.rat_ray_sample;
     if(rat_ray_sample == 0)
@@ -1448,7 +1435,7 @@ void wasure_algo::compute_dst_ray(DT & tri, wasure_data<Traits>  & datas_tri,was
     int D = Traits::D;
     int nb_pts = points.size();
     int acc = 0;
-    int max_walk = 100000;
+
     Cell_handle  start_walk = Cell_handle();
     for(int n = 1 ; n < nb_pts; n++)
     {
