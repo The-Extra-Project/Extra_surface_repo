@@ -551,8 +551,6 @@ public :
     // Les informations (label courant, dempster shafer, etc) dans chaque tetraèdre.
     // Les étapes sont :
 
-
-    //
     typedef std::tuple<Id,double,double,double>                                EdgeData;
     void opt_gc_lagrange(int lalpha,DTW & tri,D_MAP & data_map,std::map<Id,std::map<Id,EdgeData> > shared_data_map,int tid_k, bool use_weight = true)
     {

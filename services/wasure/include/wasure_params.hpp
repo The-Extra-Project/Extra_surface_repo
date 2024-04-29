@@ -161,7 +161,6 @@ public :
                 do_finalize=true;
                 break;
             case 'h':
-                break;
                 char * optc = (argv[optind]);
                 std::cout << "value:" << (char)cc << "  :  " << optc  << std::endl;
                 //help_param();

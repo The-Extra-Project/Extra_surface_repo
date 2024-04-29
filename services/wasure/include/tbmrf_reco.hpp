@@ -156,16 +156,6 @@ public :
         return 0;
     }
 
-
-
-   
-
-    void hello_reco()
-    {
-        std::cout << "hello!reco" << std::endl;
-    }
-
-
     int mode;
     std::vector<double>  pLabsIn;
     std::vector<double>  pLabsOut;

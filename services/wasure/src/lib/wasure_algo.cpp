@@ -175,8 +175,6 @@ int dump_vector_pts(std::vector<Point> vp, int it, int tid)
 }
 
 
-
-
 int
 wasure_algo::tessel(DT_raw  & tri,
                     std::vector<Point> & points,  std::vector<Point> & vps,
@@ -497,7 +495,7 @@ wasure_algo::compute_dim(std::vector<Point> & points, std::vector<std::vector<Po
 
         if(pts_norms.size() < D )
         {
-            std::cerr << "error !! " << "dim:" << D << " kt:" << K_T << " entropy:" << entropy  << std::endl;
+            std::cerr << "Error: " << "dim:" << D << " kt:" << K_T << " entropy:" << entropy  << std::endl;
             std::vector<Point> loc_pts;
             for(int i = 0; i < K_T; i++)
             {
@@ -616,7 +614,7 @@ wasure_algo::compute_dim_with_simp(std::vector<Point> & points, std::vector<std:
 
         if(pts_norms.size() < D)
         {
-            std::cerr << "error !! " << "dim:" << D << " kt:" << K_T << " entropy:" << entropy  << std::endl;
+            std::cerr << "Error :" << "dim:" << D << " kt:" << K_T << " entropy:" << entropy  << std::endl;
             std::vector<Point> loc_pts;
             for(int i = 0; i < K_T; i++)
             {

@@ -79,20 +79,14 @@ public :
 
     void write_geojson_norms(std::ostream & ofs, bool is_first = true)
     {
-        std::cerr << "write geojson norm" << std::endl;
         std::vector<Point> raw_points;
         std::vector<Point> raw_centers;
         std::vector<double> raw_egv;
         std::vector<double> raw_sigs;
-        std::cerr << "extract pts" << std::endl;
         ddt_data<Traits>::dmap[ddt_data<Traits>::xyz_name].extract_full_uint8_vect(raw_points,false);
-        std::cerr << "extract center" << std::endl;
         ddt_data<Traits>::dmap[center_name].extract_full_uint8_vect(raw_centers,false);
-        std::cerr << "extract sigs" << std::endl;
         ddt_data<Traits>::dmap[sig_name].extract_raw_uint8_vect(raw_sigs,false);
-        std::cerr << "extract egvs" << std::endl;
         ddt_data<Traits>::dmap[egv_name].extract_raw_uint8_vect(raw_egv,false);
-        std::cerr << "parse data done" << std::endl;
         bool do_ray = false;
         int D = Traits::D;
         std::vector<std::string> lab_color = {"\"red\"","\"green\"","\"blue\""};
@@ -239,15 +233,11 @@ public :
     {
         int D = Traits::D;
         std::vector<double> raw_sigs;
-        std::cerr << "start extract sig" << std::endl;
         ddt_data<Traits>::dmap[sig_name].extract_raw_uint8_vect(raw_sigs,false);
-        std::cerr << "end extract sig" << std::endl;
-        std::cerr << "raw_sig_size:" << raw_sigs.size() << std::endl;
         double coords[Traits::D];
         std::vector<double> act_vsig;
 
 
-        std::cerr << "rdone" << std::endl;
         for(int i = 0 ; i < raw_sigs.size(); i++)
         {
             act_vsig.push_back(raw_sigs[i]);

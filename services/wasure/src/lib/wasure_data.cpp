@@ -96,7 +96,6 @@ int wasure_data::dump_surface(std::vector<Facet> & lft, int nblabs, std::string 
         bool is_inf = false;
         for(auto ppp : lp)
         {
-            std::cout << ppp << std::endl;
             if(ppp.dimension() < dim)
             {
                 std::cout << "WARNING, infinit point found" << std::endl;
@@ -149,7 +148,7 @@ void dump_vrt_norms(std::string name_out_vrt,std::string name_out_csv)
     f.open(name_out_vrt.c_str());
     if(!f)
     {
-        std::cout << "ERROR :" << name_out_vrt << " cannot be open" << std::endl;
+        std::cerr << "ERROR :" << name_out_vrt << " cannot be open" << std::endl;
         return;
     }
     f <<"<OGRVRTDataSource>" << std::endl;

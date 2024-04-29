@@ -1801,7 +1801,7 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
                 double old_lagrange = new_lagrange;
                 double old_diff = std::get<3>(shared_data_map[tid_2][lid_1]);
                 if(edges_data_map[tid_2].find(lid_2) == edges_data_map[tid_2].end())
-                    std::cerr << "Warning !" << std::endl;
+                    std::cerr << "!! Warning !!" << std::endl;
                 int lab_2 = std::get<1>(edges_data_map[tid_2][lid_2]);
                 if(lab_2 != lab_1)
                     acc_diff++;
