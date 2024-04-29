@@ -1012,12 +1012,9 @@ public :
     {
         ofile << std::fixed << std::setprecision(15);
         int chunk_size = 10;
-        int sourceId = 0;
-        int targetId = 1;
         double MULT_2 = coef_mult;
         int  N = tri.number_of_cells();
         int NF = 0;
-        double mv = 1000;
 
         switch(gtype)
         {
@@ -1042,7 +1039,7 @@ public :
             NF++;
         }
         GraphType *g = new GraphType(N,NF*2 );
-        double e0,e1,e2,e3;
+        double e0,e1;
         int acc = 0;
         std::map<Cell_const_iterator,int> id_map;
         std::map<int,int> gid_map;
@@ -1085,9 +1082,7 @@ public :
             {
             case 0 :
             {
-
                 v_vertex.push_back(std::vector<double>({(double)gid,e0,e1}));
-
                 break;
             }
             case 1 :

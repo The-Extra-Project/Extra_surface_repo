@@ -38,7 +38,7 @@ struct g_vert
 
 int gc_on_stream(std::istream & ifile,std::ostream & ofile)
 {
-    int nb_dat,tt;
+    int tt;
     std::vector<g_edge> v_edges;
     std::vector<g_vert> v_verts;
 

@@ -853,10 +853,7 @@ wasure_algo::get_params_surface_dst(const std::vector<double> & pts_scales,doubl
         pdf_smooth = data_scale;
     }
 
-    double mins = *std::min_element(pts_scales.begin(),pts_scales.end());
-    double maxs = *std::max_element(pts_scales.begin(),pts_scales.end());
-    coef_conf = 1;
-
+    coef_conf = 1; 
     if(min_scale > 0)
         coef_conf = coef_conf*MIN(MAX(min_scale/data_scale,0.000001),1);
 }
@@ -874,8 +871,6 @@ wasure_algo::get_params_conflict_dst(const std::vector<double> & pts_scales,doub
     {
         pdf_smooth = data_scale/3;
     }
-    double mins = *std::min_element(pts_scales.begin(),pts_scales.end());
-    double maxs = *std::max_element(pts_scales.begin(),pts_scales.end());
 
     coef_conf = 1;
 }

@@ -60,14 +60,15 @@ public :
                         std::cerr << "mixed detected" << std::endl;
                 }
 
-                int id_cov;
+                //int id_cov;
 
-                auto chn = fch->neighbor(id_cov);
-                int mir = fch->mirror_index(id_cov);
-                const Point& a = chn->vertex((mir+1)&3)->point();
-                const Point& b = chn->vertex((mir+2)&3)->point();
-                const Point& c = chn->vertex((mir+3)&3)->point();
-                const Point& d = chn->vertex(mir)->point();
+		auto chn = fch;//->full_cell();
+                //int mir = fch->mirror_index(id_cov);
+		int ii = 0;
+                const Point& a = chn->vertex((ii+1)&3)->point();
+                const Point& b = chn->vertex((ii+2)&3)->point();
+                const Point& c = chn->vertex((ii+3)&3)->point();
+                const Point& d = chn->vertex(ii)->point();
                 CGAL::Vector_3<typename Traits::K> v1 = a - c;
                 CGAL::Vector_3<typename Traits::K> v2 = b - c;
                 auto vn = CGAL::cross_product(v1,v2);

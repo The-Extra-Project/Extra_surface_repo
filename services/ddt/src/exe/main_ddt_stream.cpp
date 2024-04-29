@@ -83,8 +83,6 @@ int extract_tri_crown(DDT & tri1, std::vector<Point> & vp_crown,int tid,int D,dd
   Scheduler sch(1);
   ddt::const_partitioner<Traits> part(tid);
 
-  typedef typename DDT::DT DT;
-
   Traits::v_hmap_bool out_v;
   log.step("[process]extract_tri_crown_gettile");
   Tile_iterator  tile1  = tri1.get_tile(tid);
@@ -469,7 +467,7 @@ int insert_in_triangulation(Id tid,algo_params & params, int nb_dat,ddt::logging
   if(params.extract_tri_crown) // If dump 2 tri
     {
       log.step("[process]extract_tri_crown");
-      int nbi2 = extract_tri_crown(tri1,vp_crown,tid,D,log);
+      int  nbi2 = extract_tri_crown(tri1,vp_crown,tid,D,log);
     }
 
 

@@ -1543,7 +1543,7 @@ int extract_graph(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream &
     wasure_algo w_algo;
     D_MAP w_datas_tri;
     log.step("read");
-    int D = Traits::D;
+
     std::map<int,std::vector<int>> tile_ids;;
     for(int i = 0; i < nb_dat; i++)
     {
@@ -1728,7 +1728,6 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
         }
         if(hpi.get_lab() == "e")
         {
-            Id eid1 = hpi.get_id(0);
             Id eid2 = hpi.get_id(1);
             shared_data_map[eid2] = std::map<Id,SharedData>();
             std::map<Id,SharedData>  & lp = shared_data_map[eid2];
@@ -1737,7 +1736,6 @@ int seg_lagrange(Id tid_1,wasure_params & params,int nb_dat,ddt::logging_stream 
         if(hpi.get_lab() == "f")
         {
             Id eid1 = hpi.get_id(0);
-            Id eid2 = hpi.get_id(1);
             edges_data_map[eid1] = std::map<Id,SharedData>();
             std::map<Id,SharedData>  & lp = edges_data_map[eid1];
             read_id_double_serialized(lp, hpi.get_input_stream(),tid_1 == 3);
