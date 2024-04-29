@@ -164,13 +164,13 @@ public :
                 break;
                 char * optc = (argv[optind]);
                 std::cout << "value:" << (char)cc << "  :  " << optc  << std::endl;
-                help_param();
+                //help_param();
                 return 0;
             }
         }
         if(errflg != 0)
         {
-            help_param();
+            //help_param();
             return 1;
         }
         return 0;

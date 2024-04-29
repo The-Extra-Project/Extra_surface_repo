@@ -70,6 +70,7 @@ void init_local_ids( DTW & tri1)
 
 int main(int argc, char **argv)
 {
+
     wasure_params params;
     params.parse(argc,argv);
     Scheduler sch(1);
@@ -85,6 +86,8 @@ int main(int argc, char **argv)
     {
         std::cerr << params.filename << " does not exist"  << std::endl;
         return 1;
+    }else{
+	std::cout << "Start processing " << params.filename <<  " ...";
     }
     ifile.open(params.filename);
     wdp.read_ply_stream(ifile);
