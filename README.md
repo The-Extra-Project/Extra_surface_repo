@@ -40,6 +40,14 @@ Run the 3 examples (monotread, multithread with apache spark on ply, multithread
 
 ### Run on LidarHD dataset 
 - Download a tile from the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) into a folder an set the absolute path in the `INPUT_DIR` variable (`./run_lidarhd.sh` file).
+- edit the `algo-env.sh` to finetune the local apache spark scheduling on your computer
+```console
+export SPARK_EXECUTOR_MEMORY="16G"
+export SPARK_DRIVER_MEMORY="16G"
+export SPARK_WORKER_MEMORY="16G"
+export NUM_PROCESS="10"
+```
+
 - then run 
 ```console
 ./run_lidarhd.sh
