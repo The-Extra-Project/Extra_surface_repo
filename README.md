@@ -2,11 +2,13 @@
 
 ![Example of the algorithm on the "chateau de versaille" LidarHD tile](./doc/header.jpeg)
 
-# Sparkling Wasure : Distributed watertight surface reconstruction on Spark / hadoop. 
+# Sparkling Wasure : Distributed watertight surface reconstruction on Apache Spark. 
 
 This project aims to process algorithm for watertight surface reconstruction based on Delaunay triangulation on distributed infrastructures.
-This code is a simplfied version of the article  [Efficiently Distributed Watertight Surface reconstruction](https://hal.science/hal-03380593/file/2021216131.pdf)
-finetuned to work on the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) on a signe computer for experimental purpores.
+This code is a simplfied version of the article  [Efficiently Distributed Watertight Surface reconstruction](https://lcaraffa.github.io/edwsr/)
+finetuned to work on the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) on a signe computer.
+
+/!\ Warning /!\  This code is for experimental / researches  purpores.
 
 # Requirements 
 - Docker (only tester on ubuntu)
