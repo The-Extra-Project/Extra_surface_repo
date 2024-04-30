@@ -21,11 +21,8 @@ function run_algo_docker
     fi
     echo ""
     echo "##  ------  ${FUNCNAME[1]}  ------"
-    #    export CURRENT_PLATEFORM="singularity"
     CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c ${NUM_PROCESS} -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
-
     eval ${CMD}
-    echo "run_algo_docker done"
     return 0
 }
 
@@ -51,9 +48,6 @@ function ex_run_ply_tiling
 
 
 
-
-
-
 ### 3D Surface reconstruction 
 function ex_run_lidarhd_crop
 {
@@ -72,25 +66,9 @@ function ex_run_lidarhd_crop
 }
 
 
-### 3D Surface reconstruction 
-function run_lidarhd_tiles
-{
-
-    
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_tiles/"
-    OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    run_algo_docker
-
-    INPUT_DIR=${OUTPUT_DIR}
-    PARAMS="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/wasure_metadata_3d_gen.xml"
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    run_algo_docker
-}
-
 ### 3D Surface reconstruction
 ex_run_ply_mono
 ex_run_ply_tiling
 ex_run_lidarhd_crop
-#run_lidarhd_tiles
+
 

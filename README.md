@@ -37,6 +37,8 @@ $ ./src/docker/docker_interface.sh compile -j4 -t3
 ```
 
 ## Run the code
+
+
 ### Examples 
 Run the 3 examples (monotread, multithread with apache spark on ply, multithread with apache spark on laz)
 ```console
@@ -44,7 +46,7 @@ $ ./run_examples.sh
 
 ```
 
-### Run on LidarHD dataset 
+### Run on LidarHD LAZ dataset 
 - Download a tile from the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) into a folder an set the absolute path in the `INPUT_DIR` variable (`./run_lidarhd.sh` file).
 - edit the `algo-env.sh` to finetune the local apache spark scheduling on your computer
 ```console
@@ -61,6 +63,15 @@ $ ./run_lidarhd.sh
 ```
 
 # dev manual
-# FAQ
-- Why using Apache Spark instead of OpenMP/MPI
+## Inputs
+A folder with inside : 
+- a Set of ply files with, for each 3D points
+  - x,y,z (3D points cloud coordinate) 
+  - x_origin,y_origin,z_origin (Sensor origine coordinate)
+- metadata.xml files 
+
+## LAZ preprocessing
+A workflow exists to preprocess a las file into a ply with sensor origin approximation
+see the run_lidar.sh
+
 
