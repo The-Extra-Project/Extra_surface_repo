@@ -1,6 +1,8 @@
 [![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://hal.science/hal-03380593/file/2021216131.pdf)
 
-# Distributed Delaunay triangulation & surface reconstruction on Spark / hadoop. 
+![Example of the algorithm on the "chateau de versaille" LidarHD tile](./doc/header.jpeg)
+
+# Sparkling Wasure : Distributed watertight surface reconstruction on Spark / hadoop. 
 
 This project aims to process algorithm for watertight surface reconstruction based on Delaunay triangulation on distributed infrastructures.
 This code is a simplfied version of the article  [Efficiently Distributed Watertight Surface reconstruction](https://hal.science/hal-03380593/file/2021216131.pdf)
