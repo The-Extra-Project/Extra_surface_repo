@@ -25,7 +25,7 @@ function run_algo_docker
     #    export CURRENT_PLATEFORM="singularity"
     CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c ${NUM_PROCESS} -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
 
-    exec ${CMD}
+    eval ${CMD}
 }
 
 
