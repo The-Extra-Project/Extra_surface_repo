@@ -6,7 +6,7 @@
 
 
 
-# Sparkling Wasure : Distributed watertight surface reconstruction on Apache Spark. 
+# Distributed watertight surface reconstruction on Apache Spark. 
 
 This project aims to process algorithm for watertight surface reconstruction based on Delaunay triangulation on distributed infrastructures.
 This code is a simplfied version of the article  [Efficiently Distributed Watertight Surface reconstruction](https://lcaraffa.github.io/edwsr/)
