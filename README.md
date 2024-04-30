@@ -1,11 +1,13 @@
-# Distributed Delaunay triangulation & surface reconstruction on Spark / hadoop : start release  :)
-This project aims to process algorithm based on Delaunay triangulation on distributed infrastructures .
-We use Apache Spark for the cloud infrastructure.
+[![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://hal.science/hal-03380593/file/2021216131.pdf)
 
-To use the code, please reffer to the [user manual](#user-manual) section
-For more information about the architecutre and the source code,
-reffers to the [dev manual](#dev-manual) section
+# Distributed Delaunay triangulation & surface reconstruction on Spark / hadoop. Experimental code
 
+This project aims to process algorithm based on Delaunay triangulation on distributed infrastructures for watertight surface reconstruction.
+This is a simplfied version of the article  [Efficiently Distributed Watertight Surface reconstruction](https://hal.science/hal-03380593/file/2021216131.pdf)
+ finetuned to work on the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) on a signe computer for experimental purpores.
+
+# Requirements 
+- Docker (only tester on ubuntu)
 
 # User manual
 ## Install & compile 
@@ -24,10 +26,22 @@ For example, to compile the project with the 3D CGAL kernel with 4 core, do :
 ./src/docker/docker_interface.sh compile -j4 -t3
 ```
 
-### test examples 
+### Examples 
+Run the 3 examples 
 ```console
 ./run_examples.sh
 
 ```
+
+### Run on LidarHD dataset 
+- download a tile from the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) into a folder.
+- Edit the file "run_lidarhd.sh" and put the path of the file folder in the variable INPUT_DIR
+- then run "./run_lidar.sh"
+```console
+./run_examples.sh
+
+```
+
+
 
 
