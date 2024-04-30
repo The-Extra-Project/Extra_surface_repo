@@ -2,7 +2,7 @@
 
 ![logo](./doc/logo.png)
 
-![Example of the algorithm on the "chateau de versaille" LidarHD tile](./doc/header.jpeg)
+![Example of the algorithm on the "chateau de versaille" LidarHD tile](./doc/header.png)
 
 
 
