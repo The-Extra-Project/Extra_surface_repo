@@ -11,7 +11,7 @@ finetuned to work on the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) 
 To use the code, please reffer to the [user manual](#user-manual) section.
 For more technicals informations, reffers to the [dev manual](#dev-manual) section.
 
-**/!\ Warning /!\**  This code is for experimental / researches purposes. If you are looking for a most robust implementation of this code, we are developping 
+**/!\ Warning /!\\**  This code is for experimental / researches purposes. If you are looking for a most robust implementation of this code, we are developping 
 a CGAL package scheduled with Open MP / MPI. Follow the project page or this github page for updates.
 
 # Requirements 
