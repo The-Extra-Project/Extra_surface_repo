@@ -20,21 +20,21 @@ a CGAL package scheduled with Open MP / MPI. Follow the project page or this git
 
 ### Build the docker image
 ```console
-./src/docker/docker_interface.sh build
+$ ./src/docker/docker_interface.sh build
 ```
 
 ### Compile the project 
 To compile the project with the 3D CGAL kernel with 4 core, do :
 
 ```console
-./src/docker/docker_interface.sh compile -j4 -t3
+$ ./src/docker/docker_interface.sh compile -j4 -t3
 ```
 
 ## Run the code
 ### Examples 
 Run the 3 examples (monotread, multithread with apache spark on ply, multithread with apache spark on laz)
 ```console
-./run_examples.sh
+$ ./run_examples.sh
 
 ```
 
@@ -50,7 +50,7 @@ export NUM_PROCESS="10"
 
 - then run 
 ```console
-./run_lidarhd.sh
+$ ./run_lidarhd.sh
 
 ```
 
