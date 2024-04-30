@@ -335,7 +335,6 @@ public:
 
     template<class Scheduler> bool sanity_check(Scheduler &s) const
     {
-
         typedef std::map<std::vector<Id>,size_t> count_map;
         typedef std::unordered_map<Id,count_map> count_map_map;
         std::unordered_map<Id,count_map_map> counts1, counts2;

@@ -40,7 +40,7 @@ public :
     {
         std::cerr << "--------------------------------------------------" << std::endl
                   << "INPUTS" << std::endl
-		  << "[TODO]" << std::endl
+                  << "[TODO]" << std::endl
                   << "[ --help ]  : print this message" << std::endl
                   << "--------------------------------------------------" << std::endl ;
     }
@@ -108,7 +108,7 @@ public :
                 break;
             case 'b':
                 bbox_string = std::string(optarg);
-                std::replace( bbox_string.begin(), bbox_string.end(), ':', ' '); 
+                std::replace( bbox_string.begin(), bbox_string.end(), ':', ' ');
                 std::replace( bbox_string.begin(), bbox_string.end(), 'x', ' ');
                 break;
             case 'n':

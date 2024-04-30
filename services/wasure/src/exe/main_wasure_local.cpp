@@ -47,10 +47,9 @@ std::string time_in_HH_MM_SS_MMM()
     auto now = system_clock::now();
     auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
     auto timer = system_clock::to_time_t(now);
-
     std::tm bt = *std::localtime(&timer);
     std::ostringstream oss;
-    oss << std::put_time(&bt, "%d-%m-%Y-%H-%M-%S"); 
+    oss << std::put_time(&bt, "%d-%m-%Y-%H-%M-%S");
     oss << '.' << std::setfill('0') << std::setw(3) << ms.count();
     return oss.str();
 }
@@ -70,7 +69,6 @@ void init_local_ids( DTW & tri1)
 
 int main(int argc, char **argv)
 {
-
     wasure_params params;
     params.parse(argc,argv);
     Scheduler sch(1);
@@ -78,7 +76,6 @@ int main(int argc, char **argv)
     int D = Traits::D;
     Id tid = 0;
     ddt::logging_stream log(std::to_string(tid) + "_" + params.algo_step, params.log_level);
-
     wasure_data<Traits> wdp;
     wasure_data<Traits> wds;
     std::ifstream ifile;
@@ -86,8 +83,10 @@ int main(int argc, char **argv)
     {
         std::cerr << params.filename << " does not exist"  << std::endl;
         return 1;
-    }else{
-	std::cout << "Start processing " << params.filename <<  " ...";
+    }
+    else
+    {
+        std::cout << "Start processing " << params.filename <<  " ...";
     }
     ifile.open(params.filename);
     wdp.read_ply_stream(ifile);
@@ -110,7 +109,6 @@ int main(int argc, char **argv)
         ofile << cc << std::endl;
     }
     ofile.close();
-
     wasure_algo w_algo;
     if(boost::filesystem::exists(filename_dim) &&
             boost::filesystem::exists(filename_tes)
@@ -181,7 +179,6 @@ int main(int argc, char **argv)
         }
         int nbi1 = tci->insert(vp,false);
         tri1.finalize(sch);
-
         DT & tri_tile  = tri1.get_tile(tid)->triangulation();
         auto tile = tri1.get_tile(tid);
         std::vector<std::vector<double>>  & format_dst = w_datas_tri[tid].format_dst; ;
@@ -223,12 +220,10 @@ int main(int argc, char **argv)
             if(opt_id == 0)
             {
                 mrf.opt_gc(1,tri1,w_datas_tri);
-
             }
             else
                 mrf.opt_belief(1,tri1,w_datas_tri);
             w_datas_tri[tid].fill_labs(w_datas_tri[tid].format_labs);
-
             if(D == 2)
             {
                 DT & tri_tile  = tri1.get_tile(tid)->triangulation();
@@ -301,7 +296,6 @@ int main(int argc, char **argv)
                         fch = fchn;
                         id_cov = id_covn;
                     }
-
                     const Point& a = fch->vertex((id_cov+1)&3)->point();
                     const Point& b = fch->vertex((id_cov+2)&3)->point();
                     const Point& c = fch->vertex((id_cov+3)&3)->point();
@@ -324,7 +318,6 @@ int main(int argc, char **argv)
                         v_simplex.push_back(vertex_map[fch->vertex(idc)]);
                         v_simplex.push_back(vertex_map[fch->vertex(idb)]);
                     }
-
                 }
                 datas_out.dmap[datas_out.xyz_name] = ddt_data<Traits>::Data_ply(datas_out.xyz_name,"vertex",D,D,DATA_FLOAT_TYPE);
                 datas_out.dmap[datas_out.simplex_name] = ddt_data<Traits>::Data_ply(datas_out.simplex_name,"face",D,D,tinyply::Type::INT32);
@@ -335,7 +328,7 @@ int main(int argc, char **argv)
                 datas_out.write_ply_stream(oth.get_output_stream(),'\n',true);
                 break;
             }
-            default :             
+            default :
             {
                 return 1;
                 break;

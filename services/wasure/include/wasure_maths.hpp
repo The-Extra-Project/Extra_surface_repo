@@ -8,7 +8,6 @@
 inline double mEstimator(double a,double t)
 {
     return ((1.0/a)*(pow((1+t),a) - 1.0));
-
 };
 
 // First order derivative of the Mestimator
@@ -136,7 +135,6 @@ Point get_barycenter_pts(std::list<Point> & lp, int D)
 {
     Traits traits;
     double coords[Traits::D];
-
     for(int d = 0; d < D; d++)
         coords[d] = 0;
     for(typename std::list<Point>::iterator pit = lp.begin(); pit != lp.end(); ++pit)
@@ -161,7 +159,6 @@ double n_surface(typename std::list<Point> & lp, int D)
 {
     Traits traits;
     Point p0 = get_barycenter_pts<Point,Traits>(lp,D);
-
     int acc=0;
     Eigen::MatrixXd mat(D,D);
     for(auto pit = lp.begin(); pit != lp.end(); ++pit)
@@ -182,7 +179,6 @@ double n_surface(typename std::list<Point> & lp, int D)
     {
         for(int d = 0 ; d < D ; d++)
             coords[d] = ev(d,i);
-
         nb.push_back(traits.make_point(coords));
     }
     std::list<Point> nbl;
@@ -196,7 +192,6 @@ double n_surface(typename std::list<Point> & lp, int D)
         coords_v.pop_back();
         for(int d = 0; d < D; d++)
             coords[d] = coords_v[d];
-
         nbl.push_back(traits.make_point(coords));
     }
     return n_volume(nbl,D-1);

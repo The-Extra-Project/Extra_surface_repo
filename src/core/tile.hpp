@@ -496,7 +496,6 @@ public:
                 Vertex_const_handle v = vertex(cit, i);
                 if(!vertex_is_infinite(v))
                 {
-
                     flag(v,0,0);
                 }
             }

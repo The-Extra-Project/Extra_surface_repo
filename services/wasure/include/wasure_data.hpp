@@ -113,7 +113,6 @@ public :
                 ofs << raw_centers[id][D-1] << "]" << std::endl;
                 ofs << "}," << std::endl;
                 ofs << "\"properties\": {" << std::endl;
-
                 ofs << "\"prop1\": { \"this\": \"that\" }" << std::endl;
                 ofs << "}" << std::endl;
                 ofs << "}" << std::endl;
@@ -172,7 +171,6 @@ public :
         }
         ofs << "]" << std::endl;
         ofs << "}" << std::endl;
-
     }
 
 
@@ -209,7 +207,6 @@ public :
     void fill_egv(std::vector<std::vector<Point> > & format_egv, bool do_clear = true)
     {
         int D = Traits::D;
-
         std::vector<double> raw_egv;
         for(int i = 0 ; i < format_egv.size(); i++)
         {
@@ -235,8 +232,6 @@ public :
         ddt_data<Traits>::dmap[sig_name].extract_raw_uint8_vect(raw_sigs,false);
         double coords[Traits::D];
         std::vector<double> act_vsig;
-
-
         for(int i = 0 ; i < raw_sigs.size(); i++)
         {
             act_vsig.push_back(raw_sigs[i]);
@@ -253,7 +248,6 @@ public :
     void fill_sigs(std::vector<std::vector<double>>  & format_sigs, bool do_clear = true)
     {
         int D = Traits::D;
-
         std::vector<double> raw_sigs;
         for(int i = 0 ; i < format_sigs.size(); i++)
         {
@@ -293,7 +287,6 @@ public :
 
     void fill_dst(std::vector<std::vector<double>>  & format_dst, bool do_clear = true)
     {
-
         ddt_data<Traits>::dmap[dst_name] = Data_ply(dst_name,"face",3,3,DATA_FLOAT_TYPE);
         std::vector<double> raw_dst;
         for(int i = 0 ; i < format_dst.size(); i++)
@@ -303,7 +296,6 @@ public :
                 raw_dst.push_back(format_dst[i][d]);
             }
         }
-
         ddt_data<Traits>::dmap[dst_name].fill_full_uint8_vect(raw_dst);
         ddt_data<Traits>::dmap[dst_name].do_exist = true;
         if(do_clear)

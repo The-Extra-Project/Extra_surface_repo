@@ -189,13 +189,12 @@ int read_tile_stream(DDTT & ddt, std::istream & ifile, typename DDTT::Id tid, bo
     read_json_stream<typename DDTT::Tile_iterator, typename DDTT::Id>(tile,ifile);
     tile->set_id(tid);
     tile->finalize();
-    return 0; 
+    return 0;
 }
 
 template<typename DDTT>
 int read_full_stream(DDTT & ddt, std::istream & ifile, int nb_dat, bool do_data = true, bool is_ascii = true)
 {
-
     for(int i = 0; i < nb_dat; i++)
     {
         stream_data_header hpi;
@@ -205,7 +204,7 @@ int read_full_stream(DDTT & ddt, std::istream & ifile, int nb_dat, bool do_data 
             read_tile_stream(ddt, hpi.get_input_stream(), hpi.get_id(0),do_data,is_ascii);
         }
     }
-    return 0; 
+    return 0;
 }
 
 template<typename DDTT>
@@ -221,4 +220,4 @@ void read_stream(DDTT & ddt, std::string ss)
 
 }
 
-#endif 
+#endif

@@ -36,7 +36,6 @@ int wasure_data::dump_surface(std::vector<Facet> & lft, int nblabs, std::string 
     }
     int nbv = vertex_map.size();
     int nbf = lft.size();
-
     std::ofstream fo;
     fo.open (fileName.c_str());
     std::cout << "\t Writing " << fileName << "..." << std::endl;
@@ -58,7 +57,6 @@ int wasure_data::dump_surface(std::vector<Facet> & lft, int nblabs, std::string 
     fo << "end_header" << std::endl;
     fo << std::setprecision(12);
     std::cout << "wasure_data:dumping point...." << std::endl;
-
     for(auto const &pi : point_list)
     {
         fo << pi[0] << " " <<  pi[1]  << " " <<  pi[2]  << " " <<  255  <<  " " << 255 << " " << 255 << std::endl;
@@ -87,12 +85,10 @@ int wasure_data::dump_surface(std::vector<Facet> & lft, int nblabs, std::string 
         }
         lid.push_back(ft.index_of_covertex());
         lp.push_back(ft.full_cell()->vertex(ft.index_of_covertex())->point());
-
         assert(lid.size() == 4 && lp.size() == 4);
         int cr = 200;
         int cg = fabs(plab - pnlab)*255;
         int cb = fabs(plab - pnlab)*255;
-
         bool is_inf = false;
         for(auto ppp : lp)
         {

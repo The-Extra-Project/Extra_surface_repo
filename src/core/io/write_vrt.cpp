@@ -48,7 +48,6 @@ void write_vrt_header_facet(std::ofstream& csv, const std::string& filename)
     f <<    "<Field name=\"local\" type=\"Integer\"/>" << std::endl;
     f <<  "</OGRVRTLayer>" << std::endl;
     f <<"</OGRVRTDataSource>" << std::endl;
-
     csv.open(path.replace_extension("csv").string());
     csv << "geom,tid,local" << std::endl;
 }
@@ -95,7 +94,6 @@ void write_vrt_header_tin(std::ofstream& csv, const std::string& filename)
     f <<    "<Field name=\"id\" type=\"Integer\"/>" << std::endl;
     f <<  "</OGRVRTLayer>" << std::endl;
     f <<"</OGRVRTDataSource>" << std::endl;
-
     csv.open(path.replace_extension("csv").string());
     csv << "geom,tid,id" << std::endl;
 }

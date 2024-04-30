@@ -77,7 +77,6 @@ void cell_data_wasure::write(std::ostream& os,bool only_iq,bool is_ascii) const
             os.write((char*)(&(acc)), sizeof(acc));
         }
     }
-
 }
 
 void cell_data_wasure::read(std::istream& is,bool only_iq,bool is_ascii)
@@ -104,7 +103,6 @@ void cell_data_wasure::read(std::istream& is,bool only_iq,bool is_ascii)
 
 std::ostream& iqlib::operator<<(std::ostream& os, const cell_data_wasure& dt)
 {
-
     return os;
 }
 
@@ -112,7 +110,6 @@ std::istream& iqlib::operator>>(std::istream& is, cell_data_wasure& dt)
 {
     std::string read{""};
     is >> read;
-
     return is;
 }
 
@@ -135,13 +132,11 @@ vertex_data_wasure::vertex_data_wasure(const vertex_data_wasure& dt)
 void vertex_data_wasure::write(std::ostream& os,bool only_iq,bool is_ascii ) const
 {
     vertex_data::write(os,only_iq,is_ascii);
-
 }
 
 void vertex_data_wasure::read(std::istream& is,bool only_iq,bool is_ascii )
 {
     vertex_data::read(is,only_iq,is_ascii);
-
 }
 
 std::ostream& iqlib::operator<<(std::ostream& os, const vertex_data_wasure& dt)
