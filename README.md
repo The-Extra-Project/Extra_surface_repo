@@ -1,6 +1,6 @@
 [![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://hal.science/hal-03380593/file/2021216131.pdf)
 
-![logo](./doc/logo.jpeg)
+![logo](./doc/logo.png)
 
 ![Example of the algorithm on the "chateau de versaille" LidarHD tile](./doc/header.jpeg)
 
