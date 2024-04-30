@@ -8,10 +8,11 @@ This project aims to process algorithm for watertight surface reconstruction bas
 This code is a simplfied version of the article  [Efficiently Distributed Watertight Surface reconstruction](https://lcaraffa.github.io/edwsr/)
 finetuned to work on the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) on a signe computer.
 
-/!\ Warning /!\  This code is for experimental / researches  purpores.
+/!\ Warning /!\  This code is for experimental / researches. If you are looking for a most robust implementation of this code, we are developping 
+a CGAL package scheduled with Open MP / MPI soon. Follow the project page or this github page for updates.
 
 # Requirements 
-- Docker (only tester on ubuntu)
+- Docker (only tested on ubuntu)
 
 # User manual
 ## Install & compile 
