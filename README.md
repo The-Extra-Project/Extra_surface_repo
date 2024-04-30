@@ -2,6 +2,8 @@
 
 ![Example of the algorithm on the "chateau de versaille" LidarHD tile](./doc/header.jpeg)
 
+![Example of the algorithm on the "chateau de versaille" LidarHD tile](./doc/logo.jpeg)
+
 # Sparkling Wasure : Distributed watertight surface reconstruction on Apache Spark. 
 
 This project aims to process algorithm for watertight surface reconstruction based on Delaunay triangulation on distributed infrastructures.
@@ -57,5 +59,6 @@ $ ./run_lidarhd.sh
 ```
 
 # dev manual
-
+# FAQ
+- Why using Apache Spark instead of OpenMP/MPI
 
