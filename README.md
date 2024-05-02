@@ -47,11 +47,12 @@ $ ./run_examples.sh
 results will be writen in 'outputs' directory.
 
 ### Run on LidarHD LAZ dataset 
-    - Go to [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) dataset and download a tile.
-    - Save the downloaded tile into a folder on your computer.
-    - Set the absolute path of this folder as the value of the `INPUT_DIR` variable in the `run_lidarhd.sh` file.
-	- Adjust the settings to optimize local Apache Spark scheduling on your computer according to your preferences in the `algo-env.sh` file.
-    - then run the script `$ ./run_lidarhd.sh`
+To run the code on a lidarHD tile : 
+- Go to [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) dataset and download a tile.
+- Save the downloaded tile into a folder on your computer.
+- Set the absolute path of this folder as the value of the `INPUT_DIR` variable in the `run_lidarhd.sh` file.
+- Adjust the settings to optimize local Apache Spark scheduling on your computer according to your preferences in the `algo-env.sh` file.
+- then run the script `$ ./run_lidarhd.sh`
 
 # dev manual
 ## Inputs
