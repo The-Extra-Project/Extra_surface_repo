@@ -118,7 +118,6 @@ public :
 
     void update_simplex()
     {
-
         std::cerr << "update simplex void" << std::endl;
     }
 
@@ -131,8 +130,7 @@ public :
 
     void init_lab()
     {
-	std::cerr << "init lab void" << std::endl;
-        
+        std::cerr << "init lab void" << std::endl;
         return;
     }
 
@@ -140,8 +138,7 @@ public :
 
     void init_idx()
     {
-	std::cerr << "init idx void" << std::endl;
-
+        std::cerr << "init idx void" << std::endl;
         return;
     }
 
@@ -160,7 +157,6 @@ public :
         std::list<Point> lp;
         std::list<Vertex_const_handle> lvh;
         cci->get_list_vertices(lvh);
-
         for(auto vht : lvh)
         {
             Vertex_const_handle v = vht;
@@ -172,7 +168,6 @@ public :
 
     double get_goodshape_prior(Cell_const_iterator & cci, int idx)
     {
-
         Tile_cell_const_handle fch = cci->full_cell();
         std::list<Point> lp;
         std::list<Vertex_const_handle> lvh;
@@ -244,35 +239,33 @@ public :
         double nff = n_surface<Point,Traits>(lp,D);
         bool do_deb = do_debug(lp);
         double ccf = 1;
-
-            Sphere sp1(fch->vertex(0)->point(),
-                       fch->vertex(1)->point(),
-                       fch->vertex(2)->point(),
-                       fch->vertex(3)->point());
-            Sphere sp2(fchn->vertex(0)->point(),
-                       fchn->vertex(1)->point(),
-                       fchn->vertex(2)->point(),
-                       fchn->vertex(3)->point());
-            Plane pp(fch->vertex((idx+1)%4)->point(),
-                     fch->vertex((idx+2)%4)->point(),
-                     fch->vertex((idx+3)%4)->point());
-            auto center1 = sp1.center();
-            auto proj1 = pp.projection(center1);
-            auto center2 = sp2.center();
-            auto proj2 = pp.projection(center2);
-            auto pp1a = fch->vertex((idx+1)%4)->point();
-            double angle_deg1=CGAL::approximate_angle(center1,pp1a,proj1);
-            double angle_deg2=CGAL::approximate_angle(center2,pp1a,proj2);
-            double ang1 = (angle_deg1)*3.14/180.0;
-            double ang2 = (angle_deg2)*3.14/180.0;
-            ccf = std::min(cos(ang1),cos(ang2));
-            if(ccf < 0)
-            {
-                std::cerr << "ERROR CCF < 0 : " << ccf << std::endl;
-                std::cerr << "ang:" << ang1 << " " << ang2 << std::endl;
-                ccf = 0.001;
-            }
-   
+        Sphere sp1(fch->vertex(0)->point(),
+                   fch->vertex(1)->point(),
+                   fch->vertex(2)->point(),
+                   fch->vertex(3)->point());
+        Sphere sp2(fchn->vertex(0)->point(),
+                   fchn->vertex(1)->point(),
+                   fchn->vertex(2)->point(),
+                   fchn->vertex(3)->point());
+        Plane pp(fch->vertex((idx+1)%4)->point(),
+                 fch->vertex((idx+2)%4)->point(),
+                 fch->vertex((idx+3)%4)->point());
+        auto center1 = sp1.center();
+        auto proj1 = pp.projection(center1);
+        auto center2 = sp2.center();
+        auto proj2 = pp.projection(center2);
+        auto pp1a = fch->vertex((idx+1)%4)->point();
+        double angle_deg1=CGAL::approximate_angle(center1,pp1a,proj1);
+        double angle_deg2=CGAL::approximate_angle(center2,pp1a,proj2);
+        double ang1 = (angle_deg1)*3.14/180.0;
+        double ang2 = (angle_deg2)*3.14/180.0;
+        ccf = std::min(cos(ang1),cos(ang2));
+        if(ccf < 0)
+        {
+            std::cerr << "ERROR CCF < 0 : " << ccf << std::endl;
+            std::cerr << "ang:" << ang1 << " " << ang2 << std::endl;
+            ccf = 0.001;
+        }
         return nff*ccf;
     }
 
@@ -297,7 +290,6 @@ public :
 
     void init_idx(DTW & tri)
     {
-	
         return;
     }
 
@@ -305,7 +297,6 @@ public :
 
     void alpha_exp(DTW & tri,D_MAP & data_map)
     {
-
         if(NBL == 2)
         {
             opt_gc(labs.back(),tri,data_map);
@@ -319,12 +310,10 @@ public :
             for(labsit = labs.begin(); labsit != labs.end(); ++labsit)
             {
                 int lalpha = *labsit;
-
                 opt_gc(lalpha,tri,data_map);
                 acc++;
             }
         }
-
     }
 
 
@@ -343,7 +332,6 @@ public :
         // ID map est une structure map d'un pointeur de tetraèdre => id
         // ou id = indice des tétraèdres dans le du graph local.
         std::map<Cell_const_iterator,int> id_map;
-
         for( auto cit = tri.cells_begin();
                 cit != tri.cells_end(); ++cit )
         {
@@ -534,7 +522,6 @@ public :
             {
             }
         }
-
         delete g;
     }
 
@@ -628,12 +615,10 @@ public :
             // Update with the lagrangian
             e0 = c_i/((double)card_shared);
             e1 = c_j/((double)card_shared);
-
             if(lag_acc > 0)
                 e0 += lag_acc;
             else
                 e1 += -lag_acc;
-
             // Construction des termes unaires
             // add_tweights(id du tétraèdre, score S->node,score node->T);
             g->add_tweights(cid, (e0 * MULT), (e1 * MULT));
@@ -666,9 +651,7 @@ public :
                         idSet.insert(tid_l);
                     }
                     card_shared = idSet.size();
-
                 }
-
                 Cell_const_iterator fch = Cell_const_iterator(tile_k,tile_k, tile_k, tmp_fch);
                 int idx = tmp_idx;
                 Cell_const_iterator fchn = Cell_const_iterator(tile_k,tile_k, tile_k,tmp_fchn);
@@ -684,7 +667,6 @@ public :
                     std::cerr << "WARNING coef == NAN" << std::endl;
                     coef = 100;
                 }
-
                 int ch1lab = data_map[fch->tile()->id()].format_labs[cccid];
                 int chnlab = data_map[fchn->tile()->id()].format_labs[cccidn];
                 ch1lab = chnlab = 0;
@@ -711,7 +693,6 @@ public :
                 continue;
             }
         }
-
         double flow = g->maxflow();
         int nb_merge = 0;
         // On reboucle sur les tets main
@@ -755,23 +736,19 @@ public :
         typedef double FLOAT;
         QPBO<FLOAT>* q;
         q = new QPBO<FLOAT>(N, NF);
-
         double e0,e1;
         int acc = 0;
         std::map<Cell_const_iterator,int> id_map;
         for( auto cit = tri.cells_begin();
                 cit != tri.cells_end(); ++cit )
         {
-
             q->AddNode(); // add two nodes
             id_map[cit] = acc++;
         }
-
         for( auto cit = tri.cells_begin();
                 cit != tri.cells_end(); ++cit )
         {
             Cell_const_iterator fch = *cit;
-
             int cid = id_map[cit];
             int cccid = cit->lid();
             int lcurr = data_map[fch->tile()->id()].format_labs[cccid];
@@ -784,7 +761,6 @@ public :
         {
             if(fit->is_infinite())
             {
-
                 continue;
             }
             try
@@ -821,7 +797,6 @@ public :
         q->MergeParallelEdges();
         q->Solve();
         q->ComputeWeakPersistencies();
-
         int nb_merge = 0;
         for( auto cit = tri.cells_begin();
                 cit != tri.cells_end(); ++cit )
@@ -854,11 +829,11 @@ public :
         typedef double                                                               ValueType;
         typedef size_t                                                               IndexType;
         typedef size_t                                                               LabelType;
-        typedef opengm::Adder                                                        OpType;   
-        typedef opengm::ExplicitFunction<ValueType,IndexType,LabelType>              ExplicitFunction;  
-        typedef opengm::meta::TypeListGenerator<ExplicitFunction>::type              FunctionTypeList;  
-        typedef opengm::DiscreteSpace<IndexType, LabelType>                          SpaceType;         
-        typedef opengm::GraphicalModel<ValueType,OpType,FunctionTypeList,SpaceType>  Model;             
+        typedef opengm::Adder                                                        OpType;
+        typedef opengm::ExplicitFunction<ValueType,IndexType,LabelType>              ExplicitFunction;
+        typedef opengm::meta::TypeListGenerator<ExplicitFunction>::type              FunctionTypeList;
+        typedef opengm::DiscreteSpace<IndexType, LabelType>                          SpaceType;
+        typedef opengm::GraphicalModel<ValueType,OpType,FunctionTypeList,SpaceType>  Model;
         typedef Model::FunctionIdentifier                                            FunctionIdentifier;
         int  N =   tri.number_of_cells();
         int NF = 0;
@@ -870,11 +845,9 @@ public :
         for(int i = 0; i < N; i++)
             numbersOfLabels[i] = 2;
         Model gm(SpaceType(numbersOfLabels, numbersOfLabels + N));
-
         double e0,e1;
         int acc = 0;
         std::map<Cell_const_iterator,int> id_map;
-
         for( auto cit = tri.cells_begin();
                 cit != tri.cells_end(); ++cit )
         {
@@ -897,14 +870,12 @@ public :
             FunctionIdentifier id = gm.addFunction(f);
             IndexType variableIndex[] = {cid};
             gm.addFactor(id, variableIndex, variableIndex + 1);
-
         }
         DATA_TYPE E[4];
         for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
         {
             if(fit->is_infinite())
             {
-
                 continue;
             }
             try
@@ -982,7 +953,6 @@ public :
             }
         }
         delete [] numbersOfLabels;
-
     }
 
     double reg(double v,double mm = -1)
@@ -1003,7 +973,6 @@ public :
 
     double reg1(double v,double mm)
     {
-
         return reg(v,mm);
     }
 
@@ -1015,7 +984,6 @@ public :
         double MULT_2 = coef_mult;
         int  N = tri.number_of_cells();
         int NF = 0;
-
         switch(gtype)
         {
         case 0 :
@@ -1033,7 +1001,6 @@ public :
             break;
         }
         }
-
         for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
         {
             NF++;
@@ -1065,7 +1032,6 @@ public :
                 continue;
             if(area_processed > 1)
                 continue;
-
             int tid = cit->tile()->id();
             int lid = cit->lid();
             int gid = cit->gid();
@@ -1073,7 +1039,6 @@ public :
             int lcurr = data_map[tid].format_labs[lid];
             e0 = get_score_linear(fch,linit,data_map);
             e1 = get_score_linear(fch,lalpha,data_map);
-
             if(e0 > v_max)
                 v_max = e0;
             if(e1 > v_max)
@@ -1088,12 +1053,10 @@ public :
             case 1 :
             {
                 g->add_tweights(id_map[cit],e0*MULT_2,e1*MULT_2);
-
                 break;
             }
             case 2 :
             {
-
                 ofile << "1 " <<   gid  << " " << (e0 * MULT_2) << " " <<  (e1 * MULT_2) << " ";
                 if(++acc % chunk_size == 0) ofile << std::endl;
                 break;
@@ -1101,7 +1064,6 @@ public :
             }
         }
         DATA_TYPE E[4];
-
         for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
         {
             if(fit->is_infinite())
@@ -1117,16 +1079,13 @@ public :
                 {
                     continue;
                 }
-
                 if(!tri.tile_is_loaded(tmp_fch->main_id()) ||
                         !tri.tile_is_loaded(tmp_fchn->main_id()))
                 {
-
                     continue;
                 }
                 auto bb1 = tmp_fch->barycenter();
                 auto bb2 = tmp_fchn->barycenter();
-
                 Cell_const_iterator fch = tmp_fch->main();
                 int idx = tmp_idx;
                 Cell_const_iterator fchn = tmp_fchn->main();
@@ -1136,7 +1095,6 @@ public :
                 int tidn = fchn->tile()->id();
                 int gidc = fch->gid();
                 int gidn = fchn->gid();
-
                 double gsps = get_goodshape_prior(tmp_fch,tmp_idx);
                 double surface = get_score_surface(tmp_fch,tmp_idx);
                 double coef = lambda*surface+GSPS_CONST*gsps;
@@ -1148,7 +1106,6 @@ public :
                 E[0] = get_score_quad(lalpha,lalpha);
                 double E_x1 = E[0] - E[2];
                 double E_bx2 = E[3] - E[2];
-
                 double E_quad = -E[0] + E[1] + E[2] - E[3];
                 switch(gtype)
                 {
@@ -1160,14 +1117,11 @@ public :
                         if(E[i] > v_max)
                             v_max = E[i];
                     }
-
                     v_edge.push_back(std::vector<double>({(double)gidc,(double)gidn,E[0],E[1],E[2],E[3]}));
- 
                     break;
                 }
                 case 1 :
                 {
- 
                     if(E_x1 > 0)
                         g->add_tweights(id_map[fch], 0, MULT_2*E_x1*coef);
                     else
@@ -1181,7 +1135,6 @@ public :
                 }
                 case 2 :
                 {
- 
                     if(E_x1 > 0)
                     {
                         ofile << "1 " << gidc << " " << 0                   << " " << MULT_2*E_x1*coef  << " ";;
@@ -1212,7 +1165,6 @@ public :
                 continue;
             }
         }
- 
         double flow = g->maxflow();
         switch(gtype)
         {
@@ -1250,9 +1202,7 @@ public :
                         std::cout  << "e " << gid_map[(int)(a - g->get_first_node())] + 2 << " " << 1 << " " << -cap << std::endl;
                 }
             }
-
             delete g;
-
         }
         case 2 :
         {
@@ -1296,7 +1246,6 @@ public :
         }
         double e0,e1;
         int acc = 0;
-
         std::map<Cell_const_iterator,int> id_map;
         std::vector<int> id2gid_vec;
         for( auto cit = tri.cells_begin();
@@ -1310,21 +1259,19 @@ public :
             Cell_const_iterator fch = *cit;
             if(cit->main_id() != main_tile_id)
                 continue;
-
             int tid = cit->tile()->id();
             int lid = cit->lid();
             int gid = cit->gid();
-            int lcurr = 0; 
+            int lcurr = 0;
             e0 = get_score_linear(fch,lcurr,data_map);
             e1 = get_score_linear(fch,lalpha,data_map);
             switch(gtype)
             {
             case 0 :
             {
-
                 ofile << "v " <<   gid  << " " << (e0 * MULT_2) << " " <<  (e1 * MULT_2) << " ";
                 if(++acc % chunk_size == 0) ofile << std::endl;
-                break;       
+                break;
             }
             case 1 :
             {
@@ -1336,7 +1283,6 @@ public :
             }
             case 2 :
             {
-
                 ofile << "1 " <<   gid  << " " << (e0 * MULT_2) << " " <<  (e1 * MULT_2) << " ";
                 if(++acc % chunk_size == 0) ofile << std::endl;
                 break;
@@ -1371,7 +1317,6 @@ public :
                 int tidn = fchn->tile()->id();
                 int gidc = fch->gid();
                 int gidn = fchn->gid();
-
                 double gsps = get_goodshape_prior(tmp_fch,tmp_idx);
                 double surface = get_score_surface(tmp_fch,tmp_idx);
                 double coef = lambda*surface+GSPS_CONST*gsps;
@@ -1389,7 +1334,6 @@ public :
                 {
                 case 0 :
                 {
-
                     ofile << "e " << gidc << " " << gidn  << " ";
                     for(int i = 0 ; i < 4; i++)
                     {
@@ -1423,7 +1367,6 @@ public :
                 }
                 case 2 :
                 {
-
                     if(E_x1 > 0)
                     {
                         ofile << "1 " << gidc << " " << 0                   << " " << MULT_2*E_x1*coef  << " ";;
@@ -1469,40 +1412,33 @@ public :
         int NF = 0;
         if(D == 3)
             MULT_2=1000000;
-
         for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
         {
             NF++;
         }
         double e0,e1;
         int acc = 0;
-
         std::map<Cell_const_iterator,int> id_map;
         std::vector<int> id2gid_vec;
-
         for( auto cit = tri.cells_begin();
                 cit != tri.cells_end(); ++cit )
         {
             id_map[cit];
         }
-
         for( auto cit = tri.cells_begin();
                 cit != tri.cells_end(); ++cit )
         {
             Cell_const_iterator fch = *cit;
             if(cit->main_id() != main_tile_id)
                 continue;
-
             int tid = cit->tile()->id();
             int lid = cit->lid();
-            int gid = cit->gid(); 
-            int lcurr = 0; 
+            int gid = cit->gid();
+            int lcurr = 0;
             e0 = get_score_linear(fch,lcurr,data_map);
             e1 = get_score_linear(fch,lalpha,data_map);
             ofile << "v " <<   gid  << " " << (e0 * MULT_2) << " " <<  (e1 * MULT_2) << std::endl;
-
         }
-
         DATA_TYPE E[4];
         for(auto fit = tri.facets_begin();  fit != tri.facets_end(); ++fit)
         {
@@ -1529,7 +1465,7 @@ public :
                 int lidn = fchn->lid();
                 int tidc = fch->tile()->id();
                 int tidn = fchn->tile()->id();
-                int gidc = fch->gid(); 
+                int gidc = fch->gid();
                 int gidn = fchn->gid();
                 double gsps = get_goodshape_prior(tmp_fch,tmp_idx);
                 double surface = get_score_surface(tmp_fch,tmp_idx);
@@ -1542,7 +1478,6 @@ public :
                 E[0] = get_score_quad(lalpha,lalpha);
                 double E_x1 = E[0] - E[2];
                 double E_bx2 = E[3] - E[2];
-
                 double E_quad = -E[0] + E[1] + E[2] - E[3];
                 ofile << "e " << gidc << " " << gidn  << " ";
                 for(int i = 0 ; i < 4; i++)

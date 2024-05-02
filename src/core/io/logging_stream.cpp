@@ -32,7 +32,6 @@ void logging_stream::step(const std::string& s)
 
 void logging_stream::do_log()
 {
-
     return;
 }
 

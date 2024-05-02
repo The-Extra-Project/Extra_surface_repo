@@ -120,17 +120,14 @@ public :
                 errflg--;
                 break;
             case 'o':
-
                 output_wasure_dir = std::string(optarg);
                 errflg--;
                 break;
             case 'u':
-
                 input_tri_dir = std::string(optarg);
                 errflg--;
                 break;
             case 'v':
-
                 output_tri_dir = std::string(optarg);
                 errflg--;
                 break;

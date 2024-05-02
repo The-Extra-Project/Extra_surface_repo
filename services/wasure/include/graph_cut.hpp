@@ -3,8 +3,8 @@
 #define MULT (1.0)
 
 
-#include <stdio.h>     
-#include <iostream>    
+#include <stdio.h>
+#include <iostream>
 
 #include <vector>
 #include "io/write.hpp"
@@ -41,11 +41,8 @@ int gc_on_stream(std::istream & ifile,std::ostream & ofile)
     int tt;
     std::vector<g_edge> v_edges;
     std::vector<g_vert> v_verts;
-
     while(ifile  >> tt)
     {
-
-
         switch(tt)
         {
         case 1 :

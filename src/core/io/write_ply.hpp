@@ -142,7 +142,6 @@ std::ostream & cgal2ply_split(std::ostream & ofile,DTC & tri, FTC &filter, int n
     char cc;
     bool do_simplex = false;
     int NB_DIGIT_OUT_PLY  = 3;
-
     CGAL::Unique_hash_map<Vertex_handle_raw, uint> vertex_map;
     int nb_vert = tri.number_of_vertices();
     int nb_cell = nbc_finalized;

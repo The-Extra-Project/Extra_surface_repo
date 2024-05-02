@@ -9,8 +9,8 @@
 #include <utility>
 #include <sstream>
 #include <string>
-#include <stdio.h>     
-#include <stdlib.h>    
+#include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
 #include <chrono>
@@ -229,7 +229,7 @@ std::string time_in_HH_MM_SS_MMM()
     auto timer = system_clock::to_time_t(now);
     std::tm bt = *std::localtime(&timer);
     std::ostringstream oss;
-    oss << std::put_time(&bt, "%d-%m-%Y-%H-%M-%S"); 
+    oss << std::put_time(&bt, "%d-%m-%Y-%H-%M-%S");
     oss << '.' << std::setfill('0') << std::setw(3) << ms.count();
     return oss.str();
 }
@@ -294,7 +294,6 @@ void stream_data_header::finalize()
             delete fos;
         }
     }
-
     else
     {
         if(ifile != NULL)
@@ -345,19 +344,15 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
         ist >> idx;
         lidx.push_back(idx);
     }
-
     if(lab.empty() || lidx.size() == 0)
     {
         std::cerr << "[ERROR] error during header parsing" << std::endl;
         std::exit (EXIT_FAILURE);
     }
     ist >> type;
-
     if(is_file())
     {
         ist >> filename;
-
-
         fis = new std::ifstream();
         int acc_op = 0;
         bool is_open = false;
@@ -390,7 +385,7 @@ std::istream & stream_data_header::parse_header(std::istream & ist, bool is_bina
     }
     else if (is_hdfs())
     {
-	std::cerr << "[error] not suported anymore" << std::endl;
+        std::cerr << "[error] not suported anymore" << std::endl;
     }
     else if (is_stream())
     {

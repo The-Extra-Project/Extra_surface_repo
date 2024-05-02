@@ -127,7 +127,6 @@ struct Cgal_traits_3_Raw
                                    c->vertex(1)->point(),
                                    c->vertex(2)->point(),
                                    c->vertex(3)->point());
-
     }
 
 
@@ -349,7 +348,6 @@ struct Cgal_traits_3
         }
         for(uint d = 0; d < D; d++)
             coords[d] /= ((double)D+1);
-
         return coords;
     }
 
@@ -366,7 +364,6 @@ struct Cgal_traits_3
         }
         for(uint d = 0; d < D; d++)
             coords[d] /= ((double)D+1);
-
         return coords;
     }
 
@@ -401,12 +398,11 @@ struct Cgal_traits_3
         }
         else
         {
-
             typename Delaunay_triangulation::Locate_type lt;
             int li, lj;
             Cell_handle c = dt.locate(it->first, lt, li, lj, hint);
             if (lt == Delaunay_triangulation::VERTEX)
-                return v; 
+                return v;
             std::vector<Cell_handle> cells;
             cells.reserve(32);
             std::vector<Facet> facets;
@@ -439,9 +435,8 @@ struct Cgal_traits_3
                 return v; // future star of "it" is entirely foreign, skipping
             v = dt.insert_in_hole(it->first, cells.begin(), cells.end(), facets.begin()->first, facets.begin()->second);
         }
-
         for(auto vit = vertices.begin(); vit != vertices.end(); ++vit)
-            if(!dt.is_infinite(*vit) && pid != (*vit)->info().id) 
+            if(!dt.is_infinite(*vit) && pid != (*vit)->info().id)
                 out[pid].push_back(*vit);
         // send it to all ids (if != id)
         for(auto iit = ids.begin(); iit != ids.end(); ++iit)
@@ -576,7 +571,6 @@ struct Cgal_traits_3
                                    c->vertex(1)->point(),
                                    c->vertex(2)->point(),
                                    c->vertex(3)->point());
-
     }
 
     inline bool vertex_is_infinite(const Delaunay_triangulation& dt, Vertex_const_handle v) const
@@ -786,7 +780,6 @@ struct Cgal_traits_3
         max_id++;
         for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
         {
-
             int ii =  it->info().gid;
             if(ii == -1)
                 ii = max_id++;
@@ -804,7 +797,6 @@ struct Cgal_traits_3
             }
             v_flags[ii] = it->info().flag;
             ++i;
-
         }
         data.dmap[data.xyz_name].fill_full_uint8_vect(v_xyz);
         data.dmap[data.simplex_name].fill_full_uint8_vect(v_simplex);
@@ -838,12 +830,10 @@ struct Cgal_traits_3
         tri.clear();
         tri.tds().set_dimension(D);
         auto cit = tri.all_cells_begin();
-
         tri.tds().delete_cell(cit);
         // 4) read the number of vertices
         uint num_v = data.dmap[data.xyz_name].get_nbe_input();
         std::vector<Vertex_handle> vertex_map(num_v);
-
         vertex_map[0] = tri.infinite_vertex();
         // 5) read and create the vertices
         for(uint i = 1; i < num_v; ++i)
@@ -872,7 +862,6 @@ struct Cgal_traits_3
         // 7) read and create the faces
         std::vector<Cell_handle> cell_map(num_c);
         uint ik;
-
         for(uint i = 0; i < num_c; ++i)
         {
             int ii = i;
@@ -939,29 +928,26 @@ struct Cgal_traits_3
                 coords_v[d] = v_double[ii*D +d];
             }
             Point p(coords_v[0],coords_v[1],coords_v[2]);
-
             vertex_map[ii] = tri.tds().create_vertex(p);
         }
-
-            deserialize_b64_vect(v_int,ifile);
-            for(uint i = 1; i <= num_v; ++i)
-            {
-                int ii = i;
-                vertex_map[ii]->info().id = v_int[ii];
-            }
-            deserialize_b64_vect(v_int,ifile);
-            for(uint i = 1; i <= num_v; ++i)
-            {
-                int ii = i;
-                vertex_map[ii]->info().gid = v_int[ii];
-            }
-            deserialize_b64_vect(v_int,ifile);
-            for(uint i = 1; i <= num_v; ++i)
-            {
-                int ii = i;
-                vertex_map[ii]->info().flag = v_int[ii];
-            }
-
+        deserialize_b64_vect(v_int,ifile);
+        for(uint i = 1; i <= num_v; ++i)
+        {
+            int ii = i;
+            vertex_map[ii]->info().id = v_int[ii];
+        }
+        deserialize_b64_vect(v_int,ifile);
+        for(uint i = 1; i <= num_v; ++i)
+        {
+            int ii = i;
+            vertex_map[ii]->info().gid = v_int[ii];
+        }
+        deserialize_b64_vect(v_int,ifile);
+        for(uint i = 1; i <= num_v; ++i)
+        {
+            int ii = i;
+            vertex_map[ii]->info().flag = v_int[ii];
+        }
         uint ik;
         deserialize_b64_vect(v_int,ifile);
         num_c = v_int.size()/(D+1);
@@ -978,20 +964,18 @@ struct Cgal_traits_3
             }
             cell_map[ii] = ch;
         }
-
-            deserialize_b64_vect(v_char,ifile);
-            for(uint i = 0; i < num_c; ++i)
-            {
-                int ii = i;
-                cell_map[ii]->info().flag =  v_char[ii];
-            }
-            deserialize_b64_vect(v_int,ifile);
-            for(uint i = 0; i < num_c; ++i)
-            {
-                int ii = i;
-                cell_map[ii]->info().gid =  v_int[ii];
-            }
-
+        deserialize_b64_vect(v_char,ifile);
+        for(uint i = 0; i < num_c; ++i)
+        {
+            int ii = i;
+            cell_map[ii]->info().flag =  v_char[ii];
+        }
+        deserialize_b64_vect(v_int,ifile);
+        for(uint i = 0; i < num_c; ++i)
+        {
+            int ii = i;
+            cell_map[ii]->info().gid =  v_int[ii];
+        }
         deserialize_b64_vect(v_int,ifile);
         for(uint j = 0; j < num_c; ++j)
         {
@@ -1037,38 +1021,35 @@ struct Cgal_traits_3
             i++;
         }
         serialize_b64_vect(v_double,ofile);
-
-            v_int.push_back(0);
-            for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
-            {
-                if(tri.is_infinite(vit))
-                    continue;
-                v_int.push_back(vit->info().id);
-            }
-            serialize_b64_vect(v_int,ofile);
-            v_int.push_back(0);
-            for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
-            {
-                if(tri.is_infinite(vit))
-                    continue;
-                v_int.push_back(vit->info().gid);
-            }
-            serialize_b64_vect(v_int,ofile);
-            v_int.push_back(0);
-            for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
-            {
-                if(tri.is_infinite(vit))
-                    continue;
-                v_int.push_back(vit->info().flag);
-            }
-            serialize_b64_vect(v_int,ofile);
-
+        v_int.push_back(0);
+        for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
+        {
+            if(tri.is_infinite(vit))
+                continue;
+            v_int.push_back(vit->info().id);
+        }
+        serialize_b64_vect(v_int,ofile);
+        v_int.push_back(0);
+        for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
+        {
+            if(tri.is_infinite(vit))
+                continue;
+            v_int.push_back(vit->info().gid);
+        }
+        serialize_b64_vect(v_int,ofile);
+        v_int.push_back(0);
+        for(auto vit = tri.vertices_begin(); vit != tri.vertices_end(); ++vit)
+        {
+            if(tri.is_infinite(vit))
+                continue;
+            v_int.push_back(vit->info().flag);
+        }
+        serialize_b64_vect(v_int,ofile);
         CGAL::Unique_hash_map<Cell_const_handle, uint> cell_map;
         i = 0;
         for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
         {
             int ii = i;
-
             cell_map[it] = ii;
             ++i;
             for(int d = 0; d < D+1; d++)
@@ -1078,21 +1059,18 @@ struct Cgal_traits_3
             }
         }
         serialize_b64_vect(v_int,ofile);
-
-            for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
-            {
-                v_char.push_back(it->info().flag);
-            }
-            serialize_b64_vect(v_char,ofile);
-            for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
-            {
-                v_int.push_back(it->info().gid);
-            }
-            serialize_b64_vect(v_int,ofile);
-
         for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
         {
-
+            v_char.push_back(it->info().flag);
+        }
+        serialize_b64_vect(v_char,ofile);
+        for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
+        {
+            v_int.push_back(it->info().gid);
+        }
+        serialize_b64_vect(v_int,ofile);
+        for(auto it = tri.cells_begin(); it != tri.cells_end(); ++it)
+        {
             for(int j = 0; j < D+1; j++)
             {
                 int nb_id = cell_map[it->neighbor(j)];

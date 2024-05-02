@@ -11,8 +11,7 @@ else
     exit 1
 fi
 
-#NO_CACHE="--no-cache"
-print_fun() # Show a list of functions
+print_fun() 
 {
     grep "^function" $0
 }
@@ -27,7 +26,7 @@ fi
 MOUNT_CMD="${MOUNT_CMD} -v /tmp/:/tmp/ -v ${TMP_DIR}:${TMP_DIR} -v ${SPARK_SHARED_DIR}:${SPARK_SHARED_DIR} -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}"
 echo "MOUNT CMD ===> $MOUNT_CMD"
 
-function compile # ./docker_interface.sh  Compile [-jx]
+function compile
 {
     echo "starting daemon ..."
     echo "compile"
@@ -64,10 +63,8 @@ function compile # ./docker_interface.sh  Compile [-jx]
     fi
     EXEC_FUN="${EXEC_FUN} &&  cd ${DDT_MAIN_DIR_DOCKER}/services/ && ./build-unix.sh build -b ${KERNEL_BUILD_DIR} -c ${COMPILE_MODE} -t ${DDT_TRAITS}"
     EXEC_FUN="${EXEC_FUN} && mkdir -p ${SPARK_BUILD_DIR} && cp -rf ${DDT_MAIN_DIR_DOCKER}/src/spark/* ${SPARK_BUILD_DIR}  && cd ${SPARK_BUILD_DIR} && ./build-unix.sh "
-    
     ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i "${NAME_IMG_BASE}" -c ${CONTAINER_NAME_COMPILE}
 }
-
 
 function build # Build docker container
 {
@@ -76,11 +73,9 @@ function build # Build docker container
 	"ddt_img_base_18_04")
 	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-18-04 ${DDT_MAIN_DIR}
 	    ;;
-
 	"ddt_img_base_21_10")
 	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-21-10 ${DDT_MAIN_DIR}
 	    ;;
-
 	"ddt_img_base_20_04")
 	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-20-04 ${DDT_MAIN_DIR}
 	    ;;
@@ -91,7 +86,6 @@ function build # Build docker container
 	    echo "ERROR NO IMAGE"
 	    ;;
       esac
-
 }
 
 

@@ -95,7 +95,6 @@ void write_geojson_facet_range_wasure(Iterator begin, Iterator end, std::ostream
     int D = Traits::D;
     for(auto fit = begin; fit != end; ++fit)
     {
-
         if(!is_first)
             ofs << "," << std::endl;
         auto cit = fit->full_cell();
@@ -178,7 +177,6 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
     int D = Traits::D;
     for(auto iit = begin; iit != end; ++iit)
     {
-
         if(!is_first)
             ofs << "," << std::endl;
         is_first=false;
@@ -189,7 +187,7 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
         ofs << "\"coordinates\": [" << std::endl;
         int local = 0;
         ofs << "[[";
-        for(int i=0; i<=D+1; ++i) 
+        for(int i=0; i<=D+1; ++i)
         {
             auto v = iit->vertex(i % (D+1));
             if(i>0)
@@ -213,26 +211,23 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
         ofs << "\"main_id\": " <<  int(iit->main_id())  << "," << std::endl;
         ofs << "\"tid\": " << tid  << "," << std::endl;
         ofs << "\"data_id\": " << int(iit->cell_data().id)  << "," << std::endl;
-
-            if(!cmap.count(*iit)) cmap[*iit] = nextid++;
-            ofs << "\"opt_id\": " << cmap[*iit] << "," << std::endl;
-            for(int i = 0 ; i < D+1; i++)
+        if(!cmap.count(*iit)) cmap[*iit] = nextid++;
+        ofs << "\"opt_id\": " << cmap[*iit] << "," << std::endl;
+        for(int i = 0 ; i < D+1; i++)
+        {
+            int iid = -1;
+            try
             {
-                int iid = -1;
-
-                try
-                {
-                    auto nb0 = iit->neighbor(i);
-                    auto n0 = nb0->main();
-                    if(!cmap.count(n0)) cmap[n0] = nextid++;
-                    iid = cmap[n0];
-                }
-                catch (...)
-                {
-                }
-                ofs << "\"neigbhor " << i << "\": " << iid << "," << std::endl;
+                auto nb0 = iit->neighbor(i);
+                auto n0 = nb0->main();
+                if(!cmap.count(n0)) cmap[n0] = nextid++;
+                iid = cmap[n0];
             }
-
+            catch (...)
+            {
+            }
+            ofs << "\"neigbhor " << i << "\": " << iid << "," << std::endl;
+        }
         auto dmap = w_datas_tri[tid].dmap;
         for ( const auto &ee : dmap )
         {
@@ -261,7 +256,6 @@ void write_geojson_cell_range_wasure(Iterator begin, Iterator end, std::ostream 
                 }
             }
         }
-
         ofs << "\"prop1\": { \"this\": \"that\" }" << std::endl;
         ofs << "}" << std::endl;
         ofs << "}" << std::endl;

@@ -68,7 +68,6 @@ std::ostream & write_json_stream(const Tile & tile,std::ostream & ofile)
     std::string str = ss.str();
     str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
     ofile << str;
-
     return ofile;
 }
 
@@ -139,7 +138,6 @@ int write_points_id_source_stream(const std::vector<Point_id_source> & lp, std::
             outputv.emplace_back(std::get<0>(pp)[d]);
     }
     serialize_b64_vect(outputv,ofile);
-
     return 0;
 }
 
@@ -173,7 +171,6 @@ std::ostream & write_map_stream( const std::map<Id, std::set<Point>> & mp, std::
 template<typename DDT>
 std::ostream & write_tile_stream(const DDT& ddt, std::ostream & ofile, int tid)
 {
-
     auto tile  = ddt.get_tile(tid);
     tile->write_cgal(ofile);
     write_map_stream(tile->points_sent_,ofile,tile->current_dimension());
@@ -186,7 +183,6 @@ std::ostream & write_tile_stream(const DDT& ddt, std::ostream & ofile, int tid)
 template<typename DDT>
 int write_full_stream(const DDT& ddt, std::istream & ifile, int nb_dat)
 {
-
     std::vector<int> lnodes;
     for(int i = 0; i < nb_dat; i++)
     {
@@ -198,7 +194,7 @@ int write_full_stream(const DDT& ddt, std::istream & ifile, int nb_dat)
             lnodes.push_back(hpi.get_id(0));
         }
     }
-    return 0; 
+    return 0;
 }
 
 template<typename DDT>

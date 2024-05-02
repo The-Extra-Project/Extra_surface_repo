@@ -46,7 +46,6 @@ public :
     double get_score_linear(Cell_const_iterator fch,int label,D_MAP & data_map)
     {
         double volume = 1;
-
         int D = Traits::D;
         try
         {
@@ -59,12 +58,10 @@ public :
                     if(fch->neighbor(d)->is_mixed())
                         std::cerr << "mixed detected" << std::endl;
                 }
-
                 //int id_cov;
-
-		auto chn = fch;//->full_cell();
+                auto chn = fch;//->full_cell();
                 //int mir = fch->mirror_index(id_cov);
-		int ii = 0;
+                int ii = 0;
                 const Point& a = chn->vertex((ii+1)&3)->point();
                 const Point& b = chn->vertex((ii+2)&3)->point();
                 const Point& c = chn->vertex((ii+3)&3)->point();
@@ -74,11 +71,9 @@ public :
                 auto vn = CGAL::cross_product(v1,v2);
                 double coef_proj = compute_coef_proj(c,d,vn,D);
                 auto bary = chn->barycenter();
-
                 if((coef_proj > 0 && vn[D-1] < 0) ||
                         (coef_proj < 0 && vn[D-1] > 0) )
                 {
-
                     if(pLabsOut[label] > 0.5)
                         return 100000000;
                     else
@@ -86,7 +81,6 @@ public :
                 }
                 else
                 {
-
                     if(pLabsOut[label] > 0.5)
                         return 0;
                     else
@@ -100,7 +94,6 @@ public :
             std::cerr << "Exception catched : " << e.what() << std::endl;
             return 1000000;
         }
-
         double nbe = 1;
         double coef = volume/nbe;
         int cell_id = fch->lid();
@@ -109,7 +102,6 @@ public :
         double POut = data_map[tile_id].format_dst[cell_id][1];
         double PUnk = data_map[tile_id].format_dst[cell_id][2];
         double scoreCurr = fabs(pLabsIn[label] - PIn) + fabs(pLabsOut[label] - POut) + fabs(pLabsUnk[label] - PUnk);
-
         return coef*scoreCurr;
     }
 
@@ -133,16 +125,13 @@ public :
                     is_on_convex = true;
                 Cell_const_iterator fch = tmp_fch->main();
                 Cell_const_iterator fchn = tmp_fchn->main();
-
                 int cccid = fch->lid();
                 int cccidn = fchn->lid();
                 int ch1lab = w_datas_tri[fch->tile()->id()].format_labs[cccid];
                 int chnlab = w_datas_tri[fchn->tile()->id()].format_labs[cccidn];
-
                 if(
                     (ch1lab != chnlab) ||  (mode == 0 && (is_on_convex && (ch1lab == 0 || chnlab == 0))))
                 {
-
                     lft.push_back(*fit);
                 }
             }

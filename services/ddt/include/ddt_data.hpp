@@ -112,7 +112,6 @@ public :
                 ss << ee << "\t";
             }
             ss << std::endl;
-
         }
 
         int get_vsize() const
@@ -169,7 +168,6 @@ public :
             }
             else
             {
-
                 std::memcpy(&vv,&uint8_vect[id*vnbb+i*tinyply::PropertyTable[type].stride],tinyply::PropertyTable[type].stride);
             }
         }
@@ -188,7 +186,6 @@ public :
                 return;
             }
             szd = get_nbe_uint8_vect()*vsize;
-
             if(szd > 0)
             {
                 formated_data.resize(szd);
@@ -196,7 +193,6 @@ public :
                 if(do_clean)
                     uint8_vect.clear();
             }
-
             return;
         }
 
@@ -226,7 +222,6 @@ public :
                 uint8_vect.clear();
                 do_exist = false;
             }
-
         }
 
 
@@ -242,7 +237,6 @@ public :
                 uint8_vect.clear();
                 do_exist = false;
             }
-
         }
 
 
@@ -375,7 +369,6 @@ public :
             write_geojson_header(ofs_pts);
             write_geojson_header(ofs_spx);
         }
-
         std::vector<double> v_xyz;
         std::vector<int> v_simplex;
         dmap[xyz_name].extract_full_shpt_vect(v_xyz,false);
@@ -387,7 +380,6 @@ public :
             if(!is_first)
                 ofs_pts << "," << std::endl;
             is_first=false;
-
             ofs_pts << "{" << std::endl;
             ofs_pts << "\"type\": \"Feature\"," << std::endl;
             ofs_pts << "\"geometry\": {" << std::endl;
@@ -549,12 +541,10 @@ public :
             }
         }
         ss << nn << " ";
-
         for ( const auto &ee : dmap )
         {
             if(ee.second.do_exist)
             {
-
                 auto vv = dmap[ee.first].uint8_vect;
                 ss << dmap[ee.first].vname.size() << " ";
                 for(auto nn : dmap[ee.first].vname)
@@ -564,9 +554,7 @@ public :
                 ss << ee.second.part << " ";
                 ss << ee.second.get_vsize() << " ";
                 ss << ((int) ee.second.type) << " ";
-
                 serialize_b64_vect(vv,ss);
-
                 ss << " ";
             }
         }
@@ -576,7 +564,6 @@ public :
     {
         int nbe;
         ss >> nbe;
-
         for(int i = 0 ; i < nbe; i++)
         {
             std::vector<std::string> data_name;
@@ -593,7 +580,6 @@ public :
             ss >> vs;
             int ttti;
             ss >> ttti;
-
             dmap[data_name] = Data_ply(data_name,tt_name,dim,vs,static_cast<tinyply::Type>(ttti));
             dmap[data_name].set_exist(true);
             deserialize_b64_vect(dmap[data_name].uint8_vect,ss);
@@ -748,39 +734,33 @@ public :
         {
             tinyply::PlyFile file;
             file.parse_header(ss,nl_char);
-
             for (auto e : file.get_elements())
             {
-
-                    for (auto p : e.properties)
+                for (auto p : e.properties)
+                {
+                    std::vector<std::string> pname({p.name});
+                    bool do_exist = false;
+                    for ( const auto &ee : dmap )
                     {
-                        std::vector<std::string> pname({p.name});
-                        bool do_exist = false;
-                        
-                        for ( const auto &ee : dmap )
+                        if(ee.second.has_label(p.name))
                         {
-                            if(ee.second.has_label(p.name))
-                            {
-
-                                do_exist = true;
-                                dmap[ee.first].do_exist = true;
-                                dmap[ee.first].type = p.propertyType;
-                                break;
-                            }
-                        }
-                        if(!do_exist)
-                        {
-                            dmap[pname] = Data_ply(pname,e.name,D,1,p.propertyType);
-                            dmap[pname].do_exist = true;
+                            do_exist = true;
+                            dmap[ee.first].do_exist = true;
+                            dmap[ee.first].type = p.propertyType;
+                            break;
                         }
                     }
+                    if(!do_exist)
+                    {
+                        dmap[pname] = Data_ply(pname,e.name,D,1,p.propertyType);
+                        dmap[pname].do_exist = true;
+                    }
                 }
-
+            }
             for ( const auto &ee : dmap )
             {
                 if(ee.second.do_exist)
                 {
-
                     try { dmap[ee.first].shpt_vect = file.request_properties_from_element(ee.second.part, dmap[ee.first].get_name() ); }
                     catch (const std::exception & e) { std::cerr << "tinyply exception: " << e.what() << std::endl; }
                 }
@@ -829,7 +809,6 @@ public :
 
     void read_b64_generic_stream(std::istream & ifile)
     {
-
         int acc;
         ifile >> acc;
         for(int i = 0; i < acc; i++)
@@ -839,7 +818,6 @@ public :
             std::string part;
             int dim,vsize,tt;
             ifile >> name_size;
-
             for(int j = 0; j < name_size; j++)
             {
                 std::string lname;
@@ -849,7 +827,6 @@ public :
             ifile >> part >> dim >> vsize >> tt;
             dmap[cname] = Data_ply(cname,part,dim,vsize,static_cast<tinyply::Type>(tt));
             read_b64_data_fast(dmap[cname],ifile);
-
         }
     };
 
