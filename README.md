@@ -5,7 +5,6 @@
 ![Example of the algorithm on the "chateau de versaille" LidarHD tile](./doc/header.jpeg)
 
 
-
 # Distributed watertight surface reconstruction on Apache Spark. 
 
 This project aims to process algorithm for watertight surface reconstruction based on Delaunay triangulation on distributed infrastructures.
