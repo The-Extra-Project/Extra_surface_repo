@@ -35,5 +35,38 @@ function run_lidarhd
     run_algo_docker
 }
 
+function loop_lidarhd
+{
 
-run_lidarhd
+    # Specify the path to your text file
+    file_path="./datas/liste_dalle.txt"
+
+    # Check if the file exists
+    if [ ! -f "$file_path" ]; then
+	echo "File not found: $file_path"
+	exit 1
+    fi
+
+    # Loop through each line in the file
+    while IFS= read -r line; do
+	# Store the current line in a variable (e.g., 'current_line')
+	filename=$(basename "${line}")
+	echo "$filename"
+	INPUT_DIR="${DDT_MAIN_DIR}/outputs_lidarhd/${filename}/"
+	mkdir -p ${INPUT_DIR}
+	wget -O ${INPUT_DIR}/${filename} ${line}
+
+	OUTPUT_DIR="${INPUT_DIR}"
+	FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
+	run_algo_docker
+
+	INPUT_DIR=${OUTPUT_DIR}
+	PARAMS="${OUTPUT_DIR}/wasure_metadata_3d_gen.xml"
+	FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+	run_algo_docker
+
+	
+    done < "$file_path"
+}
+
+loop_lidarhd

@@ -59,8 +59,7 @@ function run_master (){
 					 --conf \"yarn.nodemanager.log-dirs=${SPARK_HISTORY_DIR}\" \
 					 -Djava.io.tmpdir=\"${SPARK_TMP_DIR}\" \
 					 -Dspark.executor.memory=${SPARK_EXECUTOR_MEMORY} \
-					 -Dspark.driver.memory=${SPARK_DRIVER_MEMORY} \
-					 --packages \"com.github.astrolabsoftware:spark3d_2.11:0.3.1\""
+					 -Dspark.driver.memory=${SPARK_DRIVER_MEMORY} "
 
 
     if [ "$DEBUG_MODE" = true ] ; then
