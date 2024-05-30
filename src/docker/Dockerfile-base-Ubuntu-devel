@@ -1,5 +1,9 @@
 FROM ubuntu:devel
 
+# ENV http_proxy http://10.128.81.100:3128
+# ENV https_proxy http://10.128.81.100:3128
+
+
 MAINTAINER Laurent Caraffa "caraffa.laurent@gmail.com"
 
 ENV DEBIAN_FRONTEND noninteractive

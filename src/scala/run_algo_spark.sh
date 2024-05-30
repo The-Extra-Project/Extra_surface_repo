@@ -110,7 +110,7 @@ do
             SPARK_CONF="${OPTARG,,}"
             ;;
 	f)
-            INPUT_SCRIPT="${OPTARG,,}"
+            INPUT_SCRIPT="${OPTARG}"
             ;;
 	m)
             MASTER_IP="${OPTARG}"

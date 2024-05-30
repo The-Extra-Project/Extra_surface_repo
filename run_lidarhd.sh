@@ -69,4 +69,5 @@ function loop_lidarhd
     done < "$file_path"
 }
 
-loop_lidarhd
+run_lidarhd
+#loop_lidarhd

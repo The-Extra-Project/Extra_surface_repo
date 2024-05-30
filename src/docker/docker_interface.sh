@@ -53,9 +53,7 @@ function compile
     KERNEL_BUILD_DIR=${DDT_MAIN_DIR_DOCKER}/build/build-spark-${COMPILE_MODE}-${DDT_TRAITS}/    
     docker rm -f ${CONTAINER_NAME_COMPILE} 2>/dev/null
     SPARK_BUILD_DIR=${GLOBAL_BUILD_DIR}/spark/
-    EXEC_FUN="echo \"start compile\""
-    EXEC_FUN="export http_proxy=192.168.4.9 && export http_port=3128"
-    EXEC_FUN="${EXEC_FUN} && mkdir -p ${KERNEL_BUILD_DIR}"
+    EXEC_FUN="mkdir -p ${KERNEL_BUILD_DIR}"
     EXEC_FUN="${EXEC_FUN} &&  cd ${KERNEL_BUILD_DIR} && cmake ${DDT_MAIN_DIR_DOCKER}  -DCMAKE_BUILD_TYPE=${COMPILE_MODE} -DDDT_TRAITS=${DDT_TRAITS} && make ${NB_PROC}   "
     if [ ! -z "$DO_FORMAT" ];
     then
