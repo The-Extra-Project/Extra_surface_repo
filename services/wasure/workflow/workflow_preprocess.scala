@@ -117,23 +117,19 @@ val params_wasure =  set_params(params_new,List(
   ("output_dir",output_dir)
 ))
 
-
 fs.mkdirs(new Path( output_dir),new FsPermission("777"))
 params_scala("output_dir") = collection.mutable.Set(output_dir)
 params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)
 
-
 println("")
 println("=======================================================")
 params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
-
 
 val bbox_cmd =  set_params(params_wasure, List(("step","compute_bbox"))).to_command_line
 val fs = FileSystem.get(sc.hadoopConfiguration);
 val regexp_filter = params_scala.get_param("regexp_filter", "");
 val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
 var kvrdd_inputs: RDD[KValue] = sc.parallelize(List((0L,List(""))));
-
 
 println("")
 println("======== LOAD DATA  file =============")
@@ -180,12 +176,15 @@ val bba =   kvrdd_bbox.map(x => x._2.head.split("z").tail.head.split(" ").filter
 
 
 val smax =   Math.max(Math.max(bba(1)-bba(0),bba(1)-bba(0)),bba(1)-bba(0))
+val smax_ori =   Math.max(Math.max(bba_ori(1)-bba_ori(0),bba_ori(1)-bba_ori(0)),bba_ori(1)-bba_ori(0))
+
 val tot_nbp = bba(6)
 val ndtree_depth = Math.max((Math.log(tot_nbp/max_ppt)/Math.log(3)).round,0) 
 val lambda = params_scala.get_param("lambda", "1").toFloat
 
 
 params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + 0.0 + "x" + 1000.0)
+params_scala("bbox_ori") = collection.mutable.Set(bba_ori(0) + "x" + (bba_ori(0) + smax_ori) + ":" + bba_ori(2) + "x" + (bba_ori(2) + smax_ori) + ":" + 0.0 + "x" + 1000.0)
 params_scala("ndtree_depth") = collection.mutable.Set(ndtree_depth.toString)
 params_scala("datatype") = collection.mutable.Set("files")
 params_scala("max_ppt") = collection.mutable.Set(max_ppt.toString)

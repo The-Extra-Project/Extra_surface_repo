@@ -26,7 +26,7 @@ public :
     bool use_weight = true;
     bool dump_debug  = false;
     bool do_finalize = false;
-    std::string bbox_string,input_dir,output_dir,algo_step,slabel,filename;
+    std::string bbox_string,bba_ori_string,input_dir,output_dir,algo_step,slabel,filename;
     std::ostream& operator<<(std::ostream& os)
     {
         std::default_random_engine er((unsigned int)time(0));
@@ -62,7 +62,7 @@ public :
             {"step",  required_argument, 0, 's'},
             {"nbp",  required_argument, 0, 'n'},
             {"filename",  required_argument, 0, 'o'},
-            {"graph_type",  required_argument, 0, 'i'},
+            {"bbox_ori",  required_argument, 0, 'i'},
             {"input_dir",  required_argument, 0, 'r'},
             {"mode",  required_argument, 0, 'm'},
             {"output_dir",  required_argument, 0, 'w'},
@@ -138,8 +138,10 @@ public :
                 seed = atoi(optarg);
                 break;
             case 'i':
-                graph_type = atoi(optarg);
-                break;
+                bba_ori_string = std::string(optarg);
+                std::replace( bba_ori_string.begin(), bba_ori_string.end(), ':', ' ');
+                std::replace( bba_ori_string.begin(), bba_ori_string.end(), 'x', ' ');
+                break;		
             case 't':
                 dst_scale = atof(optarg);
                 break;

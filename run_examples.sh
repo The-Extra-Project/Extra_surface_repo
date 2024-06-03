@@ -8,7 +8,7 @@ GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/datas/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 
-#DEBUG_FLAG="-d"
+# DEBUG_FLAG="-d"
 
 ### Run spark-shell with a given script,params and input dir.
 # INPUT_DIR  : The directory with ply file
@@ -73,7 +73,7 @@ function ex_run_lidarhd_crop
 
 ### 3D Surface reconstruction
 #ex_run_ply_mono
-ex_run_ply_tiling
+#ex_run_ply_tiling
 ex_run_lidarhd_crop
 
 

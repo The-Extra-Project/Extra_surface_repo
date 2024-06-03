@@ -31,6 +31,7 @@
 #include "tbmrf_reco.hpp"
 #include "io_ddt_stream.hpp"
 #include "graph_cut.hpp"
+
 #include "ddt_spark_utils.hpp"
 #include <scanline_orient_normals.hpp>
 
@@ -2360,6 +2361,9 @@ int compute_bbox(Id tid,wasure_params & params, int nb_dat)
         hpi.parse_header(std::cin);
         Id hid = hpi.get_id(0);
         std::string fname = hpi.get_file_name();
+
+
+	
         auto & ifile = hpi.get_input_stream();
         std::vector<Point_with_info> points;
         std::vector<Point_with_info_2> points_2;
@@ -2398,7 +2402,6 @@ int compute_bbox(Id tid,wasure_params & params, int nb_dat)
     }
     return 0;
 }
-
 
 
 int preprocess(Id tid,wasure_params & params, int nb_dat)
@@ -2441,6 +2444,8 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
             }
             hpi.finalize();
         }
+
+	
         std::cout.clear();
         CGAL::jet_estimate_normals<CGAL::Parallel_if_available_tag>
         (points, 100,
