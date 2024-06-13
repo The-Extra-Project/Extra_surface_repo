@@ -96,7 +96,7 @@ std::ostream& operator<<(std::ostream& out, const Bbox<D>& bbox)
 {
     out << std::fixed;
     for(int i=0; i<D; ++i)
-        out  << bbox.value[i] << "  " << bbox.value[i+D] << " ";
+        out  << bbox.value[i] << " " << bbox.value[i+D] << " ";
     return out;
 }
 

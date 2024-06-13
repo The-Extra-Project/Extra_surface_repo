@@ -112,7 +112,6 @@ val params_new = new Hash_StringSeq with mutable.MultiMap[String, String]
 val params_wasure =  set_params(params_new,List(
   ("exec_path", cpp_exec_path + "wasure-stream-exe"),
   ("dim",params_scala("dim").head),
-  ("bbox",params_scala("bbox").head),
   ("input_dir",input_dir),
   ("output_dir",output_dir)
 ))
