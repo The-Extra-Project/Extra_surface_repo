@@ -58,7 +58,7 @@ function ex_run_lidarhd_crop
 {
     echo "run distributed algorithm laz file with preprocessing"
     echo "start preprocesssing..."
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop/"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop_2/"
     PARAMS="${INPUT_DIR}/wasure_metadata.xml"
     OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
