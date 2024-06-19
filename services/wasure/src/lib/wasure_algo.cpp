@@ -8,10 +8,17 @@
 #include "input_params.hpp"
 #include "wasure_typedefs.hpp"
 
+template <typename T>
+auto normalize(T const& V)
+{
+    auto const slen = V.squared_length();
+    auto const d = CGAL::approximate_sqrt(slen);
+    return V / d;
+}
 
 
 
-void wasure_algo::tessel_adapt(std::vector<Point> & points,std::vector<Point> & vps,std::vector<std::vector<Point>> & norms,std::vector<std::vector<double>> & scales, int maxit, double target_err, int D, int tid)
+void wasure_algo::tessel_adapt(std::vector<Point> & points,std::vector<Point> & vps,std::vector<std::vector<Point>> & norms,std::vector<std::vector<double>> & scales,std::vector<Point> & v_los, int maxit, double target_err, int D, int tid)
 {
     std::vector<int> lidx(points.size());
     std::iota(lidx.begin(), lidx.end(), 0);
@@ -61,7 +68,7 @@ void wasure_algo::tessel_adapt(std::vector<Point> & points,std::vector<Point> & 
             nb_inserted++;
         }
     }
-    tessel(tri,points,vps,norms,scales,maxit,tid);
+    tessel(tri,points,vps,norms,scales,v_los,maxit,tid);
 }
 
 
@@ -173,7 +180,7 @@ int dump_vector_pts(std::vector<Point> vp, int it, int tid)
 int
 wasure_algo::tessel(DT_raw  & tri,
                     std::vector<Point> & points,  std::vector<Point> & vps,
-                    std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales, int max_it, Id tid)
+                    std::vector<std::vector<Point> > & norms, std::vector<std::vector<double>> & scales, std::vector<Point> & v_los,int max_it, Id tid)
 {
     typedef typename DT_raw::Vertex_handle                            Vertex_const_handle;
     double bbox_min[Traits::D];
@@ -200,6 +207,7 @@ wasure_algo::tessel(DT_raw  & tri,
         CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> vertex_map;
         CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> norm_map;
         CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> scale_map;
+	CGAL::Unique_hash_map<Vertex_const_handle, std::vector<double>> los_map;
         for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv)
         {
             if(tri.is_infinite(vv))
@@ -207,6 +215,7 @@ wasure_algo::tessel(DT_raw  & tri,
             vertex_map[vv] = std::vector<double>(D+1,0);
             norm_map[vv] = std::vector<double>(D,0);
             scale_map[vv] = std::vector<double>(D,0);
+	    los_map[vv] = std::vector<double>(D,0);
         }
         for(int ii = 0; ii < points.size(); ii++)
         {
@@ -218,6 +227,7 @@ wasure_algo::tessel(DT_raw  & tri,
                 vertex_map[vv][d] += ss*pp[d];
                 norm_map[vv][d] += ss*norms[ii][D-1][d];
                 scale_map[vv][d] += ss*scales[ii][d];
+		los_map[vv][d] += ss*v_los[ii][d];
             }
             vertex_map[vv][D]+=ss;
         }
@@ -228,6 +238,7 @@ wasure_algo::tessel(DT_raw  & tri,
             auto vpo = vv->point();
             auto vpn = vertex_map[vv];
             auto vn = norm_map[vv];
+	    auto vlos = los_map[vv];
             auto vs = scale_map[vv];
             if(vpn[D] == 0)
                 continue;
@@ -248,8 +259,13 @@ wasure_algo::tessel(DT_raw  & tri,
             {
                 tri.move(vv,pp);
             }
+
+	    CGAL::Vector_3<typename Traits::K> v1{vn[0],vn[1],vn[2]};
+	    CGAL::Vector_3<typename Traits::K> v2{vlos[0],vlos[1],vlos[2]};
+	    auto sp = (normalize(v1)*normalize(v2));
+	    //std::cerr << sp << " " << v1 << " " << v2 << std::endl;
             double scll = std::max({vs[0], vs[1], vs[2]})/3;
-            if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1)
+            if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1 && sp > 0.5)
             {
                 auto pp2 = Point(vpn[0]-vn[0]*scll,vpn[1]-vn[1]*scll,vpn[2]-vn[2]*scll);
                 extra_pts.push_back(pp2);
@@ -855,6 +871,7 @@ void
 wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure_data<Traits>  & datas_pts, wasure_params & params)
 {
     std::vector<Point> & points_dst =  datas_pts.format_points;
+    std::vector<Point> & v_los =  datas_pts.format_normals;
     std::vector<std::vector<Point>> & norms = datas_pts.format_egv;
     std::vector<std::vector<double>> & scales = datas_pts.format_sigs;
     std::vector<int> & format_flags = datas_pts.format_flags;
@@ -928,6 +945,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
                 int idx = nnIdx[k];
                 Point Pt3d = points_dst[idx];
                 std::vector<Point> pts_norms = norms[idx];
+		Point & pts_los = v_los[idx];
                 std::vector<double> pts_scales = scales[idx];
                 if(((int)format_flags[idx]) < 0)
                     continue;
@@ -943,6 +961,15 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
                         coef_conf = 0.2*coef_conf;
                     }
                 }
+
+		CGAL::Vector_3<typename Traits::K> v1{pts_los[0],pts_los[1],pts_los[2]};
+		CGAL::Vector_3<typename Traits::K> v2{pts_norms[D-1][0],pts_norms[D-1][1],pts_norms[D-1][2]};
+		auto sp = (normalize(v1)*normalize(v2));
+		//std::cerr << "sp:" << sp << " " << coef_conf << " " << v1 << " " << v2 << std::endl;
+		coef_conf = coef_conf*sp;
+		if(coef_conf != coef_conf)
+		    coef_conf = 0;
+		    
                 compute_dst_mass_norm(pts_coefs,pts_scales,coef_conf,pdf_smooth,pdf_smooth,pe2, po2,pu2);
                 pe1=vpe;
                 po1=vpo;

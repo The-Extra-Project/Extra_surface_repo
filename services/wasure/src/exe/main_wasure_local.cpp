@@ -86,7 +86,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        std::cout << "Start processing " << params.filename <<  " ...";
+        std::cout << "Start processing " << params.filename <<  " ..." << std::endl;
     }
     ifile.open(params.filename);
     wdp.read_ply_stream(ifile);
@@ -95,6 +95,7 @@ int main(int argc, char **argv)
     int count = wdp.nb_pts_uint8_vect();
     wdp.dmap[wdp.xyz_name].extract_full_uint8_vect(wdp.format_points);
     wdp.dmap[wdp.center_name].extract_full_uint8_vect(wdp.format_centers);
+    wdp.dmap[wdp.normal_name].extract_full_uint8_vect(wdp.format_normals);
     wdp.format_flags.clear();
     wdp.format_flags.resize(count,0);
     std::string filename_cen(params.output_dir + "/centrs.xyz");
@@ -129,16 +130,20 @@ int main(int argc, char **argv)
     }
     else
     {
+	std::cout << "compute dim ..." << std::endl;
         w_algo.compute_dim(wdp.format_points,
                            wdp.format_egv,
                            wdp.format_sigs,log);
+	std::cout << "flip dim ..." << std::endl;
         w_algo.flip_dim_ori(wdp.format_points,
                             wdp.format_egv,
                             wdp.format_centers);
+	std::cout << "start tessel ..." << std::endl;
         w_algo.tessel_adapt(wdp.format_points,
                             wds.format_points,
                             wdp.format_egv,
                             wdp.format_sigs,
+			    wdp.format_normals,
                             20,params.pscale,D,tid
                            );
         wdp.fill_egv(wdp.format_egv,false);
@@ -194,6 +199,7 @@ int main(int argc, char **argv)
         }
         // ===== Init the id of each cell
         init_local_ids(tri1);
+	std::cout << "compute dst ..." << std::endl;
         w_algo.compute_dst_with_center(tri1,w_datas_tri[tid],wdp,params,tid);
         w_datas_tri[tid].fill_dst(w_datas_tri[tid].format_dst,false);
         std::ofstream ofile;
@@ -210,6 +216,7 @@ int main(int argc, char **argv)
     // Mode 0 => outdoor scene
     // Mode 1 => indoor scene
     mrf.set_mode(0);
+    std::cout << "regularize ..." << std::endl;
     for(auto opt_id : opt_mode)
     {
         for(auto ll : lambda_list)

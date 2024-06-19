@@ -458,7 +458,7 @@ void scanline_orient_normals (PointRange& points, const NamedParameters& np = pa
                                  + (bbox.ymax() - bbox.ymin()) * (bbox.ymax() - bbox.ymin())
                                  + (bbox.zmax() - bbox.zmin()) * (bbox.zmax() - bbox.zmin()));
     //double limit = 0.05 * bbox_diagonal;
-    double limit = bbox_diagonal;
+    double limit = 10;
     Iterator scanline_begin = points.begin();
     for (Iterator it = points.begin(); it != points.end(); ++ it)
     {

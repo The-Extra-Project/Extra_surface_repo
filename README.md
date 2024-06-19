@@ -68,4 +68,5 @@ A folder with inside :
 A workflow exists to preprocess a las file into a ply with sensor origin approximation
 see the run_lidar.sh
 
-
+## Todos
+- ☐ improving line of sight estimation

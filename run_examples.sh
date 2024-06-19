@@ -61,9 +61,9 @@ function ex_run_lidarhd_crop
 {
     echo "run distributed algorithm laz file with preprocessing"
     echo "start preprocesssing..."
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop_2/"
+    INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop_1/"
     PARAMS="${INPUT_DIR}/wasure_metadata.xml"
-    OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
+    OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}_1/"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
     #run_algo_docker
     echo "start reconstruction..."
@@ -72,9 +72,8 @@ function ex_run_lidarhd_crop
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     #run_algo_docker
 
-    echo "monothread surface reconstruction on toy example..."
-    OUTPUT_DIR=${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}
-    docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}  -u 0  --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "mkdir -p ${OUTPUT_DIR} &&  ${DDT_MAIN_DIR}/build//build-spark-Release-3/bin/wasure-local-exe --output_dir ${OUTPUT_DIR} --input_dir ${DDT_MAIN_DIR}/datas/3d_bench_small --dim 3 --bbox 0000x10000:0000x10000  --pscale 0.1 --nb_samples 5 --rat_ray_sample 0 --mode surface --lambda 10 --step full_stack --seed 18696 --label full_small_CRO --filename ${OUTPUT_DIR}/struct_id_0.ply"
+    echo "monothread surface reconstruction lidar hd ply file..."
+    docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}  -u 0  --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "mkdir -p ${OUTPUT_DIR} &&  ${DDT_MAIN_DIR}/build//build-spark-Release-3/bin/wasure-local-exe --output_dir ${OUTPUT_DIR} --input_dir ${DDT_MAIN_DIR}/datas/3d_bench_small --dim 3 --bbox 0000x10000:0000x10000  --pscale 0.05 --nb_samples 50 --rat_ray_sample 0 --mode surface --lambda 10 --step full_stack --seed 18696 --label lidhd_crop_inner --filename ${OUTPUT_DIR}/struct_id_0.ply"
     echo ""
 
     

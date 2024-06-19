@@ -226,6 +226,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
         hpi.finalize();
         w_datas.dmap[w_datas.xyz_name].extract_full_uint8_vect(w_datas.format_points,false);
         w_datas.dmap[w_datas.center_name].extract_full_uint8_vect(w_datas.format_centers,false);
+	w_datas.dmap[w_datas.normal_name].extract_full_uint8_vect(w_datas.format_normals,false);
         w_datas.extract_flags(w_datas.format_flags,false);
         std::vector<Point> p_simp;
         log.step("compute_dim");
@@ -273,6 +274,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
     {
         w_datas_full.dmap[w_datas_full.xyz_name].extract_full_uint8_vect(w_datas_full.format_points,false);
         w_datas_full.dmap[w_datas_full.center_name].extract_full_uint8_vect(w_datas_full.format_centers,false);
+	w_datas_full.dmap[w_datas_full.normal_name].extract_full_uint8_vect(w_datas_full.format_normals,false);
         w_algo.compute_dim(w_datas_full.format_points,
                            w_datas_full.format_egv,
                            w_datas_full.format_sigs,log);
@@ -308,6 +310,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
                             p_simp_full,
                             w_datas_full.format_egv,
                             w_datas_full.format_sigs,
+			    w_datas_full.format_normals,
                             10,params.pscale,D,tid
                            );
     }
@@ -444,7 +447,9 @@ int dst(const Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & log
             wpt.dmap[wpt.xyz_name].extract_full_uint8_vect(wpt.format_points,false);
             w_data_full.format_points.insert(w_data_full.format_points.end(),wpt.format_points.begin(),wpt.format_points.end());
             wpt.dmap[wpt.center_name].extract_full_uint8_vect(wpt.format_centers,false);
+	    wpt.dmap[wpt.normal_name].extract_full_uint8_vect(wpt.format_normals,false);
             w_data_full.format_centers.insert(w_data_full.format_centers.end(),wpt.format_centers.begin(),wpt.format_centers.end());
+            w_data_full.format_normals.insert(w_data_full.format_normals.end(),wpt.format_normals.begin(),wpt.format_normals.end());	    
             wpt.extract_sigs(w_data_full.format_sigs,false);
             wpt.extract_egv(w_data_full.format_egv,false);
         }
