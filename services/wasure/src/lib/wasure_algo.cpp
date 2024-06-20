@@ -265,7 +265,7 @@ wasure_algo::tessel(DT_raw  & tri,
 	    auto sp = (normalize(v1)*normalize(v2));
 	    //std::cerr << sp << " " << v1 << " " << v2 << std::endl;
             double scll = std::max({vs[0], vs[1], vs[2]})/3;
-            if(((double) rand() / (RAND_MAX)) > 0.9 && it == max_it-1 && sp > 0.5)
+            if(((double) rand() / (RAND_MAX)) > 0.8 && it == max_it-1 && sp > 0.7)
             {
                 auto pp2 = Point(vpn[0]-vn[0]*scll,vpn[1]-vn[1]*scll,vpn[2]-vn[2]*scll);
                 extra_pts.push_back(pp2);

@@ -247,9 +247,11 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
         }
         if(do_splitted)
         {
+	    std::cerr << "compute_dim" << std::endl;
             w_algo.compute_dim(w_datas.format_points,
                                w_datas.format_egv,
                                w_datas.format_sigs,log);
+	    std::cerr << "flip_dim" << std::endl;
             w_algo.flip_dim_ori(w_datas.format_points,
                                 w_datas.format_egv,
                                 w_datas.format_centers);
@@ -275,6 +277,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
         w_datas_full.dmap[w_datas_full.xyz_name].extract_full_uint8_vect(w_datas_full.format_points,false);
         w_datas_full.dmap[w_datas_full.center_name].extract_full_uint8_vect(w_datas_full.format_centers,false);
 	w_datas_full.dmap[w_datas_full.normal_name].extract_full_uint8_vect(w_datas_full.format_normals,false);
+	std::cerr << "compute_dim" << std::endl;
         w_algo.compute_dim(w_datas_full.format_points,
                            w_datas_full.format_egv,
                            w_datas_full.format_sigs,log);
@@ -300,12 +303,14 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
                 w_datas_full.format_centers.push_back(traits.make_point(coords));
             }
         }
+	std::cerr << "flip_dim" << std::endl;
         w_algo.flip_dim_ori(w_datas_full.format_points,
                             w_datas_full.format_egv,
                             w_datas_full.format_centers);
     }
     if(params.pscale < 1)
     {
+	std::cerr << "tessel" << std::endl;
         w_algo.tessel_adapt(w_datas_full.format_points,
                             p_simp_full,
                             w_datas_full.format_egv,
