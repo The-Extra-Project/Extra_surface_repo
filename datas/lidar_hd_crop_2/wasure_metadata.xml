@@ -4,7 +4,7 @@
     <austin>
       <dim>3</dim>
       <ndtree_depth>1</ndtree_depth>
-      <max_ppt>50000</max_ppt>
+      <max_ppt>100000</max_ppt>
       <mode>1</mode>
     </austin>
   </datasets>

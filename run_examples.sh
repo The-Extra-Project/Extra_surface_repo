@@ -57,23 +57,31 @@ function ex_run_ply_tiling
 
 
 ### 3D Surface reconstruction 
-function ex_run_lidarhd_crop
+function run_complete_example
 {
+    if [ -z "${INPUT_DIR}" ]; then
+	echo "INPUT_DIR is not defined or is empty."
+	return 1
+    else
+	echo "Start processing ${INPUT_DIR} "
+    fi
+
+    
     echo "run distributed algorithm laz file with preprocessing"
     echo "start preprocesssing..."
-    INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop_1/"
+    INPUT_BASE=$(basename "${INPUT_DIR}")
     PARAMS="${INPUT_DIR}/wasure_metadata.xml"
-    OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}_1/"
+    OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${INPUT_BASE}/"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    #run_algo_docker
+    run_algo_docker
     echo "start reconstruction..."
     INPUT_DIR=${OUTPUT_DIR}
-    PARAMS="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/wasure_metadata_3d_gen.xml"
+    PARAMS="${OUTPUT_DIR}/wasure_metadata_3d_gen.xml"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    #run_algo_docker
+    run_algo_docker
 
     echo "monothread surface reconstruction lidar hd ply file..."
-    docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}  -u 0  --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "mkdir -p ${OUTPUT_DIR} &&  ${DDT_MAIN_DIR}/build//build-spark-Release-3/bin/wasure-local-exe --output_dir ${OUTPUT_DIR} --input_dir ${DDT_MAIN_DIR}/datas/3d_bench_small --dim 3 --bbox 0000x10000:0000x10000  --pscale 0.05 --nb_samples 50 --rat_ray_sample 0 --mode surface --lambda 10 --step full_stack --seed 18696 --label lidhd_crop_inner --filename ${OUTPUT_DIR}/struct_id_0.ply"
+    docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}  -u 0  --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "${DDT_MAIN_DIR}/build//build-spark-Release-3/bin/wasure-local-exe --output_dir ${OUTPUT_DIR} --input_dir ${DDT_MAIN_DIR}/datas/3d_bench_small --dim 3 --bbox 0000x10000:0000x10000  --pscale 0.05 --nb_samples 50 --rat_ray_sample 0 --mode surface --lambda 10 --step full_stack --seed 18696 --label lidhd_crop_inner --filename ${OUTPUT_DIR}/struct_id_0.ply"
     echo ""
 
     
@@ -83,6 +91,10 @@ function ex_run_lidarhd_crop
 ### 3D Surface reconstruction
 #ex_run_ply_mono
 #ex_run_ply_tiling
-ex_run_lidarhd_crop
+
+INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop_2/"
+run_complete_example
+INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop_1/"
+run_complete_example
 
 
