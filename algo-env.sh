@@ -2,7 +2,7 @@
 export NAME_IMG_BASE=ddt_img_base_devel
 export CONTAINER_NAME_SHELL="ddt_container_shell"
 export CONTAINER_NAME_COMPILE="ddt_container_compile"
-export PROXY_CMD=" --build-arg http_proxy=http://10.128.81.100:3128 "
+
 ## Shared dir
 export DDT_MAIN_DIR_DOCKER=${DDT_MAIN_DIR}
 export SHARED_DIR="${DDT_MAIN_DIR_DOCKER}/shared_spark/"

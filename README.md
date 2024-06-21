@@ -20,11 +20,11 @@ For more technicals informations, reffers to the [dev manual](#dev-manual) secti
 
 # Requirements 
 - Docker (only tested on ubuntu)
+- 8go RAM
 
 # User manual
 ## Install & compile 
-- Create and edit the file algo-env.sh from the template algo-env.sh.conf 
-
+- Edit the file algo-env.sh 
 ### Build the docker image
 ```console
 $ ./src/docker/docker_interface.sh build
@@ -37,10 +37,8 @@ To compile the project with the 3D CGAL kernel with 4 core, do :
 $ ./src/docker/docker_interface.sh compile -j4 -t3
 ```
 
-## Run the code
-
-
-### Examples 
+# Run the code
+## Examples 
 Run the 3 examples (monotread, multithread with apache spark on ply, multithread with apache spark on laz)
 ```console
 $ ./run_examples.sh
@@ -48,7 +46,8 @@ $ ./run_examples.sh
 ```
 results will be writen in 'outputs' directory.
 
-### Run on LidarHD LAZ dataset 
+
+## Run on LidarHD LAZ dataset 
 To run the code on a lidarHD tile : 
 - Go to [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) dataset and download a tile.
 - Save the downloaded tile into a folder on your computer.
@@ -57,16 +56,34 @@ To run the code on a lidarHD tile :
 - then run the script `$ ./run_lidarhd.sh`
 
 # dev manual
-## Inputs
-A folder with inside : 
-- a Set of ply files with, for each 3D points
-  - x,y,z (3D points cloud coordinate) 
-  - x_origin,y_origin,z_origin (Sensor origine coordinate)
-- metadata.xml files 
+In this section, the main workflow for LAS lidar point cloud processing is detailled
+
+## Parameters setting / General information
+The actuel parametrization is made to produce a "good" result on the LiDARHD dataset.
+Because  of the approximate line of sight estimation (bad estimation on the building)
+The algorithm confidence is drastically decrese in order to be able to reconstructe building (otherwise many surfaces where the normal is horizontal are badly oriented)
+The priority is actually to improve the sensor origin estimation.
+
 
 ## LAZ preprocessing
-A workflow exists to preprocess a las file into a ply with sensor origin approximation
-see the run_lidar.sh
+The first step is to transform a LAZ file to a ply with with the following fileds
+  - x,y,z (3D points cloud coordinate) 
+  - x_origin,y_origin,z_origin (Sensor origin coordinate)
+And the algorithm parameter
+  - metadata.xml files
 
-## Todos
+The origin of the sensor is estimated by using the adaptated code from CGAL to estimate the line of sight
+
+
+## Surface reconstruction
+Two workflow are aviable,
+- a monothread workflow that takes a ply file and produce
+many result with different regularization parameter (good for test)
+- A distributed workflow, scheduled with apache spark.
+
+## Lod Surface
+While the distributed surface reconstruction is calculated
+we provide a tool to produce a different level of detail mesh 'services/mesh23dtile/'
+
+# Todos
 - ☐ improving line of sight estimation
