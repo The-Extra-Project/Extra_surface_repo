@@ -7,11 +7,7 @@
 
 # Distributed watertight surface reconstruction on Apache Spark. 
 
-This project aims to produce watertight  meshes on large scale datasets. This code is a simplified version of the article [Efficiently Distributed Watertight Surface Reconstruction](https://lcaraffa.github.io/edwsr/), fine-tuned to work on the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) on a single computer.
-
-This project aims to process algorithm for watertight surface reconstruction based on Delaunay triangulation on distributed infrastructures.
-This code is a simplfied version of the article  [Efficiently Distributed Watertight Surface reconstruction](https://lcaraffa.github.io/edwsr/)
-finetuned to work on the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) on a single computer.
+This project aims to produce watertight meshes on large scale datasets. This code is a simplified version of the article [Efficiently Distributed Watertight Surface Reconstruction](https://lcaraffa.github.io/edwsr/), fine-tuned to work on the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) on a single computer.
 
 To use the code, please reffer to the [user manual](#user-manual) section.
 For more technicals informations, reffers to the [dev manual](#dev-manual) section.
