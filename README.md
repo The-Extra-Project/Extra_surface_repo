@@ -19,19 +19,20 @@ For more technicals informations, reffers to the [dev manual](#dev-manual) secti
 - This code is published under the  GNU GENERAL PUBLIC LICENSE V3 (See LICENCE.md)
 
 # Requirements 
-- Docker (only tested on ubuntu)
-- 8go RAM single computer
+- Docker (only tested on Ubuntu)
+- 8GB RAM single computer
 
 # User manual
-## Install & compile 
+## Install & Compile 
 - Edit the file algo-env.sh 
+
 ### Build the docker image
 ```console
 $ ./src/docker/docker_interface.sh build
 ```
 
 ### Compile the project 
-To compile the project with the 3D CGAL kernel with 4 core, do :
+To compile the project with the 3D CGAL kernel using 4 cores, run :
 
 ```console
 $ ./src/docker/docker_interface.sh compile -j4 -t3
@@ -39,16 +40,16 @@ $ ./src/docker/docker_interface.sh compile -j4 -t3
 
 # Run the code
 ## Examples 
-Run all the examples
+Run all the examples:
 ```console
 $ ./run_examples.sh
 
 ```
-results will be created in the 'outputs' directory.
+Results will be created in the 'outputs' directory.
 
 
 ## Run on LidarHD LAZ dataset 
-To run the code on a lidarHD tile : 
+To run the code on a LiDAR HD tile : 
 - Go to [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) dataset and download a tile.
 - Save the downloaded tile into a folder on your computer.
 - Set the absolute path of this folder as the value of the `INPUT_DIR` variable in the `run_lidarhd.sh` file.
@@ -59,8 +60,8 @@ To run the code on a lidarHD tile :
 In this section, some technical information about LAS LiDAR point cloud processing is added.
 
 ## Parameters setting / General information
-The actuel parameters are set for the LiDARHD dataset.
-Because of the approximate line of sight estimation (bad estimation on the building), the algorithm confidence is drastically decrese in order to be able to reconstructe building (otherwise many surfaces where the normal is horizontal are badly oriented). Some high building may not be correctly reconstructed in the actual version
+The current parameters are set for the LiDAR HD dataset.
+Because of the approximate line of sight estimation (poor estimation on buildings with surfaces where the normal is horizontal), the algorithm confidence is drastically decrese. Some high building may not be correctly reconstructed in the actual version
 
 
 ## LAZ preprocessing
