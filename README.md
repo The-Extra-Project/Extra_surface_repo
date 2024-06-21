@@ -62,30 +62,82 @@ In this section, the main workflow for LAS lidar point cloud processing is detai
 
 ## Parameters setting / General information
 The actuel parameters are set for the LiDARHD dataset.
-Because  of the approximate line of sight estimation (bad estimation on the building)
-The algorithm confidence is drastically decrese in order to be able to reconstructe building (otherwise many surfaces where the normal is horizontal are badly oriented)
-The priority is actually to improve the sensor origin estimation.
+Because of the approximate line of sight estimation (bad estimation on the building), the algorithm confidence is drastically decrese in order to be able to reconstructe building (otherwise many surfaces where the normal is horizontal are badly oriented). Some high building may not be correctly reconstructed in the actual version
+
+
+### Generic Algo parameters PARAMS
+Each workflow can be parametrized with an xml file of the form :
+```xml
+<env>
+  <datasets>
+    <setn1>
+      <!-- Input paramters 
+      datatype : The type of file
+      	       - files : ply file on disk direclty read by c++ call
+	       - filestream : onliner ply file that will be read by sc.parallelize(...)
+      -->
+      <datatype>files</datatype>
+
+      <!-- Algo env setup
+      dim : Dimentionnality of the algorithm.
+      ddt_kernel : C++ kernel folder (in the build dir)
+      StorageLevel : Principal persistance  storage level 
+      		   (see for instance https://jaceklaskowski.gitbooks.io/mastering-apache-spark/spark-rdd-caching.html)
+      ndtree_depth ; Depth of the Octree in 3D
+	  bbox : Bounding box of the point cloud. Points outside will be ignored
+	  max_ppt : max number of point per tile
+      -->
+      <dim>3</dim>
+      <ddt_kernel>build-spark-Release-2</ddt_kernel>
+      <StorageLevel>MEMORY_AND_DISK</StorageLevel>
+      <ndtree_depth>3</ndtree_depth>
+      <bbox>0000x10000:0000x10000</bbox>
+      <max_ppt>12000</max_ppt>
+
+      <!-- Meta parameters -->
+      <do_process>true</do_process>
+      
+    </setn1>
+  </datasets>
+</env>
+```
+### Surface reconstruction Algo parameters PARAMS
+Here is parameters that can be added for the surface reconstruction Algorithm
+```xml
+      <!-- Dempster Shafer -->
+      <!-- 
+	  nb_samples : number of sampling for the integral computation
+	  -->
+      <nb_samples>50</nb_samples>
+
+      <!-- Regularization term
+      lambda     : Smoothing term		 
+	  pscale : Accuracy of the reconstruction (lower values indicate higher precision) 
+      max_opt_it : max number of iteration durting the distributed graphcut
+      -->
+	  <pscale>0.05</pscale>
+      <lambda>0.1</lambda>
+      <max_opt_it>50</max_opt_it>
+
+```
 
 
 ## LAZ preprocessing
 The first step is to transform a LAZ file to a ply with with the following fileds
-  - x,y,z (3D points cloud coordinate) 
-  - x_origin,y_origin,z_origin (Sensor origin coordinate)
-And the algorithm parameter
-  - metadata.xml files
+  - x,y,z ⇨ 3D points cloud coordinate) 
+  - x_origin,y_origin,z_origin ⇨ Sensor origin coordinate
 
 The origin of the sensor is estimated by using the adaptated code from CGAL to estimate the line of sight
 
 
 ## Surface reconstruction
 Two workflow are aviable,
-- a monothread workflow that takes a ply file and produce
+- A monothread workflow that takes a ply file and produce
 many result with different regularization parameter (good for test)
 - A distributed workflow, scheduled with apache spark.
 
 ## Lod Surface
-While the distributed surface reconstruction is calculated
-we provide a tool to produce a different level of detail mesh 'services/mesh23dtile/'
+we provide a tool to produce a different level of detail mesh from a tiled mesh in  'services/mesh23dtile/'
 
 # Todos
 - ☐ improving line of sight estimation
