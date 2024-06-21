@@ -7,17 +7,19 @@
 
 # Distributed watertight surface reconstruction on Apache Spark. 
 
+This project aims to produce watertight  meshes on large scale datasets. This code is a simplified version of the article [Efficiently Distributed Watertight Surface Reconstruction](https://lcaraffa.github.io/edwsr/), fine-tuned to work on the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) on a single computer.
+
 This project aims to process algorithm for watertight surface reconstruction based on Delaunay triangulation on distributed infrastructures.
 This code is a simplfied version of the article  [Efficiently Distributed Watertight Surface reconstruction](https://lcaraffa.github.io/edwsr/)
-finetuned to work on the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) on a signe computer.
+finetuned to work on the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) on a single computer.
 
 To use the code, please reffer to the [user manual](#user-manual) section.
 For more technicals informations, reffers to the [dev manual](#dev-manual) section.
 
- **/!\/!\/!\   Warning /!\/!\/!\\**
-- This code is for experimental / researches purposes and will not be maintened in a first place ⇨ we are  developping in priority a CGAL package scheduled with Open MP / MPI. Follow the project page or this github page for updates. 
-- This code is optimized for efficiency on an Apache/Spark cluster, so it performs worse on a single computer compared to traditional OpenMP/MPI scheduling.
-- The surface reconstruction score function is very basic and may produce bad result compare to state of the art surface reconstruction algorithms  ⇨  Any contribution / improvement in this area is welcome
+ **/!\/!\/!\   Warning  /!\/!\/!\\**
+- This code is for experimental and research purposes and will not be maintained initially. A CGAL package with OpenMP/MPI scheduling is currently being prioritized. Follow the project page or this GitHub page for updates.
+- This code runs efficiently on an Apache/Spark cluster but performs worse on a single computer compared to traditional OpenMP/MPI scheduling..
+- The surface reconstruction score function is basic and may produce poor results compared to advanced algorithms. Any improvements in this area are welcome. 
 - This code is published under the  GNU GENERAL PUBLIC LICENSE V3 (See LICENCE.md)
 
 # Requirements 
