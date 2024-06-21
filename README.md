@@ -14,9 +14,10 @@ finetuned to work on the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) 
 To use the code, please reffer to the [user manual](#user-manual) section.
 For more technicals informations, reffers to the [dev manual](#dev-manual) section.
 
-- **/!\ Warning /!\\**  This code is for experimental / researches purposes and will not be maintened in a first place ⇨ we are  developping in priority a CGAL package scheduled with Open MP / MPI. Follow the project page or this github page for updates.
-
-- The code is published under the  GNU GENERAL PUBLIC LICENSE V3 ([LICENCE.md][LICENCE.md])
+ **/!\ Warning /!\\**
+- This code is for experimental / researches purposes and will not be maintened in a first place ⇨ we are  developping in priority a CGAL package scheduled with Open MP / MPI. Follow the project page or this github page for updates. 
+- This code is optimized for efficiency on an Apache/Spark cluster, so it performs worse on a single computer compared to traditional OpenMP/MPI scheduling.
+- This code is published under the  GNU GENERAL PUBLIC LICENSE V3 ([LICENCE.md][LICENCE.md])
 
 # Requirements 
 - Docker (only tested on ubuntu)
@@ -39,12 +40,12 @@ $ ./src/docker/docker_interface.sh compile -j4 -t3
 
 # Run the code
 ## Examples 
-Run the 3 examples (monotread, multithread with apache spark on ply, multithread with apache spark on laz)
+Run all the examples
 ```console
 $ ./run_examples.sh
 
 ```
-results will be writen in 'outputs' directory.
+results will be created in the 'outputs' directory.
 
 
 ## Run on LidarHD LAZ dataset 
@@ -59,7 +60,7 @@ To run the code on a lidarHD tile :
 In this section, the main workflow for LAS lidar point cloud processing is detailled
 
 ## Parameters setting / General information
-The actuel parametrization is made to produce a "good" result on the LiDARHD dataset.
+The actuel parameters are set for the LiDARHD dataset.
 Because  of the approximate line of sight estimation (bad estimation on the building)
 The algorithm confidence is drastically decrese in order to be able to reconstructe building (otherwise many surfaces where the normal is horizontal are badly oriented)
 The priority is actually to improve the sensor origin estimation.
