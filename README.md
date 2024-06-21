@@ -58,14 +58,25 @@ To run the code on a lidarHD tile :
 - then run the script `$ ./run_lidarhd.sh`
 
 # dev manual
-In this section, the main workflow for LAS lidar point cloud processing is detailled
+In this section, some technical information about LAS LiDAR point cloud processing is added.
 
 ## Parameters setting / General information
 The actuel parameters are set for the LiDARHD dataset.
 Because of the approximate line of sight estimation (bad estimation on the building), the algorithm confidence is drastically decrese in order to be able to reconstructe building (otherwise many surfaces where the normal is horizontal are badly oriented). Some high building may not be correctly reconstructed in the actual version
 
 
-### Generic Algo parameters PARAMS
+## LAZ preprocessing
+The first step is to transform a LAZ file to a ply with with the following fileds
+  - x,y,z ⇨ 3D points cloud coordinate) 
+  - x_origin,y_origin,z_origin ⇨ Sensor origin coordinate
+
+The origin of the sensor is estimated by using the adaptated code from CGAL to estimate the line of sight.
+
+The workflow "${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
+will automatically generate a complete xml configuration file.
+
+## Parameters doc 
+### Generic Algo parameters
 Each workflow can be parametrized with an xml file of the form :
 ```xml
 <env>
@@ -101,7 +112,7 @@ Each workflow can be parametrized with an xml file of the form :
   </datasets>
 </env>
 ```
-### Surface reconstruction Algo parameters PARAMS
+### Surface reconstruction Algo parameters
 Here is parameters that can be added for the surface reconstruction Algorithm
 ```xml
       <!-- Dempster Shafer -->
@@ -121,13 +132,6 @@ Here is parameters that can be added for the surface reconstruction Algorithm
 
 ```
 
-
-## LAZ preprocessing
-The first step is to transform a LAZ file to a ply with with the following fileds
-  - x,y,z ⇨ 3D points cloud coordinate) 
-  - x_origin,y_origin,z_origin ⇨ Sensor origin coordinate
-
-The origin of the sensor is estimated by using the adaptated code from CGAL to estimate the line of sight
 
 
 ## Surface reconstruction
