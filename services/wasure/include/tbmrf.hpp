@@ -262,8 +262,8 @@ public :
         ccf = std::min(cos(ang1),cos(ang2));
         if(ccf < 0)
         {
-            std::cerr << "ERROR CCF < 0 : " << ccf << std::endl;
-            std::cerr << "ang:" << ang1 << " " << ang2 << std::endl;
+            //std::cerr << "ERROR CCF < 0 : " << ccf << std::endl;
+            //std::cerr << "ang:" << ang1 << " " << ang2 << std::endl;
             ccf = 0.001;
         }
         return nff*ccf;
