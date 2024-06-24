@@ -40,8 +40,6 @@ function ex_run_ply_mono
 }
 
 
-
-
 ### 3D Surface reconstruction 
 function ex_run_ply_tiling
 {
@@ -89,8 +87,8 @@ function run_complete_example
 
 
 ### 3D Surface reconstruction
-#ex_run_ply_mono
-#ex_run_ply_tiling
+ex_run_ply_mono
+ex_run_ply_tiling
 
 INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop_2/"
 run_complete_example

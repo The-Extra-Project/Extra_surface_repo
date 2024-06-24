@@ -227,7 +227,8 @@ wasure_algo::tessel(DT_raw  & tri,
                 vertex_map[vv][d] += ss*pp[d];
                 norm_map[vv][d] += ss*norms[ii][D-1][d];
                 scale_map[vv][d] += ss*scales[ii][d];
-		los_map[vv][d] += ss*v_los[ii][d];
+		if (v_los.size() > 0)
+		    los_map[vv][d] += ss*v_los[ii][d];
             }
             vertex_map[vv][D]+=ss;
         }
@@ -238,7 +239,7 @@ wasure_algo::tessel(DT_raw  & tri,
             auto vpo = vv->point();
             auto vpn = vertex_map[vv];
             auto vn = norm_map[vv];
-	    auto vlos = los_map[vv];
+
             auto vs = scale_map[vv];
             if(vpn[D] == 0)
                 continue;
@@ -260,9 +261,14 @@ wasure_algo::tessel(DT_raw  & tri,
                 tri.move(vv,pp);
             }
 
-	    CGAL::Vector_3<typename Traits::K> v1{vn[0],vn[1],vn[2]};
-	    CGAL::Vector_3<typename Traits::K> v2{vlos[0],vlos[1],vlos[2]};
-	    auto sp = (normalize(v1)*normalize(v2));
+	    double sp = 1;
+	    if(v_los.size() > 0){
+		auto vlos = los_map[vv];
+		CGAL::Vector_3<typename Traits::K> v1{vn[0],vn[1],vn[2]};
+		CGAL::Vector_3<typename Traits::K> v2{vlos[0],vlos[1],vlos[2]};
+		sp = (normalize(v1)*normalize(v2));		
+	    }
+
 	    //std::cerr << sp << " " << v1 << " " << v2 << std::endl;
             double scll = std::max({vs[0], vs[1], vs[2]})/3;
             if(((double) rand() / (RAND_MAX)) > 0.8 && it == max_it-1 && sp > 0.7)
@@ -945,7 +951,6 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
                 int idx = nnIdx[k];
                 Point Pt3d = points_dst[idx];
                 std::vector<Point> pts_norms = norms[idx];
-		Point & pts_los = v_los[idx];
                 std::vector<double> pts_scales = scales[idx];
                 if(((int)format_flags[idx]) < 0)
                     continue;
@@ -962,9 +967,13 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
                     }
                 }
 
-		CGAL::Vector_3<typename Traits::K> v1{pts_los[0],pts_los[1],pts_los[2]};
-		CGAL::Vector_3<typename Traits::K> v2{pts_norms[D-1][0],pts_norms[D-1][1],pts_norms[D-1][2]};
-		auto sp = (normalize(v1)*normalize(v2));
+		double sp = 1;
+		if(v_los.size() > 0){
+		    Point & pts_los = v_los[idx];		    
+		    CGAL::Vector_3<typename Traits::K> v1{pts_los[0],pts_los[1],pts_los[2]};
+		    CGAL::Vector_3<typename Traits::K> v2{pts_norms[D-1][0],pts_norms[D-1][1],pts_norms[D-1][2]};
+		    sp = (normalize(v1)*normalize(v2));
+		}
 		//std::cerr << "sp:" << sp << " " << coef_conf << " " << v1 << " " << v2 << std::endl;
 		coef_conf = coef_conf*sp;
 		if(coef_conf != coef_conf)
