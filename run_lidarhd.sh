@@ -35,7 +35,7 @@ function run_lidarhd
     run_algo_docker
 }
 
-function loop_lidarhd
+function run_liste_dalle
 {
 
     # Specify the path to your text file
@@ -69,5 +69,5 @@ function loop_lidarhd
     done < "$file_path"
 }
 
-run_lidarhd
-#loop_lidarhd
+#run_lidarhd
+run_liste_dalle
