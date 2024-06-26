@@ -22,22 +22,32 @@ function run_algo_docker
 }
 
 
-function run_lidarhd
+function run_single_tile
 {
-    INPUT_DIR="/path/to/your/lidar/hd/laz/tile/"
-    OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/"
+    mkdir -p ./outputs_lidarhd
+    #INPUT_DIR="/path/to/your/lidar/hd/laz/tile/"
+    INPUT_DIR="/media/laurent/ssd2/datas/LidarHD/grenoble_urbain/tuile_n1/"
+    OUTPUT_DIR="${DDT_MAIN_DIR}/outputs_lidarhd/${FUNCNAME[0]}/"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
     run_algo_docker
 
     INPUT_DIR=${OUTPUT_DIR}
-    PARAMS="${DDT_MAIN_DIR}/outputs/${FUNCNAME[0]}/wasure_metadata_3d_gen.xml"
+    PARAMS="${DDT_MAIN_DIR}/outputs_lidarhd/${FUNCNAME[0]}/wasure_metadata_3d_gen.xml"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     run_algo_docker
+
+    CURRENT_CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}')
+    if [[ ${CURRENT_CONDA_ENV} == "mesh23Dtile" ]]; then
+	echo -e "\n -[Create LODs from tiled mesh]-"
+	OUTPUT_DIR_LODS=${DDT_MAIN_DIR}/outputs_lidarhd/${FUNCNAME[0]}/
+	mkdir -p ${OUTPUT_DIR_LODS}
+	python3  ./services/mesh23dtile/mesh23dtile.py --input_dir ${INPUT_DIR}/outputs/tiles/ --output_dir ${OUTPUT_DIR_LODS} --meshlab_mode python --coords 0x0 --mode_proj 0
+    fi
 }
 
-function run_liste_dalle
+function run_list_tile
 {
-
+    mkdir -p ./outputs_lidarhd
     # Specify the path to your text file
     file_path="./datas/liste_dalle.txt"
 
@@ -54,16 +64,16 @@ function run_liste_dalle
 	echo "$filename"
 	INPUT_DIR="${DDT_MAIN_DIR}/outputs_lidarhd/${filename}/"
 	mkdir -p ${INPUT_DIR}
-	#wget -O ${INPUT_DIR}/${filename} ${line}
+	wget -O ${INPUT_DIR}/${filename} ${line}
 
 	OUTPUT_DIR="${INPUT_DIR}"
 	FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-	#run_algo_docker
+	run_algo_docker
 
 	INPUT_DIR=${OUTPUT_DIR}
 	PARAMS="${OUTPUT_DIR}/wasure_metadata_3d_gen.xml"
 	FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-	#run_algo_docker
+	run_algo_docker
 
 	CURRENT_CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}')
 	if [[ ${CURRENT_CONDA_ENV} == "mesh23Dtile" ]]; then
@@ -76,7 +86,9 @@ function run_liste_dalle
     done < "$file_path"
 }
 
-mkdir -p ./outputs_lidarhd
+
+
+$@
 
 #run_lidarhd
-run_liste_dalle
+#run_liste_dalle
