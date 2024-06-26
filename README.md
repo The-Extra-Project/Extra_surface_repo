@@ -42,13 +42,13 @@ $ ./src/docker/docker_interface.sh compile -j4 -t3
 For producing a LOD mesh, first create the conda env : 
 
 ```console
-	conda env create --file ./services/mesh23dtile/environment.yml
+$ conda env create --file ./services/mesh23dtile/environment.yml
 ```	
 
-before runing the next examples, do :
+before runing the next examples, activate the conda env :
 
 ```console 
-	conda activate mesh23Dtile
+$ conda activate mesh23Dtile
 ```	
 
 # Run the code
@@ -85,7 +85,7 @@ Because of the approximate line of sight estimation (poor estimation on building
 
 ## LAZ preprocessing
 The first step is to transform a LAZ file to a ply with with the following fileds
-  - x,y,z ⇨ 3D points cloud coordinate) 
+  - x,y,z ⇨ 3D points cloud coordinate
   - x_origin,y_origin,z_origin ⇨ Sensor origin coordinate
 
 The origin of the sensor is estimated by using the adaptated code from CGAL to estimate the line of sight.
@@ -153,13 +153,10 @@ Here is parameters that can be added for the surface reconstruction Algorithm
 
 
 ## Surface reconstruction
-Two workflow are aviable,
+Two workflow are aviable :
 - A monothread workflow that takes a ply file and produce
 many result with different regularization parameter (good for test)
 - A distributed workflow, scheduled with apache spark.
-
-## Lod Surface
-we provide a tool to produce a different level of detail mesh from a tiled mesh in  'services/mesh23dtile/'
 
 # Todos
 - ☐ improving line of sight estimation
