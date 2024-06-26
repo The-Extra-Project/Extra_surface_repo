@@ -54,20 +54,29 @@ function run_liste_dalle
 	echo "$filename"
 	INPUT_DIR="${DDT_MAIN_DIR}/outputs_lidarhd/${filename}/"
 	mkdir -p ${INPUT_DIR}
-	wget -O ${INPUT_DIR}/${filename} ${line}
+	#wget -O ${INPUT_DIR}/${filename} ${line}
 
 	OUTPUT_DIR="${INPUT_DIR}"
 	FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-	run_algo_docker
+	#run_algo_docker
 
 	INPUT_DIR=${OUTPUT_DIR}
 	PARAMS="${OUTPUT_DIR}/wasure_metadata_3d_gen.xml"
 	FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-	run_algo_docker
+	#run_algo_docker
 
+	CURRENT_CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}')
+	if [[ ${CURRENT_CONDA_ENV} == "mesh23Dtile" ]]; then
+	    echo -e "\n -[Create LODs from tiled mesh]-"
+	    OUTPUT_DIR_LODS=${DDT_MAIN_DIR}/outputs_lidarhd/${filename}_LODs/
+	    mkdir -p ${OUTPUT_DIR_LODS}
+	    python3  ./services/mesh23dtile/mesh23dtile.py --input_dir ${INPUT_DIR}/outputs/tiles/ --output_dir ${OUTPUT_DIR_LODS} --meshlab_mode python --coords 0x0 --mode_proj 0
+	fi
 	
     done < "$file_path"
 }
+
+mkdir -p ./outputs_lidarhd
 
 #run_lidarhd
 run_liste_dalle
