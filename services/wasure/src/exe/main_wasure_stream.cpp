@@ -2454,7 +2454,6 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
             }
             hpi.finalize();
         }
-
 	
         std::cout.clear();
         CGAL::jet_estimate_normals<CGAL::Parallel_if_available_tag>

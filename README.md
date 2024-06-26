@@ -38,6 +38,16 @@ To compile the project with the 3D CGAL kernel using 4 cores, run :
 $ ./src/docker/docker_interface.sh compile -j4 -t3
 ```
 
+### Create level of detail mesh
+	For producing a LOD mesh, first create the conda env : 
+```console
+	conda env create --file ./services/mesh23dtile/environment.yml
+```	
+	before runing the next examples, do :
+```console 
+	conda activate mesh23Dtile
+```	
+
 # Run the code
 ## Examples 
 Run all the examples:
@@ -46,13 +56,6 @@ $ ./run_examples.sh
 
 ```
 Results will be created in the 'outputs' directory.
-
-## With lods
-	For producing a LOD mesh, before runing the code do :
-```console
-	conda env create --file ./services/mesh23dtile/environment.yml
-	conda activate mesh23Dtile
-```
 
 
 ## Run on LidarHD LAZ dataset 
