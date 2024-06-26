@@ -162,7 +162,6 @@ def build_3DT(inputs) :
                        full_bbox[5] - full_bbox[4])
         full_bbox[3] = full_bbox[2] + bbox_len
         full_bbox[5] = full_bbox[4] + bbox_len
-    print("full bbox :" + str(full_bbox))
 
     origin = get_bb_center(full_bbox)
     myTree = Octree(
@@ -283,9 +282,7 @@ if __name__ == '__main__':
         inputs["bbox"]=args.bbox
         inputs["mode"]=args.mode
         inputs["meshlab_mode"]=args.meshlab_mode
-
-        
-    print("\n=== Params ===  \n" + "\n".join("{} ==> {}".format(k, v) for k, v in inputs.items()))
+    #print("\n=== Params ===  \n" + "\n".join("{} ==> {}".format(k, v) for k, v in inputs.items()))
     build_3DT(inputs);
 
 
