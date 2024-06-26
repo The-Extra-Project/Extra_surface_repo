@@ -130,7 +130,7 @@ params_scala("dump_mode") = collection.mutable.Set("NONE")
 val fmt = new java.text.DecimalFormat("##0.##############")
 val dateFormatter = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss")
 val datestring = dateFormatter.format(Calendar.getInstance().getTime());
-val cur_output_dir ={output_dir  + sc.applicationId + "_" + datestring + "_"+ params_scala("name").head }
+val cur_output_dir ={output_dir  + "outputs"} //sc.applicationId + "_" + datestring + "_"+ params_scala("name").head }
 fs.mkdirs(new Path(cur_output_dir),new FsPermission("777"))
 
 
@@ -413,7 +413,7 @@ algo_list.foreach{ cur_algo =>
                 kvrdd_seg, "seg", do_dump = false).persist(slvl_glob)
               rdd_ply_surface.count()
               res_seg.unpersist()
-              val ply_dir = cur_output_dir + "/plydist_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str
+              val ply_dir = cur_output_dir + "/tiles"// + "/plydist_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str
               ddt_algo.saveAsPly(rdd_ply_surface,ply_dir,plot_lvl);
               wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
 
@@ -448,7 +448,7 @@ algo_list.foreach{ cur_algo =>
               stats_3 = (stats_collect(2),stats_collect(3))
               rdd_stats.collect()
               if(acc_loop == 0){
-                val ply_dir = cur_output_dir + "/plyglob_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str + "_global3"
+                val ply_dir = cur_output_dir + "/tiles" // + "/plyglob_" + ext_name + "_gc_" + algo_id_acc.toString + "_" + acc_loop_str + "_global3"
                 ddt_algo.saveAsPly(rdd_ply,ply_dir,plot_lvl)
                 wasure_algo.partition2ply(cur_output_dir,algo_id_acc.toString,sc);
               }
