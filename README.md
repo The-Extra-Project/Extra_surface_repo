@@ -39,11 +39,14 @@ $ ./src/docker/docker_interface.sh compile -j4 -t3
 ```
 
 ### Create level of detail mesh
-	For producing a LOD mesh, first create the conda env : 
+For producing a LOD mesh, first create the conda env : 
+
 ```console
 	conda env create --file ./services/mesh23dtile/environment.yml
 ```	
-	before runing the next examples, do :
+
+before runing the next examples, do :
+
 ```console 
 	conda activate mesh23Dtile
 ```	
