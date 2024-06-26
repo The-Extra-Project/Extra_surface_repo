@@ -39,7 +39,7 @@ function run_single_tile
     CURRENT_CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}')
     if [[ ${CURRENT_CONDA_ENV} == "mesh23Dtile" ]]; then
 	echo -e "\n -[Create LODs from tiled mesh]-"
-	OUTPUT_DIR_LODS=${DDT_MAIN_DIR}/outputs_lidarhd/${FUNCNAME[0]}/
+	OUTPUT_DIR_LODS=${DDT_MAIN_DIR}/outputs_lidarhd/${FUNCNAME[0]}_LOD/
 	mkdir -p ${OUTPUT_DIR_LODS}
 	python3  ./services/mesh23dtile/mesh23dtile.py --input_dir ${INPUT_DIR}/outputs/tiles/ --output_dir ${OUTPUT_DIR_LODS} --meshlab_mode python --coords 0x0 --mode_proj 0
     fi
