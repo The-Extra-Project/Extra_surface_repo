@@ -273,15 +273,22 @@ wasure_algo::tessel(DT_raw  & tri,
             double scll = std::max({vs[0], vs[1], vs[2]})/3;
             if(((double) rand() / (RAND_MAX)) > 0.8 && it == max_it-1 && sp > 0.7)
             {
-                auto pp2 = Point(vpn[0]-vn[0]*scll,vpn[1]-vn[1]*scll,vpn[2]-vn[2]*scll);
-                extra_pts.push_back(pp2);
+		if(v_los.size() > 0){
+		    auto vlos = los_map[vv];
+		    auto pp2 = Point(vpn[0]-vlos[0]*scll,vpn[1]-vlos[1]*scll,vpn[2]-vlos[2]*scll);
+		    extra_pts.push_back(pp2);
+		}else{
+		    auto pp2 = Point(vpn[0]-vn[0]*scll,vpn[1]-vn[1]*scll,vpn[2]-vn[2]*scll);
+		    extra_pts.push_back(pp2);
+		}
+
             }
         }
-        if(it == max_it-1)
-        {
-            dump_tessel(tri,it,max_it,tid,bbox_min,bbox_max);
-            dump_vector_pts(extra_pts,it,tid);
-        }
+        // if(it == max_it-1)
+        // {
+	//dump_tessel(tri,it,max_it,tid,bbox_min,bbox_max);
+	//dump_vector_pts(extra_pts,it,tid);
+	    //}
     }
     for(auto vv = traits_raw.vertices_begin(tri); vv != traits_raw.vertices_end(tri) ; ++vv)
     {

@@ -12,10 +12,12 @@ This project aims to produce watertight meshes on large scale datasets. This cod
 To use the code, please reffer to the [user manual](#user-manual) section.
 For more technicals informations, reffers to the [dev manual](#dev-manual) section.
 
- **/!\/!\/!\   Warning  /!\/!\/!\\**
+ **/!\\/!\\/!\\   Warning  /!\\/!\\/!\\**
 - This code is for experimental and research purposes and will not be maintained initially. A CGAL package with OpenMP/MPI scheduling is currently being prioritized. Follow the project page or this GitHub page for updates.
+- This code is fine-tuned to work on the LiDAR HD dataset with hardcoded hacks to passby bad line of sligt estimation (the effect of a point with the line of sligt coplanar to the surface is reduced).
 - This code runs efficiently on an Apache/Spark cluster but performs worse on a single computer compared to traditional OpenMP/MPI scheduling..
 - The surface reconstruction score function is basic and may produce poor results compared to advanced algorithms. Any improvements in this area are welcome. 
+
 - This code is published under the  GNU GENERAL PUBLIC LICENSE V3 (See LICENCE.md)
 
 # Requirements 

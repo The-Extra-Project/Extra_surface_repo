@@ -2312,7 +2312,7 @@ int hello(Id tile_id,wasure_params & params,int nb_dat)
 using Kernel = CGAL::Simple_cartesian<double>;
 using Point_3 = Kernel::Point_3;
 using Vector_3 = Kernel::Vector_3;
-using Point_with_info = std::tuple<Point_3, Vector_3, float, unsigned char>;
+using Point_with_info = std::tuple<Point_3, Vector_3, float,unsigned short>;
 using Point_with_info_2 = std::tuple<Point_3, Vector_3, Vector_3>;
 using Point_map = CGAL::Nth_of_tuple_property_map<0, Point_with_info>;
 using Normal_map = CGAL::Nth_of_tuple_property_map<1, Point_with_info>;
@@ -2386,7 +2386,7 @@ int compute_bbox(Id tid,wasure_params & params, int nb_dat)
                      std::make_pair (Scan_angle_map(),
                                      CGAL::IO::LAS_property::Scan_angle()),
                      std::make_pair (Scanline_id_map(),
-                                     CGAL::IO::LAS_property::Scan_direction_flag())))
+                                     CGAL::IO::LAS_property::Point_source_ID())))
             {
                 std::cerr << "Can't read " << fname << std::endl;
                 return EXIT_FAILURE;
@@ -2447,7 +2447,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
                      std::make_pair (Scan_angle_map(),
                                      CGAL::IO::LAS_property::Scan_angle()),
                      std::make_pair (Scanline_id_map(),
-                                     CGAL::IO::LAS_property::Scan_direction_flag())))
+                                     CGAL::IO::LAS_property::Point_source_ID())))
             {
                 std::cerr << "Can't read " << fname << std::endl;
                 return EXIT_FAILURE;
@@ -2476,6 +2476,8 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
             auto lx = std::get<1>(pp)[0];
             auto ly = std::get<1>(pp)[1];
             auto lz = std::get<1>(pp)[2];
+	    auto ID = std::get<2>(pp);
+	    std::cerr << "ID :" << ID << std::endl;
             Kernel::Vector_3 ori(
                 std::get<0>(pp)[0] + alpha*lx - bbox_ori.min(0),
                 std::get<0>(pp)[1] + alpha*ly - bbox_ori.min(1),
