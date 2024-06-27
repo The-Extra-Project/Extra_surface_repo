@@ -2456,10 +2456,10 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
         }
 	
         std::cout.clear();
-        CGAL::jet_estimate_normals<CGAL::Parallel_if_available_tag>
-        (points, 100,
-         CGAL::parameters::point_map (Point_map()).
-         normal_map (Normal_map()));
+        // CGAL::jet_estimate_normals<CGAL::Parallel_if_available_tag>
+        // (points, 100,
+        //  CGAL::parameters::point_map (Point_map()).
+        //  normal_map (Normal_map()));
         CGAL::scanline_orient_normals
         (points,
          CGAL::parameters::point_map (Point_map()).
