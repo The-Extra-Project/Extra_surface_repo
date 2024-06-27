@@ -118,7 +118,7 @@ val nb_samples = params_scala.get_param("nb_samples", "3").toFloat
 val rat_ray_sample = params_scala.get_param("rat_ray_sample", "1").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "100").toInt
 val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
-val lambda = params_scala.get_param("lambda", "2").toFloat
+val lambda = params_scala.get_param("lambda", "4").toFloat
 val coef_mult = params_scala.get_param("coef_mult", "1").toFloat
 val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
 

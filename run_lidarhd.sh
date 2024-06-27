@@ -90,5 +90,3 @@ function run_list_tile
 
 $@
 
-#run_lidarhd
-#run_liste_dalle
