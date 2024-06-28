@@ -979,7 +979,7 @@ wasure_algo::compute_dst_tri(DTW & tri, wasure_data<Traits>  & datas_tri, wasure
 		    Point & pts_los = v_los[idx];		    
 		    CGAL::Vector_3<typename Traits::K> v1{pts_los[0],pts_los[1],pts_los[2]};
 		    CGAL::Vector_3<typename Traits::K> v2{pts_norms[D-1][0],pts_norms[D-1][1],pts_norms[D-1][2]};
-		    sp = (normalize(v1)*normalize(v2));
+		    //sp = (normalize(v1)*normalize(v2));
 		}
 		//std::cerr << "sp:" << sp << " " << coef_conf << " " << v1 << " " << v2 << std::endl;
 		coef_conf = coef_conf*sp;
