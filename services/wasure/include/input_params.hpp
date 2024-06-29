@@ -4,3 +4,6 @@
 #define ANGLE_SCALE_GROUND (0.005)
 #define ANGLE_SCALE (ANGLE_SCALE_AERIAL)
 #define GSPS_CONST (0.05)
+
+#define NUM_ITER_TESSEL (10)
+#define DIM_SIZE_NB (50)

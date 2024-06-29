@@ -13,6 +13,7 @@
 #include "tbmrf_reco.hpp"
 #include "io_ddt_stream.hpp"
 #include "graph_cut.hpp"
+#include "input_params.hpp"
 
 typedef std::map<Id,wasure_data<Traits> > D_MAP;
 typedef std::map<Id,std::list<wasure_data<Traits>> > D_LMAP;
@@ -144,7 +145,7 @@ int main(int argc, char **argv)
                             wdp.format_egv,
                             wdp.format_sigs,
 			    wdp.format_normals,
-                            20,params.pscale,D,tid
+                            NUM_ITER_TESSEL,params.pscale,D,tid
                            );
         wdp.fill_egv(wdp.format_egv,false);
         wdp.fill_sigs(wdp.format_sigs,false);
