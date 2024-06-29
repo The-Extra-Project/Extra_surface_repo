@@ -583,6 +583,19 @@ object params_parser {
     pmap.map{case(k,v)=>List("--" + k, v.head)}.reduce(_ ++_)
   }
 
+
+  // Function to generate a random 10-character string
+  def randomString(length: Int): String = {
+    val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    val sb = new StringBuilder(length)
+    for (_ <- 1 to length) {
+      val randomNum = Random.nextInt(chars.length)
+      sb.append(chars.charAt(randomNum))
+    }
+    sb.toString()
+  }
+
+
   def set_params( cur_map : params_map,vals : List[(String,String)]) : params_map = {
     val nmap = new Hash_StringSeq with mutable.MultiMap[String, String]
     nmap ++= cur_map

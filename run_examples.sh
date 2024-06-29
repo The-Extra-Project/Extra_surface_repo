@@ -10,7 +10,7 @@ BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ./outputs/
 
-# DEBUG_FLAG="-d"
+DEBUG_FLAG="-d"
 
 ### Run spark-shell with a given script,params and input dir.
 # INPUT_DIR  : The directory with ply file
@@ -73,7 +73,7 @@ function run_example
     OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${INPUT_BASE}/"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
     run_algo_docker
-
+    
     echo -e "\n -[start reconstruction]-"
     INPUT_DIR=${OUTPUT_DIR}
     PARAMS="${OUTPUT_DIR}/wasure_metadata_3d_gen.xml"
