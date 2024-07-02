@@ -295,8 +295,8 @@ val numberToKey: Map[Long, String] = (0 to nbe.toInt).map { num =>
   num.toLong -> randomString(10)
 }.toMap
 
+kvrdd_simp.map(x => (numberToKey(x._1),x._2)).saveAsObjectFile(output_dir + "/kvrdd_simp")
+kvrdd_dim.map(x => (numberToKey(x._1),x._2)).saveAsObjectFile(output_dir + "/kvrdd_dim")
 
-// kvrdd_simp.map(x => (numberToKey(x._1),x._2)).saveAsObjectFile(output_dir + "/kvrdd_simp")
-// kvrdd_dim.map(x => (numberToKey(x._1),x._2)).saveAsObjectFile(output_dir + "/kvrdd_dim")
 
 //val hihi = sc.objectFile[spark_ddt.core.IQlibCore.KValue](output_dir + "/kvrdd_dim")

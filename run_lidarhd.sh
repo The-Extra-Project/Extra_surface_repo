@@ -6,6 +6,9 @@ GLOBAL_OUTPUT_DIR="${SPARK_SHARED_DIR}/outputs/"
 GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/datas/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
+mkdir -p ./outputs/ /tmp/spark-events
+#DEBUG_FLAG="-d"
+
 ### Run spark-shell with a given script,params and input dir.
 # INPUT_DIR  : The directory with ply file
 # OUTPUT     : The output directcory
@@ -25,8 +28,7 @@ function run_algo_docker
 function run_single_tile
 {
     mkdir -p ./outputs_lidarhd
-    #INPUT_DIR="/path/to/your/lidar/hd/laz/tile/"
-    INPUT_DIR="/media/laurent/ssd2/datas/LidarHD/grenoble_urbain/tuile_n1/"
+    INPUT_DIR="/path/to/your/lidar/hd/laz/tile/"
     OUTPUT_DIR="${DDT_MAIN_DIR}/outputs_lidarhd/${FUNCNAME[0]}/"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
     run_algo_docker
@@ -42,6 +44,8 @@ function run_single_tile
 	OUTPUT_DIR_LODS=${DDT_MAIN_DIR}/outputs_lidarhd/${FUNCNAME[0]}_LOD/
 	mkdir -p ${OUTPUT_DIR_LODS}
 	python3  ./services/mesh23dtile/mesh23dtile.py --input_dir ${INPUT_DIR}/outputs/tiles/ --output_dir ${OUTPUT_DIR_LODS} --meshlab_mode python --coords 0x0 --mode_proj 0
+    else
+	echo "conda env mesh23Dtile not created or conda not installed"
     fi
 }
 
@@ -85,6 +89,7 @@ function run_list_tile
 	
     done < "$file_path"
 }
+
 
 
 

@@ -28,6 +28,11 @@ For more technicals informations, reffers to the [dev manual](#dev-manual) secti
 ## Install & Compile 
 - Edit the file algo-env.sh 
 
+```console
+## Number of core used by spark
+export NUM_PROCESS="2"
+```
+
 ### Build the docker image
 ```console
 $ ./src/docker/docker_interface.sh build

@@ -31,6 +31,7 @@
 #include "tbmrf_reco.hpp"
 #include "io_ddt_stream.hpp"
 #include "graph_cut.hpp"
+#include "input_params.hpp"
 
 #include "ddt_spark_utils.hpp"
 #include <scanline_orient_normals.hpp>
@@ -316,7 +317,7 @@ int dim_splitted(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream & 
                             w_datas_full.format_egv,
                             w_datas_full.format_sigs,
 			    w_datas_full.format_normals,
-                            10,params.pscale,D,tid
+                            NUM_ITER_TESSEL,params.pscale,D,tid
                            );
     }
     else

@@ -589,7 +589,7 @@ object params_parser {
     val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     val sb = new StringBuilder(length)
     for (_ <- 1 to length) {
-      val randomNum = Random.nextInt(chars.length)
+      val randomNum = scala.util.Random.nextInt(chars.length)
       sb.append(chars.charAt(randomNum))
     }
     sb.toString()

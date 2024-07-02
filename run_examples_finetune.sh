@@ -10,7 +10,7 @@ BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
 mkdir -p ./outputs/
 
-#DEBUG_FLAG="-d"
+# DEBUG_FLAG="-d"
 
 ### Run spark-shell with a given script,params and input dir.
 # INPUT_DIR  : The directory with ply file
@@ -70,50 +70,38 @@ function run_example
     echo -e "\n -[start preprocesssing]-"
     INPUT_BASE=$(basename "${INPUT_DIR}")
     PARAMS="${INPUT_DIR}/wasure_metadata.xml"
-    OUTPUT_DIR_1="${DDT_MAIN_DIR}/outputs/${INPUT_BASE}_1/"
-    OUTPUT_DIR_2="${DDT_MAIN_DIR}/outputs/${INPUT_BASE}_2/"
+    OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${INPUT_BASE}/"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    OUTPUT_DIR=${OUTPUT_DIR_1}
-<<<<<<< HEAD
-    #run_algo_docker
-=======
     run_algo_docker
->>>>>>> 1c0d7e80898b5caedc5bf3b14a6e61740351d5ba
-    echo "${OUTPUT_DIR_1}"
-
-    for file in "${OUTPUT_DIR_1}"/*.ply; do
-	if [ -e "$file" ]; then
-            base_name=$(basename "$file" .ply)
-            mkdir -p "${OUTPUT_DIR_2}/${base_name}"
-            cp "$file" "${OUTPUT_DIR_2}/${base_name}/"
-	    cp "${OUTPUT_DIR_1}/wasure_metadata_3d_gen.xml" "${OUTPUT_DIR_2}/${base_name}/"
-	fi
-    done
-
-    PARAMS="${OUTPUT_DIR_1}/wasure_metadata_3d_gen.xml"
-    for dd in "${OUTPUT_DIR_2}"/*; do
-	echo "dd=>$dd"
-	INPUT_DIR=${dd}
-	OUTPUT_DIR=${dd}
-	FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_step_1.scala"
-	run_algo_docker
-
-    done
 
     echo -e "\n -[start reconstruction]-"
-
-    PARAMS="${OUTPUT_DIR_1}/wasure_metadata_3d_gen.xml"
-    INPUT_DIR=${OUTPUT_DIR_2}
-    OUTPUT_DIR=${OUTPUT_DIR_2}
-    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure_step_2.scala"
+    INPUT_DIR=${OUTPUT_DIR}
+    PARAMS="${OUTPUT_DIR}/wasure_metadata_3d_gen.xml"
+    FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
     run_algo_docker
+
+    CURRENT_CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}')
+    if [[ ${CURRENT_CONDA_ENV} == "mesh23Dtile" ]]; then
+	echo -e "\n -[Create LODs from tiled mesh]-"
+	mkdir -p ${DDT_MAIN_DIR}/outputs/${INPUT_BASE}_LODs
+	python3  ./services/mesh23dtile/mesh23dtile.py --input_dir ${DDT_MAIN_DIR}/outputs/${INPUT_BASE}/outputs/tiles/ --output_dir ${DDT_MAIN_DIR}/outputs/${INPUT_BASE}_LODs --meshlab_mode python --coords 0x0 --mode_proj 0
+    fi
+
+    echo -e "\n\n\n ---[monothread surface reconstruction lidar hd ply file...]---"
+    docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}  -u 0  --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "${DDT_MAIN_DIR}/build//build-spark-Release-3/bin/wasure-local-exe --output_dir ${OUTPUT_DIR} --input_dir ${DDT_MAIN_DIR}/datas/3d_bench_small --dim 3 --bbox 0000x10000:0000x10000  --pscale 0.5 --nb_samples 10 --rat_ray_sample 0 --mode surface --lambda 10 --step full_stack --seed 18696 --label lidhd_crop_inner --filename ${OUTPUT_DIR}/struct_id_0.ply"
+    echo ""
+
     
 }
 
 
-INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop_w/"
+### 3D Surface reconstruction
+#ex_run_ply_mono
+#ex_run_ply_tiling
+
+INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop_2/"
 run_example
-
-
+INPUT_DIR="${DDT_MAIN_DIR}/datas/lidar_hd_crop_1/"
+run_example
 
 

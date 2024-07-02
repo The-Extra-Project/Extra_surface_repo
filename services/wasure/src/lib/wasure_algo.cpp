@@ -320,7 +320,7 @@ wasure_algo::simplify(std::vector<Point> & points, std::vector<bool> & do_keep, 
     int D = Traits::D;
     int nbp = points.size();
     double eps = 0;
-    int K_T = 150;
+    int K_T = DIM_SIZE_NB;
     if(K_T > points.size() -1)
         K_T = points.size() - 1;
     ANNpointArray	dataPts;
