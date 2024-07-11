@@ -63,21 +63,16 @@ $ conda activate mesh23Dtile
 Run all the examples:
 ```console
 ./run_workflow.sh --input_dir ${PWD}/datas/lidar_hd_crop_1/ --output_dir ${PWD}/outputs_examples/lidar_hd_crop_1
+./run_workflow.sh --input_dir ${PWD}/datas/lidar_hd_crop_2/ --output_dir ${PWD}/outputs_examples/lidar_hd_crop_2
 
 ```
 Results will be created in the 'outputs' directory.
 
 
 ## Run on LidarHD LAZ dataset 
-- To run the code on a LiDAR HD single tile : 
-  - Go to [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) dataset and download a tile.
-  - Save the downloaded tile into a folder on your computer.
-  - Set the absolute path of this folder as the value of the `INPUT_DIR` variable in the `run_lidarhd.sh` file (`run_single_tile` function).
-  - then run the script `$ ./run_lidarhd.sh run_single_tile`
-
 - To run the code on a LiDAR HD tile collection : 
   - Go to [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) dataset and download the txt file containing the list of laz file here : `./datas/liste_dalle.txt`.
-  - then run the script `$ ./run_lidarhd.sh run_list_tile` 
+  - then run the script `$  ./run_lidarhd.sh --list_files ${PWD}/datas/liste_dalle.txt --output_dir ${PWD}/outputs/lidar_hd/` 
 
 ps : You may have to adjust the settings to optimize local Apache Spark scheduling on your computer  in the `algo-env.sh` file.
 

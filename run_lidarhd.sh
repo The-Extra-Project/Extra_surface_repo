@@ -19,10 +19,10 @@ done
 
 while IFS= read -r line; do
     filename=$(basename "${line}")
-    wget -O ${OUTPUT_DIR}/${filename} ${line}
-
-    ./run_workflow.sh --input_dir ${OUTPUT_DIR} --output_dir ${OUTPUT_DIR}
-	
+    NEW_OUT=${OUTPUT_DIR}/${filename}
+    mkdir -p ${NEW_OUT}
+    wget -O ${NEW_OUT}/${filename}  ${line}
+    ./run_workflow.sh --input_dir ${NEW_OUT} --output_dir ${NEW_OUT}	
 done < "${LIST_FILES}"
 
 return 0
