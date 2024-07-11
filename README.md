@@ -79,6 +79,25 @@ Results will be created in the 'outputs' directory.
 ps : You may have to adjust the settings to optimize local Apache Spark scheduling on your computer  in the `algo-env.sh` file.
 
 
+# Vizualise inside ITown
+
+![logo](./doc/lod.jpg)
+
+Clone and install [ITowns](https://github.com/iTowns/itowns)
+Copy the LODs folter into the root directory of itown 
+You can edit the example in `itowns/examples/3dtiles_basic.htm` with following code
+```html
+  // Create a new Layer 3d-tiles For DiscreteLOD
+// -------------------------------------------
+            var $3dTilesLayerDiscreteLOD = new itowns.C3DTilesLayer('3d-tiles-discrete-lod', {
+                name: 'DiscreteLOD',
+                sseThreshold: 0.5,
+                source: new itowns.C3DTilesSource({
+      		    url: '/LODs/tileset_final.json',
+                }),
+            }, view);
+```
+Start itowns then go to http://localhost:8082/examples/#3dtiles_basic 
 # dev manual
 In this section, some technical information about LAS LiDAR point cloud processing is added.
 
