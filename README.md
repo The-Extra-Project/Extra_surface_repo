@@ -23,6 +23,8 @@ For more technicals informations, reffers to the [dev manual](#dev-manual) secti
 # Requirements 
 - Docker (only tested on Ubuntu)
 - 8GB RAM single computer
+- conda 
+- libpq-devel 
 
 # User manual
 ## Install & Compile 
