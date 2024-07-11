@@ -62,7 +62,7 @@ $ conda activate mesh23Dtile
 ## Examples 
 Run all the examples:
 ```console
-$ ./run_examples.sh
+./run_workflow.sh --input_dir ${PWD}/datas/lidar_hd_crop_1/ --output_dir ${PWD}/outputs_examples/lidar_hd_crop_1
 
 ```
 Results will be created in the 'outputs' directory.
