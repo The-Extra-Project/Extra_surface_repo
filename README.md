@@ -79,7 +79,7 @@ Results will be created in the 'outputs' directory.
 ps : You may have to adjust the settings to optimize local Apache Spark scheduling on your computer  in the `algo-env.sh` file.
 
 
-# Vizualise inside ITown
+# Visualize inside ITown
 
 ![logo](./doc/lod.jpg)
 
