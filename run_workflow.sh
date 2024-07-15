@@ -36,13 +36,14 @@ function run_algo_docker
 # Parse command-line options
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    --input_dir) INPUT_DIR="$2"; shift ;;
-    --output_dir) OUTPUT_DIR="$2"; shift ;;
+    --input_dir) INPUT_DIR="${2%/}/"; shift ;;
+    --output_dir) OUTPUT_DIR="${2%/}/"; shift ;;
     *) echo "Unknown parameter passed: $1"; usage ;;
   esac
   shift
 done
-
+echo "$INPUT_DIR $OUTPUT_DIR"
+exit 0
 
 echo "Start processing ${INPUT_DIR} "
 echo -e "\n\n\n ---[run distributed algorithm laz file with preprocessing]---"
@@ -68,5 +69,5 @@ else
     echo "conda env mesh23Dtile not created or conda not installed"
 fi
 
-return 0
+exit 0
 
