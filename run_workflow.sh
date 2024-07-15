@@ -43,7 +43,7 @@ while [[ "$#" -gt 0 ]]; do
   shift
 done
 echo "$INPUT_DIR $OUTPUT_DIR"
-exit 0
+
 
 echo "Start processing ${INPUT_DIR} "
 echo -e "\n\n\n ---[run distributed algorithm laz file with preprocessing]---"
