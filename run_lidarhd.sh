@@ -19,7 +19,7 @@ done
 
 while IFS= read -r line; do
     filename=$(basename "${line}")
-    NEW_OUT=${OUTPUT_DIR}/${filename}
+    NEW_OUT=${OUTPUT_DIR}/${filename}/
     mkdir -p ${NEW_OUT}
     wget -O ${NEW_OUT}/${filename}  ${line}
     ./run_workflow.sh --input_dir ${NEW_OUT} --output_dir ${NEW_OUT}	
