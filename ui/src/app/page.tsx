@@ -21,7 +21,7 @@ import { Elements, ElementsConsumer, PaymentElement } from "@stripe/react-stripe
 import { CardElement } from "@stripe/react-stripe-js";
 
 import { useRouter } from "next/navigation";
-import {getUser} from "src/utils/supabase_queries"
+// import {getUser} from "src/utils/supabase_queries"
 import { Resend } from 'resend';
 import exec from "child_process";
 
