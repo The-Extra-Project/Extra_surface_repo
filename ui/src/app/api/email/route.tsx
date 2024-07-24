@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { Resend } from 'resend';
 import { env } from 'src/env';
 
-const resend = new Resend(env.RESEND_API_KEY || "");
+const resend = new Resend("re_bXs9fJfg_EbW9MsWLPgHguR3UHSNJTDm4");
 
 interface emailStr {
   email: string;
