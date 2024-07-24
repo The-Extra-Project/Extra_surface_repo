@@ -51,13 +51,11 @@ INPUT_BASE=$(basename "${INPUT_DIR}")
 PARAMS="${INPUT_DIR}/wasure_metadata.xml"
 FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
 
-run_algo_docker
     
 echo -e "\n -[start reconstruction]-"
 INPUT_DIR=${OUTPUT_DIR}
 PARAMS="${OUTPUT_DIR}/wasure_metadata_3d_gen.xml"
 FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-run_algo_docker
 
 CURRENT_CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}') 
 if [[ ${CURRENT_CONDA_ENV} == "mesh23Dtile" ]]; then

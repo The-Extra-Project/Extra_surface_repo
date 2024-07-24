@@ -6,6 +6,8 @@ usage() {
   exit 1
 }
 
+source ${CUR_DIR}/../../algo-env.sh
+
 # Initialize parameters
 input_dir=""
 xml_file=""
@@ -51,11 +53,33 @@ python3 ${CUR_DIR}/mesh23dtile.py --input_dir ${input_dir} --output_dir ${output
 echo "end mesh23dtile.py"
 
 count=0
+
+
+### Sequential job 
+# for obj_file in "${output_dir}/tiles/"*.obj; do
+#   count=$((count + 1))
+#   output_tile=${output_dir}/$(basename ${obj_file%.*})
+#   echo ${offset}
+#   obj-tiler -i "$obj_file" --offset ${offset} --crs_in EPSG:${input_crs} --crs_out EPSG:${output_crs} -o ${output_tile}
+# done
+
+process_obj(){
+    objf=${1}
+    output_tile=${output_dir}/$(basename ${objf%.*})
+    echo ${offset}
+    obj-tiler -i ${objf} --offset ${offset} --crs_in EPSG:${input_crs} --crs_out EPSG:${output_crs} -o ${output_tile}
+}
+
+
+echo ${NUM_PROCESS}
+num_jobs="\j" 
 for obj_file in "${output_dir}/tiles/"*.obj; do
-  count=$((count + 1))
-  output_tile=${output_dir}/$(basename ${obj_file%.*})
-  echo ${offset}
-  obj-tiler -i "$obj_file" --offset ${offset} --crs_in EPSG:${input_crs} --crs_out EPSG:${output_crs} -o ${output_tile}
+    while (( ${num_jobs@P} >= ${NUM_PROCESS} )); do
+	wait -n
+    done
+     process_obj "${obj_file}" & 
 done
-mv ${output_dir}/tileset_final.json ${output_dir}/tileset.json
+
+wait
+echo "finalize!"
 python3 ${CUR_DIR}/finalize.py ${output_dir}

@@ -24,7 +24,7 @@ while IFS= read -r line; do
     wget -O ${NEW_OUT}/${filename}  ${line}
     ./run_workflow.sh --input_dir ${NEW_OUT} --output_dir ${NEW_OUT}	
 done < "${LIST_FILES}"
-
+ 
 return 0
 
  

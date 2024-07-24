@@ -29,6 +29,19 @@ function run_local (){
 }
 
 
+
+# function submit_queue_job {
+#     echo "======================= SPARK Queue submission ============================"
+#     ${DDT_MAIN_DIR}/src/spark/spark.sh start_all ${MASTER_IP}
+#     /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/bin/spark-submit \
+#     -i ${INPUT_SCRIPT}  \
+#     --jars ${GLOBAL_BUILD_DIR}/spark/target/scala-2.13/iqlib-spark_2.13-1.0.jar  \
+#     --master spark://localhost:7077  -Dspark.executor.memory=1g -Dspark.driver.memory=1g
+#     --queue ${QUEUE_NAME}
+
+# }
+
+
 function run_master (){
 
     export_params ${MASTER_IP}
@@ -156,6 +169,7 @@ case "$SPARK_CONF" in
     "local")
 	MASTER_IP="localhost"
 	run_local
+    #submit_queue_job
 	;;
     "master")
 	if [[ -z ${MASTER_IP} ]] ;
