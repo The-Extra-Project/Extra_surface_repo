@@ -1,7 +1,6 @@
 import Stripe from 'stripe';
 import { config, configDotenv } from "dotenv";
 import path from 'path';
-import { env } from 'src/env';
 
 export const stripe = new Stripe(
   "sk_test_51PGIH1RxsgXWpWf5YJ2bv3cvNrxBQe5RipRW7xqu95upcYpWtzqVdyGzd3ZINOoLu86qOPeJG5mAgmsiTRQp8uZw00Lp5Hu9NT",

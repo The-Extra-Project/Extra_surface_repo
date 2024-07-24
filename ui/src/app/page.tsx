@@ -25,8 +25,7 @@ import {getUser} from "src/utils/supabase_queries"
 import { Resend } from 'resend';
 import exec from "child_process";
 
-import {env} from "src/env"
-const resend = new Resend(env.NEXT_PUBLIC_RESEND_API_KEY || "");
+const resend = new Resend("re_bXs9fJfg_EbW9MsWLPgHguR3UHSNJTDm4");
 import { useStripe, useElements } from "@stripe/react-stripe-js";
 
 
