@@ -156,7 +156,7 @@ export const FileUploader = forwardRef<
         const files = acceptedFiles;
 
         if (!files) {
-          toast.error("file error , check the correct file format");
+          toast.error("file error, check the correct file format");
           return;
         }
 

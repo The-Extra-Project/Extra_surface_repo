@@ -50,7 +50,7 @@ export default function PaymentSuccess({
           </div>
 
           <div>
-        You will receive mail of confirmation along with and when you'll received reconstructed data. 
+        You will receive mail of confirmation along with and when you will received reconstructed data. 
           </div>
           <h1>
 
