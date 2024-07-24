@@ -3,7 +3,7 @@ import { z } from "zod";
 import {configDotenv} from "dotenv"
 
 configDotenv({
-  path:'.env'
+  path: '.env'
 })
 
 export const env = createEnv({
@@ -23,7 +23,7 @@ export const env = createEnv({
     
   },
   runtimeEnv: {
-    STRIPE_PUBLIC_KEY: process.env.STRIPE_PUBLIC_KEY,
+ STRIPE_PUBLIC_KEY: process.env.STRIPE_PUBLIC_KEY,
 STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
 NEXT_SUPABASE_PUBLIC_KEY: process.env.NEXT_SUPABASE_PUBLIC_KEY,
 NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
