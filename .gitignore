@@ -5,3 +5,4 @@ shared_spark/tmp/**
 
 outputs_examples/** 
 outputs_last/** 
+.vercel
