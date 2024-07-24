@@ -6,20 +6,20 @@ import { Database } from 'src/utils/types_db';
 export const createClient = () => {
     const cookieStore = cookies()
 
-    return createServerClient<Database>(
-      // Pass Supabase URL and anonymous key from the environment to the client
-      env.NEXT_PUBLIC_SUPABASE_URL!,
-      env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-            getAll() {
-                return cookieStore.getAll();
-            },
-            setAll(cookiesToSet) {
-                cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            },
-        }
-    }
+    // return createServerClient<Database>(
+    //   // Pass Supabase URL and anonymous key from the environment to the client
+    //   env.NEXT_PUBLIC_SUPABASE_URL!,
+    //   env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    //   {
+    //     cookies: {
+    //         getAll() {
+    //             return cookieStore.getAll();
+    //         },
+    //         setAll(cookiesToSet) {
+    //             cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+    //         },
+    //     }
+    // }
     //   // Define a cookies object with methods for interacting with the cookie store and pass it to the client
     //   {
     //     cookies: {
@@ -47,7 +47,7 @@ export const createClient = () => {
     //       }
     //     }
     //   }
-    );
+    // );
 };
 
 
