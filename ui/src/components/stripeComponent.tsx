@@ -3,7 +3,6 @@ import { loadStripe } from "@stripe/stripe-js";
 import { configDotenv } from "dotenv";
 import React, { useEffect, useState } from "react";
 import path from "path";
-import { env } from "src/env";
 
 export const stripePromise = loadStripe("pk_test_51PGIH1RxsgXWpWf561hoKKpNV4gHBox0jscPYZ5pgj6LSKn4TP14q8xv9tkW9EN59QoDatNB7S1FBBgSQ1C5HDXH00YtHhR2mm");
 

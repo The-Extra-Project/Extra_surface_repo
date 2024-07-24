@@ -2,7 +2,6 @@
 import { createServerClient,type CookieOptions } from "@supabase/ssr";
 import {cookies} from "next/headers"
 import { Database } from 'src/utils/types_db';
-import { env } from "src/env";
 
 export const createClient = () => {
     const cookieStore = cookies()
