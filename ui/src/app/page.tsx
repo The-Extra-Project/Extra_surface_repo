@@ -214,7 +214,7 @@ export default function Home() {
             stripe={strPromise}
             options={{
               mode: "payment",
-              amount: cost * 10000,
+              amount: cost * 1000,
               currency: "eur",    
 
             }}
