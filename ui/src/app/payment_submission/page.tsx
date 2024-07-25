@@ -4,7 +4,7 @@ import StripeComponent, { stripePromise } from "src/components/stripeComponent";
 import { Button } from "src/components/ui/button";
 import { Elements } from "@stripe/react-stripe-js";
 
-function convertToSubcurrency(amount: number, factor = 100) {
+function convertToSubcurrency(amount: number, factor = 1000) {
 	return Math.round(amount * factor);
 }
 
@@ -21,7 +21,7 @@ export default function StripePayment(amount: any) {
 					options={{
 						mode: "payment",
 						amount: convertToSubcurrency(amount),
-						currency: "usd"
+						currency: "eur"
 					}}
 					stripe={stripePromise}
 				>
