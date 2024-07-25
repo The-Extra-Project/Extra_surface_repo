@@ -100,15 +100,18 @@ export default function Home() {
 			console.error("Error sending email:", error);
 		}
 
-		const response = await fetch("/api/files", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-			files,
-			}),
-		});
+		
+		// const response = await fetch("/api/files", {
+		// 	method: "POST",
+		// 	headers: {
+		// 		"Content-Type": "application/json",
+		// 	},
+		// 	body: JSON.stringify({
+		// 	files,
+		// 	}),
+		// });
+
+		useRouter().push("/payment_submission")
 
 	};
 	//const form = useForm();
