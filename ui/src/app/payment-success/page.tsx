@@ -1,5 +1,5 @@
 "use client"
-import { useEffect } from "react";
+// import { useEffect } from "react";
 import Header from "src/components/Header/Header";
 
 
@@ -7,11 +7,11 @@ export default function PaymentSuccess({
     searchParams: { amount },
     
   }: {
-    searchParams: { amount: string,  email: string, URLs: string[] };
+    searchParams: { amount: string };
   }) {
 
 
-
+    //TODO: to send the email regarding the current waiting jobs along with 
     // useEffect(() => {
       // const sendEmail = async () => {
       //   try {
