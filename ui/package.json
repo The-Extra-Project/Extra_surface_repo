@@ -16,6 +16,7 @@
     "@stripe/react-stripe-js": "^2.7.1",
     "@supabase/ssr": "^0.4.0",
     "@t3-oss/env-nextjs": "^0.10.1",
+    "@web3-storage/w3up-client": "^15.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
@@ -32,13 +33,13 @@
     "stripe": "^16.0.0",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
+    "type-fest": "^4.23.0",
     "zod": "^3.23.8"
   },
   "browser": {
-  "fs": false,
-  "os": false
-},
-
+    "fs": false,
+    "os": false
+  },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",

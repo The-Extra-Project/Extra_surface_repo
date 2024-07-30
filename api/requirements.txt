@@ -1,0 +1,14 @@
+fastapi
+fastapi[all]
+gunicorn
+upstash_redis
+fastapi-utilities
+python-dotenv
+supabase
+pytest
+pytest-asyncio
+resend
+ipfs-toolkit
+pydantic
+s3fs
+rq

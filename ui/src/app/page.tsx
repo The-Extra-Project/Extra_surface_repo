@@ -4,9 +4,10 @@ import Link from "next/link";
 import Header from "src/components/Header/Header";
 import fs from "fs/promises";
 import { revalidatePath } from "next/cache";
-
+import Router from "next/router";
 //import EmbedGraph from "src/components/embed_graph";
 import embed_graph from "src/public/Card_France.png";
+import {Alert, AlertDescription, AlertTitle }  from "src/components/ui/alert"
 import { z } from "zod";
 import { Button } from "src/components/ui/button";
 import { useState, useEffect } from "react";
@@ -71,37 +72,7 @@ export default function Home() {
 
 	const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-
-		const formData = new FormData(event.currentTarget);
-		const email = formData.get("email") as string;
-
-
-		try {
-			const response = await fetch("/api/email", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					email,
-					cost,
-					URLs,
-				}),
-			});
-
-			if (response.ok) {
-				console.log("Email sent successfully");
-				console.log(response.json());
-			} else {
-				console.error("Error sending email:", await response.json());
-			}
-		} catch (error) {
-			console.error("Error sending email:", error);
-		}
-
-
-		router.push("/payment_submission")
-
+		router.push(`/payment_submission?cost=${cost}`)
 	};
 	//const form = useForm();
 	const onUpload = (file: File) => {
@@ -120,6 +91,7 @@ export default function Home() {
 			setUpload(true);
       setFiles([file])
 		};
+
 		reader.readAsText(file);
 	};
 
@@ -232,6 +204,17 @@ export default function Home() {
 								{" "}
 								Lancer le téléchargement
 							</Button>
+							{
+								upload && 
+								<Alert>
+									<AlertTitle>
+										Uploading the request
+									</AlertTitle>
+									<AlertDescription>
+										Pay now the recoinstruction cost on stripe. 
+									</AlertDescription>
+								</Alert>
+							}
 						</form>
 					</div>
 				</div>

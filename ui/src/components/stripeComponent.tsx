@@ -3,49 +3,56 @@ import { Elements, useElements, useStripe, PaymentElement } from "@stripe/react-
 import { loadStripe } from "@stripe/stripe-js";
 import { configDotenv } from "dotenv";
 import React, { useEffect, useState } from "react";
-import path from "path";
+import path, { basename, resolve } from "path";
+import { useRouter } from "next/router";
 
-
-() => {
-    try {
-
-        configDotenv({
-            path: path.join('.', '../', '.env')
-        })
-
+configDotenv(
+    {
+        path: "../../.env"
     }
+)
+// () => {
+//     try {
 
-    catch (Error) {
-        console.error("error in logging in the Configuration file: " + Error)
-    }
+//         configDotenv({
+//             path: path.join('.', '../', '.env')
+//         })
 
-}
+//     }
 
-export const stripePromise = loadStripe("pk_test_51PGIH1RxsgXWpWf561hoKKpNV4gHBox0jscPYZ5pgj6LSKn4TP14q8xv9tkW9EN59QoDatNB7S1FBBgSQ1C5HDXH00YtHhR2mm");
+//     catch (Error) {
+//         console.error("error in logging in the Configuration file: " + Error)
+//     }
 
-export default function StripeComponent({ amount, }: { amount: number }) {
+// }
+
+export const stripePromise = loadStripe(process.env.STRIPE_PUBLIC_KEY);
+
+export default function StripeComponent({ amount }: { amount: number }) {
     const stripe = useStripe();
     const elements = useElements();
     const [errorMessage, setErrorMessage] = useState<string>();
     const [loading, setLoading] = useState(false);
     const [clientSecret, setClientSec] = useState("");
+    const [amt, setAmt] = useState(0);
 
-    useEffect(() => {
-        fetch("/api/payment", {
+    const handleSubmit = async () => {
+        
+
+        setLoading(true);
+        
+        setAmt(amount)
+        
+         fetch("/api/payment", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ amount: amount }),
-        })
-            .then((res) => res.json())
-            .then((data) => setClientSec(data.clientSecret));
+            body: JSON.stringify({ amount: amt }),
+        }).catch((data) => (data.json()))
+        .then((data) => setClientSec(data.clientSecret))
+          
 
-    }, [amount]);
-
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        setLoading(true);
 
         if (!stripe || !elements) {
             setErrorMessage("Stripe.js has not loaded yet.");
@@ -78,10 +85,10 @@ export default function StripeComponent({ amount, }: { amount: number }) {
         if (error) {
             setErrorMessage(error.message);
         }
-        setLoading(false);
+        setLoading(false);    
     };
 
-    if (!clientSecret || !stripe || !elements) {
+    if (!stripe || !elements) {
         return (
             <div className="flex items-center justify-center">
                 <div
@@ -94,19 +101,20 @@ export default function StripeComponent({ amount, }: { amount: number }) {
                 </div>
             </div>
         );
+
     }
 
     return (
+        <>
 
-        <form onSubmit={handleSubmit} className="bg-white p-2 rounded-md">
-            {clientSecret && <PaymentElement />}
-            {errorMessage && <div>{errorMessage}</div>}
+             <PaymentElement />
             <button
                 disabled={!stripe}
                 className="text-white w-full p-5 bg-black mt-2 rounded-md font-bold disabled:opacity-50 disabled:animate-pulse"
+                onClick={handleSubmit}
             >
                 {!loading ? `Pay $${amount}` : "Processing..."}
             </button>
-        </form>
+            </>
     );
 }
