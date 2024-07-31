@@ -58,7 +58,7 @@ def send_payment_notification(receiver_email, payment_intent_id ):
         print("unable to send the notification due to "+ str(e))
 
 
-def send_job_reconstruction(receiver_email, job_id, cluster_dashbaord_url):
+def send_job_reconstruction(receiver_email, job_id):
     try:
         params = EmailParams()
         params.destination = receiver_email

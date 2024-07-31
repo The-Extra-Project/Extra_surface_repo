@@ -10,7 +10,7 @@ export async function POST(req:NextRequest) {
     try {
     const fileBuffer = await file.arrayBuffer()
     const buffer = new Uint8Array(fileBuffer);
-    var storage_directory = resolve(__dirname, "..", "..", "..","..", "datas")
+    var storage_directory = resolve(__dirname, "../../../../datas")
     console.info("storing the result in" + (storage_directory))
     await fs.writeFile(  storage_directory + `/${file[0].name}`, buffer);
     }

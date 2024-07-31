@@ -12,7 +12,13 @@ root_folder_path = Path(os.path.abspath(__file__)).parent.parent
 
 load_dotenv(dotenv_path=(root_folder_path  / '.env'))
 
-redisObj = Redis()
+redisObj = Redis(
+        host='localhost',
+    port=6379,
+    charset="utf-8",
+    decode_responses=True
+
+)
 
 def enqueue_job(job_params: ScheduleJob):
     """

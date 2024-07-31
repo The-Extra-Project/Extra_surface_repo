@@ -3,9 +3,10 @@
 
 # Function to display usage
 usage() {
-  echo "Usage: $0 --list_files txt_file  --output_dir <output_dir>"
+  echo "Usage: $0 --list_files <txt_file>  --output_dir <output_dir>"
   exit 1
 }
+
 
 # Parse command-line options
 while [[ "$#" -gt 0 ]]; do

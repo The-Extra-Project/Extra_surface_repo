@@ -57,6 +57,7 @@ export default function Home() {
 	const router = useRouter()
 	const [upload, setUpload] = useState(false);
 	const [payment, setPayment] = useState(false);
+	const [portal, showPortal] = useState(false);
 	const [files, setFiles] = useState<File[] | null>(null);
 	const [URLs, setURLs] = useState<string[]>([]);
 	const [cost, setCost] = useState(0);
@@ -72,7 +73,8 @@ export default function Home() {
 
 	const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		router.push(`/payment_submission?cost=${cost}`)
+		router.replace(`/payment_submission?cost=${cost}`)
+		showPortal(true)
 	};
 	//const form = useForm();
 	const onUpload = (file: File) => {
@@ -205,7 +207,7 @@ export default function Home() {
 								Lancer le téléchargement
 							</Button>
 							{
-								upload && 
+								portal &&
 								<Alert>
 									<AlertTitle>
 										Uploading the request

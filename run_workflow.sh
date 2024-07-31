@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 ### Start workflow in local mode 
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
 source ${DDT_MAIN_DIR}/algo-env.sh
@@ -27,7 +26,6 @@ function run_algo_docker
     fi
     echo ""
     echo "##  ------  ${FUNCNAME[1]}  ------"
-    mkdir -p ${OUTPUT_DIR}
     CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c ${NUM_PROCESS} -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
     eval ${CMD}
     return 0
@@ -50,12 +48,17 @@ echo -e "\n -[start preprocesssing]-"
 INPUT_BASE=$(basename "${INPUT_DIR}")
 PARAMS="${INPUT_DIR}/wasure_metadata.xml"
 FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
+##touch  $PARAMS
+echo "params is defined as:" + ${PARAMS} + "and running the preprocessing pipeline:" + ${FILE_SCRIPT}
 
-    
+run_algo_docker
+
 echo -e "\n -[start reconstruction]-"
 INPUT_DIR=${OUTPUT_DIR}
 PARAMS="${OUTPUT_DIR}/wasure_metadata_3d_gen.xml"
 FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+
+run_algo_docker
 
 CURRENT_CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}') 
 if [[ ${CURRENT_CONDA_ENV} == "mesh23Dtile" ]]; then

@@ -1,9 +1,8 @@
 FROM python:slim-bookworm as build
 
-WORKDIR app/api/
+WORKDIR /app/api/
 
-COPY requirements.txt  requirements.txt
-
+COPY ./api/requirements.txt  requirements.txt
 
 RUN pip install -r requirements.txt
 
@@ -11,5 +10,4 @@ COPY . .
 
 EXPOSE 8001
 
-
-RUN fastapi run /app/api/server.py 
+CMD ["fastapi", "run" ,"/app/api/api/server.py" ]
