@@ -1,8 +1,12 @@
 build/** 
-outputs/** 
-outputs_lidarhd/** 
 shared_spark/tmp/** 
-
-outputs_examples/** 
-outputs_last/** 
+.venv
 .vercel
+
+outputs/** 
+demo_storage/
+.env
+
+__pycache__/
+
+storage/
