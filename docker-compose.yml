@@ -13,8 +13,15 @@ services:
     build:
       context: ./backend/sparkling_washeur/
       dockerfile: ./src/docker/Dockerfile-base-Ubuntu-devel
+
+    volumes:
+      - $HOME/.aws/credentials:/.aws/credentials:ro
+    
     environment:
-      - CREDENTIALS_FILE_PATH="~/.aws/credentials"
+      - NB_PROC="4"
+      - DDT_TRAITS="3"
+      - MOUNT_
+
   redis:
     image: redis:latest
     networks:
