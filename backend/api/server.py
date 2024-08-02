@@ -20,7 +20,7 @@ from api.cache import redisObj
 import uuid 
 sys.path.append('.')
 
-from api.models import ScheduleJob, UserJob, Status
+from api.models import ScheduleJob, ScheduleJobMulti, UserJob, Status
 from api.cache import enqueue_job, dequeue_job, current_job_index
 
 from datetime import datetime
@@ -49,7 +49,7 @@ bgtasks = BackgroundTasks()
 
 ## for the single file reconstruction.
 def launch_single_tile_reconstruction(filepath_url, userfile_path):
-    return Popen([ root_folder_path / 'run_lidarhd.sh' , '--list_files', filepath_url, '--output_dir', userfile_path ])
+    return Popen([ root_folder_path / 'sparkling_washeur' / 'run_lidarhd.sh' , '--list_files', filepath_url, '--output_dir', userfile_path ])
 ## for taking multiple laz tiles for reconstruction at the point
 def launch_multiple_tile_reconstruction(filepath_url:Path, aggregator_factor: int): 
     """
@@ -57,7 +57,6 @@ def launch_multiple_tile_reconstruction(filepath_url:Path, aggregator_factor: in
     aggregator_path: defines the number of tiles that you want to reconstruction at one point of time.
     """
     userfile_path = root_folder_path / 'demo_storage'  / str(datetime.today().strftime('%Y-%m-%d'))
-    userprams = UserJob()
     
     ## read the url file --> club the various files into a single 
     with open(filepath_url, 'r') as fp:
@@ -114,8 +113,19 @@ def run_lidarhd_job(filepath_url:Path, email: str,  bg: BackgroundTasks):
     fp.close()
     return output
 
+@fastapi.post("/reconstruction/schedule_multi")
+def schedule_multi_reconstruction_job(data:ScheduleJobMulti):
+    try:
+        params = ""
+        url_file_filepath = Path(data.input_url_file)
+        launch_multiple_tile_reconstruction(filepath_url=url_file_filepath, aggregator_factor=data.aggregator)
+    except Exception as e:
+        print("error in launching multi reconstruction" + str(e))
 
-def schedule_multi_reconstruction_job()
+        
+        
+        
+    
 
 
 @fastapi.post("/reconstruction/schedule")
@@ -127,6 +137,22 @@ def schedule_reconstruction_job(data:ScheduleJob) -> Status:
         with open(url_filepath, '+rt'):
             job_details = queue.enqueue_job(job)
             params = job.id   
+            supabase_client.table("extra_surface").insert(json={
+                "email": data.username,
+                "job_history": [params]
+            })  
+            supabase_client.table("selectionjob").insert(
+                json={
+                 "job_id" : params,
+                 "job_created_at": datetime.today(),
+                 "status": "false"  
+                }
+            )
+            supabase_client.table("reconstructed_tiles").insert(
+                json={
+                    "job_id": params
+                }
+            )
         return Status(job_status=str(params)) 
     except Exception as e:
         print("error on scheduling reconstruction job:" + str(e))
@@ -146,8 +172,6 @@ def storing_files_s3(dir_location_output: str, zipfile_name: str):
     dir_location_output: is the relative location from the root folder od the generated output folder with the information 
     """
     try:
-        #  check_output(["S3", "cp", str(os.getenv("S3_DIR")),  dir_location_output ]) 
-
         zip_s3_upload(dir_location_output,zipfile_name)
     except Exception as e:
         print("s3 file is not able to be stored" + str(e))

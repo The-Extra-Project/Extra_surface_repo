@@ -26,7 +26,7 @@ subject_map = {
 }
 
 mail_content_map = {
-    "payment_completed": ["<Strong> Thank you for completing the payment_id: </Strong>", "<a2> We will be later commencing the job execution of lidar tiles once the compute infrastructure is available and will share soon the url for you to monitor the job</a2>"], 
+    "payment_completed": ["<Strong> Thank you for completing the payment_id: </Strong>", "<a2> We will be later commencing the job execution of lidar tiles once the compute infrastructure is available and will share soon the url for you to monitor the job</a2>", "Just to take care that the jobs take atleast 3 to 48 hrs of processing (and due to numerous jobs) to create the finished tiles."], 
     "job_scheduled": ["<Strong> Your Job Number</Strong>", " Is Scheduled with the cluster <br/>. you can do the job progress via the url:"],
     "job_result_generated": ["Its the time: thanks for the paitence, your reconstruction job scheduled on: ", "is completed and the data is stored in the IPFS storage here:" , "kindly download the 3DTiles files and then use itowns in order to visualize the results"],
     "job_status_update": ["Hi there, i wanted to update that due to issues of compute bandwidth constraints ,your reconstruction job is taking more time than anticipated, so kindly wait couple of days or contact Charlie (Charlie@extralabs.fr for more details)"]

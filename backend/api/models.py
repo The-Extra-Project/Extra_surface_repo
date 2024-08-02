@@ -3,6 +3,9 @@ from typing import Dict, List
 class ScheduleJob(BaseModel):
     input_url: str
     username: EmailStr
+class ScheduleJobMulti(BaseModel):
+    input_url_file: str
+    aggregator: int
 
 class ReturnScheduleJob(BaseModel):
     directory: str

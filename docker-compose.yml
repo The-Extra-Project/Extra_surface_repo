@@ -16,11 +16,11 @@ services:
 
     volumes:
       - $HOME/.aws/credentials:/.aws/credentials:ro
-    
+      - $PWD/backend/sparkling_washeur:/app/sparkling_washeur/:rw
     environment:
       - NB_PROC="4"
       - DDT_TRAITS="3"
-      - MOUNT_
+      - MOUNT_CMD=""
 
   redis:
     image: redis:latest
