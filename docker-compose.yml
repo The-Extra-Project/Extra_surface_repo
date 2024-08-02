@@ -2,20 +2,25 @@ services:
   api:
     build:
       context: ./
-      dockerfile: ./api/Dockerfile.api
+      dockerfile: ./backend/api/Dockerfile.api
     env_file: ".env"
     networks:
       - api
     cap_add:
         - ALL
-  
+  sparkling_washeur:
+    image: devextralabs/distributed-delaunay-transformation ##TODO: to change the name and port the version.
+    build:
+      context: ./backend/sparkling_washeur/
+      dockerfile: ./src/docker/Dockerfile-base-Ubuntu-devel
+    environment:
+      - CREDENTIALS_FILE_PATH="~/.aws/credentials"
   redis:
     image: redis:latest
     networks:
       - api
     ports:
       - "6379:6379"
-
 
   website:
     build: 
@@ -24,7 +29,6 @@ services:
     networks:
       - api
       
-
 networks:
   api:
 

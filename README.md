@@ -1,32 +1,20 @@
-[![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://hal.science/hal-03380593/file/2021216131.pdf)
+## Extra-surface
 
-![logo](./doc/logo.jpeg)
+UI and SaaS platform that allows the user to schedule 3D reconstructions (by paying a nominal fee for supporitng the EC2 hosting costs)  of LidarHD tiles on [Distributed watertight surface reconstruction, Laurent Caraffa et.al](https://lcaraffa.github.io/edwsr/)  on given instance and send results to the user for visualization .  
 
-![Example of the algorithm on the "chateau de versaille" LidarHD tile](./doc/header.jpeg)
+it consist of the various component services to run the fullstack application and manage the user lifecycle:
 
+- [supabase](): for storing the user session (their payment, current job and tiles URI). check the [types]() in order to get idea of the datastorage.
+- []
 
-# Distributed watertight surface reconstruction on Apache Spark. 
-
-This project aims to produce watertight meshes on large scale datasets. This code is a simplified version of the article [Efficiently Distributed Watertight Surface Reconstruction](https://lcaraffa.github.io/edwsr/), fine-tuned to work on the [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) on a single computer.
-
-To use the code, please reffer to the [user manual](#user-manual) section.
-For more technicals informations, reffers to the [dev manual](#dev-manual) section.
-
- **/!\\/!\\/!\\   Warning  /!\\/!\\/!\\**
-- This code is for experimental and research purposes and will not be maintained initially. A CGAL package with OpenMP/MPI scheduling is currently being prioritized. Follow the project page or this GitHub page for updates.
-- This code is fine-tuned to work on the LiDAR HD dataset with hardcoded hacks to passby bad line of sligt estimation (the effect of a point with the line of sligt coplanar to the surface is reduced).
-- This code runs efficiently on an Apache/Spark cluster but performs worse on a single computer compared to traditional OpenMP/MPI scheduling..
-- The surface reconstruction score function is basic and may produce poor results compared to advanced algorithms. Any improvements in this area are welcome. 
-
-- This code is published under the  GNU GENERAL PUBLIC LICENSE V3 (See LICENCE.md)
-
-# Requirements 
-- Docker (only tested on Ubuntu)
-- 8GB RAM single computer
-- conda 
-- libpq-devel 
 
 # User manual
+
+## 1. Setting up the application: 
+
+- add the .env variables for the setup of the authentication token.
+
+
 ## Install & Compile 
 - Edit the file algo-env.sh 
 

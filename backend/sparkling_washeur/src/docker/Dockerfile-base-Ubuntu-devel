@@ -1,0 +1,91 @@
+FROM ubuntu:devel as build
+
+# ENV http_proxy http://10.128.81.100:3128
+# ENV https_proxy http://10.128.81.100:3128
+
+
+LABEL Maintainer="Laurent Caraffa"
+LABEL Contact_email="caraffa.laurent@gmail.com"
+
+ENV DEBIAN_FRONTEND noninteractive
+ARG CREDENTIALS_FILE_PATH
+
+# General installation
+RUN apt-get update &&  apt-get install -y cmake nano sudo gdb libboost-all-dev g++ wget  --assume-yes
+
+#Lidar format dps
+RUN apt-get update &&  apt-get install -y xsdcxx  libxerces-c-dev  --assume-yes
+
+# Externs dps
+#RUN apt-get update &&  apt-get install -y libpng12-dev libjpeg-dev zlibc libxmu-dev libxi-dev freeglut3-dev libtiff5-dev  --assume-yes
+#RUN apt-get update &&  apt-get install -y  libjpeg-dev zlibc libxmu-dev libxi-dev freeglut3-dev libtiff5-dev  --assume-yes
+RUN apt-get update && apt-get install -y unzip
+## aws-cli installation and setup
+RUN  wget "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -O "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update && \   
+    touch ~/.aws/credentials && \
+    cat ${CREDENTIALS_FILE_PATH} > ~/.aws/credentials
+
+# Matis-lib dps
+RUN apt-get update &&  apt-get install -y libeigen3-dev   --assume-yes
+
+# Scala
+RUN  apt-get update &&  apt-get install -y scala --assume-yes
+
+# Spark
+RUN cd /usr/local/bin/ && \
+    wget https://archive.apache.org/dist/spark/spark-3.5.0/spark-3.5.0-bin-hadoop3-scala2.13.tgz && \
+    wget https://github.com/sbt/sbt/releases/download/v1.0.0/sbt-1.0.0.tgz && \
+    tar -xvf spark-3.5.0-bin-hadoop3-scala2.13.tgz && \
+    tar -xvf sbt-1.0.0.tgz && \
+    rm ./*gz
+
+RUN apt-get update && apt-get install -y imagemagick --assume-yes
+
+# CGAL and co
+# libxerces-c-dev libxerces-c28
+RUN apt-get update && apt-get -y install libcgal-qt5-dev libcgal-dev libxerces-c-dev  libboost-dev libtinyxml-dev libxerces-c-dev libann-dev --assume-yes
+
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    libcgal-dev
+
+RUN apt-get update && apt-get -y install libtbb-dev --assume-yes
+
+
+RUN apt-get update &&  apt-get install -y  openjdk-8-jdk  --assume-yes
+
+ENV JAVA_HOME "/usr/lib/jvm/java-8-openjdk-amd64/"
+
+RUN cd /usr/local/bin/ && \
+    wget https://archive.apache.org/dist/hadoop/core/hadoop-2.7.7/hadoop-2.7.7-src.tar.gz && \
+    tar -xvf hadoop-2.7.7-src.tar.gz && \
+    mkdir -p ./hadoop-2.7.7-src/hadoop-hdfs-project/hadoop-hdfs/src/build && \
+    cd ./hadoop-2.7.7-src/hadoop-hdfs-project/hadoop-hdfs/src/build && \
+    awk 'NR==23{$0="set(GENERATED_JAVAH true)\n"$0}1' ../CMakeLists.txt > ../CMakeLists.txt.tmp && mv ../CMakeLists.txt.tmp ../CMakeLists.txt &&  \
+    cmake ../ && \
+    make 
+# RUN apt-get update && apt-get install -y python3-pip python3-gdal && pip3 install matplotlib plyfile
+
+## For the benchmark
+RUN apt-get update && yes "8" | apt-get -y install libpng-dev liblapack-dev libblas-dev ffmpeg openexr libtiff-dev libopenexr-dev libsuitesparse-dev libgl1-mesa-dev libglu1-mesa-dev --assume-yes ##  gnuplot --assume-yes
+RUN apt-get update &&  apt-get -y install libxml2-dev
+
+## for the build stage of the pipeline
+
+WORKDIR /app/sparkling_washeur/
+
+## COPYING the files.
+COPY ../../ .
+
+RUN ./src/docker/docker_interface.sh build && ./src/docker/docker_interface.sh compile -j4 -t3 && conda env create --file ./services/mesh23dtile/environment.yml && conda activate mesh23Dtile
+
+
+CMD ["./run_workflow.sh", "--input_dir", ${2},  "--output_dir" , ${2}]
+
+
+

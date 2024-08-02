@@ -1,10 +1,10 @@
-build/** 
+build
 shared_spark/tmp/** 
 .venv
 .vercel
 
 outputs/** 
-demo_storage/
+demo_storage
 .env
 
 __pycache__/

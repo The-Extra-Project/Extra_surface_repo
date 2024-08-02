@@ -1,0 +1,207 @@
+from datetime import date
+from subprocess import check_output, Popen, check_call
+from fastapi import  APIRouter, FastAPI, Response, BackgroundTasks
+import os
+
+from rq import Queue
+from rq.job import Job
+
+from pathlib import Path
+from dotenv import load_dotenv
+from supabase import client
+
+import sys
+import shutil
+import math
+
+from api.email import send_job_reconstruction, send_job_results
+from api.cache import redisObj
+
+import uuid 
+sys.path.append('.')
+
+from api.models import ScheduleJob, UserJob, Status
+from api.cache import enqueue_job, dequeue_job, current_job_index
+
+from datetime import datetime
+
+import requests
+
+import os
+import boto3
+import io
+import zipfile
+
+
+queue = Queue(connection=redisObj) # type: ignore
+
+root_folder_path = Path(os.path.abspath(__file__)).parent
+load_dotenv(root_folder_path / '.env')
+
+s3 = boto3.client("s3")
+
+fastapi = FastAPI()
+callback_router = APIRouter()
+
+supabase_client = client.Client(supabase_key=str(os.getenv("SUPABASE_KEY")), supabase_url=str(os.getenv("SUPABASE_URL")))
+
+bgtasks = BackgroundTasks()
+
+## for the single file reconstruction.
+def launch_single_tile_reconstruction(filepath_url, userfile_path):
+    return Popen([ root_folder_path / 'run_lidarhd.sh' , '--list_files', filepath_url, '--output_dir', userfile_path ])
+## for taking multiple laz tiles for reconstruction at the point
+def launch_multiple_tile_reconstruction(filepath_url:Path, aggregator_factor: int): 
+    """
+    filepath_url: is the url file that you want to generate the reconstruction.
+    aggregator_path: defines the number of tiles that you want to reconstruction at one point of time.
+    """
+    userfile_path = root_folder_path / 'demo_storage'  / str(datetime.today().strftime('%Y-%m-%d'))
+    userprams = UserJob()
+    
+    ## read the url file --> club the various files into a single 
+    with open(filepath_url, 'r') as fp:
+        folder_aggregated_path = ""
+        for folder_iter in iter(fp):
+            folder_aggregated_path = userfile_path / ("lidarhd_mode" + "_agg_" + str(folder_iter))
+            folder_output = folder_aggregated_path / "output"
+            if len(os.listdir(folder_aggregated_path)) == aggregator_factor : 
+                Popen([root_folder_path / "run_workflow.sh", "--input_dir", folder_aggregated_path, "--output_dir",folder_output ])
+            if  not math.fabs(int(folder_iter) / aggregator_factor ):
+                os.mkdir(folder_aggregated_path) 
+                os.mkdir(folder_output)
+            check_call(["wget" , "-O", folder_iter, folder_aggregated_path ])
+    fp.close()
+
+
+@fastapi.post(path="/reconstruction/post", callbacks= callback_router.routes)
+def run_lidarhd_job(filepath_url:Path, email: str,  bg: BackgroundTasks):
+    """
+    Sends the files from the lidarhd to localhost and then runs the operation
+    """
+    userfile_path = root_folder_path / 'demo_storage'  / str(datetime.today().strftime('%Y-%m-%d'))
+    user = UserJob()
+    
+    if(os.path.isdir(userfile_path)):
+            output = launch_single_tile_reconstruction(filepath_url,userfile_path)
+            bg.add_task(launch_single_tile_reconstruction,filepath_url,userfile_path)
+    else: 
+            os.mkdir(userfile_path, mode=0o777)
+            output = launch_single_tile_reconstruction(filepath_url,userfile_path)
+            bg.add_task(launch_single_tile_reconstruction,filepath_url,userfile_path)
+            
+    ##storing the laz file for the given user
+    num_tiles = 0
+    tilenames = []
+    jobIds = []
+    with open(filepath_url, 'r') as fp:
+        for line in fp:
+            filename_params = line.strip().split("/")[-1].split(".")[0]  
+            tilenames.append(filename_params)
+            num_tiles += 1
+            user.files_storage_tiles[filename_params] = []
+            # Perform other operations for each tile
+            newJobId = str(uuid.uuid1())
+            ## useremail
+            supabase_client.table("extra_surface").insert({
+                "email": user.email,
+                "job_history": [newJobId]
+            })    
+            jobIds.append(newJobId)
+        user.email = email
+   ## now sending the email 
+    send_job_reconstruction(receiver_email=user.email, job_id=jobIds)
+    fp.close()
+    return output
+
+
+def schedule_multi_reconstruction_job()
+
+
+@fastapi.post("/reconstruction/schedule")
+def schedule_reconstruction_job(data:ScheduleJob) -> Status:
+    try:
+        params = ""
+        url_filepath = Path(data.input_url)
+        job = Job.create(run_lidarhd_job,[url_filepath, data.username])
+        with open(url_filepath, '+rt'):
+            job_details = queue.enqueue_job(job)
+            params = job.id   
+        return Status(job_status=str(params)) 
+    except Exception as e:
+        print("error on scheduling reconstruction job:" + str(e))
+    return Status(job_status="error scheduling job")
+
+def concurrency_condition():
+    available_messages = queue.all(connection=(redisObj)) #type: ignore
+    if available_messages:
+        return True
+    return False
+
+@fastapi.post("/reconstruction/storage/s3")
+def storing_files_s3(dir_location_output: str, zipfile_name: str):
+    """
+    stores the generated output from the localhost to the given S3 bucket storage.
+    
+    dir_location_output: is the relative location from the root folder od the generated output folder with the information 
+    """
+    try:
+        #  check_output(["S3", "cp", str(os.getenv("S3_DIR")),  dir_location_output ]) 
+
+        zip_s3_upload(dir_location_output,zipfile_name)
+    except Exception as e:
+        print("s3 file is not able to be stored" + str(e))
+
+#@fastapi.post("/reconstruction/email/send_result")
+@callback_router.post("/reconstruction/email/send_result")
+def send_final_result(email, jobId):
+    fullpaths = []
+    folder_paths = []
+    signed_urls = []
+    try:
+        folder_paths = supabase_client.table("selectionJob").select("final_results").contains("job_id", email)
+        for i in folder_paths:
+            fullpaths.append(str(os.getenv("S3_DIR")) + '/' + folder_paths[i])
+            signed_urls.append(check_output(["aws", "s3", "presign", folder_paths[i]]).decode().strip())
+        send_job_results(receiver_email=email, job_id= jobId, ipfs_url=signed_urls)
+    except Exception as e:
+        print("not able to send email with results")
+
+## additional functions for listing the files and then uploading (in case they are stored in folders)
+## credits to the stackoverflow Q: https://stackoverflow.com/questions/16368119/zip-an-entire-directory-on-s3
+def ListDir(bucket_name, prefix, file_type='.obj'):
+    #file_type can be set to anything you need
+    files = []    
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
+    for page in pages:
+        for obj in page['Contents']:
+            files.append(obj['Key'])
+
+    if files:
+        files = [f for f in files if file_type in f]
+    return files
+
+
+def ZipFolderS3(bucket_name,prefix, zip_filename):
+    files = ListDir(bucket_name,prefix)
+    zip_buffer = io.BytesIO()
+    for ind,file in enumerate(files):
+        file = file.split("/")[-1]
+        print(f"Processing file {ind} : {file}")
+        object_key = prefix+file
+        print(object_key)
+        
+        with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zipper:
+            infile_object = s3.get_object(Bucket=bucket_name, Key=object_key) 
+            infile_content = infile_object['Body'].read()
+            zipper.writestr(file, infile_content)
+    s3.put_object(Bucket=bucket_name, Key=prefix + zip_filename, Body=zip_buffer.getvalue()) 
+
+def zip_s3_upload(folder_path: str, zip_filename:str):
+    try:
+        zipfile_buffer = open(zip_filename, 'r+')
+        shutil.make_archive(folder_path,format='zip',root_dir=zip_filename)
+        s3.put_object(Bucket=os.getenv("S3_BUCKET_NAME"), Key= zip_filename, Body= zip_filename)        
+    except Exception as e:
+        print("while fn zip_s3_upload", e)
