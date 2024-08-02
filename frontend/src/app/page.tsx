@@ -206,7 +206,7 @@ export default function Home() {
 								{" "}
 								Lancer le téléchargement
 							</Button>
-							{
+							{/* {
 								portal &&
 								<Alert>
 									<AlertTitle>
@@ -214,6 +214,17 @@ export default function Home() {
 									</AlertTitle>
 									<AlertDescription>
 										Pay now the recoinstruction cost on stripe. 
+									</AlertDescription>
+								</Alert>
+							} */}
+							{
+								portal && 
+								<Alert>
+									<AlertTitle>
+										Attention !
+									</AlertTitle>
+									<AlertDescription>
+									Selon usage de la plateforme, prévoir 3 à 48h d'attente pour recevoir les données.
 									</AlertDescription>
 								</Alert>
 							}
