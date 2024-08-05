@@ -2,10 +2,21 @@
 
 UI and SaaS platform that allows the user to schedule 3D reconstructions (by paying a nominal fee for supporitng the EC2 hosting costs)  of LidarHD tiles on [Distributed watertight surface reconstruction, Laurent Caraffa et.al](https://lcaraffa.github.io/edwsr/)  on given instance and send results to the user for visualization .  
 
-it consist of the various component services to run the fullstack application and manage the user lifecycle:
+it consist of the following stack components to run the application:
 
-- [supabase](): for storing the user session (their payment, current job and tiles URI). check the [types]() in order to get idea of the datastorage.
-- []
+- [supabase](): for storing the user session database (their payment, current job) , current reconstruction of the tiles status etc. 
+
+
+<img src="doc/database_schema.png"></img>
+
+
+- [stripe](): For the payment of the compute costs (fixed per tile in the [frontend]() code).
+
+
+- [sparkling_washeur](): consisting of the reconstruction pipeline with dockerised version.
+
+
+- [resend](): service to send the email notifications describing user the different state and the retrieval of the results from the backend once its generated.
 
 
 # User manual
