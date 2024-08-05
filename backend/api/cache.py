@@ -8,7 +8,7 @@ from pathlib import Path
 import s3fs
 from dotenv import load_dotenv
 
-root_folder_path = Path(os.path.abspath(__file__)).parent.parent
+root_folder_path = Path(os.path.abspath(__file__)).parent
 
 load_dotenv(dotenv_path=(root_folder_path  / '.env'))
 

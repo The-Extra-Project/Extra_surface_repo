@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 from pydantic import EmailStr
 #import resend.emails
-env_dir = Path(__file__).parent.parent.parent / '.env'
+env_dir = Path(__file__).parent.parent / '.env'
 load_dotenv(dotenv_path=env_dir)
 resend.api_key = os.environ.get('RESEND_API_KEY')
 

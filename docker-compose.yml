@@ -1,14 +1,11 @@
 services:
   api:
     build:
-      context: ./
-      dockerfile: ./backend/api/Dockerfile.api
+      context: ./backend/api/
+      dockerfile: Dockerfile.api
     env_file: ".env"
     cap_add:
         - ALL
-    # depends_on:
-    #   - sparkling_washeur
-    
   # sparkling_washeur:
   #   image: devextralabs/distributed-delaunay-transformation ##TODO: to change the name and port the version.
   #   build:
@@ -26,7 +23,6 @@ services:
     image: redis:latest
     ports:
       - "6379:6379"
-
     depends_on:
       - api
       - website
@@ -36,7 +32,7 @@ services:
       dockerfile: dockerfile
     environment:
       - AWS_ACCESS_KEY_ID=""
-      - AWS_ACCESS_KEY_ID=""
+      - AWS_SECRET_ID=""
 
       
   
