@@ -10,3 +10,4 @@ demo_storage
 __pycache__/
 
 storage/
+.env.ui
