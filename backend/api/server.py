@@ -17,6 +17,9 @@ import math
 from api.email import send_job_reconstruction, send_job_results
 from api.cache import redisObj
 
+
+import boto3
+
 import uuid 
 sys.path.append('.')
 
@@ -35,7 +38,7 @@ import zipfile
 
 queue = Queue(connection=redisObj) # type: ignore
 
-root_folder_path = Path(os.path.abspath(__file__)).parent
+root_folder_path = Path(os.path.abspath(__file__))
 load_dotenv(root_folder_path / '.env')
 
 s3 = boto3.client("s3")
@@ -48,8 +51,6 @@ supabase_client = client.Client(supabase_key=str(os.getenv("SUPABASE_KEY")), sup
 bgtasks = BackgroundTasks()
 
 
-
-
 ## for the single file reconstruction.
 def launch_single_tile_reconstruction(filepath_url, userfile_path):
     return Popen([ "curl",  str(os.getenv("SPARKLING_WASHEUR_ENDPOINT")) , '--list_files', filepath_url, '--output_dir', userfile_path ])
@@ -60,13 +61,13 @@ def launch_multiple_tile_reconstruction(filepath_url:Path, aggregator_factor: in
     filepath_url: is the url file that you want to generate the reconstruction.
     aggregator_path: defines the number of tiles that you want to reconstruction at one point of time.
     """
-    userfile_path = root_folder_path / 'demo_storage'  / str(datetime.today().strftime('%Y-%m-%d'))
-    
-    ## read the url file --> club the various files into a single 
+    #userfile_path = root_folder_path / 'demo_storage'  / str(datetime.today().strftime('%Y-%m-%d'))
+    userfile_path = os.getenv("S3_DIR")
+    ## read the url file --> club the various tiles into the batches of 'aggregated_factor' and then run the reconstruction as unique block
     with open(filepath_url, 'r') as fp:
         folder_aggregated_path = ""
         for folder_iter in iter(fp):
-            folder_aggregated_path = userfile_path / ("lidarhd_mode" + "_agg_" + str(folder_iter))
+            folder_aggregated_path = Path(str(userfile_path)) / ("lidarhd_mode" + "_agg_" + str(folder_iter))
             folder_output = folder_aggregated_path / "output"
             if len(os.listdir(folder_aggregated_path)) == aggregator_factor : 
                 Popen([root_folder_path / "run_workflow.sh", "--input_dir", folder_aggregated_path, "--output_dir",folder_output ])
@@ -82,17 +83,18 @@ def run_lidarhd_job(filepath_url:Path, email: str,  bg: BackgroundTasks):
     """
     Sends the files from the lidarhd to localhost and then runs the operation
     """
-    userfile_path = root_folder_path / 'demo_storage'  / str(datetime.today().strftime('%Y-%m-%d'))
+    userfile_path_dir = Path(str(os.getenv("S3_DIR"))) / 'demo_storage' / str(datetime.today().strftime('%Y-%m-%d'))
+    # userfile_path = root_folder_path / 'demo_storage'  / str(datetime.today().strftime('%Y-%m-%d'))
     user = UserJob()
     
-    if(os.path.isdir(userfile_path)):
-            output = launch_single_tile_reconstruction(filepath_url,userfile_path)
-            bg.add_task(launch_single_tile_reconstruction,filepath_url,userfile_path)
+    if(os.path.isdir(userfile_path_dir)):
+            output = launch_single_tile_reconstruction(filepath_url,userfile_path_dir)
+            bg.add_task(launch_single_tile_reconstruction,filepath_url,userfile_path_dir)
     else: 
-            os.mkdir(userfile_path, mode=0o777)
-            output = launch_single_tile_reconstruction(filepath_url,userfile_path)
-            bg.add_task(launch_single_tile_reconstruction,filepath_url,userfile_path)
-            
+            # os.mkdir(userfile_path, mode=0o777)
+            output = launch_single_tile_reconstruction(filepath_url,userfile_path_dir)
+            bg.add_task(launch_single_tile_reconstruction,filepath_url,userfile_path_dir)
+
     ##storing the laz file for the given user
     num_tiles = 0
     tilenames = []

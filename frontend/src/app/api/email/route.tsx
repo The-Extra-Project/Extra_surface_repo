@@ -7,7 +7,7 @@ import loadConfig from 'next/dist/server/config';
 
 configDotenv(
   {
-    path: resolve(__dirname, "../../../.env")
+    path: resolve(__dirname, "../../../../.env")
   }
 )
 
