@@ -47,9 +47,13 @@ supabase_client = client.Client(supabase_key=str(os.getenv("SUPABASE_KEY")), sup
 
 bgtasks = BackgroundTasks()
 
+
+
+
 ## for the single file reconstruction.
 def launch_single_tile_reconstruction(filepath_url, userfile_path):
-    return Popen([ root_folder_path / 'sparkling_washeur' / 'run_lidarhd.sh' , '--list_files', filepath_url, '--output_dir', userfile_path ])
+    return Popen([ "curl",  str(os.getenv("SPARKLING_WASHEUR_ENDPOINT")) , '--list_files', filepath_url, '--output_dir', userfile_path ])
+
 ## for taking multiple laz tiles for reconstruction at the point
 def launch_multiple_tile_reconstruction(filepath_url:Path, aggregator_factor: int): 
     """
@@ -121,11 +125,6 @@ def schedule_multi_reconstruction_job(data:ScheduleJobMulti):
         launch_multiple_tile_reconstruction(filepath_url=url_file_filepath, aggregator_factor=data.aggregator)
     except Exception as e:
         print("error in launching multi reconstruction" + str(e))
-
-        
-        
-        
-    
 
 
 @fastapi.post("/reconstruction/schedule")

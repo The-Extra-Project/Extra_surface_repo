@@ -1,15 +1,14 @@
-name: running the docker compose setup of extrasurface pipeline.
 on: push
+
 jobs:
   deployment_test:
-        runs-on: ubuntu-latest
-        steps:
-        - uses: actions/checkout@v3
-        - name: Build the stack
-          run: docker compose up -d
-        
-        - name: cleanup the application
-          run: docker compose stop
-      
+    runs-on: ubuntu-latest
 
-  
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build the stack
+        run: docker compose up -d
+
+      - name: Cleanup the application
+        run: docker compose stop
