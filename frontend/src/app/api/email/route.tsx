@@ -1,8 +1,17 @@
 'use server'
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Resend } from 'resend';
+import { configDotenv } from 'dotenv';
+import {resolve} from "path"
+import loadConfig from 'next/dist/server/config';
 
-const resend = new Resend("re_bXs9fJfg_EbW9MsWLPgHguR3UHSNJTDm4");
+configDotenv(
+  {
+    path: resolve(__dirname, "../../../.env")
+  }
+)
+
+const resend = new Resend(process.env.RESEND_API_KEY!.toString());
 
 interface emailStr {
   email: string;
@@ -10,14 +19,13 @@ interface emailStr {
   URLs: string;
 }
 
-export async function  POST(req: Request) {
-
+export async function POST(req: Request) {
     const { email, cost, URLs }: emailStr = req.body as unknown as emailStr;
     try {
         const { data, error } = await resend.emails.send({
-        from: 'Extralabs <onboarding@resend.dev>',
+        from: 'Extralabs <hello@extralabs.xyz>',
         to: email,
-        subject: 'Followup steps',
+        subject: 'Job submitted successfully',
         text: `Thanks for scheduling the job for extrasurface, 
          Just to give you the recapitulative
         the cost of the job is ${cost}
@@ -26,16 +34,9 @@ export async function  POST(req: Request) {
         dont hesitate to reach out to us for any queries.
         `,
       });
-     
-     return Response.json(data);
-
+      return Response.json(data);
     } catch (error) {
       console.error('Error sending email:', error);
-     return Response.json({ error: 'Error sending email' });
-    }
-
-
-    
-    
-  
+      return Response.json({ error: 'Error sending email' });
+    } 
 }

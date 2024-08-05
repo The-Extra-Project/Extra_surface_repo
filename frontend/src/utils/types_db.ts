@@ -1,6 +1,3 @@
-import { MergeDeep } from 'type-fest'
-
-
 export type Json =
   | string
   | number
@@ -35,16 +32,19 @@ export type Database = {
       }
       payment: {
         Row: {
+          email: string
           paid: boolean | null
           payment_id: string
           selection_job_id: string | null
         }
         Insert: {
+          email: string
           paid?: boolean | null
           payment_id: string
           selection_job_id?: string | null
         }
         Update: {
+          email?: string
           paid?: boolean | null
           payment_id?: string
           selection_job_id?: string | null
@@ -59,27 +59,45 @@ export type Database = {
           },
         ]
       }
+      reconstructed_tiles: {
+        Row: {
+          ipfs_dir: string | null
+          lasttime_updated: string | null
+          tile_name: string
+        }
+        Insert: {
+          ipfs_dir?: string | null
+          lasttime_updated?: string | null
+          tile_name: string
+        }
+        Update: {
+          ipfs_dir?: string | null
+          lasttime_updated?: string | null
+          tile_name?: string
+        }
+        Relationships: []
+      }
       selectionjob: {
         Row: {
-          final_results: string[] | null
           geocordinate_copc: string[] | null
           job_created_at: string | null
           job_id: string
-          surface_km2: number | null
+          status: boolean | null
+          upload_url_file: string
         }
         Insert: {
-          final_results?: string[] | null
           geocordinate_copc?: string[] | null
           job_created_at?: string | null
           job_id: string
-          surface_km2?: number | null
+          status?: boolean | null
+          upload_url_file: string
         }
         Update: {
-          final_results?: string[] | null
           geocordinate_copc?: string[] | null
           job_created_at?: string | null
           job_id?: string
-          surface_km2?: number | null
+          status?: boolean | null
+          upload_url_file?: string
         }
         Relationships: []
       }

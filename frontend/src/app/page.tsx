@@ -224,7 +224,7 @@ export default function Home() {
 										Attention !
 									</AlertTitle>
 									<AlertDescription>
-									Selon usage de la plateforme, prévoir 3 à 48h d'attente pour recevoir les données.
+									Selon usage de la plateforme, prévoir 3 à 48h de attente pour recevoir les données.
 									</AlertDescription>
 								</Alert>
 							}

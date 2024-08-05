@@ -6,9 +6,7 @@ export async function POST(request: NextRequest) {
 
 try {
     const {filepath, email} = await request.json();
-
     // calling the previous recursive api
-
     const response = await fetch('https://localhost:8000/reconstruction/post', {
         body: JSON.stringify(
             {
@@ -17,7 +15,6 @@ try {
         )
     })
     return await request.json()
-
 }
 
 catch(error) {
