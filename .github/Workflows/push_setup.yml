@@ -1,0 +1,12 @@
+name: running the docker compose setup of extrasurface pipeline.
+on: push
+jobs:
+  deployment_test:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v2
+        - name: Build the stack
+            run: docker-compose up -d
+      
+
+  
