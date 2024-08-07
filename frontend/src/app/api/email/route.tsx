@@ -7,7 +7,7 @@ import loadConfig from 'next/dist/server/config';
 
 configDotenv(
   {
-    path: resolve(__dirname, "../../../../.env")
+    path: resolve(__dirname, "../../../.env")
   }
 )
 
@@ -26,8 +26,8 @@ export async function POST(req: Request) {
         from: 'Extralabs <hello@extralabs.xyz>',
         to: email,
         subject: 'Job submitted successfully',
-        text: `Thanks for scheduling the job for extrasurface, 
-         Just to give you the recapitulative
+        text: `Thanks for scheduling the job for Extra-Surface, 
+        Just to give you the recapitulative
         the cost of the job is ${cost}
         and the tiles to be reconstructed are ${URLs}
         we will be sending you the link of the storage and reconstructed files once its completed

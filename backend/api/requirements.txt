@@ -13,3 +13,4 @@ pydantic
 s3fs
 rq
 boto3
+s3path
