@@ -4,8 +4,9 @@ from pathlib import Path
 import os
 from rq.job import Job
 
-from api.cache import redisObj
+import resend
 
+from api.cache import redisObj
 import datetime
 
 testUser = TestClient(fastapi)
@@ -18,13 +19,12 @@ def test_schedule_reconstruction():
     assert response.json()["job_status"] == True
     assert response.status_code == 200
     assert redisObj.get(email) =="test@gmail.com"
-    
-    
+    ## also the email has to be send to the given client for notification
+    assert resend.Emails.get("1") is not None
 
 def test_reconstruction_multiple_pipeline():
     response = testUser.post(url="/reconstruction/multi", json={"filepath_url": str("/home/ubuntu/app/spark-ddt-laurent/datas/list_averyon.txt"), "aggregator_factor": 4})
     assert response.json()[""]
     #assert 
 
-def test_receive_notification():
-    pass
+    

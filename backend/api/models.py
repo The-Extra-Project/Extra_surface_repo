@@ -6,6 +6,7 @@ class ScheduleJob(BaseModel):
 class ScheduleJobMulti(BaseModel):
     input_url_file: str
     aggregator: int
+    username: EmailStr
 
 class ReturnScheduleJob(BaseModel):
     directory: str

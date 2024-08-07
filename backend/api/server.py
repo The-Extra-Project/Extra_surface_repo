@@ -1,8 +1,8 @@
 from datetime import date
 from subprocess import check_output, Popen, check_call
 from fastapi import  APIRouter, FastAPI, Response, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
 import os
-
 from rq import Queue
 from rq.job import Job
 
@@ -22,6 +22,7 @@ sys.path.append('.')
 from api.email import send_job_reconstruction, send_job_results
 from api.cache import redisObj, enqueue_job, dequeue_job, current_job_index
 from api.models import ScheduleJob, ScheduleJobMulti, UserJob, Status
+
 
 from datetime import datetime
 
@@ -51,16 +52,39 @@ supabase_client = client.Client(supabase_key=str(os.getenv("SUPABASE_KEY")), sup
 bgtasks = BackgroundTasks()
 ## for the single file reconstruction.
 
-def launch_single_tile_reconstruction(filepath_url, userfile_path):
+
+fastapi.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+def launch_single_tile_reconstruction(filepath_url, output_path, username: str):
     """
     Runs the reconstruction algorithm on one tile per session, 
-    TODO: its by default the implementation for reconstructing the output, but 
-    
+    TODO: its by default the implementation for reconstructing the output, but .
     """
-    return Popen([ "curl",  str(os.getenv("SPARKLING_WASHEUR_ENDPOINT")) , '--list_files', filepath_url, '--output_dir', userfile_path ])
+    try:
+        jobId = supabase_client.table("selectionjob").select("jobId").contains(column="upload_path_url", value=filepath_url)
+                
+        supabase_client.table("extralabs").update({
+            "email": username,
+            "selectionJob": {
+                "jobId": jobId,
+                "status": True,
+                "upload_url_file": filepath_url
+            }                
+        })
+        return Popen([ "curl",  str(os.getenv("SPARKLING_WASHEUR_ENDPOINT")) , '--list_files', filepath_url, '--output_dir', output_path ])
+    except Exception as e:
+        print("exception:" + str(e))
+
 
 ## for taking multiple laz tiles for reconstruction at the point
-def launch_multiple_tile_reconstruction(filepath_url:Path, aggregator_factor: int): 
+def launch_multiple_tile_reconstruction(filepath_url:Path, aggregator_factor: int, username: str): 
     """
     filepath_url: is the url file path (from locale) you want to generate the reconstruction.
     aggregator_path: defines the number of tiles that you want to reconstruction in batches.
@@ -75,8 +99,7 @@ def launch_multiple_tile_reconstruction(filepath_url:Path, aggregator_factor: in
             folder_output = folder_aggregated_path / "output"
             
             if len(os.listdir(folder_aggregated_path)) == aggregator_factor : 
-                launch_single_tile_reconstruction(filepath_url= folder_aggregated_path, userfile_path= folder_output)
-      
+                launch_single_tile_reconstruction(filepath_url= folder_aggregated_path, output_path= folder_output, username=username)
             if  not math.fabs(int(folder_iter) / aggregator_factor ):
                 os.mkdir(folder_aggregated_path) 
                 os.mkdir(folder_output)
@@ -96,17 +119,17 @@ def run_lidarhd_job(filepath_url:Path, email: str,  bg: BackgroundTasks):
     """
     Sends the files from the lidarhd to localhost and then runs the operation
     """
-    userfile_path_dir = Path(str(os.getenv("S3_DIR"))) / 'demo_storage' / str(datetime.today().strftime('%Y-%m-%d'))
+    userfile_path_dir = S3Path(str(os.getenv("S3_DIR"))) / 'demo_storage' / 'output' / str(datetime.today().strftime('%Y-%m-%d'))
     # userfile_path = root_folder_path / 'demo_storage'  / str(datetime.today().strftime('%Y-%m-%d'))
     user = UserJob()
     
     if(s3_directory_exists(userfile_path_dir)):
-            output = launch_single_tile_reconstruction(filepath_url,userfile_path_dir)
-            bg.add_task(launch_single_tile_reconstruction,filepath_url,userfile_path_dir)
+        output = launch_single_tile_reconstruction(filepath_url,userfile_path_dir, username=email)
+        bg.add_task(launch_single_tile_reconstruction,filepath_url,userfile_path_dir, email)
     else: 
-            # os.mkdir(userfile_path, mode=0o777)
-            output = launch_single_tile_reconstruction(filepath_url,userfile_path_dir)
-            bg.add_task(launch_single_tile_reconstruction,filepath_url,userfile_path_dir)
+        userfile_path_dir.mkdir(mode=0o777)
+        output = launch_single_tile_reconstruction(filepath_url,userfile_path_dir, username=email)
+        bg.add_task(launch_single_tile_reconstruction,filepath_url,userfile_path_dir, username=email)
     num_tiles = 0
     tilenames = []
     jobIds = []
@@ -131,13 +154,11 @@ def run_lidarhd_job(filepath_url:Path, email: str,  bg: BackgroundTasks):
     return output
 
 @fastapi.post("/reconstruction/schedule_multi")
-def schedule_multi_reconstruction_job(data:ScheduleJobMulti):
+def schedule_multi_reconstruction_job(data:ScheduleJobMulti,bg:BackgroundTasks):
     try:
         params = ""
         url_file_filepath = Path(data.input_url_file)
-
-        #redisObj.publish(channel=data.input_url_file,message=data.aggregator)
-        launch_multiple_tile_reconstruction(filepath_url=url_file_filepath, aggregator_factor=data.aggregator)     
+        bg.add_task(launch_multiple_tile_reconstruction,url_file_filepath,data.aggregator,data.username)     
     except Exception as e:
         print("error in launching multi reconstruction" + str(e))
 
@@ -154,7 +175,6 @@ def schedule_reconstruction_job(data:ScheduleJob) -> Status:
                 "email": data.username,
                 "job_history": [params]
             })  
-
             supabase_client.table("selectionjob").insert(
                 json={
                  "job_id" : params,
@@ -179,17 +199,6 @@ def concurrency_condition():
         return True
     return False
 
-#@fastapi.post("/reconstruction/storage/s3")
-# def storing_files_s3(dir_location_output: str, zipfile_name: str):
-#     """
-#     stores the generated output from the localhost to the given S3 bucket storage.
-    
-#     dir_location_output: is the relative location from the root folder od the generated output folder with the information 
-#     """
-#     try:
-#         zip_s3_upload(dir_location_output,zipfile_name)
-#     except Exception as e:
-#         print("s3 file is not able to be stored" + str(e))
 
 #@fastapi.post("/reconstruction/email/send_result")
 @callback_router.post("/reconstruction/email/send_result")
@@ -198,11 +207,18 @@ def send_final_result(email, jobId):
     folder_paths = []
     signed_urls = []
     try:
-        folder_paths.append(supabase_client.table("selectionJob").select("final_results").contains("job_id", email))
-        # for i in folder_paths:
-        #     fullpaths.append(str(os.getenv("S3_DIR")) + '/' + folder_paths[i])
-        #     signed_urls.append(check_output(["aws", "s3", "presign", folder_paths[i]]).decode().strip())
-        # send_job_results(receiver_email=email, job_id= jobId, ipfs_url=signed_urls)
+        #folder_paths.append(supabase_client.table("selectionJob").select("final_results").contains("job_id", email))
+        
+        for i in folder_paths:
+            supabase_client.table("selectionJob").update(
+            {
+                "jobId": jobId,
+                "upload_url_file": fullpaths[i]
+            }
+            )
+            fullpaths.append(str(os.getenv("S3_DIR")) + '/' + folder_paths[i])
+            signed_urls.append(check_output(["aws", "s3", "presign", folder_paths[i]]).decode().strip())
+        send_job_results(receiver_email=email, job_id= jobId, ipfs_url=signed_urls)
         
         for folder_path in iter(folder_paths):
             zipfile_path = folder_path + "/output"

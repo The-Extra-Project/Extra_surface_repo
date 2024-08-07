@@ -8,7 +8,7 @@ from pathlib import Path
 import s3fs
 from dotenv import load_dotenv
 
-root_folder_path = Path(os.path.abspath(__file__)).parent
+root_folder_path = Path(os.path.abspath(__file__))
 
 load_dotenv(dotenv_path=(root_folder_path  / '.env'))
 
@@ -17,12 +17,12 @@ redisObj = Redis(
     port=6379,
     charset="utf-8",
     decode_responses=True
-
 )
+
 
 def enqueue_job(job_params: ScheduleJob):
     """
-        
+    for adding the job to the redis queue with the defined job parameters
     """
     try:
         # Perform the job enqueueing logic, for example, storing the message in Redis
@@ -33,7 +33,6 @@ def enqueue_job(job_params: ScheduleJob):
         print("Exception caught in enque: " + str(e))
         return None
     
-
 def dequeue_job(email_params):
     try:
         values = redisObj.get(email_params)

@@ -2,7 +2,6 @@
 UI and SaaS platform that allows the user to schedule 3D reconstructions (by paying a nominal fee for supporitng the EC2 hosting costs)  of LidarHD tiles on given instance and send results to the user for visualization.  
 
 ## Credits:
-
 - [Distributed watertight surface reconstruction, Laurent Caraffa et.al](https://lcaraffa.github.io/edwsr/)  
 
 ```
@@ -65,7 +64,7 @@ docker compose build && docker compose up -d
 
 | location  | URL |
 | ------------- | ------------- |
-| frontend  | https://localhost:8080  |
-| backend  | https://localhost:8081  |
+| frontend  | https://localhost:3000  |
+| api  | https://localhost:8000  |
 | sparkling_washeur  | https://localhost:8082  |
 | redis|  https://localhost:6379 |

@@ -1,13 +1,13 @@
-FROM python:slim-bookworm as build
+FROM python:slim-bookworm
 
 WORKDIR /app/api/
-
 COPY ./requirements.txt  .
 
 RUN pip install -r requirements.txt
 
 COPY . . 
 
-EXPOSE 8001
+COPY .env .env
+EXPOSE 8000
 
 CMD ["fastapi", "run" ,"/app/api/server.py" ]
