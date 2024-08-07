@@ -1,185 +1,71 @@
 ## Extra-surface
+UI and SaaS platform that allows the user to schedule 3D reconstructions (by paying a nominal fee for supporitng the EC2 hosting costs)  of LidarHD tiles on given instance and send results to the user for visualization.  
 
-UI and SaaS platform that allows the user to schedule 3D reconstructions (by paying a nominal fee for supporitng the EC2 hosting costs)  of LidarHD tiles on [Distributed watertight surface reconstruction, Laurent Caraffa et.al](https://lcaraffa.github.io/edwsr/)  on given instance and send results to the user for visualization .  
+## Credits:
 
-it consist of the following stack components to run the application:
+- [Distributed watertight surface reconstruction, Laurent Caraffa et.al](https://lcaraffa.github.io/edwsr/)  
 
-- [supabase](): for storing the user session database (their payment, current job) , current reconstruction of the tiles status etc. 
+```
+@inproceedings{caraffa:hal-03380593,
+  TITLE = {Efficiently Distributed Watertight Surface Reconstruction},
+  AUTHOR = {CARAFFA, Laurent and Marchand, Yanis and Br{\'e}dif, Mathieu and Vallet, Bruno},
+  URL = {https://hal.archives-ouvertes.fr/hal-03380593},
+  BOOKTITLE = {2021 International Conference on 3D Vision (3DV)},
+  ADDRESS = {London, United Kingdom},
+  YEAR = {2021},
+  MONTH = Dec,
+  PDF = {https://hal.archives-ouvertes.fr/hal-03380593/file/2021216131.pdf},
+  HAL_ID = {hal-03380593},
+  HAL_VERSION = {v1},
+}
+```
 
+## Stack components: 
+
+It consist of the following stack components to run the application:
 
 <img src="doc/database_schema.png"></img>
 
+- [supabase](): For storing the user session database (their payment, current job) , current reconstruction of the tiles status etc. 
 
 - [stripe](): For the payment of the compute costs (fixed per tile in the [frontend]() code).
 
+- [sparkling_washeur](): Consisting of the reconstruction pipeline with dockerised version.
 
-- [sparkling_washeur](): consisting of the reconstruction pipeline with dockerised version.
+- [resend](): Service to send the email notifications describing user the different state and the retrieval of the results from the backend once its generated.
 
+- [AWS S3](): Storage service in order to store: 
+  - The laz files recovered from the diffusion lidarhd text url file (uploaded by the user).
+  - The output results after the reconstruction.
 
-- [resend](): service to send the email notifications describing user the different state and the retrieval of the results from the backend once its generated.
+- [redis](): For enqueuing the requests with the RQ wrapper to sequentially execute the jobs.
 
+## Configuration: 
 
-# User manual
+### 1. cp .env.example .env with following parameters :
 
-## 1. Setting up the application: 
+1. .env.example stored from the [backend/api](backend/api/.env.example) needs to be initialized with: 
+  - Credentials from the supabase: 
+  - Address of the sender email that needs to be cc'd for the notification system.
+  - S3 credentials including the bucket address and the directory key.
+  - Also insure that you've setup the aws login credentials in the local instance, as [docker-compose](docker-compose.yml) mounts them into the container.
 
-- add the .env variables for the setup of the authentication token.
+2. For [sparkling-washeur](), define the parameters of the cluster in [algo-env](backend/sparkling_washeur/algo-env.sh).
+  - Along with the parameters for the cores for compilation in the docker-compose.
+  - Build the enviornment in order to setup the docker container with the conda enviornment for the [sparkling_washeur]().
 
+3. [Frontend](): 
+  - Create stripe test developer account and then paste the values.
+  - In case of deployment on local keep the NEXT_PUBLIC_SITE_URL by exposing the output following the [given tutorial](https://github.com/vercel/next.js/discussions/16429#discussioncomment-1302156).
 
-## Install & Compile 
-- Edit the file algo-env.sh 
+### 2. Build and deploy the Microservices. 
+docker compose build && docker compose up -d
 
-```console
-## Number of core used by spark
-export NUM_PROCESS="2"
-```
+### 3. run the application on the following endpoints 
 
-### Build the docker image
-```console
-$ ./src/docker/docker_interface.sh build
-```
-
-### Compile the project 
-To compile the project with the 3D CGAL kernel using 4 cores, run :
-
-```console
-$ ./src/docker/docker_interface.sh compile -j4 -t3
-```
-
-### Create level of detail mesh
-For producing a LOD mesh, first create the conda env : 
-
-```console
-$ conda env create --file ./services/mesh23dtile/environment.yml
-```	
-
-before runing the next examples, activate the conda env :
-
-```console 
-$ conda activate mesh23Dtile
-```	
-
-# Run the code
-## Examples 
-Run all the examples:
-```console
-./run_workflow.sh --input_dir ${PWD}/datas/lidar_hd_crop_1/ --output_dir ${PWD}/outputs_examples/lidar_hd_crop_1
-./run_workflow.sh --input_dir ${PWD}/datas/lidar_hd_crop_2/ --output_dir ${PWD}/outputs_examples/lidar_hd_crop_2
-
-```
-Results will be created in the 'outputs' directory.
-
-
-## Run on LidarHD LAZ dataset 
-- To run the code on a LiDAR HD tile collection : 
-  - Go to [LiDAR HD dataset](https://geoservices.ign.fr/lidarhd) dataset and download the txt file containing the list of laz file here : `./datas/liste_dalle.txt`.
-  - then run the script `$  ./run_lidarhd.sh --list_files ${PWD}/datas/liste_dalle.txt --output_dir ${PWD}/outputs/lidar_hd/` 
-
-ps : You may have to adjust the settings to optimize local Apache Spark scheduling on your computer  in the `algo-env.sh` file.
-
-
-# Visualize inside ITown
-
-![logo](./doc/lod.jpg)
-
-Clone and install [ITowns](https://github.com/iTowns/itowns)
-Copy the LODs folter into the root directory of itown 
-You can edit the example in `itowns/examples/3dtiles_basic.htm` with following code
-```html
-  // Create a new Layer 3d-tiles For DiscreteLOD
-// -------------------------------------------
-            var $3dTilesLayerDiscreteLOD = new itowns.C3DTilesLayer('3d-tiles-discrete-lod', {
-                name: 'DiscreteLOD',
-                sseThreshold: 0.5,
-                source: new itowns.C3DTilesSource({
-      		    url: '/LODs/tileset_final.json',
-                }),
-            }, view);
-```
-Start itowns then go to http://localhost:8082/examples/#3dtiles_basic 
-# dev manual
-In this section, some technical information about LAS LiDAR point cloud processing is added.
-
-## Parameters setting / General information
-The current parameters are set for the LiDAR HD dataset.
-Because of the approximate line of sight estimation (poor estimation on buildings with surfaces where the normal is horizontal), the algorithm confidence is drastically decrese. Some high building may not be correctly reconstructed in the actual version
-
-
-## LAZ preprocessing
-The first step is to transform a LAZ file to a ply with with the following fileds
-  - x,y,z ⇨ 3D points cloud coordinate
-  - x_origin,y_origin,z_origin ⇨ Sensor origin coordinate
-
-The origin of the sensor is estimated by using the adaptated code from CGAL to estimate the line of sight.
-
-The workflow "${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-will automatically generate a complete xml configuration file.
-
-## Parameters doc 
-### Generic Algo parameters
-Each workflow can be parametrized with an xml file of the form :
-```xml
-<env>
-  <datasets>
-    <setn1>
-      <!-- Input paramters 
-      datatype : The type of file
-      	       - files : ply file on disk direclty read by c++ call
-	       - filestream : onliner ply file that will be read by sc.parallelize(...)
-      -->
-      <datatype>files</datatype>
-
-      <!-- Algo env setup
-      dim : Dimentionnality of the algorithm.
-      ddt_kernel : C++ kernel folder (in the build dir)
-      StorageLevel : Principal persistance  storage level 
-      		   (see for instance https://jaceklaskowski.gitbooks.io/mastering-apache-spark/spark-rdd-caching.html)
-      ndtree_depth ; Depth of the Octree in 3D
-	  bbox : Bounding box of the point cloud. Points outside will be ignored
-	  max_ppt : max number of point per tile
-      -->
-      <dim>3</dim>
-      <ddt_kernel>build-spark-Release-2</ddt_kernel>
-      <StorageLevel>MEMORY_AND_DISK</StorageLevel>
-      <ndtree_depth>3</ndtree_depth>
-      <bbox>0000x10000:0000x10000</bbox>
-      <max_ppt>12000</max_ppt>
-
-      <!-- Meta parameters -->
-      <do_process>true</do_process>
-      
-    </setn1>
-  </datasets>
-</env>
-```
-### Surface reconstruction Algo parameters
-Here is parameters that can be added for the surface reconstruction Algorithm
-```xml
-      <!-- Dempster Shafer -->
-      <!-- 
-	  nb_samples : number of sampling for the integral computation
-	  -->
-      <nb_samples>50</nb_samples>
-
-      <!-- Regularization term
-      lambda     : Smoothing term		 
-	  pscale : Accuracy of the reconstruction (lower values indicate higher precision) 
-      max_opt_it : max number of iteration durting the distributed graphcut
-      -->
-	  <pscale>0.05</pscale>
-      <lambda>0.1</lambda>
-      <max_opt_it>50</max_opt_it>
-
-```
-
-
-
-## Surface reconstruction
-Two workflow are aviable :
-- A monothread workflow that takes a ply file and produce
-many result with different regularization parameter (good for test)
-- A distributed workflow, scheduled with apache spark.
-
-# Todos
-- ☐ improving line of sight estimation
-- ☐ improving surface reconstruction score function with state of the art approach.
+| location  | URL |
+| ------------- | ------------- |
+| frontend  | https://localhost:8080  |
+| backend  | https://localhost:8081  |
+| sparkling_washeur  | https://localhost:8082  |
+| redis|  https://localhost:6379 |

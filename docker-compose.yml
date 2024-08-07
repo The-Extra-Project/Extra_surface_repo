@@ -6,18 +6,21 @@ services:
     env_file: ".env"
     cap_add:
         - ALL
-  # sparkling_washeur:
-  #   image: devextralabs/distributed-delaunay-transformation ##TODO: to change the name and port the version.
-  #   build:
-  #     context: ./backend/sparkling_washeur/
-  #     dockerfile: ./src/docker/Dockerfile-base-Ubuntu-devel
-  #   volumes:
-  #     - $HOME/.aws/credentials:/.aws/credentials:ro
-  #     - $PWD/backend/sparkling_washeur:/app/sparkling_washeur/:rw
-  #   environment:
-  #     - NB_PROC="4"
-  #     - DDT_TRAITS="3"
-  #     - MOUNT_CMD=""
+    volumes:
+      - $HOME/.aws/credentials:/.aws/credentials:ro
+
+  sparkling_washeur:
+    image: devextralabs/distributed-delaunay-transformation ##TODO: to change the name and port the version.
+    build:
+      context: ./backend/sparkling_washeur/
+      dockerfile: ./src/docker/Dockerfile-base-Ubuntu-devel
+    volumes:
+      - $HOME/.aws/credentials:/.aws/credentials:ro
+      - $PWD/backend/sparkling_washeur:/app/sparkling_washeur/:rw
+    environment:
+      - NB_PROC="4"
+      - DDT_TRAITS="3"
+      - MOUNT_CMD=""
 
   redis:
     image: redis:latest
@@ -26,6 +29,7 @@ services:
     depends_on:
       - api
       - website
+
   website:
     build: 
       context: ./frontend/
@@ -33,6 +37,3 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID=""
       - AWS_SECRET_ID=""
-
-      
-  
