@@ -1,16 +1,36 @@
 "use server"
 import { NextRequest, NextResponse } from "next/server";
-import { exec } from "child_process"; 
+
+interface scheduleJob {
+    input_url: string,
+    username: string
+
+}
+
+import { configDotenv } from "dotenv";
+import { resolve } from "path";
+
+
+configDotenv(
+    {
+        path: resolve(__dirname, "../../../.env")
+    }
+)
 
 export async function POST(request: NextRequest) {
 
 try {
+
     const {filepath, email} = await request.json();
     // calling the previous recursive api
-    const response = await fetch('https://localhost:8000/reconstruction/post', {
+    let jobParams: scheduleJob = {
+        input_url: filepath,
+        username:  email
+    };  
+     const response = await fetch( process.env.WEBSITE_URL! , {
         body: JSON.stringify(
             {
-                filepath, email
+                jobParams
             }
         )
     })

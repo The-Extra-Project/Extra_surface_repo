@@ -1,15 +1,10 @@
 FROM ubuntu:devel as build
 
-# ENV http_proxy http://10.128.81.100:3128
-# ENV https_proxy http://10.128.81.100:3128
-
-
 LABEL Maintainer="Laurent Caraffa"
 LABEL Contact_email="caraffa.laurent@gmail.com"
 
 ENV DEBIAN_FRONTEND noninteractive
 ARG CREDENTIALS_FILE_PATH
-
 # General installation
 RUN apt-get update &&  apt-get install -y cmake nano sudo gdb libboost-all-dev g++ wget  --assume-yes
 
@@ -24,7 +19,6 @@ RUN apt-get update && apt-get install -y unzip
 RUN  wget "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -O "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update   
-
 
 # Matis-lib dps
 RUN apt-get update &&  apt-get install -y libeigen3-dev   --assume-yes
@@ -55,7 +49,6 @@ RUN apt-get update && apt-get install -y \
 
 RUN apt-get update && apt-get -y install libtbb-dev --assume-yes
 
-
 RUN apt-get update &&  apt-get install -y  openjdk-8-jdk  --assume-yes
 
 ENV JAVA_HOME "/usr/lib/jvm/java-8-openjdk-amd64/"
@@ -68,43 +61,9 @@ RUN cd /usr/local/bin/ && \
     awk 'NR==23{$0="set(GENERATED_JAVAH true)\n"$0}1' ../CMakeLists.txt > ../CMakeLists.txt.tmp && mv ../CMakeLists.txt.tmp ../CMakeLists.txt &&  \
     cmake ../ && \
     make 
-# RUN apt-get update && apt-get install -y python3-pip python3-gdal && pip3 install matplotlib plyfile
+
 
 ## For the benchmark
 RUN apt-get update && yes "8" | apt-get -y install libpng-dev liblapack-dev libblas-dev ffmpeg openexr libtiff-dev libopenexr-dev libsuitesparse-dev libgl1-mesa-dev libglu1-mesa-dev --assume-yes ##  gnuplot --assume-yes
 RUN apt-get update &&  apt-get -y install libxml2-dev
-
-## for the build stage of the pipeline
-
-WORKDIR /app/sparkling_washeur/
-
-
-FROM docker:dind as execute
-
-COPY --chown=root:root --from=build /usr/local/bin /usr/local/bin
-
-
-##TODO: clean the command and make it more embedded
-RUN  /app/sparkling_washeur/src/docker/docker_interface.sh compile -j4 -t3 && conda env create --file ./services/mesh23dtile/environment.yml && conda activate mesh23Dtile
-
-# RUN export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )" && \
-# export  GLOBAL_BUILD_DIR=${DDT_MAIN_DIR}/build/ && \
-# export COMPILE_MODE="Release" && \
-# export  KERNEL_BUILD_DIR=${DDT_MAIN_DIR}/build/build-spark-${COMPILE_MODE}-${DDT_TRAITS}/ && \
-# export  SPARK_BUILD_DIR=${GLOBAL_BUILD_DIR}/spark/ && \
-# export mkdir -p ${KERNEL_BUILD_DIR} && cd ${KERNEL_BUILD_DIR} && cmake ${DDT_MAIN_DIR}  -DCMAKE_BUILD_TYPE=${COMPILE_MODE} -DDDT_TRAITS=${DDT_TRAITS} && make ${NB_PROC}  && \
-# export KERNEL_BUILD_DIR=${DDT_MAIN_DIR}/build/build-spark-${COMPILE_MODE}-${DDT_TRAITS}/ && \
-#     mkdir -p ${KERNEL_BUILD_DIR} && \
-#     cd ${KERNEL_BUILD_DIR} && \
-#     cmake ${DDT_MAIN_DIR} -DCMAKE_BUILD_TYPE=${COMPILE_MODE} -DDT_TRAITS=${DDT_TRAITS} && \
-#     make ${NB_PROC}
-## running phase of the running the containers
-
-
-
-## TODO: and finally running the workflow command.
-
-#CMD ["./run_workflow.sh", "--input_dir", ${2},  "--output_dir" , ${2}]
-
-
 

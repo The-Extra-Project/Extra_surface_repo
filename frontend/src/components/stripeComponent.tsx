@@ -37,11 +37,10 @@ export default function StripeComponent({ amount }: { amount: number }) {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({ amount: amt }),
-        }).catch((data) => (data.json()))
+        }
+    ).catch((data) => (data.json()))
         .then((data) => setClientSec(data.clientSecret))
           
-
-
         if (!stripe || !elements) {
             setErrorMessage("Stripe.js has not loaded yet.");
             setLoading(false);
@@ -67,9 +66,9 @@ export default function StripeComponent({ amount }: { amount: number }) {
             elements,
             clientSecret,
             confirmParams: {
-                return_url: `http://www.localhost:3000/payment-success?amount=${amount}`,
-            },
-        });
+                return_url:  process.env.WEBSITE_DEV! + `/payment-success?amount=${amount}`,
+        },
+    });
         if (error) {
             setErrorMessage(error.message);
         }

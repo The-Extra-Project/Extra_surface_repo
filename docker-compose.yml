@@ -10,19 +10,28 @@ services:
         - ALL
     volumes:
       - $HOME/.aws/credentials:/.aws/credentials:ro
-  
-  sparkling_washeur:
+
+  sparkling_washeur_core:
     image: devextralabs/distributed-delaunay-transformation ##TODO: to change the name and port the version.
     build:
       context: ./backend/sparkling_washeur/
       dockerfile: ./src/docker/Dockerfile-base-Ubuntu-devel
     volumes:
-      - $HOME/.aws/credentials:/.aws/credentials:ro
-      - $PWD/backend/sparkling_washeur:/app/sparkling_washeur/:rw
+      - ${HOME}/.aws/credentials:/.aws/credentials:ro
+      - ${PWD}/backend/sparkling_washeur:/app/sparkling_washeur/:rw
+
     environment:
       - NB_PROC="4"
       - DDT_TRAITS="3"
-      - MOUNT_CMD=""
+  # sparkling_washeur:
+  #   build:
+  #     context: ./backend/sparkling_washeur/
+  #     dockerfile: Dockerfile.washeur 
+  #   volumes:
+  #     - ${HOME}/.aws/credentials:/.aws/credentials:ro
+  #     - ${PWD}/backend/sparkling_washeur:/app/sparkling_washeur/:rw
+  #   depends_on:
+  #     - sparkling_washeur_core
 
   redis:
     image: redis:latest

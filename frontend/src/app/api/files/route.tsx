@@ -7,7 +7,12 @@ import { s3_client, setStorageCommand } from "src/utils/s3_files_auth";
 import {supabaseClient} from "src/utils/supabase_server"
 import { Tables } from "src/utils/types_db";
 
-
+/**
+ * class ScheduleJob(BaseModel):
+    input_url: str
+    username: EmailStr
+* 
+*/
 
 
 export async function POST(req:NextRequest) {
@@ -16,6 +21,8 @@ export async function POST(req:NextRequest) {
     const fileBuffer = await file.arrayBuffer()
     const buffer = new Uint8Array(fileBuffer);
     var key_value = email
+
+
     const upload_command = setStorageCommand(file.name, key_value)
     const response =  await s3_client.send(upload_command)
     alert("storing the result in" + (response["$metadata"]))

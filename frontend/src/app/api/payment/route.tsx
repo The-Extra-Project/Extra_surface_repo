@@ -10,7 +10,6 @@ export async function POST(request: NextRequest) {
         currency: "eur",
         automatic_payment_methods: { enabled: true },
       });
-  
       return NextResponse.json({ clientSecret: paymentIntent.client_secret });
     } catch (error) {
       console.error("Internal Error:", error);
