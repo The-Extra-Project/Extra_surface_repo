@@ -22,9 +22,6 @@ import { config } from "dotenv";
 
 import { useRouter } from "next/navigation";
 //import { getUser } from "src/utils/supabase_queries";
-import { Resend } from "resend";
-import Stripe from "stripe";
-import { set } from "react-hook-form";
 
 //import { env } from "src/env";
 

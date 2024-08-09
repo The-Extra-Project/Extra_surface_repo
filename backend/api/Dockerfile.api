@@ -9,4 +9,6 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["fastapi", "run" ,"/app/api/server.py" ]
+ARG URL_ADDRESS
+
+CMD ["fastapi", "run" ,  "--host"  , ${URL_ADDRESS},  "--port" , "8000",    "/app/api/server.py" ]

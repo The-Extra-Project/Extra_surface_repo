@@ -1,8 +1,11 @@
 services:
   api:
+    image: devextralabs/extrasurface-api-server
     build:
       context: ./backend/api/
       dockerfile: Dockerfile.api
+      args:
+        - URL_ADDRESS="http://${LOCAL_IP}.compute-1.amazonaws.com:8000" ##TODO: define using env var
     env_file: ".env"
     ports:
       - 8000:8000
@@ -12,26 +15,25 @@ services:
       - $HOME/.aws/credentials:/.aws/credentials:ro
 
   sparkling_washeur_core:
-    image: devextralabs/distributed-delaunay-transformation ##TODO: to change the name and port the version.
+    image: devextralabs/distributed-delaunay-transformation
     build:
       context: ./backend/sparkling_washeur/
       dockerfile: ./src/docker/Dockerfile-base-Ubuntu-devel
     volumes:
       - ${HOME}/.aws/credentials:/.aws/credentials:ro
       - ${PWD}/backend/sparkling_washeur:/app/sparkling_washeur/:rw
-
     environment:
       - NB_PROC="4"
       - DDT_TRAITS="3"
-  # sparkling_washeur:
-  #   build:
-  #     context: ./backend/sparkling_washeur/
-  #     dockerfile: Dockerfile.washeur 
-  #   volumes:
-  #     - ${HOME}/.aws/credentials:/.aws/credentials:ro
-  #     - ${PWD}/backend/sparkling_washeur:/app/sparkling_washeur/:rw
-  #   depends_on:
-  #     - sparkling_washeur_core
+  spark_cluster:
+    build:
+      context: ./backend/sparkling_washeur/
+      dockerfile: Dockerfile.spark 
+    volumes:
+      - ${HOME}/.aws/credentials:/.aws/credentials:ro
+      - ${PWD}/backend/sparkling_washeur:/app/sparkling_washeur/:rw
+    depends_on:
+      - sparkling_washeur_core
 
   redis:
     image: redis:latest
@@ -40,10 +42,12 @@ services:
     depends_on:
       - api
       - website
-
   website:
+    image: devextralabs/website-frontend
     build: 
       context: ./frontend/
       dockerfile: dockerfile
     ports:
-      - "3000:3000"
+      - "3000:80"
+    depends_on:
+      - api

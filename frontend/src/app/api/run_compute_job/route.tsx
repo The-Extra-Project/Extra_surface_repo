@@ -27,7 +27,7 @@ try {
         input_url: filepath,
         username:  email
     };  
-     const response = await fetch( process.env.WEBSITE_URL! , {
+     const response = await fetch( process.env.API_SERVER_URL! +  "/reconstruction/schedule" , {
         body: JSON.stringify(
             {
                 jobParams
