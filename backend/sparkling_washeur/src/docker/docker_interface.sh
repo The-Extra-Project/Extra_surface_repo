@@ -25,8 +25,8 @@ then
     exit 1;
 fi
 
-MOUNT_CMD="${MOUNT_CMD} -v /tmp/:/tmp/ -v ${TMP_DIR}:${TMP_DIR} -v ${SPARK_SHARED_DIR}:${SPARK_SHARED_DIR} -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}"
-echo "MOUNT CMD ===> $MOUNT_CMD"
+# MOUNT_CMD="${MOUNT_CMD} -v /tmp/:/tmp/ -v ${TMP_DIR}:${TMP_DIR} -v ${SPARK_SHARED_DIR}:${SPARK_SHARED_DIR} -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}"
+echo "DIR for deployment ===> $MOUNT_CMD"
 
 function compile
 {

@@ -1,5 +1,5 @@
 ## Extra-surface
-UI and SaaS platform that allows the user to schedule 3D reconstructions (by paying a nominal fee for supporitng the EC2 hosting costs)  of LidarHD tiles on given instance and send results to the user for visualization.  
+UI and SaaS platform that allows the user to schedule 3D reconstructions (by paying a nominal fee for supporitng the EC2 hosting costs) of LidarHD tiles on given instance and send results to the user for visualization.
 
 ## Credits:
 - [Distributed watertight surface reconstruction, Laurent Caraffa et.al](https://lcaraffa.github.io/edwsr/)  
@@ -18,6 +18,7 @@ UI and SaaS platform that allows the user to schedule 3D reconstructions (by pay
   HAL_VERSION = {v1},
 }
 ```
+
 
 ## Stack components: 
 
@@ -57,10 +58,16 @@ It consist of the following stack components to run the application:
   - Create stripe test developer account and then paste the values.
   - In case of deployment on local keep the NEXT_PUBLIC_SITE_URL by exposing the output following the [given tutorial](https://github.com/vercel/next.js/discussions/16429#discussioncomment-1302156).
 
-### 2. Build and deploy the Microservices. 
-docker compose build && docker compose up -d
 
-### 3. run the application on the following endpoints 
+### 2. Build and deploy the Microservices. 
+
+You can do this via following ways:
+
+### 2.1 either via remotehosting on single instance (not recommended for production usecase) : 
+- On the branch local_ec2_deployment, you can substitute the parameters of the EC2 ip address in the environment variables:
+then run  ```docker compose build && docker compose up -d```
+
+### 2.2. The application runs on the following endpoints: 
 
 | location  | URL |
 | ------------- | ------------- |

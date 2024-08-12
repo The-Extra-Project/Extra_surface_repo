@@ -36,6 +36,6 @@ COPY --from=deploy --chown=700 /usr /usr
 
 WORKDIR /backend/sparkling_washeur
 
-## doing the build along with setup of the conda environment
-RUN ${PWD}/src/docker/docker_interface.sh build && ${PWD}/src/docker/docker_interface.sh compile -j4 -t3 && conda env create --file ./services/mesh23dtile/environment.yml && conda activate mesh23Dtile 
+# ## doing the build along with setup of the conda environment
+# RUN ${PWD}/src/docker/docker_interface.sh build && ${PWD}/src/docker/docker_interface.sh compile -j4 -t3 && conda env create --file ./services/mesh23dtile/environment.yml && conda activate mesh23Dtile 
 

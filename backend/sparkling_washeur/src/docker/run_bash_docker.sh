@@ -1,7 +1,6 @@
 #!/bin/bash
 
 function run_fun () {
-
     ## If inside the docker
     if [ -f /.dockerenv ] ;
     then
@@ -21,7 +20,6 @@ function run_fun () {
 	    # then
 	    # 	PROXY_LINE="-e http_proxy='$http_proxy' -e http_proxy_port='$http_proxy_port'  -e http_proxy_ip='$http_proxy_ip'"
 	    # fi
-
 
 	    CMD="docker run  -d $MOUNT_CMD -u 0 --cap-add SYS_ADMIN  --privileged  -e DDT_MAIN_DIR='$DDT_MAIN_DIR_DOCKER' -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --name $CONTAINER_NAME  -ti ${NAME_IMG}"
 		
