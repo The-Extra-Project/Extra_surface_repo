@@ -3,14 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import Header from "src/components/Header/Header";
 import fs from "fs/promises";
-import { revalidatePath } from "next/cache";
-import Router from "next/router";
 //import EmbedGraph from "src/components/embed_graph";
 import embed_graph from "src/public/Card_France.png";
 import {Alert, AlertDescription, AlertTitle }  from "src/components/ui/alert"
-import { z } from "zod";
 import { Button } from "src/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState} from "react";
 import {
 	FileUploader,
 	FileUploaderContent,
@@ -55,9 +52,10 @@ export default function Home() {
 	const [upload, setUpload] = useState(false);
 	const [payment, setPayment] = useState(false);
 	const [portal, showPortal] = useState(false);
-	const [files, setFiles] = useState<File[] | null>(null);
+	const [files, setFiles] = useState<File[]>([]);
 	const [URLs, setURLs] = useState<string[]>([]);
 	const [cost, setCost] = useState(0);
+	const [email, setEmail] = useState("");
 	const dropZoneConfig = {
 		maxFiles: 1,
 		maxSize: 1024 * 1024 * 1,
@@ -70,7 +68,20 @@ export default function Home() {
 
 	const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		router.replace(`/payment_submission?cost=${cost}`)
+
+		//const file: File = event.target.val
+		router.push(`/payment_submission/?cost=${cost}&url_file=${files}&username=${email}`)
+		
+		fetch("/api/files", {
+			method: "POST",
+			body: JSON.stringify(
+				{
+					file: files[0],
+					email: email
+				}
+			)
+		})
+		
 		showPortal(true)
 	};
 	//const form = useForm();
@@ -165,7 +176,8 @@ export default function Home() {
 												<FileUploaderItem key={i} index={i}>
 													<Paperclip className="h-4 w-4 stroke-current" />
 													<span>{file.name}</span>
-												</FileUploaderItem>
+																									
+													</FileUploaderItem>
 												// for each dalle file corresponding
 											))}
 									</FileUploaderContent>
@@ -183,6 +195,8 @@ export default function Home() {
 									placeholder="E-mail"
 									className="outline outline-1 rounded-sm w-full p-2"
 									style={{ width: "-webkit-fill-available" }}
+									value={email}
+									onChange={(e) => setEmail(e.target.value)}
 								/>
 							</div>
 

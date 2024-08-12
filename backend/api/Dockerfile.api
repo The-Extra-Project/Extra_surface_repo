@@ -1,14 +1,13 @@
 FROM python:slim-bookworm
 
 WORKDIR /app/api/
-COPY ./requirements.txt  .
-
-RUN pip install -r requirements.txt
 
 COPY . . 
 
+RUN pip install -r requirements.txt
+
 EXPOSE 8000
 
-ARG URL_ADDRESS
+ENV URL_ADDRESS="https://ec2-3-80-167-195.compute-1.amazonaws.com"
 
-CMD ["fastapi", "run" ,  "--host"  , ${URL_ADDRESS},  "--port" , "8000",    "/app/api/server.py" ]
+CMD ["uvicorn", "server:fastapi" ,  "--host"  ,"0.0.0.0",  "--port" , "8000"]

@@ -1,34 +1,30 @@
 "use client"
-import { Elements, useElements, useStripe, PaymentElement } from "@stripe/react-stripe-js";
+import {  useElements, useStripe, PaymentElement } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { configDotenv } from "dotenv";
 import React, { useEffect, useState } from "react";
 import path, { basename, resolve } from "path";
 import { useRouter } from "next/router";
+import {scheduleJob} from "src/app/api/run_compute_job/route"
 
-let envfilepath = resolve(__dirname, "../../.env" )
+let envfilepath = resolve(__dirname, "../.env" )
 
 configDotenv(
     {
         path: envfilepath
     }
 )
+export const stripePromise = loadStripe(process.env.STRIPE_PUBLIC_KEY!);
 
-export const stripePromise = loadStripe(process.env.STRIPE_PUBLIC_KEY);
-
-export default function StripeComponent({ amount }: { amount: number }) {
+export default function StripeComponent({ amount, url_file, username }: { amount: number, url_file: string, username: string }) {
     const stripe = useStripe();
     const elements = useElements();
     const [errorMessage, setErrorMessage] = useState<string>();
     const [loading, setLoading] = useState(false);
     const [clientSecret, setClientSec] = useState("");
     const [amt, setAmt] = useState(0);
-
     const handleSubmit = async () => {
-        
-
         setLoading(true);
-        
         setAmt(amount)
         
          fetch("/api/payment", {
@@ -66,13 +62,37 @@ export default function StripeComponent({ amount }: { amount: number }) {
             elements,
             clientSecret,
             confirmParams: {
-                return_url:  process.env.WEBSITE_DEV! + `/payment-success?amount=${amount}`,
+                return_url:  process.env.WEBSITE_DEV! + `/payment-success?amount=${amount}&url_file=${url_file}&username=${username}`,
         },
     });
         if (error) {
             setErrorMessage(error.message);
         }
-        setLoading(false);    
+        setLoading(false);   
+
+        let input_params: scheduleJob = {
+            input_url: url_file,
+            username: username
+
+        }
+
+        fetch("/api/run_compute_job", {
+           method: "POST",
+           headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(
+            {
+                input_params
+
+            }
+        )
+
+    }).then(
+     (data) => (alert("the email is send with the id" + data.json()))   
+    )
+
+
     };
 
     if (!stripe || !elements) {
@@ -100,7 +120,8 @@ export default function StripeComponent({ amount }: { amount: number }) {
                 className="text-white w-full p-5 bg-black mt-2 rounded-md font-bold disabled:opacity-50 disabled:animate-pulse"
                 onClick={handleSubmit}
             >
-                {!loading ? `Pay $${amount}` : "Processing..."}
+                {!loading ? `Pay $${amount}` : "Processing..."        
+                }
             </button>
             </>
     );

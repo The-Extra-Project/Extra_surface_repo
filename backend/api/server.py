@@ -19,7 +19,10 @@ import boto3
 
 import uuid 
 
-sys.path.append('.')
+
+from pathlib import Path
+
+sys.path.append('..')
 from api.email import send_job_reconstruction, send_job_results
 from api.cache import redisObj, enqueue_job, dequeue_job, current_job_index
 from api.models import ScheduleJob, ScheduleJobMulti, UserJob, Status

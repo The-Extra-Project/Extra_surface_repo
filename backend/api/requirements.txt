@@ -12,5 +12,5 @@ ipfs-toolkit
 pydantic
 s3fs
 rq
-boto3
+boto3==1.34.158
 s3path

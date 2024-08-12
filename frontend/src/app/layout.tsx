@@ -11,7 +11,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Extra surface",
-  description: "Extra surface demo application ",
+  description: "Reconstructing 3D maps in few clicks",
 };
 
 export default function RootLayout({

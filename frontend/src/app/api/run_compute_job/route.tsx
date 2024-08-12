@@ -1,7 +1,7 @@
 "use server"
 import { NextRequest, NextResponse } from "next/server";
 
-interface scheduleJob {
+export interface scheduleJob {
     input_url: string,
     username: string
 
@@ -17,6 +17,7 @@ configDotenv(
     }
 )
 
+
 export async function POST(request: NextRequest) {
 
 try {
@@ -27,21 +28,18 @@ try {
         input_url: filepath,
         username:  email
     };  
-     const response = await fetch( process.env.API_SERVER_URL! +  "/reconstruction/schedule" , {
+     const response = await fetch(   process.env.API_SERVER_URL! + "/reconstruction/schedule" , {
         body: JSON.stringify(
             {
                 jobParams
             }
         )
     })
-    return await request.json()
+    return await response.json()
 }
-
 catch(error) {
 
     console.error("/api/run_compute_job" + error)
 }
-
-
 
 }

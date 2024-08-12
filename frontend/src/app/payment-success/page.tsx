@@ -21,12 +21,14 @@ export default function PaymentSuccess() {
     useEffect(() => {
       const [getParams] = UseSearchParams()
       const params: number = parseInt(getParams.get("amount"), 10);
+      const tiles_file = getParams.get("url_file")
+      
     
       getAmount(params);
 
    
       //TODO: calling the api for the reconstruction call
-      const response =  fetch('https://localhost:8000/reconstruction/post',  {
+      const response =  fetch('https://localhost:8000/reconstruction/schedule',  {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
