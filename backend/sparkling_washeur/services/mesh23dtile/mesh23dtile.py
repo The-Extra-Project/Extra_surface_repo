@@ -20,8 +20,8 @@ cmap = plt.cm.get_cmap('tab20c', num_colors)
 size_s = 10  # number of characters in the string.
 target_face_num=100000
 
-max_depth = 3
-geom_error = [5,2,1,0]
+max_depth = 5
+geom_error = [20,10,5,2,1,0]
 transformer = pyproj.Transformer.from_crs("epsg:2154", "epsg:4979")
 transformer_glob = pyproj.Transformer.from_crs("epsg:2154", "epsg:4978")
 
@@ -134,7 +134,7 @@ def merge_subtree(node_tt,depth,output_dir,coords) :
         if not node_tt.isLeafNode :
             ms.simplification_quadric_edge_collapse_decimation(targetfacenum = target_face_num,preserveboundary = True)
         cc = cmap(random.randrange(num_colors))
-        ms.per_face_color_function(r=str(cc[0]*255),g=str(cc[1]*255),b=str(cc[2]*255))
+        #ms.per_face_color_function(r=str(cc[0]*255),g=str(cc[1]*255),b=str(cc[2]*255))
         ms.save_current_mesh(file_name)
         ms.save_current_mesh(output_dir +  node_name_ply)
 
@@ -286,8 +286,7 @@ if __name__ == '__main__':
         inputs["mode"]=args.mode
         inputs["meshlab_mode"]=args.meshlab_mode
 
-
-        
+    
     print("\n=== Params ===  \n" + "\n".join("{} ==> {}".format(k, v) for k, v in inputs.items()))
     build_3DT(inputs)
 

@@ -2,17 +2,6 @@
 
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/../../" && pwd )/"
 
-## Check if env variable file exist
-
-if [ -f ${DDT_MAIN_DIR}/algo-env.sh ]
-then
-    source ${DDT_MAIN_DIR}/algo-env.sh
-else
-    echo "ERROR"
-    echo "file algo-env.sh not exists, please copy algo-env.sh.conf and set your parameters "
-    exit 1
-fi
-
 print_fun() 
 {
     grep "^function" $0
@@ -25,11 +14,23 @@ then
     exit 1;
 fi
 
-# MOUNT_CMD="${MOUNT_CMD} -v /tmp/:/tmp/ -v ${TMP_DIR}:${TMP_DIR} -v ${SPARK_SHARED_DIR}:${SPARK_SHARED_DIR} -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}"
-echo "DIR for deployment ===> $MOUNT_CMD"
+MOUNT_CMD="${MOUNT_CMD} -v /tmp/:/tmp/ -v ${TMP_DIR}:${TMP_DIR}  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}"
+echo "MOUNT CMD ===> $MOUNT_CMD"
 
 function compile
 {
+
+    # Check if env variable file exist
+    if [ -f ${DDT_MAIN_DIR}/algo-env.sh ]
+    then
+	source ${DDT_MAIN_DIR}/algo-env.sh
+    else
+	echo "ERROR"
+	echo "file algo-env.sh not exists, please copy algo-env.sh.conf and set your parameters "
+	exit 1
+    fi
+
+    
     echo "starting daemon ..."
     echo "compile"
     DDT_TRAITS="3"
@@ -63,24 +64,42 @@ function compile
     fi
     EXEC_FUN="${EXEC_FUN} &&  cd ${DDT_MAIN_DIR_DOCKER}/services/ && ./build-unix.sh build -b ${KERNEL_BUILD_DIR} -c ${COMPILE_MODE} -t ${DDT_TRAITS}"
     EXEC_FUN="${EXEC_FUN} && mkdir -p ${SPARK_BUILD_DIR} && cp -rf ${DDT_MAIN_DIR_DOCKER}/src/spark/* ${SPARK_BUILD_DIR}  && cd ${SPARK_BUILD_DIR} && ./build-unix.sh "
-    ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i "${NAME_IMG_BASE}" -c ${CONTAINER_NAME_COMPILE}
+
+    ## If inside the docker
+    if [ -f /.dockerenv ] ;
+    then
+	eval ${EXEC_FUN}
+    else
+	${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i "${NAME_IMG_BASE}" -c ${CONTAINER_NAME_COMPILE}
+    fi
 }
 
 function build # Build docker container
 {
+
+        # Check if env variable file exist
+    if [ -f ${DDT_MAIN_DIR}/algo-env.sh ]
+    then
+	source ${DDT_MAIN_DIR}/algo-env.sh
+    else
+	echo "ERROR"
+	echo "file algo-env.sh not exists, please copy algo-env.sh.conf and set your parameters "
+	exit 1
+    fi
+
+    
     echo "name_img_base => ${NAME_IMG_BASE}"
+    if [ ! -z ${HTTP_PROXY} ] 
+    then
+	PROXY_CMD=" --build-arg HTTP_PROXY=${HTTP_PROXY} --build-arg HTTPS_PROXY=${HTTPS_PROXY} "
+    fi
     case ${NAME_IMG_BASE} in
-	"ddt_img_base_18_04")
-	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-18-04 ${DDT_MAIN_DIR}
-	    ;;
-	"ddt_img_base_21_10")
-	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-21-10 ${DDT_MAIN_DIR}
-	    ;;
-	"ddt_img_base_20_04")
-	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-20-04 ${DDT_MAIN_DIR}
-	    ;;
 	"ddt_img_base_devel")
+	    #NO_CACHE=" --no-cache "
 	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-devel ${DDT_MAIN_DIR}
+	    ;;
+	"ddt_img_base_devel_proxy")
+	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/src/docker/Dockerfile-base-Ubuntu-devel-proxy ${DDT_MAIN_DIR}
 	    ;;	
 	*)
 	    echo "ERROR NO IMAGE"
@@ -143,19 +162,22 @@ function run_algo_spark # Run the main pipeline
     MOUNT_CMD="${MOUNT_CMD} -v ${INPUT_DATA_DIR}:${INPUT_DATA_DIR}"
     MOUNT_CMD="${MOUNT_CMD} -v ${OUTPUT_DATA_DIR}:${OUTPUT_DATA_DIR}"
 
-    echo "removing the shell container pipeline"
-
     docker rm -f ${CONTAINER_NAME_SHELL} 2>/dev/null
-    
     EXEC_FUN="cd ${ND_TRI_MAIN_DIR_DOCKER}"
-
     EXEC_FUN="${EXEC_FUN} ; ${DDT_MAIN_DIR}/src/scala/run_algo_spark.sh  -i ${INPUT_DATA_DIR} -o ${OUTPUT_DATA_DIR}  ${FILE_SCRIPT}  ${PARAM_PATH}  ${SPARK_CONF}  ${MASTER_IP} ${CORE_LOCAL_MACHINE} -b ${GLOBAL_BUILD_DIR} ${ALGO_SEED} ${DEBUG_CMD}"
-    if [ "$DEBUG_MODE" = true ] ; then
-        ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i ${NAME_IMG_BASE} -c ${CONTAINER_NAME_SHELL} -d bash
+    ## If inside the docker
+    if [ -f /.dockerenv ] ;
+    then
+	eval ${EXEC_FUN}
     else
-	${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i ${NAME_IMG_BASE} -c ${CONTAINER_NAME_SHELL}
-	return 0;
+	if [ "$DEBUG_MODE" = true ] ; then
+            ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i ${NAME_IMG_BASE} -c ${CONTAINER_NAME_SHELL} -d bash
+	else
+	    ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i ${NAME_IMG_BASE} -c ${CONTAINER_NAME_SHELL}
+	    return 0;
+	fi
     fi
+    
 
 }
 

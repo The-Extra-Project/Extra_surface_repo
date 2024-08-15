@@ -24,9 +24,14 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include "io/stream_api.hpp"
+#include <algorithm> 
+#include <cctype>
+#include <locale>
 
 namespace ddt
 {
+
+
 
 
 template <typename Traits>
@@ -95,7 +100,22 @@ std::istream& read_json_stream(Tile & tile,std::istream&  ifile)
     auto & bbox = tile->bbox();
     for (auto its : root_node.get_child("bbox"))
     {
-        int iid = std::stoi(its.first);
+	std::string input = its.first;
+	trim(input);
+	
+        int iid;
+	try {
+	    if (input.empty()) {
+		throw std::invalid_argument("Input string is empty");
+	    }
+	    iid  = std::stoi(input);
+	} catch (const std::invalid_argument& e) {
+	    std::cerr << "[read json stream] Invalid argument: " << e.what() << " for input: " << input << std::endl;
+	} catch (const std::out_of_range& e) {
+	    std::cerr << "Out of range: " << e.what() << " for input: " << input << std::endl;
+	}
+
+       
         Id id = iid;
         std::stringstream ss (its.second.data());
         ss >> bbox[id];

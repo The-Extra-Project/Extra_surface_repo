@@ -7,3 +7,6 @@
 
 #define NUM_ITER_TESSEL (10)
 #define DIM_SIZE_NB (50)
+#define GLOB_SMOOTH (1)
+
+#define MAX_TRIANGLE_SIZE (150)

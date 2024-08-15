@@ -1,3 +1,4 @@
+
 import sys.process._
 
 import scala.xml._
@@ -123,7 +124,6 @@ val max_opt_it = params_scala.get_param("max_opt_it", "30").toInt
 
 val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
 val stats_mod_it = params_scala.get_param("stats_mod_it", ((max_opt_it)/2).toString).toInt
-val stats_mod_it = 1
 // params_scala("dump_mode") = collection.mutable.Set("TRIANGLE_SOUP")
 params_scala("dump_mode") = collection.mutable.Set("NONE")
 val fmt = new java.text.DecimalFormat("##0.##############")
@@ -140,7 +140,7 @@ val cpp_exec_path = current_plateform.toLowerCase match {
   case _  => build_dir + "/bin/"
 }
 
-val python_exec_path = "python3 /home/laurent/code/spark-ddt/services/wasure/python/"
+val python_exec_path = "python3 /nothing/to/run/in/python.py"
 
 // Set the iq library on
 val iq = new IQlibSched(slvl_glob,slvl_loop,env_map)
@@ -271,6 +271,7 @@ val res_dim = iq.run_pipe_fun_KValue(
   dim_cmd ++ List("--label", "dim"),
   kvrdd_points, "dim", do_dump = false).persist(slvl_glob)
 val kvrdd_dim = iq.get_kvrdd(res_dim,"z");
+//kvrdd_dim.saveAsObjectFile(output_dir + "/kvrdd_dim")
 val kvrdd_simp = iq.get_kvrdd(res_dim,"x").reduceByKey((u,v) => u ::: v,rep_loop);
 
 
@@ -394,7 +395,7 @@ algo_list.foreach{ cur_algo =>
           res_seg.count()
           val kvrdd_seg = iq.get_kvrdd(res_seg,"t");
           input_seg2.unpersist()
-
+          
           val do_it_stats = (((acc_loop % stats_mod_it) == 0 || acc_loop == 1 || acc_loop == 3 || acc_loop == max_opt_it -1) && do_stats)
 
           if(acc_loop == max_opt_it -1){
@@ -431,6 +432,9 @@ algo_list.foreach{ cur_algo =>
               rdd_local_edges.map(e => (e.srcId, e.attr)) union
                 rdd_shared_edges.map(e => (e.dstId, e.attr)) union  kvrdd_seg
             ).reduceByKey(_ ::: _,rep_loop).persist(slvl_loop).setName("NEW_KVRDD_WITH_EDGES_" + acc_loop_str)
+	    if(acc_loop % 10 ==0){
+	        input_seg2.localCheckpoint()
+	    }
             input_seg2.count()
             res_seg.unpersist()
             // Compute the global surface and compare

@@ -1073,10 +1073,15 @@ int extract_surface(Id tid,wasure_params & params,int nb_dat,ddt::logging_stream
             )
             {
                 lft.push_back(*fit);
+
+
+
+		
                 const Point& a = fch->vertex((id_cov+1)&3)->point();
                 const Point& b = fch->vertex((id_cov+2)&3)->point();
                 const Point& c = fch->vertex((id_cov+3)&3)->point();
                 const Point& d = fch->vertex((id_cov)&3)->point();
+		
                 datas_out.bbox += a;
                 datas_out.bbox += b;
                 datas_out.bbox += c;
@@ -1229,11 +1234,25 @@ int extract_surface_new(Id tid,wasure_params & params,int nb_dat,ddt::logging_st
                 (ch1lab != chnlab)  || (mode == 0 && (is_on_convex && (ch1lab == 0 || chnlab == 0)))
             )
             {
-                lft.push_back(*fit);
+
                 const Point& a = fch->vertex((id_cov+1)&3)->point();
                 const Point& b = fch->vertex((id_cov+2)&3)->point();
                 const Point& c = fch->vertex((id_cov+3)&3)->point();
                 const Point& d = fch->vertex((id_cov)&3)->point();
+		bool skip  = false;
+		
+		double dist1 = CGAL::approximate_sqrt(CGAL::squared_distance(fch->vertex((id_cov+1)&3)->point(),fch->vertex((id_cov+2)&3)->point()));
+		double dist2 = CGAL::approximate_sqrt(CGAL::squared_distance(fch->vertex((id_cov+2)&3)->point(),fch->vertex((id_cov+3)&3)->point()));
+		double dist3 = CGAL::approximate_sqrt(CGAL::squared_distance(fch->vertex((id_cov+1)&3)->point(),fch->vertex((id_cov+3)&3)->point()));
+
+		if(dist1 > MAX_TRIANGLE_SIZE ||
+		   dist2 > MAX_TRIANGLE_SIZE ||
+		   dist3 > MAX_TRIANGLE_SIZE ){
+		    skip = true;
+		    continue;
+		}
+		
+                lft.push_back(*fit);		
                 datas_out.bbox += a;
                 datas_out.bbox += b;
                 datas_out.bbox += c;
@@ -2467,8 +2486,11 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
          normal_map (Normal_map()).
          scan_angle_map (Scan_angle_map()).
          scanline_id_map (Scanline_id_map()));
+	
         CGAL::Bbox_3 bbox;
         double alpha = 200.0;
+	int acc=0;
+	int max_ppf = 2000000;
         for (auto pp : points)
         {
             auto vx = std::get<0>(pp)[0];
@@ -2478,7 +2500,7 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
             auto ly = std::get<1>(pp)[1];
             auto lz = std::get<1>(pp)[2];
 	    auto ID = std::get<2>(pp);
-	    std::cerr << "ID :" << ID << std::endl;
+
             Kernel::Vector_3 ori(
                 std::get<0>(pp)[0] + alpha*lx - bbox_ori.min(0),
                 std::get<0>(pp)[1] + alpha*ly - bbox_ori.min(1),
@@ -2493,14 +2515,23 @@ int preprocess(Id tid,wasure_params & params, int nb_dat)
                                         pp_new[0],pp_new[1],pp_new[2]);
             double conf = 0.9;
             points_2.push_back(std::make_tuple(pp_new,std::get<1>(pp),ori));
+	    acc++;
+	    if(points_2.size() > max_ppf or acc == points.size() -1){
+	      std::string oname(params.output_dir + "/" + params.slabel +"_id_"+ std::to_string(hid) + "_" + std::to_string(acc) + ".ply");
+	      dump_2(oname.c_str(), points_2);
+	      ddt::stream_data_header sth("s","z",0);
+	      sth.write_header(std::cout);
+	      std::cout <<  bbox.xmin() << " " <<  bbox.xmax() <<  " " << bbox.ymin() << " " << bbox.ymax()<<  " " << bbox.zmin() << " " << bbox.zmax() << " " << points.size();
+	      sth.finalize();
+	      std::cout << std::endl;
+
+	      bbox = CGAL::Bbox_3();
+	      points_2.clear();
+	    }
+	    
         }
-        std::string oname(params.output_dir + "/" + params.slabel +"_id_"+ std::to_string(hid) + ".ply");
-        dump_2(oname.c_str(), points_2);
-        ddt::stream_data_header sth("s","z",0);
-        sth.write_header(std::cout);
-        std::cout <<  bbox.xmin() << " " <<  bbox.xmax() <<  " " << bbox.ymin() << " " << bbox.ymax()<<  " " << bbox.zmin() << " " << bbox.zmax() << " " << points.size();
-        sth.finalize();
-        std::cout << std::endl;
+
+	
     }
     return 0;
 }

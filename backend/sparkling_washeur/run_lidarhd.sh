@@ -3,10 +3,9 @@
 
 # Function to display usage
 usage() {
-  echo "Usage: $0 --list_files <txt_file>  --output_dir <output_dir>"
+  echo "Usage: $0 --list_files txt_file  --output_dir <output_dir>"
   exit 1
 }
-
 
 # Parse command-line options
 while [[ "$#" -gt 0 ]]; do
@@ -25,7 +24,7 @@ while IFS= read -r line; do
     wget -O ${NEW_OUT}/${filename}  ${line}
     ./run_workflow.sh --input_dir ${NEW_OUT} --output_dir ${NEW_OUT}	
 done < "${LIST_FILES}"
- 
+
 return 0
 
  

@@ -1,7 +1,7 @@
 echo "start $0"
 echo "----------------"
 export SCRIPT_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd  )/"
-source ${SCRIPT_DIR}/../../algo-env.sh
+#source ${SCRIPT_DIR}/../../algo-env.sh
 
 function start_spark_master {
     if [[ ! -z ${1} ]];

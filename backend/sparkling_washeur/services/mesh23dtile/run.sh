@@ -6,7 +6,11 @@ usage() {
   exit 1
 }
 
-source ${CUR_DIR}/../../algo-env.sh
+#source ${CUR_DIR}/../../algo-env.sh
+source /opt/conda/etc/profile.d/conda.sh
+
+conda deactivate
+conda activate mesh23Dtile
 
 # Initialize parameters
 input_dir=""
@@ -52,10 +56,8 @@ echo "begin mesh23tile"
 python3 ${CUR_DIR}/mesh23dtile.py --input_dir ${input_dir} --output_dir ${output_dir} --meshlab_mode python --coords ${coords} --mode_proj 0
 echo "end mesh23dtile.py"
 
-count=0
-
-
-### Sequential job 
+# Sequential 
+# count=0
 # for obj_file in "${output_dir}/tiles/"*.obj; do
 #   count=$((count + 1))
 #   output_tile=${output_dir}/$(basename ${obj_file%.*})
@@ -71,15 +73,15 @@ process_obj(){
 }
 
 
-echo ${NUM_PROCESS}
-num_jobs="\j" 
+
+num_jobs="\j"
 for obj_file in "${output_dir}/tiles/"*.obj; do
     while (( ${num_jobs@P} >= ${NUM_PROCESS} )); do
-	wait -n
+        wait -n
     done
-     process_obj "${obj_file}" & 
+     process_obj "${obj_file}" &
 done
 
 wait
-echo "finalize!"
+
 python3 ${CUR_DIR}/finalize.py ${output_dir}

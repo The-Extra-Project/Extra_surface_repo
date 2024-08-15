@@ -3,7 +3,7 @@ import sys
 import os
 import numpy as np
 
-geom_error = [5,2,1,0]
+geom_error = [20,10,5,2,1,0]
 def replace_box_values(dd,dpath,depth,list_trans,bbv):
     glob_bbv =  bbv
     list_trans_rec = list_trans.copy()
@@ -54,8 +54,8 @@ def main(tile_path):
         with open(tile_path + '/tileset_final.json', 'w') as file:
             json.dump(data, file, indent=4)
         
-    except FileNotFoundError:
-        print(f"File not found: {input_file_path}")
+    except FileNotFoundError as err:
+        print(err)
     except json.JSONDecodeError:
         print(f"Invalid JSON format in file: {input_file_path}")
     except Exception as e:

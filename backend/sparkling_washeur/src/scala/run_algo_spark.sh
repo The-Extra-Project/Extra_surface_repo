@@ -5,7 +5,7 @@ fi
 cd ${DDT_MAIN_DIR}
 
 INPUT_SCRIPT=${DDT_MAIN_DIR}/src/scala/ddt_stream.scala
-source ${DDT_MAIN_DIR}/algo-env.sh
+#source ${DDT_MAIN_DIR}/algo-env.sh
 
 
 function export_params {
@@ -17,7 +17,9 @@ function export_params {
     echo "export SPARK_WORKER_CORES=${SPARK_WORKER_CORES}" >> /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/conf/spark-env.sh
     echo "export SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}" >> /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/conf/spark-env.sh
     echo "export YARN_LOG_DIR=${SPARK_TMP_DIR}" >> /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/conf/spark-env.sh
-
+    echo "======== PARAMS ========="
+    cat /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/conf/spark-env.sh
+    echo "======== PARAMS ========="
 }
 
 function run_local (){
@@ -27,19 +29,6 @@ function run_local (){
         --jars ${GLOBAL_BUILD_DIR}/spark/target/scala-2.13/iqlib-spark_2.13-1.0.jar  \
         --master spark://localhost:7077  -Dspark.executor.memory=1g -Dspark.driver.memory=1g
 }
-
-
-
-# function submit_queue_job {
-#     echo "======================= SPARK Queue submission ============================"
-#     ${DDT_MAIN_DIR}/src/spark/spark.sh start_all ${MASTER_IP}
-#     /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/bin/spark-submit \
-#     -i ${INPUT_SCRIPT}  \
-#     --jars ${GLOBAL_BUILD_DIR}/spark/target/scala-2.13/iqlib-spark_2.13-1.0.jar  \
-#     --master spark://localhost:7077  -Dspark.executor.memory=1g -Dspark.driver.memory=1g
-#     --queue ${QUEUE_NAME}
-
-# }
 
 
 function run_master (){
@@ -64,6 +53,8 @@ function run_master (){
 					 --conf \"spark.memory.fraction=0.2\" \
 					 --conf \"spark.driver.allowMultipleContexts=true\" \
 					 --conf \"spark.memory.storageFraction=0.8\" \
+					 --conf \"spark.worker.cleanup.enabled=true\" \
+					 --conf \"spark.worker.cleanup.interva=350\" \
 					 --conf \"spark.memory.offHeap.enabled=true\" \
 					 --conf \"spark.memory.offHeap.size=10g\" \
 					 --conf \"spark.network.timeout=10000000\" \
@@ -169,7 +160,6 @@ case "$SPARK_CONF" in
     "local")
 	MASTER_IP="localhost"
 	run_local
-    #submit_queue_job
 	;;
     "master")
 	if [[ -z ${MASTER_IP} ]] ;

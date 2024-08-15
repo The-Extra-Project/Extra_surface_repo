@@ -854,7 +854,7 @@ wasure_algo::get_params_surface_dst(const std::vector<double> & pts_scales,doubl
     }
     else
     {
-        pdf_smooth = data_scale;
+        pdf_smooth = data_scale*GLOB_SMOOTH;
     }
     coef_conf = 1;
     if(min_scale > 0)

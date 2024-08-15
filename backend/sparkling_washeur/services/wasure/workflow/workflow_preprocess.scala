@@ -87,7 +87,8 @@ val spark_core_max = params_scala.get_param("spark_core_max", df_par.toString).t
 val algo_seed =  params_scala.get_param("algo_seed",scala.util.Random.nextInt(100000).toString);
 val wasure_mode = params_scala.get_param("mode", "1")
 val pscale = params_scala.get_param("pscale", "0.05").toFloat
-val nb_samples = params_scala.get_param("nb_samples", "50").toFloat
+val nb_samples = params_scala.get_param("nb_samples", "40").toFloat
+val ndtree_depth = params_scala.get_param("ndtree_depth", "-1").toInt
 val rat_ray_sample = params_scala.get_param("rat_ray_sample", "0").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt
 val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
@@ -174,17 +175,19 @@ val bba =   kvrdd_bbox.map(x => x._2.head.split("z").tail.head.split(" ").filter
    (x,y) => Array(Math.min(x(0),y(0)),Math.max(x(1),y(1)),Math.min(x(2),y(2)),Math.max(x(3),y(3)),Math.min(x(4),y(4)),Math.max(x(5),y(5)), x(6)+y(6)))
 
 
-val smax =   Math.max(Math.max(bba(1)-bba(0),bba(1)-bba(0)),bba(1)-bba(0))
+val smax =   Math.max(Math.max(bba(1)-bba(0),bba(3)-bba(2)),bba(1)-bba(0))
 val smax_ori =   Math.max(Math.max(bba_ori(1)-bba_ori(0),bba_ori(1)-bba_ori(0)),bba_ori(1)-bba_ori(0))
 
 val tot_nbp = bba(6)
-val ndtree_depth = Math.max((Math.log(tot_nbp/max_ppt)/Math.log(3)).round,0) 
+val ndtree_depth_calc = Math.max((Math.log(tot_nbp/max_ppt)/Math.log(3)).round,0) 
 val lambda = params_scala.get_param("lambda", "1").toFloat
 
 
-params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + 0.0 + "x" + 1000.0)
-params_scala("bbox_ori") = collection.mutable.Set(bba_ori(0) + "x" + (bba_ori(0) + smax_ori) + ":" + bba_ori(2) + "x" + (bba_ori(2) + smax_ori) + ":" + 0.0 + "x" + 1000.0)
-params_scala("ndtree_depth") = collection.mutable.Set(ndtree_depth.toString)
+params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + 0.0 + "x" + 10000.0)
+params_scala("bbox_ori") = collection.mutable.Set(bba_ori(0) + "x" + (bba_ori(0) + smax_ori) + ":" + bba_ori(2) + "x" + (bba_ori(2) + smax_ori) + ":" + bba_ori(4) + "x" + 10000.0)
+if (ndtree_depth == -1){
+  params_scala("ndtree_depth") = collection.mutable.Set(ndtree_depth_calc.toString)
+}
 params_scala("datatype") = collection.mutable.Set("files")
 params_scala("max_ppt") = collection.mutable.Set(max_ppt.toString)
 

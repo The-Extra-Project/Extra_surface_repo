@@ -51,6 +51,36 @@
 
 typedef std::numeric_limits< double > dbl;
 
+bool is_number(const std::string& s)
+{
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
+}
+
+
+// trim from start (in place)
+static inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }));
+}
+
+// trim from end (in place)
+static inline void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }).base(), s.end());
+}
+
+// trim from both ends (in place)
+static inline void trim(std::string &s) {
+    ltrim(s);
+    rtrim(s);
+}
+
+
+
 #define OUTPUT_DIR ("/mnt/shared_spark/out")
 namespace ddt
 {
@@ -212,12 +242,29 @@ public :
     std::istream & parse_header(std::istream & ist)
     {
         std::string fip;
+	trim(fip);
         ist >> fip;
         if(fip.empty())
         {
             return ist;
         }
-        tile_id = stoi(fip);
+        
+	try {
+	    if (fip.empty()) {
+		throw std::invalid_argument("Input string is empty");
+	    }
+	    if(is_number(fip)){
+		tile_id = std::stoi(fip);
+	    }else{
+		ist >> fip;
+		tile_id = std::stoi(fip);
+	    }
+	} catch (const std::invalid_argument& e) {
+	    std::cerr << "[parse header] Invalid argument: " << e.what() << " for input: " << fip << std::endl;
+	} catch (const std::out_of_range& e) {
+	    std::cerr << "Out of range: " << e.what() << " for input: " << fip << std::endl;
+	}
+	
         ist >> nbd;
         return ist;
     }
