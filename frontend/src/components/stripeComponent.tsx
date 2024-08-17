@@ -2,13 +2,12 @@
 import {  useElements, useStripe, PaymentElement } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { configDotenv } from "dotenv";
-import React, { useEffect, useState } from "react";
-import path, { basename, resolve } from "path";
-import { useRouter } from "next/router";
+import { Router } from "lucide-react";
+import { useRouter } from "next/navigation";
+import React, { Suspense, useEffect, useState } from "react";
 import {scheduleJob} from "src/app/api/run_compute_job/route"
 
-let envfilepath = resolve(__dirname, "../.env" )
-
+let envfilepath = __dirname + "./../.env";
 configDotenv(
     {
         path: envfilepath
@@ -17,112 +16,64 @@ configDotenv(
 export const stripePromise = loadStripe(process.env.STRIPE_PUBLIC_KEY!);
 
 export default function StripeComponent({ amount, url_file, username }: { amount: number, url_file: string, username: string }) {
-    const stripe = useStripe();
-    const elements = useElements();
+    // const stripe = useStripe();
+    // const elements = useElements();
+    const router = useRouter();
     const [errorMessage, setErrorMessage] = useState<string>();
     const [loading, setLoading] = useState(false);
     const [clientSecret, setClientSec] = useState("");
     const [amt, setAmt] = useState(0);
+
     const handleSubmit = async () => {
         setLoading(true);
         setAmt(amount)
-        
-         fetch("/api/payment", {
+
+        fetch("/api/email", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ amount: amt }),
-        }
-    ).catch((data) => (data.json()))
-        .then((data) => setClientSec(data.clientSecret))
-          
-        if (!stripe || !elements) {
-            setErrorMessage("Stripe.js has not loaded yet.");
-            setLoading(false);
-            return;
-        }
-
-        const paymentElement = elements.getElement(PaymentElement);
-        if (!paymentElement) {
-            setErrorMessage("Payment Element is not mounted.");
-            setLoading(false);
-            return;
-        }
-
-        const { error: submitError } = await elements.submit();
-
-        if (submitError) {
-            setErrorMessage(submitError.message);
-            setLoading(false);
-            return;
-        }
-
-        const { error } = await stripe.confirmPayment({
-            elements,
-            clientSecret,
-            confirmParams: {
-                return_url:  process.env.WEBSITE_DEV! + `/payment-success?amount=${amount}&url_file=${url_file}&username=${username}`,
-        },
-    });
-        if (error) {
-            setErrorMessage(error.message);
-        }
-        setLoading(false);   
-
-        let input_params: scheduleJob = {
-            input_url: url_file,
-            username: username
-
-        }
-
-        fetch("/api/run_compute_job", {
-           method: "POST",
-           headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(
-            {
-                input_params
-
-            }
-        )
-
-    }).then(
-     (data) => (alert("the email is send with the id" + data.json()))   
-    )
-
-
+            body: JSON.stringify({ username, url_file }),
+        })
+        
+        fetch("/api/schedule_compute_job", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ "file_path": url_file, "username": username }),
+        })
+        router.push("https://buy.stripe.com/fZe5oiaidaXW7NC144")
     };
 
-    if (!stripe || !elements) {
-        return (
-            <div className="flex items-center justify-center">
-                <div
-                    className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite] dark:text-white"
-                    role="status"
-                >
-                    <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
-                        Loading...
-                    </span>
-                </div>
-            </div>
-        );
-
-    }
-
-    return (
+return (
         <>
 
-             <PaymentElement />
+<div className="mb-10">
+          <h1 className="text-4xl text-center font-extrabold mb-2">
+             Verification</h1>
+
+          <div className=" text-2xl font-bold">
+            ${amount} 
+          </div>
+          <div>
+        <div className="text-xl font-bold">
+          Pour le reconstruction de tuilles ${url_file}
+        </div>
+          Vous receverez tres prochainment le mail pour presente le prochain steps.
+          </div>
+         
+        </div>
+        <h2>
             <button
-                disabled={!stripe}
+                
                 className="text-white w-full p-5 bg-black mt-2 rounded-md font-bold disabled:opacity-50 disabled:animate-pulse"
                 onClick={handleSubmit}
             >
-                {!loading ? `Pay $${amount}` : "Processing..."        
+                {  "Paiment"        
                 }
             </button>
-            </>
+            </h2>
+            </>      
     );
 }

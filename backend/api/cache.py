@@ -1,4 +1,3 @@
-from upstash_redis import Redis
 from redis import Redis
 import logging
 import sys
@@ -13,10 +12,12 @@ root_folder_path = Path(os.path.abspath(__file__))
 load_dotenv(dotenv_path=(root_folder_path  / '.env'))
 
 redisObj = Redis(
-        host='localhost',
+        host= str(os.getenv("UPSTASH_HOST")),
     port=6379,
+    password=str(os.getenv("UPSTASH_PASSWORD")),
     charset="utf-8",
-    decode_responses=True
+    decode_responses=True,
+    ssl=True
 )
 
 

@@ -7,7 +7,7 @@ import fs from "fs/promises";
 import embed_graph from "src/public/Card_France.png";
 import {Alert, AlertDescription, AlertTitle }  from "src/components/ui/alert"
 import { Button } from "src/components/ui/button";
-import { useState} from "react";
+import { useState, useRef} from "react";
 import {
 	FileUploader,
 	FileUploaderContent,
@@ -15,14 +15,20 @@ import {
 	FileInput,
 } from "src/components/ui/FileUploader";
 import { Paperclip } from "lucide-react";
-import { config } from "dotenv";
+import { configDotenv } from "dotenv";
 
 import { useRouter } from "next/navigation";
+import { resolve } from "path";
 //import { getUser } from "src/utils/supabase_queries";
 
 //import { env } from "src/env";
 
 //const resend = new Resend(env.NEXT_PUBLIC_RESEND_API_KEY || "");
+configDotenv(
+	{
+		path: resolve(__dirname, '../../.env' )
+	}
+)
 
 export default function Home() {
 
@@ -65,24 +71,34 @@ export default function Home() {
 		},
 	};
 
-
-	const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+	const onSubmit = async (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 		event.preventDefault();
 
-		//const file: File = event.target.val
-		router.push(`/payment_submission/?cost=${cost}&url_file=${files}&username=${email}`)
-		
+		const formData = new FormData();
+		formData.append("file", files[0]);
+		formData.append("email",email )
 		fetch("/api/files", {
 			method: "POST",
-			body: JSON.stringify(
-				{
-					file: files[0],
-					email: email
-				}
-			)
+			body: formData,
 		})
-		
+
+		const mailParams = new FormData();
+		mailParams.append("receiever_email", email)
+		mailParams.append("payment_reference", files[0].name)
+		const paramsEmail = JSON.stringify(mailParams)
+
+		fetch( process.env.API_SERVER_URL!  + '/email/send_mail_paid?receiever_email=' + email + '&payment_reference=' + (cost.toString() +'€' ) + '&file_details=' + files[0].name, {
+			method: 'POST',
+			headers: {
+				'Accept': 'application/json'
+			},
+			body: '' // The body is empty as per the curl command
+		})
+		.then(response => response.json())
+		.then(data => console.log(data))
+		.catch(error => console.error('Error:', error));
 		showPortal(true)
+		router.replace(`/payment_submission?cost=${cost}&url_file=${files[0].name}&username=${email}`)
 	};
 	//const form = useForm();
 	const onUpload = (file: File) => {
@@ -118,10 +134,10 @@ export default function Home() {
 							Passer commande de reconstruction 3D issues de LidarHD
 						</h1>
 						<text className="text-grey-400">
-							Première étape de un projet dédié à la mise à jour des données de
+							Première étape d&apos;un projet dédié à la mise à jour des données de
 							carte 3D, en savoir plus{" "}
 							{
-								<Link className="font-bold" href="">
+								<Link className="font-bold" href="www.extralabs.xyz/fr/project">
 									ici.
 								</Link>
 							}
@@ -147,7 +163,7 @@ export default function Home() {
 						</Link>
 					</div>
 					<div className="form-container">
-						<form className="flex flex-col items-left" onSubmit={onSubmit}>
+						<form className="flex flex-col items-left">
 							<div>
 								<p className="font-medium">
 									2. Charger la liste des nuages de points obtenue (cliquer ou
@@ -212,6 +228,7 @@ export default function Home() {
 							<Button
 								type="submit"
 								className="rounded-sm my-10 py-6"
+								onClick={onSubmit}
 								style={{ backgroundColor: "#589EA5" }}
 							>
 								{" "}

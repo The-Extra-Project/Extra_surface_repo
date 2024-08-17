@@ -4,7 +4,8 @@ import { stripe } from "src/utils/stripe/config";
 
 export async function POST(request: NextRequest) {
     try {
-      const { amount } = await request.json();
+      const { amount }: {amount: number} = await request.json();
+
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
         currency: "eur",

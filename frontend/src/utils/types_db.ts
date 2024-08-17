@@ -30,6 +30,24 @@ export type Database = {
         }
         Relationships: []
       }
+      job_command_surface: {
+        Row: {
+          email: string
+          file: string
+          time: string
+        }
+        Insert: {
+          email: string
+          file: string
+          time?: string
+        }
+        Update: {
+          email?: string
+          file?: string
+          time?: string
+        }
+        Relationships: []
+      }
       payment: {
         Row: {
           email: string

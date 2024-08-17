@@ -4,11 +4,20 @@ import Header from "src/components/Header/Header";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Suspense } from "react";
+import { configDotenv } from "dotenv";
+import { resolve } from "path";
+
+
+configDotenv(
+  {
+    path: resolve( __dirname + '../../.env')
+  }
+)
 
 
 function UseSearchParams() {
   const getParams = useSearchParams();
-  return [ getParams]
+  return  getParams
 }
  
 export default function PaymentSuccess() {
@@ -19,26 +28,25 @@ export default function PaymentSuccess() {
 
 
     useEffect(() => {
-      const [getParams] = UseSearchParams()
+      const getParams = UseSearchParams()
       const params: number = parseInt(getParams.get("amount"), 10);
       const tiles_file = getParams.get("url_file")
-      
-    
+      const email = getParams.get("email")
       getAmount(params);
 
-   
+      
+      let schedule_data_input = JSON.stringify({
+        "input_url": tiles_file,
+        "username": email 
+      });
       //TODO: calling the api for the reconstruction call
-      const response =  fetch('https://localhost:8000/reconstruction/schedule',  {
+       fetch( process.env.API_SERVER_URL  +'reconstruction/schedule?data=' + schedule_data_input,  {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({
-                params
-              }),
+              
             });
-      // call the schedule function 
-    //   sendEmail();
     });
       return (
         <Suspense fallback={<div>Loading...</div>}>

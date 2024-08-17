@@ -92,20 +92,20 @@ ENV PATH=/opt/conda/envs/mesh23Dtile/bin:$PATH
 
 # COPY ./run_workflow_ed.sh /app/wasure/run_workflow_ed.sh
 
+
 COPY ./cmake_params.txt /app/wasure/cmake_params.txt
 COPY ./services/ /app/wasure/services/
 COPY ./run_workflow.sh /app/wasure/run_workflow.sh
+COPY ./run_lidarhd.sh /app/wasure/run_lidarhd.sh
+
 COPY ./src/ /app/wasure/src/
 COPY ./CMakeLists.txt /app/wasure/CMakeLists.txt
 COPY algo-env.sh /app/wasure/algo-env.sh
 
 COPY ./ /app/wasure/
 
-
 # COPY ./build/ /app/wasure/build/
 RUN cd /app/wasure/ && \
     touch /.dockerenv && \
     ./src/docker/docker_interface.sh compile -j4 -t3
-
-
 

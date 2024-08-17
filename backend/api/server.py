@@ -2,34 +2,31 @@ from datetime import date
 from subprocess import check_output, Popen, check_call
 from fastapi import  APIRouter, FastAPI, Response, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-
+from dotenv import load_dotenv
 import os
 from rq import Queue
 from rq.job import Job
-
 from pathlib import Path
-from dotenv import load_dotenv
 from supabase import client
-
 import sys
 import shutil
 import math
-
 import boto3
-
 import uuid 
 
+import logging
 
+import docker
 from pathlib import Path
 
-sys.path.append('..')
-from api.email import send_job_reconstruction, send_job_results
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+sys.path.append(".")
+
+from api.email import send_job_reconstruction, send_job_results, send_payment_notification
 from api.cache import redisObj, enqueue_job, dequeue_job, current_job_index
-from api.models import ScheduleJob, ScheduleJobMulti, UserJob, Status
-
-
+from api.models import ScheduleJob, ScheduleJobMulti, UserJob, Status, JobRuntime
 from datetime import datetime
-
 import requests
 
 from s3path import S3Path
@@ -39,41 +36,60 @@ import boto3
 import io
 import zipfile
 
+queue = Queue(connection=redisObj) 
+root_folder_path = Path(os.path.abspath(__file__)).parent
 
-queue = Queue(connection=redisObj) # type: ignore
+load_dotenv(dotenv_path=root_folder_path)
+client_docker = docker.from_env()
 
-root_folder_path = Path(os.path.abspath(__file__))
-
-load_dotenv(root_folder_path / '.env')
 
 s3 = boto3.client("s3")
-
 fastapi = FastAPI()
 callback_router = APIRouter()
 
 supabase_client = client.Client(supabase_key=str(os.getenv("SUPABASE_KEY")), supabase_url=str(os.getenv("SUPABASE_URL")))
 
 bgtasks = BackgroundTasks()
-## for the single file reconstruction.
 
+Debug=False
+
+## for the single file reconstruction.
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+    "*"
+]
 
 fastapi.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+## function to determine the container id of the recent execution .
+## this is based on the parameter: https://stackoverflow.com/questions/63534480/how-to-get-the-container-id-from-docker-py.
+## 
+def check_docker_container_status(container_name):
+    client = docker.from_env()
+    #cli = docker.APIClient()
+    if client.containers.list(filters={'name': container_name}):
+        response = client.containers.list(filters={'name': container_name})
+        return str(response[0].id)[:12]
+    else:
+        return None
 
-def launch_single_tile_reconstruction(filepath_url, output_path, username: str):
+def launch_single_tile_reconstruction(filepath_url, output_path, username: str) -> JobRuntime:
     """
     Runs the reconstruction algorithm on one tile per session, 
     TODO: its by default the implementation for reconstructing the output, but .
     """
     try:
         jobId = supabase_client.table("selectionjob").select("jobId").contains(column="upload_path_url", value=filepath_url)
-                
+        if Debug:
+            print("resulting jobId:" + str(jobId))    
+        
         supabase_client.table("extralabs").update({
             "email": username,
             "selectionJob": {
@@ -82,10 +98,32 @@ def launch_single_tile_reconstruction(filepath_url, output_path, username: str):
                 "upload_url_file": filepath_url
             }                
         })
-        return Popen([ "curl",  str(os.getenv("SPARKLING_WASHEUR_ENDPOINT")) , '--list_files', filepath_url, '--output_dir', output_path ])
+        
+        client_docker.containers.run(str(os.getenv("NAME_IMG_BASE")),detach=True,
+                                    environment={
+                                        "NAME_IMG_BASE": str(os.getenv("NAME_IMG_BASE")),
+                                        "DDT_MAIN_DIR_DOCKER": str(os.getenv("DDT_MAIN_DIR_DOCKER")),
+                                        "CONTAINER_NAME_SHELL": str(os.getenv("CONTAINER_NAME_SHELL")),
+                                        "CONTAINER_NAME_COMPILE": str(os.getenv("CONTAINER_NAME_COMPILE")),
+                                        "TMP_DIR": str(os.getenv("TMP_DIR")),
+                                        "SPARK_TMP_DIR": str(os.getenv("SPARK_TMP_DIR")),
+                                        "SPARK_HISTORY_DIR": str(os.getenv("SPARK_HISTORY_DIR")),
+                                        "CURRENT_PLATEFORM": str("CURRENT_PLATEFORM"),
+                                        "MASTER_IP_SPARK": str("MASTER_IP_SPARK"),    
+                                        "SPARK_EXECUTOR_MEMORY": str("SPARK_EXECUTOR_MEMORY"),
+                                        "SPARK_DRIVER_MEMORY":str("SPARK_DRIVER_MEMORY"), 
+                                        "SPARK_WORKER_MEMORY": str("SPARK_WORKER_MEMORY"),
+                                        "NUM_PROCESS": str("NUM_PROCESS")
+                                     },
+                                    command=["/app/wasure/run_lidarhd.sh", "--input_dir", filepath_url, "--output_dir", output_path, "--colorize"]
+                                    
+                                    )
+        return_value = JobRuntime(jobId= str(jobId), container_id= str(check_docker_container_status(str(os.getenv("NAME_IMG_BASE")))))
+        return return_value
+
     except Exception as e:
         print("exception:" + str(e))
-
+        return JobRuntime(jobId="Null: error in executing the docker container", container_id="Null")
 
 ## for taking multiple laz tiles for reconstruction at the point
 def launch_multiple_tile_reconstruction(filepath_url:Path, aggregator_factor: int, username: str): 
@@ -93,7 +131,6 @@ def launch_multiple_tile_reconstruction(filepath_url:Path, aggregator_factor: in
     filepath_url: is the url file path (from locale) you want to generate the reconstruction.
     aggregator_path: defines the number of tiles that you want to reconstruction in batches.
     """
-    #userfile_path = root_folder_path / 'demo_storage'  / str(datetime.today().strftime('%Y-%m-%d'))
     userfile_path = S3Path(str(os.getenv("S3_DIR"))) / str(datetime.today().strftime('%Y-%m-%d')) 
     ## read the url file --> club the various tiles into the batches of 'aggregated_factor' and then run the reconstruction as unique block
     with open(filepath_url, 'r') as fp:
@@ -112,18 +149,16 @@ def launch_multiple_tile_reconstruction(filepath_url:Path, aggregator_factor: in
 
 def s3_directory_exists(path_params):
     """
-    Checks whether the given filepath (in the S3_DIR) exists.
-    
+    Checks whether the given filepath (in the S3_DIR) exists.    
     """
-    s3_path = S3Path.from_uri(path_params)
-    return s3_path.is_dir()
+    return S3Path(path_params).exists()
 
 @fastapi.post(path="/reconstruction/post", callbacks= callback_router.routes)
 def run_lidarhd_job(filepath_url:Path, email: str,  bg: BackgroundTasks):
     """
     Sends the files from the lidarhd to localhost and then runs the operation
     """
-    userfile_path_dir = S3Path(str(os.getenv("S3_DIR"))) / 'demo_storage' / 'output' / str(datetime.today().strftime('%Y-%m-%d'))
+    userfile_path_dir = S3Path(str("s3://arn:aws:s3:us-east-1:573622188359:accesspoint/extra-protocol-lidarhd")) / filepath_url
     # userfile_path = root_folder_path / 'demo_storage'  / str(datetime.today().strftime('%Y-%m-%d'))
     user = UserJob()
     
@@ -137,7 +172,8 @@ def run_lidarhd_job(filepath_url:Path, email: str,  bg: BackgroundTasks):
     num_tiles = 0
     tilenames = []
     jobIds = []
-    with open(filepath_url, 'r') as fp:
+    with userfile_path_dir.open() as fp:
+        print("successful read of the file, now getting the internal values")
         for line in fp:
             filename_params = line.strip().split("/")[-1].split(".")[0]  
             tilenames.append(filename_params)
@@ -166,6 +202,7 @@ def schedule_multi_reconstruction_job(data:ScheduleJobMulti,bg:BackgroundTasks):
     except Exception as e:
         print("error in launching multi reconstruction" + str(e))
 
+
 @fastapi.post("/reconstruction/schedule")
 def schedule_reconstruction_job(data:ScheduleJob) -> Status:
     try:
@@ -191,8 +228,8 @@ def schedule_reconstruction_job(data:ScheduleJob) -> Status:
                     "job_id": params
                 }
             )
-        redisObj.publish(channel=data.input_url,message=data.username)
-        return Status(job_status=str(params)) 
+        redisObj.set(value=data.input_url,name=data.username)
+        return Status(job_status=str(redisObj.get(data.username))) 
     except Exception as e:
         print("error on scheduling reconstruction job:" + str(e))
     return Status(job_status="error scheduling job")
@@ -202,7 +239,6 @@ def concurrency_condition():
     if available_messages:
         return True
     return False
-
 
 #@fastapi.post("/reconstruction/email/send_result")
 @callback_router.post("/reconstruction/email/send_result")
@@ -270,3 +306,17 @@ def zip_s3_upload(folder_path: str, zip_filename:str):
         s3.put_object(Bucket= s3_dir, Key= zip_filename, Body= zip_filename)        
     except Exception as e:
         print("while fn zip_s3_upload", e)
+        
+        
+
+@fastapi.post("/email/send_mail_paid")
+def send_confirmation_email(receiever_email: str, payment_reference: str, file_details):
+    """
+    sending the mail regarding successful submission of the compute job.
+    """
+    
+    try:
+       result =  send_payment_notification(receiver_email=receiever_email, payment_intent_id=payment_reference, file_details=file_details)
+       return result
+    except Exception as e:
+        print("send_confirmation_error" + str(e))

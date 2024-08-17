@@ -1,58 +1,38 @@
 "use client"
 import Header from "src/components/Header/Header";
-import StripeComponent, { stripePromise } from "src/components/stripeComponent";
+import StripeComponent from "src/components/stripeComponent";
 import { Button } from "src/components/ui/button";
 import { Elements } from "@stripe/react-stripe-js";
 import { useParams, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useState } from "react";
+import React, { Suspense } from "react";
+import { stripePromise } from "src/components/stripeComponent";
 
-function convertToSubcurrency(amount: number, factor = 1000) {
+function convertToSubcurrency(amount: number, factor = 1) {
 	return Math.round(amount * factor);
 }
 
-function GetSearchParams() {
-	const params = useSearchParams();	
-	return params;
+function useAmount() {
+	const searchParams = useSearchParams();	
+
+	return convertToSubcurrency(+searchParams.get('cost'));
 }
 
+
 export default function StripePayment() {
-	const inputParams = GetSearchParams()
-	const [queryParams, setQueryParams] = useState<{
-		cost: number,
-		url_file: string,
-		username: string
-	}>();
-
-	const { cost, url_file, username }: { cost: number; url_file: any; username: string } = useParams(); // Parse values from the URL
-	useEffect(() => {
-		// const cost = parseInt(inputParams.get('cost'),10);	
-
-	}, [cost,url_file, username])
-
-
+	const inputParams = useSearchParams()
+	const cost = inputParams.get("cost");
+	const amount = useAmount();
+	const url_file = inputParams.get("url_file");
+	const username = inputParams.get("username");
 	return (
-		<Suspense fallback={<div>Loading...</div>}>
 		<main>
+		<Suspense fallback={<div>Loading...</div>}>
 			<Header/>
-			<h2 className="text-center text-bold">
-			Paye les frais de compute 
-
-			</h2>
-
 			<form className="flex flex-col items-left" >
-				<Elements
-					options={{
-						mode: "payment",
-						amount: 100,
-						currency: "eur"
-					}}
-					stripe={stripePromise}
-				>
-
-<StripeComponent amount={100} url_file={url_file} username={username} />
-</Elements>
+			
+<StripeComponent amount={Math.round(parseInt(cost,10))} url_file={url_file} username={username} />
 			</form>
+			</Suspense>
 		</main>
-		</Suspense>
 	);
 }

@@ -1,12 +1,9 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-
-import { Upload } from "@aws-sdk/lib-storage";
-import { S3Client } from "@aws-sdk/client-s3";
-
+import { Upload, Options } from "@aws-sdk/lib-storage";
+import { S3Client, PutObjectCommandInput } from "@aws-sdk/client-s3";
 import { configDotenv } from "dotenv";
 import { resolve } from "path";
-import { execPath } from "process";
-
+import path from "path";
 
 configDotenv(
     {
@@ -23,12 +20,16 @@ export const s3_client = new S3Client(
     upload_id: string
     }
 
-export async function uploadCommandS3(file_buffer: any, username: string): Promise<uploadS3ParamsResponse> {
+    const date_time = (new Date().getDate()).toString()
 
-    const storage_command_params  =  {
+export async function uploadCommandS3(file_buffer: any, username: string): Promise<uploadS3ParamsResponse> {
+    const date_time = (new Date().getDay()).toString()
+    
+    const storage_command_params: PutObjectCommandInput =  {
         Body: file_buffer,
         Bucket: process.env.S3_BUCKET!,
-        Key: username, // required
+        Key: username + "_" + date_time , // required
+        ContentType: ".txt"      
     }
     try {
         const upload_s3 = new Upload({
@@ -46,19 +47,4 @@ export async function uploadCommandS3(file_buffer: any, username: string): Promi
         console.error("uploadCommandS3 error" + err)
         return { location: "", upload_id: ""}
     }
-
 }
-
-const uploadToFirstS3 = (stream) => (new Promise((resolve, reject) => {
-    const uploadParams = {
-      Bucket: process.env.S3_BUCKET,
-      Key:'some-key',
-      Body: stream,
-    };
-    s3_client.send(new PutObjectCommand(uploadParams), (err) => {
-      if (err) reject(err);
-      resolve(true);
-    });
-  }));
-  
-
