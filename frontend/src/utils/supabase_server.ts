@@ -8,8 +8,7 @@ import { configDotenv } from "dotenv";
 import { createClient } from '@supabase/supabase-js'
 import { resolve } from "path";
 
-configDotenv(
-    {path: resolve(__dirname, '.env')}
-);
+import { env } from "@/env";
+
 // Create a single supabase client for interacting with your database
-export const supabaseClient = createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+export const supabaseClient = createClient<Database>(env.SUPABASE_URL!, env.SUPABASE_ANON_KEY!)

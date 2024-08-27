@@ -1,23 +1,11 @@
 "use server"
 import { NextRequest, NextResponse } from "next/server";
-import { configDotenv } from "dotenv";
-import { resolve } from "path";
-  
+import {env} from "@/env" 
 export interface scheduleJob {
     input_url: string,
     username: string
 
 }
-
-
-
-configDotenv(
-    {
-        path: resolve(__dirname, "../../../.env")
-    }
-)
-
-
 export async function POST(request: NextRequest) {
 
 try {
@@ -28,7 +16,7 @@ try {
         input_url: filepath,
         username:  email
     };  
-     const response = await fetch( process.env.API_SERVER_URL + "/reconstruction/schedule?file_path=" + jobParams.input_url + "&email=" + jobParams.username, {
+     const response = await fetch( env.API_SERVER_URL + "/reconstruction/schedule?file_path=" + jobParams.input_url + "&email=" + jobParams.username, {
         method: "POST",
         body: ""
     })

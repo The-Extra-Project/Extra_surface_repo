@@ -1,7 +1,7 @@
 echo "start $0"
 echo "----------------"
-export SCRIPT_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd  )/"
-#source ${SCRIPT_DIR}/../../algo-env.sh
+export BASE_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd  )/../../"
+source ${BASE_DIR}/algo-env.sh
 
 function start_spark_master {
     if [[ ! -z ${1} ]];
@@ -11,8 +11,10 @@ function start_spark_master {
         echo "Try to start master on : ${1}"
         echo "spark monitoring - http://${1}:8080/"
         /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/sbin/start-master.sh
+                
+
     else
-        echo "SPARK_MASTER_HOST not set "
+        echo "SPARK_MASTER_HOST not set"
         exit 1;
     fi
 }
@@ -25,8 +27,12 @@ function start_spark_slave {
     fi
     echo "======================= SPARK SLAVE ============================"
     echo "Start slave on : ${1}"
-    /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/sbin/start-slave.sh spark://${1}:7077 --work-dir ${TMP_DIR}
+    /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/sbin/start-slave.sh spark://${1}:7077 -d ${TMP_DIR} \
+                  -h ${1} \
+                -m ${SPARK_EXECUTOR_MEMORY} \
+                -c ${NUM_PROCESS} 
 }
+
 
 function start_spark_history {
     echo "======================= SPARK History ============================"

@@ -9,6 +9,7 @@ function run_fun () {
     else
 	if [[ "$(docker images -q $NAME_IMG 2> /dev/null)" == "" ]]; then
 	    echo "image $NAME_IMG does not exists... "
+		
 	    exit 1
 	else
 	    if [ -z "$CONTAINER_NAME" ];

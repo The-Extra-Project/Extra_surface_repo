@@ -2,17 +2,19 @@ services:
   api:
     image: devextralabs/extrasurface-api-server
     build:
-      context: ./backend/api/
+      context: ./backend/sparkling_washeur/
       dockerfile: Dockerfile.api
-      args:
-        - URL_ADDRESS="http://${LOCAL_IP}.compute-1.amazonaws.com:8000" ##TODO: define using env var
     env_file: ".env"
+    environment:
+      - PUBLIC_HOSTING=${SERVER_IP}
     ports:
-      - 8000:8000
+      - "8000:8000"
+    expose:
+      - 8000
     cap_add:
         - ALL
     volumes:
-      - $HOME/.aws/credentials:/.aws/credentials:ro
+      - $HOME/.aws/credentials:/.aws/credentials:ro  
 
   sparkling_washeur_core:
     image: devextralabs/distributed-delaunay-transformation
@@ -25,29 +27,10 @@ services:
     environment:
       - NB_PROC="4"
       - DDT_TRAITS="3"
-  spark_cluster:
-    build:
-      context: ./backend/sparkling_washeur/
-      dockerfile: Dockerfile.spark 
-    volumes:
-      - ${HOME}/.aws/credentials:/.aws/credentials:ro
-      - ${PWD}/backend/sparkling_washeur:/app/sparkling_washeur/:rw
-    depends_on:
-      - sparkling_washeur_core
-
-  redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"
-    depends_on:
-      - api
-      - website
-  website:
-    image: devextralabs/website-frontend
-    build: 
-      context: ./frontend/
-      dockerfile: dockerfile
-    ports:
-      - "3000:80"
-    depends_on:
-      - api
+ 
+networks:
+  localhost_network:
+    driver: bridge
+    driver_opts:
+      com.network.bridge.host_binding_ipv4:  ${SERVER_IP}
+volumes:

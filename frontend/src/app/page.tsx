@@ -5,6 +5,7 @@ import Header from "src/components/Header/Header";
 import fs from "fs/promises";
 //import EmbedGraph from "src/components/embed_graph";
 import embed_graph from "src/public/Card_France.png";
+import Popup from "reactjs-popup"
 import {Alert, AlertDescription, AlertTitle }  from "src/components/ui/alert"
 import { Button } from "src/components/ui/button";
 import { useState, useRef} from "react";
@@ -21,14 +22,10 @@ import { useRouter } from "next/navigation";
 import { resolve } from "path";
 //import { getUser } from "src/utils/supabase_queries";
 
-//import { env } from "src/env";
+//import { env } from "env";
 
 //const resend = new Resend(env.NEXT_PUBLIC_RESEND_API_KEY || "");
-configDotenv(
-	{
-		path: resolve(__dirname, '../../.env' )
-	}
-)
+
 
 export default function Home() {
 
@@ -59,6 +56,7 @@ export default function Home() {
 	const [payment, setPayment] = useState(false);
 	const [portal, showPortal] = useState(false);
 	const [files, setFiles] = useState<File[]>([]);
+	const [invalidFile, setInvalidFile] = useState(false);
 	const [URLs, setURLs] = useState<string[]>([]);
 	const [cost, setCost] = useState(0);
 	const [email, setEmail] = useState("");
@@ -74,31 +72,19 @@ export default function Home() {
 	const onSubmit = async (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 		event.preventDefault();
 
+		showPortal(true)
+		router.push(`/payment_submission?cost=${cost}&url_file=${files[0]}&username=${email}`)
 		const formData = new FormData();
 		formData.append("file", files[0]);
 		formData.append("email",email )
+		
 		fetch("/api/files", {
-			method: "POST",
-			body: formData,
-		})
-
-		const mailParams = new FormData();
-		mailParams.append("receiever_email", email)
-		mailParams.append("payment_reference", files[0].name)
-		const paramsEmail = JSON.stringify(mailParams)
-
-		fetch( process.env.API_SERVER_URL!  + '/email/send_mail_paid?receiever_email=' + email + '&payment_reference=' + (cost.toString() +'€' ) + '&file_details=' + files[0].name, {
-			method: 'POST',
-			headers: {
-				'Accept': 'application/json'
-			},
-			body: '' // The body is empty as per the curl command
-		})
-		.then(response => response.json())
-		.then(data => console.log(data))
-		.catch(error => console.error('Error:', error));
-		showPortal(true)
-		router.replace(`/payment_submission?cost=${cost}&url_file=${files[0].name}&username=${email}`)
+		  method: "POST",
+		  body: formData,
+		})  
+  
+	
+	
 	};
 	//const form = useForm();
 	const onUpload = (file: File) => {
@@ -108,10 +94,34 @@ export default function Home() {
 		reader.onload = (event) => {
 			const content = event.target?.result as string;
 			const urls = content.split("\n").filter((url) => url.trim() !== "");
+			let urlInvalidLines = []
+			let invalidFile = false
+			let desired_file_pattern = /^(http|https):\/\/[^ "]+$/;
+
 			for (let i = 0; i < urls.length; i++) {
-				totalPrice += cosntPrice;
+				if(
+					desired_file_pattern.test(urls[i])
+				) 
+				{
+					totalPrice += cosntPrice; 
+
+				}
+				else
+				{
+					urlInvalidLines.push(i)
+					invalidFile = true
+
+				}
 			}
-			console.log("Total Price:", totalPrice); // Debugging line
+			if (invalidFile) {
+				setInvalidFile(true)
+			}
+			else 
+			{
+				setInvalidFile(false); 
+
+			}
+
 			setCost(totalPrice);
 			setURLs(urls);
 			setUpload(true);
@@ -145,22 +155,25 @@ export default function Home() {
 					</div>
 					<div className="image-container">
 						<p className="font-medium pb-2">
-							1. Se rendre sur{" "}
-							<Link
-								className="underline"
-								href={"https://diffusion-lidarhd.ign.fr"}
-							>
-								https://diffusion-lidarhd.ign.fr
-							</Link>{" "}
+							1. Se rendre sur le site de{" "}
+						<Link
+						className="underline"
+						href={"https://diffusion-lidarhd.ign.fr"}
+					>
+						diffusion-lidarhd 
+					</Link>
+					{" "}
 							pour obtenir la liste des dalles que vous souhaitez reconstruire
 						</p>
-						<Link href={"https://diffusion-lidarhd.ign.fr"}>
-							<Image
-								src={embed_graph}
-								style={{ border: "black solid 1px" }}
-								alt="graph"
-							/>
-						</Link>
+					
+						<Image
+						src={embed_graph}
+						style={{ border: "black solid 1px" }}
+						alt="graph"
+						onClick={
+							() => window.open("https://diffusion-lidarhd.ign.fr", "_blank").focus()
+						}
+						/>
 					</div>
 					<div className="form-container">
 						<form className="flex flex-col items-left">
@@ -217,45 +230,44 @@ export default function Home() {
 							</div>
 
 							<p className="font-medium py-3">
-								Nombre de tuiles sélectionnées: {<text>{URLs.length}</text>}
+								Nombre de tuiles sélectionnées: { !invalidFile && <text>{URLs.length}</text>}
 								<br />
-								Prix: {URLs.length * 5}€
+								Prix: {!invalidFile &&  URLs.length * 5}€
 							</p>
 							<p className="text-xs">
 								Ce prix nous permet de payer les coûts de calcul et de financer
 								le travail de notre équipe.
 							</p>
+							{
+								invalidFile &&
+								<Alert>
+									<AlertTitle>
+										file is invalid: refresh and upload again.
+									</AlertTitle>
+								</Alert>
+							}
+							
+							{
 							<Button
 								type="submit"
 								className="rounded-sm my-10 py-6"
 								onClick={onSubmit}
 								style={{ backgroundColor: "#589EA5" }}
+								disabled={invalidFile}
 							>
 								{" "}
 								Lancer le téléchargement
 							</Button>
-							{/* {
+							}
+							{
 								portal &&
 								<Alert>
 									<AlertTitle>
-										Uploading the request
+										Now starting the stripe payment
 									</AlertTitle>
-									<AlertDescription>
-										Pay now the recoinstruction cost on stripe. 
-									</AlertDescription>
-								</Alert>
-							} */}
-							{
-								portal && 
-								<Alert>
-									<AlertTitle>
-										Attention !
-									</AlertTitle>
-									<AlertDescription>
-									Selon usage de la plateforme, prévoir 3 à 48h de attente pour recevoir les données.
-									</AlertDescription>
 								</Alert>
 							}
+							
 						</form>
 					</div>
 				</div>

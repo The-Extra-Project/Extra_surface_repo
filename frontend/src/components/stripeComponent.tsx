@@ -1,24 +1,17 @@
 "use client"
 import {  useElements, useStripe, PaymentElement } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-import { configDotenv } from "dotenv";
+import { configDotenv, config } from "dotenv";
 import { Router } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { Suspense, useEffect, useState } from "react";
-import {scheduleJob} from "src/app/api/run_compute_job/route"
+import Path from "path"
 
-let envfilepath = __dirname + "./../.env";
-configDotenv(
-    {
-        path: envfilepath
-    }
-)
-export const stripePromise = loadStripe(process.env.STRIPE_PUBLIC_KEY!);
+let configparams  = config()
 
 export default function StripeComponent({ amount, url_file, username }: { amount: number, url_file: string, username: string }) {
     // const stripe = useStripe();
     // const elements = useElements();
-    const router = useRouter();
     const [errorMessage, setErrorMessage] = useState<string>();
     const [loading, setLoading] = useState(false);
     const [clientSecret, setClientSec] = useState("");
@@ -43,7 +36,6 @@ export default function StripeComponent({ amount, url_file, username }: { amount
             },
             body: JSON.stringify({ "file_path": url_file, "username": username }),
         })
-        router.push("https://buy.stripe.com/fZe5oiaidaXW7NC144")
     };
 
 return (
@@ -62,7 +54,9 @@ return (
         </div>
           Vous receverez tres prochainment le mail pour presente le prochain steps.
           </div>
+
          
+ 
         </div>
         <h2>
             <button

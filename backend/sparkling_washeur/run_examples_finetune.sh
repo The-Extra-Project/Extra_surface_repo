@@ -59,7 +59,7 @@ function ex_run_ply_tiling
 ### 3D Surface reconstruction 
 function run_example
 {
-    if [ -z "${INPUT_DIR}" ]; then
+    if [ -z $1 ]; then
 	echo "INPUT_DIR is not defined or is empty."
 	return 1
     else
@@ -72,19 +72,19 @@ function run_example
     PARAMS="${INPUT_DIR}/wasure_metadata.xml"
     OUTPUT_DIR="${DDT_MAIN_DIR}/outputs/${INPUT_BASE}/"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
-    #run_algo_docker
+    run_algo_docker
 
     echo -e "\n -[start reconstruction]-"
     INPUT_DIR=${OUTPUT_DIR}
     PARAMS="${OUTPUT_DIR}/wasure_metadata_3d_gen.xml"
     FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
-    #run_algo_docker
+    run_algo_docker
 
     CURRENT_CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}')
     if [[ ${CURRENT_CONDA_ENV} == "mesh23Dtile" ]]; then
 	echo -e "\n -[Create LODs from tiled mesh]-"
 	mkdir -p ${DDT_MAIN_DIR}/outputs/${INPUT_BASE}_LODs
-	#python3  ./services/mesh23dtile/mesh23dtile.py --input_dir ${DDT_MAIN_DIR}/outputs/${INPUT_BASE}/outputs/tiles/ --output_dir ${DDT_MAIN_DIR}/outputs/${INPUT_BASE}_LODs --meshlab_mode python --coords 0x0 --mode_proj 0
+	python3  ./services/mesh23dtile/mesh23dtile.py --input_dir ${DDT_MAIN_DIR}/outputs/${INPUT_BASE}/outputs/tiles/ --output_dir ${DDT_MAIN_DIR}/outputs/${INPUT_BASE}_LODs --meshlab_mode python --coords 0x0 --mode_proj 0
     fi
 
     echo -e "\n\n\n ---[monothread surface reconstruction lidar hd ply file...]---"

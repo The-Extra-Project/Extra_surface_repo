@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#source ~/anaconda3/etc/profile.d/conda.sh
-#conda activate mesh23Dtile
+# source ~/miniconda3/etc/profile.d/conda.sh
+# conda activate mesh23Dtile
 ### Start workflow in local mode
 
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
@@ -9,6 +9,8 @@ export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 DO_COLORIZE="TRUE"
 mkdir -p  /tmp/spark-events
+
+source ./algo-env.sh
 
 # Function to display usage
 usage() {
@@ -27,8 +29,11 @@ function run_algo_docker
     fi
     echo ""
     echo "##  ------  ${FUNCNAME[1]}  ------"
-    mkdir -p ${OUTPUT_DIR}
-    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c ${NUM_PROCESS} -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
+    #mkdir -p ${OUTPUT_DIR}
+    ## copying the downloaded files 
+    # container_id=$(docker ps -a --filter "name=ddt_container_shell" --format "{{.ID}}")
+    # docker cp ${INPUT_DIR} $container_id:/app/wasure/datas/
+    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master  -c ${NUM_PROCESS} -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
     eval ${CMD}
     return 0
 }

@@ -7,6 +7,7 @@ cd ${DDT_MAIN_DIR}
 INPUT_SCRIPT=${DDT_MAIN_DIR}/src/scala/ddt_stream.scala
 #source ${DDT_MAIN_DIR}/algo-env.sh
 
+source ./algo-env.sh
 
 function export_params {
     echo "export SPARK_MASTER_HOST=${1}" >> /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/conf/spark-env.sh
@@ -184,7 +185,7 @@ case "$SPARK_CONF" in
     *)
         echo "error, spark_conf = [local,master,slave]"
         exit 1
-        ;;
+        ;;        
 esac
 
 

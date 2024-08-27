@@ -1,8 +1,9 @@
 'use server'
 
-import { Resend } from 'resend';
 import { configDotenv } from 'dotenv';
 import {resolve} from "path"
+import {env} from "@/env"
+
 configDotenv(
   {
     path: resolve(__dirname, "../../../.env")
@@ -15,23 +16,13 @@ interface emailParams {
 }
 
 export async function POST(req: Request) {
-  const data = await req.json()
   const formData = await req.formData();
-  const email = formData.get("email") as File;
+  const email = formData.get("email") as string;
   const jobId = formData.get("jobId") as string;
-
   try {
-
-    const {email, jobId} = data as {email: string, jobId: string}
-      const response =  await fetch( process.env.API_SERVER_URL +  "/email/send_mail_paid" , {
+      const response =  await fetch( env.API_SERVER_URL +  "/email/send_mail_paid?receiever_mail=" + email + "&payment_reference=" + jobId, {
         method: "POST",
-        body: JSON.stringify(
-            {
-                "receiever_email": email as string,
-                "payment_reference": jobId as string
-
-            }
-        )
+        body: ''
     })
     return Response.json(
       {

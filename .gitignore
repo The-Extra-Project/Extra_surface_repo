@@ -3,6 +3,9 @@ shared_spark/tmp/**
 .venv
 .vercel
 
+backend/sparkling_washeur/datas/** 
+backend/sparkling_washeur/tmp/
+backend/sparkling_washeur/shared_spark/
 outputs/** 
 demo_storage
 .env
