@@ -4,16 +4,7 @@ import { configDotenv } from 'dotenv';
 import {resolve} from "path"
 import {env} from "@/env"
 
-configDotenv(
-  {
-    path: resolve(__dirname, "../../../.env")
-  }
-)
 
-interface emailParams {
-  email: string;
-  jobId: string;
-}
 
 export async function POST(req: Request) {
   const formData = await req.formData();

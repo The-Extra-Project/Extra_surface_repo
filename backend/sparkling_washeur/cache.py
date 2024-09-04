@@ -11,15 +11,15 @@ root_folder_path = Path(os.path.abspath(__file__))
 
 load_dotenv(dotenv_path=(root_folder_path  / '.env'))
 
+
 redisObj = Redis(
-        host= "suitable-lion-55162.upstash.io",
+        host= str(os.getenv("UPSTASH_HOST")),
     port=6379,
-    password= "Add6AAIncDEyODNkMTEyNjYyOTE0NDM5OTBlOGQ5NWI2OWE1NDk0YnAxNTUxNjI",
+    password=str(os.getenv("UPSTASH_PASSWORD")),
     charset="utf-8",
     decode_responses=True,
     ssl=True
 )
-
 
 def enqueue_job(job_params: ScheduleJob):
     """

@@ -33,11 +33,8 @@ export default function PaymentSuccess() {
     const tiles_file = getParams["url_file"] as string
     const email = getParams["username"]
 
-
     useEffect(() => {
       getAmount(params);
-
-      
       let schedule_data_input = JSON.stringify({
         "input_url": tiles_file,
         "username": email 
@@ -49,8 +46,6 @@ export default function PaymentSuccess() {
         body: ''
       });
 
-
-      //TODO: calling the api for the reconstruction call
        fetch( env.NEXT_PUBLIC_API_SERVER_URL!  +'/reconstruction/schedule',  {
               method: 'POST',
               headers: {

@@ -1,17 +1,16 @@
 #!/bin/bash
-
 DATA_PATH="${PWD}/"
 source ./algo-env.sh
-
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
 
-APP_DIR=/app/wasure
+APP_DIR="/app/wasure"
 
 DO_USE_LOCAL_BUILD="TRUE"
 if [[ ${DO_USE_LOCAL_BUILD} == "TRUE" ]]; then
     APP_DIR="${PWD}"
     MOUNT_LOCAL=" -v ${APP_DIR}/:${APP_DIR}"
 fi
+
 
 function run_cmd_container
 {   
@@ -31,13 +30,14 @@ function run_cmd_container
     eval $CMD_DOCKER
 }
 
-$@
-
-
-
-INPUT_DIR=${PWD}/datas/demo_lhd/
-OUTPUT_DIR=${PWD}/datas/output_examples/demo_lhd
+while [["$#" -gt 0 ]]; do
+    case $1 in
+        --input_dir) INPUT_DIR="$2"; shift ;;
+        --output_dir) OUTPUT_DIR="$2"; shift ;;
+        *) echo "Unknown parameter passed: $1"; usage ;;
+    esac     
+    shift
+done    
 
 CMD="${APP_DIR}/run_workflow.sh --input_dir ${INPUT_DIR} --output_dir ${OUTPUT_DIR} --colorize"
 run_cmd_container 
-
