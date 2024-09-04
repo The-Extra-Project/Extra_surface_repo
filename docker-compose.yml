@@ -22,8 +22,7 @@ services:
       context: ./backend/sparkling_washeur/
       dockerfile: ./src/docker/Dockerfile-base-Ubuntu-devel
     volumes:
-      - ${HOME}/.aws/credentials:/.aws/credentials:ro
-      - ${PWD}/backend/sparkling_washeur:/app/sparkling_washeur/:rw
+      - ${HOME}/.aws/:/.aws/:ro
     environment:
       - NB_PROC="4"
       - DDT_TRAITS="3"
@@ -33,4 +32,3 @@ networks:
     driver: bridge
     driver_opts:
       com.network.bridge.host_binding_ipv4:  ${SERVER_IP}
-volumes:

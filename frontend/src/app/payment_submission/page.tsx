@@ -32,9 +32,9 @@ function useGetAllSearchParams() {
 export default function StripePayment() {
 	const inputParams = useGetAllSearchParams();
 	 const amount = parseInt(inputParams["cost"],10);
-	 const url_file: File = inputParams["url_file"] as  unknown as File ;
+	 const url_file: File = inputParams["url_file"] as unknown as File ;
 	 const username = inputParams["username"];
-
+	 
 	return (
 		<main>
 			<Header/>
@@ -55,7 +55,11 @@ export default function StripePayment() {
 	);
 }
 
-function WrapperElement({amount, url_file, username})  {
+function WrapperElement({amount, url_file, username}: {
+	amount: number,
+	url_file: File,
+	username: string
+})  {
 	const elements = useElements()
 	const stripe = useStripe()
 	const router = useRouter()
@@ -86,12 +90,15 @@ function WrapperElement({amount, url_file, username})  {
 	const [errorMessage, setErrorMessage] = useState<string>();
 	const [loading, setLoading] = useState(false);
 	
-	const handlePaymentSuccess = (amount,url_file, username) => {
-		router.replace(env.NEXT_PUBLIC_WEBSITE_URL +`/payment-success?amount=${amount}&url_file=${url_file}&username=${username}`);
+	// fetch the url file name from the given path
+	const file_name_pattern = url_file.name
+	const s3_path_url = process.env.S3_DIR! + "/" + file_name_pattern
+
+	const handlePaymentSuccess = (amount, username) => {
+		router.replace(env.NEXT_PUBLIC_WEBSITE_URL +`/payment-success?amount=${amount}&url_file=${s3_path_url}&username=${username}`);
 	};
 	
 	const paid = useRef(amount)
-
 	
 	const handleSubmit = async () => {
 		if (isNaN(amount) || amount <= 0) {
@@ -113,7 +120,7 @@ function WrapperElement({amount, url_file, username})  {
 			elements,
 			clientSecret,
 			confirmParams: {
-			  return_url: env.NEXT_PUBLIC_WEBSITE_URL +`/payment-success?amount=${paid.current}&url_file=${url_file}&username=${username}`,
+			  return_url: env.NEXT_PUBLIC_WEBSITE_URL +`/payment-success?amount=${paid.current}&url_file=${s3_path_url}&username=${username}`,
 			},
 		  });
 		  if (error) {
@@ -122,7 +129,7 @@ function WrapperElement({amount, url_file, username})  {
 			setErrorMessage(error.message);
 		  } 
 		  else {
-			handlePaymentSuccess(paid.current, url_file,username)
+			handlePaymentSuccess(paid.current,username)
 		  }
 	};
 	if (!clientSecret || !stripe || !elements) {
@@ -147,12 +154,11 @@ function WrapperElement({amount, url_file, username})  {
 			<button
         disabled={!stripe || loading}
         className="text-white w-full p-5 bg-black mt-2 rounded-md font-bold disabled:opacity-50 disabled:animate-pulse"
-		onClick={() => handlePaymentSuccess(amount, url_file,username) }
+		onClick={() => handlePaymentSuccess(amount,username) }
       >
         {!loading ? `Pay $${amount}` : "Processing..."}
       </button>
 			</form>
-
 	</>
 	)
 }

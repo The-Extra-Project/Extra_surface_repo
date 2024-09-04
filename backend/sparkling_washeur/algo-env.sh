@@ -17,7 +17,7 @@ export MASTER_IP_SPARK="localhost"
 
 ### Cluster configuration
 ## Local Cluster configuration
-export SPARK_EXECUTOR_MEMORY="16G"
-export SPARK_DRIVER_MEMORY="16G"
-export SPARK_WORKER_MEMORY="16G"
-export NUM_PROCESS="10"
+export SPARK_EXECUTOR_MEMORY="8G"
+export SPARK_DRIVER_MEMORY="8G"
+export SPARK_WORKER_MEMORY="8G"
+export NUM_PROCESS="12"

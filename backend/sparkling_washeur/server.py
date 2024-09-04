@@ -4,8 +4,6 @@ from fastapi import  APIRouter, FastAPI, Response, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
-# from rq import Queue
-# from rq.job import Job
 from supabase import client
 import sys
 import shutil
@@ -15,35 +13,31 @@ import uuid
 import requests
 import logging
 from pathlib import Path
-
+import supabase
 import uvicorn
-
-
+import re
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+sys.path.append(".")
 
-sys.path.append("..")
 
-root_folder_path = Path(os.path.abspath(__file__)).parent
+root_folder_path = Path(os.path.abspath(__file__))
 
-from sparkling_washeur.email import send_job_reconstruction, send_job_results, send_payment_notification
-from sparkling_washeur.cache import redisObj, enqueue_job, dequeue_job, current_job_index
-from sparkling_washeur.models import JobHistory, ScheduleJob, ScheduleJobMulti, UserJob, Status, JobRuntime
-from datetime import datetime
-
-from s3path import S3Path
-
-core_directory_path = S3Path(str(os.getenv("S3_DIR")))
 import os
-import boto3
 import io
 import zipfile
+from sparkling_washeur.event_architecture import publish_sns_topic, get_sqs_event, upload_file_s3, s3Object,push_sqs_event_schedule
+from sparkling_washeur.email import send_job_reconstruction, send_job_results, send_payment_notification
+from sparkling_washeur.cache import redisObj, enqueue_job
+from sparkling_washeur.models import JobHistory, ScheduleJob, ScheduleJobMulti, UserJob, Status, JobRuntime
+from datetime import datetime
+from s3path import S3Path
+
+core_directory_path = S3Path(str(os.getenv("S3_DIR")) )
 
 # queue = Queue(connection=redisObj) 
 
 load_dotenv(dotenv_path=(root_folder_path/ '.env'))
 
-
-s3 = boto3.client("s3")
 
 fastapi = FastAPI()
 callback_router = APIRouter()
@@ -70,37 +64,39 @@ fastapi.add_middleware(
     allow_headers=["*"],
 )
 
-
-
-## function to determine the container id of the recent execution .
-## this is based on the parameter: https://stackoverflow.com/questions/63534480/how-to-get-the-container-id-from-docker-py.
-@fastapi.post("/schedule/single_tile_test")
-def launch_single_tile_reconstruction(filepath_laz, output_path, username: str) -> JobRuntime:
+@fastapi.post("/schedule/single_tile")
+def launch_single_tile_reconstruction() -> JobRuntime:
     """
     Runs the reconstruction algorithm on one tile per session, 
     TODO: its by default the implementation for reconstructing the output, but .
-    """
+    """    
+    params = str(get_sqs_event())
+    print("the sqs event" +params)
+    ## the information is in format:  "data_url: " + str(job_params.input_url) + '&username:' + str(job_params.username)
+    ## need to separate the input_url along with params_username.    
+    data_url = params.split('&')[0].split(':')[1]
+    username_param = params.split('&')[1].split(':')[1]
+
     try:
-        jobId = supabase_client.table("selectionjob").select("jobId").contains(column="upload_path_url", value=filepath_laz)
+        jobId = supabase_client.table("selectionjob").select("jobId").contains(column="upload_path_url", value=data_url)
         if Debug:
             print("resulting jobId:" + str(jobId))    
         
         supabase_client.table("extralabs").update({
-            "email": username,
+            "email": username_param,
             "selectionJob": {
                 "jobId": jobId,
                 "status": True,
-                "upload_url_file": filepath_laz
+                "upload_url_file": data_url
             }                
         })
         
-        ## first defining the various paths for getting the required parameters
-                
+        ## first defining the various paths for getting the required parameters      
         process_id = run([
-            "/bin/sh", "-c" , "./run_examples.sh"
+            "/bin/sh", "-c" , "./run_examples.sh" , "--input_dir" , data_url , "--output_dir", data_url + "/output"
         ])
         return_value = JobRuntime(jobId= str(jobId), container_id= str((str(process_id))))
-        queue_params = ScheduleJob(input_url=filepath_laz,username=username )
+        queue_params = ScheduleJob(input_url=data_url,username=username_param )
         enqueue_job(queue_params)
         return return_value
 
@@ -121,7 +117,6 @@ def launch_multiple_tile_reconstruction(filepath_url:S3Path, aggregator_factor: 
         for folder_iter in iter(fp):
             folder_aggregated_path = (userfile_path) / ("lidarhd_mode" + "_agg_" + str(folder_iter))
             folder_output = folder_aggregated_path / "output"
-            
             
             if len(os.listdir(folder_aggregated_path)) == aggregator_factor : 
                 launch_single_tile_reconstruction(filepath_laz= folder_aggregated_path, output_path= folder_output, username=username)
@@ -207,28 +202,29 @@ def schedule_multi_reconstruction_job(data:ScheduleJobMulti,bg:BackgroundTasks):
 @fastapi.post("/reconstruction/schedule")
 def schedule_reconstruction_job(data:ScheduleJob) -> Status:
     try:
-        params = ""
+        params = str(uuid.uuid4())
         url_filepath = S3Path(data.input_url)
-        #job = Job.create(run_lidarhd_job,[url_filepath, data.username])
-        #job_details = queue.enqueue_job(job)
-        job_params = redisObj.set(name=data.username, value=data.input_url)
-        job_id = str(job_params)
-        supabase_client.table("extra_surface").insert(json={
-            "email": data.username,
-            "job_history": [].append(JobHistory(
-                jobId= job_id,
-                status=True,
-                upload_url_file=url_filepath.as_uri()
-            ).model_dump()
-                                     )
-        })  
-        supabase_client.table("reconstructed_tiles").insert(
-            json={
-                "job_id": params
-            }
-        )
-        redisObj.set(value=data.input_url,name=data.username)
-        return Status(job_status=str(redisObj.get(data.username))) 
+        #job_id = str(job_params)
+        
+        # supabase_client.table("extra_surface").insert(json={
+        #     "email": data.username,
+        #     "job_history": [].append(JobHistory(
+        #         jobId= job_id,
+        #         status=True,
+        #         upload_url_file=url_filepath.as_uri()
+        #     ).model_dump()
+        #                              )
+        # })  
+        
+        # supabase_client.table("reconstructed_tiles").insert(
+        #     json={
+        #         "job_id": params
+        #     }
+        # )
+        #redisObj.set(value=data.input_url,name=data.username)
+        job_params = ScheduleJob(input_url=str(url_filepath.as_uri), username=data.username)
+        id_values = push_sqs_event_schedule(job_params=job_params, queue_name="Extrasurface.fifo")
+        return Status(job_status=str(id_values)) 
     except Exception as e:
         print("error on scheduling reconstruction job:" + str(e))
     return Status(job_status="error scheduling job")
@@ -247,7 +243,6 @@ def send_final_result(email, jobId):
     signed_urls = []
     try:
         #folder_paths.append(supabase_client.table("selectionJob").select("final_results").contains("job_id", email))
-        
         for i in folder_paths:
             supabase_client.table("selectionJob").update(
             {
@@ -266,16 +261,15 @@ def send_final_result(email, jobId):
         print("not able to send email with results")
 
 ## additional functions for listing the files and then uploading (in case they are stored in folders)
-## credits to the stackoverflow Q: https://stackoverflow.com/questions/16368119/zip-an-entire-directory-on-s3
+## credits to the stackoverflow Q: https://stackoverflow.com/questions/16368119/zip-an-entire-directory-on-s3Object
 def ListDir(bucket_name, prefix, file_type='.obj'):
     #file_type can be set to anything you need
     files = []    
-    paginator = s3.get_paginator('list_objects_v2')
+    paginator = s3Object.get_paginator('list_objects_v2')
     pages = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
     for page in pages:
         for obj in page['Contents']:
             files.append(obj['Key'])
-
     if files:
         files = [f for f in files if file_type in f]
     return files
@@ -290,10 +284,10 @@ def ZipFolderS3(bucket_name,prefix, zip_filename):
         print(object_key)
         
         with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zipper:
-            infile_object = s3.get_object(Bucket=bucket_name, Key=object_key) 
+            infile_object = s3Object.get_object(Bucket=bucket_name, Key=object_key) 
             infile_content = infile_object['Body'].read()
             zipper.writestr(file, infile_content)
-    s3.put_object(Bucket=bucket_name, Key=prefix + zip_filename, Body=zip_buffer.getvalue()) 
+    s3Object.put_object(Bucket=bucket_name, Key=prefix + zip_filename, Body=zip_buffer.getvalue()) 
 
 def zip_s3_upload(folder_path: str, zip_filename:str):
     """
@@ -302,7 +296,7 @@ def zip_s3_upload(folder_path: str, zip_filename:str):
     try:
         shutil.make_archive(folder_path,format='zip',root_dir=zip_filename)
         s3_dir = S3Path(folder_path).as_uri()
-        s3.put_object(Bucket= s3_dir, Key= zip_filename, Body= zip_filename)        
+        s3Object.put_object(Bucket= s3_dir, Key= zip_filename, Body= zip_filename)        
     except Exception as e:
         print("while fn zip_s3_upload", e)
         
