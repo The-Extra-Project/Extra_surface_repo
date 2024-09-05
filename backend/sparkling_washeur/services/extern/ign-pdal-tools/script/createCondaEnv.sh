@@ -1,1 +1,0 @@
-conda env create -n pdaltools -f environment.yml
