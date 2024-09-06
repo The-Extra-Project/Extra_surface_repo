@@ -1,0 +1,7 @@
+pyspark
+sagemaker
+sagemaker_pyspark
+boto3
+findspark
+boto3-stubs[sagemaker-runtime]
+setuptools                                                                                                      
