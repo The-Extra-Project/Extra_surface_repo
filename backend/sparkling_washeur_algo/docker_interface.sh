@@ -19,7 +19,6 @@ echo "MOUNT CMD ===> $MOUNT_CMD"
 
 function compile
 {
-
     # Check if env variable file exist
     if [ -f ${DDT_MAIN_DIR}/algo-env.sh ]
     then
@@ -30,7 +29,6 @@ function compile
 	exit 1
     fi
 
-    
     echo "starting daemon ..."
     echo "compile"
     DDT_TRAITS="3"
@@ -74,120 +72,8 @@ function compile
     #fi
 }
 
-function build 
-{
 
-        # Check if env variable file exist
-    if [ -f ${DDT_MAIN_DIR}/algo-env.sh ]
-    then
-	source ${DDT_MAIN_DIR}/algo-env.sh
-    else
-	echo "ERROR"
-	echo "file algo-env.sh not exists, please copy algo-env.sh.conf and set your parameters "
-	exit 1
-    fi
-
-    echo "name_img_base => ${NAME_IMG_BASE}"
-    if [ ! -z ${HTTP_PROXY} ] 
-    then
-	PROXY_CMD=" --build-arg HTTP_PROXY=${HTTP_PROXY} --build-arg HTTPS_PROXY=${HTTPS_PROXY} "
-    fi
-    case ${NAME_IMG_BASE} in
-	"ddt_img_base_devel")
-	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/Dockerfile.spark ${DDT_MAIN_DIR}
-	    ;;
-	*)
-	    echo "ERROR NO IMAGE"
-	    ;;
-      esac
-}
-
-
-
-function run_funcs () {
-
-    ## If inside the docker
-    if [ -f /.dockerenv ] ;
-    then
-	eval ${BASH_CMD}
-    else
-	if [[ "$(docker images -q $NAME_IMG 2> /dev/null)" == "" ]]; then
-	    echo "image $NAME_IMG does not exists... "
-	    echo "do ./docker.sh build_compile"
-	    exit 1
-	else
-	    if [ -z "$CONTAINER_NAME" ];
-	    then
-		CONTAINER_NAME=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 8)
-	    fi
-
-	    if [ ! -z "$http_proxy" ];
-	    then
-	    	PROXY_LINE="-e http_proxy='$http_proxy' -e http_proxy_port='$http_proxy_port'  -e http_proxy_ip='$http_proxy_ip'"
-	    fi
-	    CMD="docker run  -d $MOUNT_CMD -u 0 --cap-add SYS_ADMIN  --privileged --net host $PROXY_LINE -e DDT_MAIN_DIR='$DDT_MAIN_DIR_DOCKER' -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --name $CONTAINER_NAME  -ti ${NAME_IMG}"
-	    eval $CMD 
-	    container_ip=$(docker inspect $CONTAINER_NAME | grep IPAddress | sed 's/[^0-9.]*//g')
-	    echo "ip:$container_ip"
-	    echo ""
-	    echo "==========================================================="
-	    echo "====> DOCKER EXEC :"
-	    echo "$CMD"
-	    if [ -z "$BASH_CMD" ] && [ -z "${DEBUG_MODE}" ];
-	    then
-		CMD="docker exec -i -t -u 0 $CONTAINER_NAME /bin/bash"
-		echo "==> $CMD"
-		eval $CMD
-	    else
-		case "${DEBUG_MODE}" in
-		    bash | shell)
-			DOCKER_EXE="docker exec -i -t -u 0 $CONTAINER_NAME /bin/bash"
-			;;
-		    scala)
-			DOCKER_EXE="docker exec -i -t  -u 0  $CONTAINER_NAME  bash -c \"${BASH_CMD}\""    
-			;;
-		    *)
-			DOCKER_EXE="docker exec $CONTAINER_NAME  bash -c \"${BASH_CMD}\""
-		esac
-
-		echo "====> DOCKER RUN :"
-		echo "$DOCKER_EXE"
-		echo ""
-		echo "## =======> TYPE THE FOLLOWING BASH CMD TO START <======="
-		echo "${RED}$BASH_CMD ${NC}"
-		echo ""
-		eval $DOCKER_EXE
-		rc=$?;
-		if [[ $rc != 0 ]];
-		then
-		    exit $rc;
-		else
-		    return 0;
-		fi
-	    fi
-	    if [ -z "$DETACHED_TRUE" ];
-	    then
-		docker rm -f $CONTAINER_NAME
-	    else
-		echo  " ======>> Container $CONTAINER_NAME detached  "
-		echo  " kill it with: docker rm -f $CONTAINER_NAME"
-	    fi
-	fi
-    fi
-
-}
-
-
-
-
-
-function kill_container { 
-    echo "kill all container: ${CONTAINER_NAME_EXAMPLE}"
-    docker rm -f ${CONTAINER_NAME_SHELL} 2>/dev/null
-    docker rm -f ${CONTAINER_NAME_COMPILE} 2>/dev/null
-}
-
-function run_algo_spark # Run the main pipeline
+function run_algo_spark 
 { 
     while getopts "i:f:o:p:s:m:r:b:c:d" OPTION
     do
@@ -231,25 +117,124 @@ function run_algo_spark # Run the main pipeline
     MOUNT_CMD="${MOUNT_CMD} -v ${OUTPUT_DATA_DIR}:${OUTPUT_DATA_DIR}"
     docker rm -f ${CONTAINER_NAME_SHELL} 2>/dev/null
     EXEC_FUN="cd ${ND_TRI_MAIN_DIR_DOCKER}"
+
     EXEC_FUN="${EXEC_FUN} ; ${DDT_MAIN_DIR}/src/scala/run_algo_spark.sh  -i ${INPUT_DATA_DIR} -o ${OUTPUT_DATA_DIR}  ${FILE_SCRIPT}  ${PARAM_PATH}  ${SPARK_CONF}  ${MASTER_IP} ${CORE_LOCAL_MACHINE} -b ${GLOBAL_BUILD_DIR} ${ALGO_SEED} ${DEBUG_CMD}"
-    ## If inside the docker
+    
+	## If inside the docker
     if [ -f /.dockerenv ] ;
-    then
+    
+	then
 	eval ${EXEC_FUN}
-    else
-	if [ "$DEBUG_MODE" = true ] ; then
-            ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i ${NAME_IMG_BASE} -c ${CONTAINER_NAME_SHELL} -d bash
-	else
-	    ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i ${NAME_IMG_BASE} -c ${CONTAINER_NAME_SHELL}
-	    return 0;
 	fi
-    fi
+    # else	
+
+	# if [ "$DEBUG_MODE" = true ] ; then
+    #         ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i ${NAME_IMG_BASE} -c ${CONTAINER_NAME_SHELL} -d bash
+	
+	# else
+	#     ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i ${NAME_IMG_BASE} -c ${CONTAINER_NAME_SHELL}
+	#     return 0;
+	
+	# fi
+    
 }
 
-function shell # Go inside container
+
+function run_algo_docker
 {
-    ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i ${NAME_IMG_BASE} -c ${CONTAINER_NAME_SHELL}
+    if [ -z "$PARAMS" ]; then PARAMS="void.xml"
+    fi
+    echo ""
+    echo "##  ------  ${FUNCNAME[1]}  ------"
+    mkdir -p ${OUTPUT_DIR}
+    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c ${NUM_PROCESS} -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
+    eval ${CMD}
+    return 0
 }
-$@
 
+function run_full_pipeline 
+{
+
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+      --input_dir) INPUT_DIR="${2%/}/"; shift ;;
+      --colorize) DO_COLORIZE="TRUE" ;;
+      --debug) DEBUG_FLAG="-d" ;;
+      --params) PARAMS="${2%/}/"; shift ;;
+      --output_dir) OUTPUT_DIR="${2%/}/"; shift ;;
+    *) echo "Unknown parameter passed: $1"; usage ;;
+  esac
+  shift
+done
+
+
+
+echo "Start processing ${INPUT_DIR} ... "
+echo -e "\n-[start preprocesssing]-"
+
+LAZ_INPUT_DIR=${INPUT_DIR}
+INPUT_BASE=$(basename "${INPUT_DIR}")
+FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
+
+
+run_algo_docker
+    
+echo -e "\n-[start reconstruction]-"
+INPUT_DIR=${OUTPUT_DIR}
+PARAMS="${OUTPUT_DIR}/wasure_metadata_3d_gen.xml"
+FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+run_algo_docker
+
+CURRENT_CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}') 
+
+
+TILE_DIR=${OUTPUT_DIR}/outputs/tiles/
+if [[ ${DO_COLORIZE} == "TRUE" ]]; then
+    TILE_DIR=${OUTPUT_DIR}/colorized_tiles
+    ${DDT_MAIN_DIR}/services/colorize/colorize.sh --input_dir ${LAZ_INPUT_DIR} --output_dir ${OUTPUT_DIR}
+fi
+
+if [[ ${DO_LOD} == "TRUE" ]]; then
+    echo -e "\n -[Create LODs from tiled mesh]-"
+    mkdir -p ${OUTPUT_DIR}/LODs
+    ${DDT_MAIN_DIR}/services/mesh23dtile/run.sh --input_dir ${TILE_DIR} --xml_file ${PARAMS} --output_dir ${OUTPUT_DIR}/LODs
+fi
+run_algo_docker
+    
+echo -e "\n-[start reconstruction]-"
+INPUT_DIR=${OUTPUT_DIR}
+PARAMS="${OUTPUT_DIR}/wasure_metadata_3d_gen.xml"
+FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
+run_algo_docker
+
+CURRENT_CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}') 
+
+
+TILE_DIR=${OUTPUT_DIR}/outputs/tiles/
+if [[ ${DO_COLORIZE} == "TRUE" ]]; then
+    TILE_DIR=${OUTPUT_DIR}/colorized_tiles
+    ${DDT_MAIN_DIR}/services/colorize/colorize.sh --input_dir ${LAZ_INPUT_DIR} --output_dir ${OUTPUT_DIR}
+fi
+
+if [[ ${DO_LOD} == "TRUE" ]]; then
+    echo -e "\n -[Create LODs from tiled mesh]-"
+    mkdir -p ${OUTPUT_DIR}/LODs
+    ${DDT_MAIN_DIR}/services/mesh23dtile/run.sh --input_dir ${TILE_DIR} --xml_file ${PARAMS} --output_dir ${OUTPUT_DIR}/LODs
+fi
+
+exit 0
+}
+
+
+
+
+
+
+
+# function shell # Go inside container
+# {
+#     ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i ${NAME_IMG_BASE} -c ${CONTAINER_NAME_SHELL}
+# }
+
+$@
 exit 0

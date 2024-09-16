@@ -11,9 +11,6 @@ RUN apt-get update &&  apt-get install -y cmake nano sudo gdb libboost-all-dev g
 RUN apt-get update &&  apt-get install -y xsdcxx  libxerces-c-dev  --assume-yes
 
 # Externs dps
-#RUN apt-get update &&  apt-get install -y libpng12-dev libjpeg-dev zlibc libxmu-dev libxi-dev freeglut3-dev libtiff5-dev  --assume-yes
-#RUN apt-get update &&  apt-get install -y  libjpeg-dev zlibc libxmu-dev libxi-dev freeglut3-dev libtiff5-dev  --assume-yes
-
 
 # Matis-lib dps
 RUN apt-get update &&  apt-get install -y libeigen3-dev   --assume-yes
@@ -33,6 +30,7 @@ RUN apt-get update && apt-get install -y imagemagick --assume-yes
 
 # CGAL and co
 # libxerces-c-dev libxerces-c28
+
 RUN apt-get update && apt-get -y install libcgal-qt5-dev libcgal-dev libxerces-c-dev  libboost-dev libtinyxml-dev libxerces-c-dev libann-dev --assume-yes
 
 
@@ -46,9 +44,9 @@ RUN apt-get update && apt-get -y install libtbb-dev --assume-yes
 
 RUN apt-get update && apt-get -y install libpq-dev --assume-yes
 
-
 RUN apt-get update &&  apt-get install -y  openjdk-8-jdk  --assume-yes
 ENV JAVA_HOME "/usr/lib/jvm/java-8-openjdk-amd64/"
+
 
 RUN cd /usr/local/bin/ && \
     wget https://archive.apache.org/dist/hadoop/core/hadoop-2.7.7/hadoop-2.7.7-src.tar.gz && \
@@ -100,6 +98,10 @@ COPY ./docker_interface.sh /app/wasure/docker_interface.sh
 COPY ./execute_job.py /app/wasure/execute_job.py
 COPY ./spark_job_reconstruction.py /app/wasure/spark_job_reconstruction.py
 
+## just for example 
+
+COPY ./example_data /app/wasure/example_data/
+
 COPY ./execute_job.py /app/wasure/execute_job.py
 COPY ./spark_job_reconstruction.py /app/wasure/spark_job_reconstruction.py
 COPY ./requirements.txt /app/wasure/requirements.txt
@@ -110,14 +112,34 @@ RUN cd /app/wasure/ && \
     pip install -r requirements.txt 
 
 
-FROM build as deploy
-## NOT RECOMMENDED: only for demo purposes
-ENV AWS_ACCESS_KEY_ID=""
-ENV AWS_SECRET_ACCESS_KEY=""
-ENV AWS_DEFAULT_REGION=""
+# FROM build as deploy
+# ## NOT RECOMMENDED: only for demo purposes
+# COPY --from=build / /
 
-COPY --from=build / /
-CMD [ "python ", " /app/wasure/execute_job.py" ]  
-
-
-
+# compilation of the spark jobs and other files
+# function build 
+# {
+#         # Check if env variable file exist
+#     if [ -f ${DDT_MAIN_DIR}/algo-env.sh ]
+#     then
+# 	source ${DDT_MAIN_DIR}/algo-env.sh
+#     else
+# 	echo "ERROR"
+# 	echo "file algo-env.sh not exists, please copy algo-env.sh.conf and set your parameters"
+# 	exit 1
+#     fi
+#     echo "name_img_base => ${NAME_IMG_BASE}"
+#     if [ ! -z ${HTTP_PROXY} ] 
+#     then
+# 	PROXY_CMD=" --build-arg HTTP_PROXY=${HTTP_PROXY} --build-arg HTTPS_PROXY=${HTTPS_PROXY} "
+#     fi
+#     case ${NAME_IMG_BASE} in
+# 	"ddt_img_base_devel")
+# 	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/Dockerfile.spark ${DDT_MAIN_DIR}
+# 	    ;;
+# 	*)
+# 	    echo "ERROR NO IMAGE"
+# 	    ;;
+#       esac
+# }
+CMD  /app/wasure/docker_interface.sh run_complete_pipeline --input_dir /home/ubuntu/app/spark-ddt-laurent/backend/sparkling_washeur_algo/example_data/millau_airduct --output_dir /home/ubuntu/app/spark-ddt-laurent/backend/sparkling_washeur_algo/example_data/millau_airduct/output --params backend/sparkling_washeur_algo/example_data/millau_airduct/wasure_metadata.xml

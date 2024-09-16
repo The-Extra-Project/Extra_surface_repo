@@ -5,7 +5,9 @@ fi
 cd ${DDT_MAIN_DIR}
 
 INPUT_SCRIPT=${DDT_MAIN_DIR}/src/scala/ddt_stream.scala
-#source ${DDT_MAIN_DIR}/algo-env.sh
+source ./algo-env.sh
+
+
 
 
 function export_params {
@@ -27,16 +29,19 @@ function run_local (){
     /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/bin/spark-shell \
         -i ${INPUT_SCRIPT}  \
         --jars ${GLOBAL_BUILD_DIR}/spark/target/scala-2.13/iqlib-spark_2.13-1.0.jar  \
-        --master spark://${CORE_IP}:7077  -Dspark.executor.memory=1g -Dspark.driver.memory=1g
+        --master spark://localhost:7077  -Dspark.executor.memory=1g -Dspark.driver.memory=1g
 }
+
 
 function run_master (){
     export_params ${MASTER_IP}
-
     ${DDT_MAIN_DIR}/src/spark/spark.sh start_all ${MASTER_IP}
+
+
     echo ""
     echo "//  ===============   INFO ======================="
     echo ""
+
 
     CMD="/usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/bin/spark-shell  \
 					 --jars ${GLOBAL_BUILD_DIR}/spark/target/scala-2.13/iqlib-spark_2.13-1.0.jar  \
@@ -86,6 +91,7 @@ function run_slave (){
 	sleep 2s
     done
 }
+
 
 function help (){
     echo "$0 -i -o"

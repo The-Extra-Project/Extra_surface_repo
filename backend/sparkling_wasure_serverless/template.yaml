@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: '2020-09-20'
+Transform: AWS::Serverless-2016-10-31
+Description: > 
+  Example template for extrasurface application.
+
+Globals:
+  Function:
+    Runtime: python3.11
+    Architectures:
+      - arm64
+    Handler: app.handler
+    Timeout: 3
+    Tracing: Active
+    Environment:
+      Variables:
+        LOG_LEVEL: DEBUG
+
+Resources:
+  ## Cloudtrail policy for detecting the S3 events in the eventBridge
+

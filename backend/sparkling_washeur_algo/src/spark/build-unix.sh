@@ -2,7 +2,6 @@ echo "==================="
 echo "run  $0 ... " 
 
 PWD=$(pwd)
-
 if [ ! -z "$http_proxy" ];
 then
     export JAVA_OPTS="$JAVA_OPTS -Dhttp.proxySet=true -Dhttp.proxyHost=$http_proxy_ip -Dhttp.proxyPort=$http_proxy_port -Dhttps.proxySet=true -Dhttps.proxyHost=$http_proxy_ip -Dhttps.proxyPort=$http_proxy_port"

@@ -1,0 +1,2 @@
+mypy-boto3-emr
+pyspark

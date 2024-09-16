@@ -9,6 +9,7 @@ load_dotenv(dotenv_path=env_dir)
 resend.api_key = os.getenv("RESEND_API_KEY")
 
 logger_obj = Logger()
+
 class EmailHandlerInputs(BaseModel):
     email_category: StrictStr
     details: list
@@ -19,7 +20,8 @@ class EmailParams():
     subject: str
     mail_content: str
     reply_to: EmailStr
-    cc: str = "malikdhruv1994"
+    cc: str = ""
+
 sujet_map_en = {
     "payment_completed": ["payment acknowledged! queued the job"],
     "job_scheduled": ["The job is queued"],
@@ -50,11 +52,9 @@ contenu_mail_map = {
 }
 
 def send_payment_notification(receiver_email, payment_intent_id, file_details ):
-    
     envoyer_email_notif = f"""
     Merci d'avoir passé commande de tuiles 3D depuis notre infrastructure. <br />
     Le traitement de vos données va bientôt commencer. Vous recevrez les résultats par mail dès qu'ils seront disponibles (compter jusqu'à 36h de délai). <br />
-
     <h3>Montant du paiement: <h3/> {payment_intent_id} <br />
     <h3>Nom du fichier reconstruits: <h3/> {file_details}
     """
@@ -108,6 +108,7 @@ def send_job_reconstruction(receiver_email, job_id):
     except Exception as e:
         print("unable to send the reconstruction job mail due to "+ str(e))
 
+
 def send_notification(receiver_email):
     try:
         params = EmailParams()
@@ -155,12 +156,15 @@ def send_job_results(receiver_email, job_id , ipfs_url):
     except Exception as e:
         print("unable to send the job results mail due to "+ str(e))
 
-
 def email_sending_serverless(event: EmailHandlerInputs, context):
     try:
         input_params = event.model_dump()["details"]
         if event.model_dump()["email_category"] == "send_payment_notification" and input_params:
             send_payment_notification(receiver_email=input_params[0], payment_intent_id= input_params[1], file_details= input_params[2])
             logger_obj.debug("send the deployment notification")
+        if event.model_dump()["email_category"] == "send_job_reconstruction" and input_params:
+            send_job_reconstruction(receiver_email=input_params[0],job_id=input_params[1])
+        elif event.model_dump()["email_category"] == "send_job_results" and input_params:
+            send_job_results(receiver_email=input_params[0], job_id= input_params[1], ipfs_url= input_params[2])    
     except Exception as e:
         print("demo")

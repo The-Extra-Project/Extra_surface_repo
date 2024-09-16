@@ -1,34 +1,40 @@
 services:
-  api:
-    image: devextralabs/extrasurface-api-server
+  sparkling_washeur:
+    image: devextralabs/sparkling_washeur_algo
     build:
-      context: ./backend/sparkling_washeur/
-      dockerfile: Dockerfile.api
+      context: ./backend/sparkling_washeur_algo
+      dockerfile: Dockerfile.spark
     env_file: ".env"
-    environment:
-      - PUBLIC_HOSTING=${SERVER_IP}
     ports:
       - "8000:8000"
+      - "7077:80"
     expose:
-      - 8000
-    cap_add:
-        - ALL
+      - 8000 
+      - 7077
     volumes:
       - $HOME/.aws/credentials:/.aws/credentials:ro  
-
-  sparkling_washeur_core:
-    image: devextralabs/distributed-delaunay-transformation
+  
+  files_uploader:
+    image: 573622188359.dkr.ecr.us-east-1.amazonaws.com/extralabs_file_handler
     build:
-      context: ./backend/sparkling_washeur/
-      dockerfile: ./src/docker/Dockerfile-base-Ubuntu-devel
-    volumes:
-      - ${HOME}/.aws/:/.aws/:ro
-    environment:
-      - NB_PROC="4"
-      - DDT_TRAITS="3"
- 
+      context: backend/sparkling_wasure_serverless/lambda_services/files_uploader
+      dockerfile: dockerfile
+
+  email_sender:
+    image: 573622188359.dkr.ecr.us-east-1.amazonaws.com/extrasurface/email_handling_service
+    build:
+      context: backend/sparkling_wasure_serverless/lambda_services/email_sender_service
+      dockerfile: dockerfile
+
+  jobs_scheduler:
+    image: 573622188359.dkr.ecr.us-east-1.amazonaws.com/extrasurface/email_handling_service
+    build:
+      context: backend/sparkling_wasure_serverless/lambda_services/email_sender_service
+      dockerfile: dockerfile
+
+
 networks:
   localhost_network:
     driver: bridge
     driver_opts:
-      com.network.bridge.host_binding_ipv4:  ${SERVER_IP}
+      com.network.bridge.host_binding_ipv4:  localhost

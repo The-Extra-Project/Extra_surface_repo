@@ -6,6 +6,7 @@ export const env = createEnv({
       NODE_ENV: z.enum(["development", "production"]),
       STRIPE_SECRET_KEY: z.string(),
       STRIPE_PUBLIC_KEY: z.string(),
+      API_SERVER_LAMBDA_FILE_UPLOAD: z.string(),
       API_SERVER_URL: z.string(),
       AWS_REGION: z.string(),
       SUPABASE_URL: z.string(),
@@ -19,6 +20,7 @@ export const env = createEnv({
       NEXT_PUBLIC_API_SERVER_URL: z.string()
    },
     runtimeEnv: {
+      API_SERVER_LAMBDA_FILE_UPLOAD: process.env.API_SERVER_LAMBDA_FILE_UPLOAD,
       NODE_ENV: process.env.NODE_ENV,
       AWS_REGION: process.env.AWS_REGION,
       STRIPE_PUBLIC_KEY: process.env.STRIPE_PUBLIC_KEY,
