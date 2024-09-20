@@ -6,7 +6,8 @@ services:
     build:
       context: ./backend/sparkling_washeur_algo
       dockerfile: Dockerfile.spark
-    env_file: ".env"
+    env_file: 
+      - .env
     ports:
       - "8000:8000"
       - "7077:80"
@@ -18,6 +19,8 @@ services:
   
   files_uploader:
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/extralabs_file_handler
+    env_file: 
+      - .env
     build:
       context: backend/sparkling_wasure_serverless/lambda_services/files_uploader
       dockerfile: dockerfile
@@ -30,19 +33,23 @@ services:
 
   events:
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/extrasurface/events
+    env_file: 
+      - .env
     build:
       context: ./backend/sparkling_wasure_serverless/lambda_services/events
       dockerfile: dockerfile
 
   jobs_scheduler:
+    env_file: 
+      - .env
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/extrasurface/email_handling_service
     build:
       context: ./backend/sparkling_wasure_serverless/lambda_services/email_sender_service
       dockerfile: dockerfile
-
-
 networks:
   localhost_network:
     driver: bridge
     driver_opts:
       com.network.bridge.host_binding_ipv4:  localhost
+
+
