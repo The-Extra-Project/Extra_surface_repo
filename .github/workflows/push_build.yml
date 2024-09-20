@@ -9,7 +9,7 @@ jobs:
       - name: Build the stack
         run: docker compose build 
       - name: run the stack developed for the application
-        run: docker compose up -d
+        run: docker compose --env-file .env up -d
 
       - name: Cleanup the application
         run: docker compose stop
