@@ -38,6 +38,8 @@ services:
       context: ./backend/sparkling_wasure_serverless/lambda_services/email_sender_service
       dockerfile: dockerfile
 
+env_file: 
+  - .env
 
 networks:
   localhost_network:
