@@ -111,35 +111,4 @@ RUN cd /app/wasure/ && \
     ./docker_interface.sh compile -j4 -t3 && \
     pip install -r requirements.txt 
 
-
-# FROM build as deploy
-# ## NOT RECOMMENDED: only for demo purposes
-# COPY --from=build / /
-
-# compilation of the spark jobs and other files
-# function build 
-# {
-#         # Check if env variable file exist
-#     if [ -f ${DDT_MAIN_DIR}/algo-env.sh ]
-#     then
-# 	source ${DDT_MAIN_DIR}/algo-env.sh
-#     else
-# 	echo "ERROR"
-# 	echo "file algo-env.sh not exists, please copy algo-env.sh.conf and set your parameters"
-# 	exit 1
-#     fi
-#     echo "name_img_base => ${NAME_IMG_BASE}"
-#     if [ ! -z ${HTTP_PROXY} ] 
-#     then
-# 	PROXY_CMD=" --build-arg HTTP_PROXY=${HTTP_PROXY} --build-arg HTTPS_PROXY=${HTTPS_PROXY} "
-#     fi
-#     case ${NAME_IMG_BASE} in
-# 	"ddt_img_base_devel")
-# 	    docker build ${PROXY_CMD} ${NO_CACHE} -t  ${NAME_IMG_BASE} -f ${DDT_MAIN_DIR}/Dockerfile.spark ${DDT_MAIN_DIR}
-# 	    ;;
-# 	*)
-# 	    echo "ERROR NO IMAGE"
-# 	    ;;
-#       esac
-# }
-CMD  /app/wasure/docker_interface.sh run_complete_pipeline --input_dir /home/ubuntu/app/spark-ddt-laurent/backend/sparkling_washeur_algo/example_data/millau_airduct --output_dir /home/ubuntu/app/spark-ddt-laurent/backend/sparkling_washeur_algo/example_data/millau_airduct/output --params backend/sparkling_washeur_algo/example_data/millau_airduct/wasure_metadata.xml
+CMD ["bash", "/app/wasure/docker_interface.sh", "run_full_pipeline", "--input_dir", $0, "--output_dir",$1, "--params", $2]

@@ -156,7 +156,7 @@ def send_job_results(receiver_email, job_id , ipfs_url):
     except Exception as e:
         print("unable to send the job results mail due to "+ str(e))
 
-def email_sending_serverless(event: EmailHandlerInputs, context):
+def email_sending_serverless_handler(event: EmailHandlerInputs, context):
     try:
         input_params = event.model_dump()["details"]
         if event.model_dump()["email_category"] == "send_payment_notification" and input_params:

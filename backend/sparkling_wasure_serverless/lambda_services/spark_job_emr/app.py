@@ -27,18 +27,45 @@ def get_cluster_info(cluster_name: str):
 
 def define_job_flow(job_flow_id: str, steps: Sequence[StepConfigUnionTypeDef]):
     """
-    defines the command to be executed for the given cluster container.
+    defines the command to be executed for the given running cluster.
     in our case it will be just running the sparkling_washeur container with the S3 directories as params.
     """
     try:
-        emr_obj.add_job_flow_steps(
+        steps = emr_obj.add_job_flow_steps(
             JobFlowId= job_flow_id,   
             Steps=steps)
-        
+        return steps
     except Exception as e:
         print("Not able to define the job flow")
     
-
-def run_compute_job(event, context): 
+def run_compute_job_handler(event, context): 
     try:
-        params = event
+        steps = [{
+              'Name': 'Run Spark Job',
+                'ActionOnFailure': 'CONTINUE',
+                'HadoopJarStep': {
+                    'Jar': 'command-runner.jar',
+                    'Args': [
+                        'spark-submit',
+                        '--deploy-mode', 'cluster',
+                        '--master', 'yarn',
+                        f'/app/wasure/spark_job_reconstruction.py',
+                        username,
+                        file_path
+                    ]
+                }
+        }]
+        
+        job_flow = define_job_flow(os.getenv("S3_CLUSTER_NAME"), steps)
+        ## replace with your actual cluster ID.
+        cluster_id = os.getenv("S3_CLUSTER_NAME")
+        
+        ## now execute the job flow
+        response = emr_obj.run_job_flow(
+            JobFlowId=cluster_id,
+            Steps=steps
+        )
+        print(f"Scheduled Spark job with steps: {response['StepIds']}")
+        return response
+    except Exception as e:
+        print("Error scheduling Spark job: " + str(e))

@@ -15,21 +15,27 @@ services:
       - $HOME/.aws/credentials:/.aws/credentials:ro  
   
   files_uploader:
-    image: 573622188359.dkr.ecr.us-east-1.amazonaws.com/extralabs_file_handler
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/extralabs_file_handler
     build:
       context: backend/sparkling_wasure_serverless/lambda_services/files_uploader
       dockerfile: dockerfile
 
   email_sender:
-    image: 573622188359.dkr.ecr.us-east-1.amazonaws.com/extrasurface/email_handling_service
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/extrasurface/email_handling_service
     build:
       context: backend/sparkling_wasure_serverless/lambda_services/email_sender_service
       dockerfile: dockerfile
 
-  jobs_scheduler:
-    image: 573622188359.dkr.ecr.us-east-1.amazonaws.com/extrasurface/email_handling_service
+  events:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/extrasurface/events
     build:
-      context: backend/sparkling_wasure_serverless/lambda_services/email_sender_service
+      context: ./backend/sparkling_wasure_serverless/lambda_services/events
+      dockerfile: dockerfile
+
+  jobs_scheduler:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/extrasurface/email_handling_service
+    build:
+      context: ./backend/sparkling_wasure_serverless/lambda_services/email_sender_service
       dockerfile: dockerfile
 
 

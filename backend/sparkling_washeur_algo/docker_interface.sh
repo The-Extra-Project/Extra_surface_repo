@@ -147,7 +147,7 @@ function run_algo_docker
     echo ""
     echo "##  ------  ${FUNCNAME[1]}  ------"
     mkdir -p ${OUTPUT_DIR}
-    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c ${NUM_PROCESS} -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
+    CMD="${DDT_MAIN_DIR}/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c ${NUM_PROCESS} -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
     eval ${CMD}
     return 0
 }
@@ -166,8 +166,6 @@ while [[ "$#" -gt 0 ]]; do
   esac
   shift
 done
-
-
 
 echo "Start processing ${INPUT_DIR} ... "
 echo -e "\n-[start preprocesssing]-"
@@ -226,15 +224,4 @@ exit 0
 }
 
 
-
-
-
-
-
-# function shell # Go inside container
-# {
-#     ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i ${NAME_IMG_BASE} -c ${CONTAINER_NAME_SHELL}
-# }
-
-$@
-exit 0
+@?

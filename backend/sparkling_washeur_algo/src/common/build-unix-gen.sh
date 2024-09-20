@@ -6,9 +6,7 @@ COMPILE_TYPE=Release
 CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/"
 MAIN_PROJECT_DIR="$(dirname ${CUR_DIR})"
 echo "MAIN_PROJECT_DIR ==> ${MAIN_PROJECT_DIR}"
-
 function build {
-
     while getopts "d:t:f:j:" OPTION
     do
 	case $OPTION in
@@ -42,7 +40,6 @@ function build {
     make install ${NB_PROC_FLAG}
     rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
     cd -
-
 }
 
 $@
