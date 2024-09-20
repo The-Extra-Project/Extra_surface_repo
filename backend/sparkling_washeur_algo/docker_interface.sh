@@ -14,9 +14,6 @@ then
     exit 1;
 fi
 
-MOUNT_CMD="${MOUNT_CMD} -v /tmp/:/tmp/ -v ${TMP_DIR}:${TMP_DIR}  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}"
-echo "MOUNT CMD ===> $MOUNT_CMD"
-
 function compile
 {
     # Check if env variable file exist
@@ -224,4 +221,3 @@ exit 0
 }
 
 
-@?

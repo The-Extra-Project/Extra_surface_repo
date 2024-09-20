@@ -110,5 +110,3 @@ RUN cd /app/wasure/ && \
     touch /.dockerenv && \
     ./docker_interface.sh compile -j4 -t3 && \
     pip install -r requirements.txt 
-
-CMD ["bash", "/app/wasure/docker_interface.sh", "run_full_pipeline", "--input_dir", $0, "--output_dir",$1, "--params", $2]
