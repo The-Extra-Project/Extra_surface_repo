@@ -16,7 +16,8 @@ services:
       - 7077
     volumes:
       - $HOME/.aws/credentials:/.aws/credentials:ro  
-  
+      - ./example_data:/app/wasure/example_data ##TODO: remove this when we integrate the S3 bucket.
+    command: ["bash", "/app/wasure/docker_interface.sh", "run_full_pipeline"]
   files_uploader:
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/extralabs_file_handler
     env_file: 
