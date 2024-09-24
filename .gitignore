@@ -14,3 +14,4 @@ __pycache__/
 
 storage/
 .env.ui
+config.bat

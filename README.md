@@ -1,8 +1,14 @@
 ## Extra-surface
-UI and SaaS platform that allows the user to schedule 3D reconstructions (by paying a nominal fee for supporitng the EC2 hosting costs) of LidarHD tiles on given instance and send results to the user for visualization.
+UI and SaaS platform that allows the user to schedule 3D reconstructions (by paying a nominal fee for supporitng the infrastructure costs) of LidarHD tiles to 3D meshes of bigger regions (in colorized / 3D format)
 
 ## Credits:
-- [Distributed watertight surface reconstruction, Laurent Caraffa et.al](https://lcaraffa.github.io/edwsr/)  
+- [Distributed watertight surface reconstruction, Laurent Caraffa et.al](https://lcaraffa.github.io/edwsr/).  
+- [code implementation of EDWSR](https://github.com/lcaraffa/sparkling-wasure.git).
+
+
+
+
+For referencing the paper:
 
 ```
 @inproceedings{caraffa:hal-03380593,
@@ -18,60 +24,119 @@ UI and SaaS platform that allows the user to schedule 3D reconstructions (by pay
   HAL_VERSION = {v1},
 }
 ```
-
-
 ## Stack components: 
 
 It consist of the following stack components to run the application:
 
 <img src="doc/database_schema.png"></img>
 
-- [supabase](): For storing the user session database (their payment, current job) , current reconstruction of the tiles status etc. 
+- [Supabase](): For storing the user session database (their payment, current job) , current reconstruction of the tiles status etc. 
 
-- [stripe](): For the payment of the compute costs (fixed per tile in the [frontend]() code).
+- [Stripe](): For the payment of the compute costs (fixed per tile in the [frontend]() code).
 
 - [sparkling_washeur](): Consisting of the reconstruction pipeline with dockerised version.
 
-- [resend](): Service to send the email notifications describing user the different state and the retrieval of the results from the backend once its generated.
+- [Resend](): Service to send the email notifications describing user the different state and the retrieval of the results from the backend once its generated.
 
 - [AWS S3](): Storage service in order to store: 
   - The laz files recovered from the diffusion lidarhd text url file (uploaded by the user).
   - The output results after the reconstruction.
 
-- [redis](): For enqueuing the requests with the RQ wrapper to sequentially execute the jobs.
 
-## Configuration: 
+- [AWS Lambda](): For the compute of the reconstruction of the tiles.
 
-### 1. cp .env.example .env with following parameters :
+- [AWS ECR](): For the container registry of the sparkling_washeur.
 
-1. .env.example stored from the [backend/api](backend/api/.env.example) needs to be initialized with: 
-  - Credentials from the supabase: 
-  - Address of the sender email that needs to be cc'd for the notification system.
-  - S3 credentials including the bucket address and the directory key.
-  - Also insure that you've setup the aws login credentials in the local instance, as [docker-compose](docker-compose.yml) mounts them into the container.
+- [AWS SQS ](): For the queue of the reconstruction jobs.
 
-2. For [sparkling-washeur](), define the parameters of the cluster in [algo-env](backend/sparkling_washeur/algo-env.sh).
-  - Along with the parameters for the cores for compilation in the docker-compose.
-  - Build the enviornment in order to setup the docker container with the conda enviornment for the [sparkling_washeur]().
-
-3. [Frontend](): 
-  - Create stripe test developer account and then paste the values.
-  - In case of deployment on local keep the NEXT_PUBLIC_SITE_URL by exposing the output following the [given tutorial](https://github.com/vercel/next.js/discussions/16429#discussioncomment-1302156).
+- [AWS Cloudtrail](): For the logging of the events that are generated in the AWS infrastructure.
 
 
-### 2. Build and deploy the Microservices. 
+## Setup: 
 
-You can do this via following ways:
 
-### 2.1 either via remotehosting on single instance (not recommended for production usecase) : 
-- On the branch local_ec2_deployment, you can substitute the parameters of the EC2 ip address in the environment variables:
-then run  ```docker compose build && docker compose up -d```
+**Prerequisites**:
+- Node.js and npm installed.
+- Docker and docker compose installed.
+- AWS CLI installed.
+- AWS credentials configured.
 
-### 2.2. The application runs on the following endpoints: 
 
-| location  | URL |
-| ------------- | ------------- |
-| frontend  | https://localhost:3000  |
-| api  | https://localhost:8000  |
-| sparkling_washeur  | https://localhost:8082  |
-| redis|  https://localhost:6379 |
+### 1. containerized deployment:
+- **Define the environment variables**: in the .env file, you need to define the correct variables for the application to run.
+
+-  **Run the docker compose**: 
+   ```bash
+   docker compose build
+   docker compose up -d
+   ```
+
+### 1. For frontend (from source):
+
+-  **Install Dependencies**: Navigate to the frontend directory and install the required dependencies using your preferred package manager. You can use npm, yarn, or pnpm:
+   ```bash
+   npm install
+   # or
+   yarn install
+   # or
+   pnpm install
+   ```
+- **Copy the .env.example file to .env and fill in the required variables**: in case you are deploying on local or remote server, you need to setup the .env.development file or .env.production file with the correct variables initialized. also check env.ts file for the variables that are used in the application.
+
+- **Build the Application**: Run the following command to build the application for production (or either local watch mode):
+  ```bash
+  npm run build
+
+  ```
+- **Start the Development Server**: Run the following command to start the development server:
+  ```bash
+  npm run dev
+  ```
+
+### 2. For backend:
+
+### Running Lambda Functions in Production
+
+To run the lambda functions in production, follow these steps:
+
+1. **Install AWS SAM CLI**: Ensure you have the AWS SAM CLI installed. You can follow the installation guide from the [official AWS documentation](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html).
+
+2. **Navigate to the Lambda Function Directory**: Change your directory to the `@sparkling_washeur_algo` folder where the lambda functions are located.
+   ```bash
+   cd backend/sparkling_washeur_serverless/lambda_services/[files_uploader/events/spark_job_emr]
+   ```
+
+3. **Build the Lambda Functions**: Use the AWS SAM CLI to build the lambda functions.
+   ```bash
+   sam build
+   ```
+
+4. **Package the Lambda Functions**: Package the lambda functions using the AWS SAM CLI. This step uploads the built artifacts to an S3 bucket.
+   ```bash
+   sam package --output-template-file packaged.yaml --s3-bucket ##<YOUR_S3_BUCKET_NAME 
+   ```
+
+5. **Deploy the Lambda Functions**: Deploy the lambda functions using the AWS SAM CLI.
+   ```bash
+   sam deploy  --guided --template-file packaged.yaml --stack-name YOUR_STACK_NAME --parameter-overrides  ## your parameters key=value , .....
+   ```
+
+6. **Verify the Deployment**: After deployment, verify that the lambda functions are correctly deployed and running in the AWS Management Console.
+
+
+
+#### Note: 
+
+- For the sparkling_washeur_emr, you need to setup the ECR repository of the sparkling_washeur that generated by pushing the build from sparkling_washeur_algo.
+
+
+
+8. **For the sparkling_washeur_serverless**:
+
+- setup the .env file with the AWS creds and the S3 bucket name.
+
+- use docker-compose to build the repo 
+```bash
+docker-compose build sparkling_washeur
+docker-compose up -d
+```
