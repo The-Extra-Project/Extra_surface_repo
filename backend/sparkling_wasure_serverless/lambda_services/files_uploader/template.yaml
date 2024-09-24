@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Files Uploader Service
+
+Resources:
+  FilesUploaderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.file_uploader_handler
+      Runtime: python3.12
+      CodeUri: .
+      MemorySize: 2048
+      Timeout: 360
+      Environment:
+        S3_BUCKET: 
+        S3_DIR: 
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref S3Bucket
+      Events:
+        S3UploadEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref S3Bucket
+            Events: 
+              - s3:ObjectCreated:Put
+              - s3:ObjectCreated:Copy
+              - s3:ObjectCreated:CompleteMultipartUpload
+            Environment:
+              Variables:
+                S3_BUCKET: 
+        ApiGateway:
+          Type: Api
+          Properties:
+            Path: /upload
+            Method: post
+            RequestModel:
+              Model: InputFileHandler
+              Required: true
+
+Parameters:
+  S3Bucket:
+    Type: String
+    Description: The S3 bucket where files will be uploaded.
+  
+  S3Dir:
+    Type: String
+    Description: The directory in the S3 bucket for storing uploaded files.
+
+Models:
+  InputFileHandler:
+    Type: Object
+    Properties:
+      input_file_obj:
+        Type: String
+        Description: The input file object URL.
+      username:
+        Type: String
+        Description: The username associated with the upload.
+
+Outputs:
+  FilesUploaderFunction:
+    Description: "Files Uploader Lambda Function ARN"
+    Value: !GetAtt FilesUploaderFunction.Arn

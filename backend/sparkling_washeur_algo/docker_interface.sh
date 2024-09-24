@@ -1,7 +1,5 @@
 #!/bin/bash 
-
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )/"
-
 print_fun() 
 {
     grep "^function" $0
@@ -157,12 +155,33 @@ while [[ "$#" -gt 0 ]]; do
       --input_dir) INPUT_DIR="${2%/}/"; shift ;;
       --colorize) DO_COLORIZE="TRUE" ;;
       --debug) DEBUG_FLAG="-d" ;;
-      --params) PARAMS="${2%/}/"; shift ;;
+      --params) PARAMS="${2%/}"; shift ;;
       --output_dir) OUTPUT_DIR="${2%/}/"; shift ;;
     *) echo "Unknown parameter passed: $1"; usage ;;
   esac
   shift
 done
+
+if [[ ! -d "$INPUT_DIR" ]]; then
+    echo "Error: Input directory does not exist: $INPUT_DIR"
+    exit 1
+fi
+
+if [[ ! -d "$OUTPUT_DIR" ]]; then
+    echo "Error: Output directory does not exist: $OUTPUT_DIR"
+    exit 1
+fi
+
+if [[ ! -f "$PARAMS" ]]; then
+    echo "Error: Parameters file does not exist: $PARAMS"
+    exit 1
+fi
+
+
+echo "Running with the following parameters:"
+echo "Input Directory: $INPUT_DIR"
+echo "Output Directory: $OUTPUT_DIR"
+echo "Parameters File: $PARAMS"
 
 echo "Start processing ${INPUT_DIR} ... "
 echo -e "\n-[start preprocesssing]-"
@@ -204,7 +223,6 @@ run_algo_docker
 
 CURRENT_CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}') 
 
-
 TILE_DIR=${OUTPUT_DIR}/outputs/tiles/
 if [[ ${DO_COLORIZE} == "TRUE" ]]; then
     TILE_DIR=${OUTPUT_DIR}/colorized_tiles
@@ -219,5 +237,12 @@ fi
 
 exit 0
 }
+
+
+if [ "$1" == "run_full_pipeline" ]; then
+    shift
+    run_full_pipeline "$@"
+    exit 0
+fi
 
 

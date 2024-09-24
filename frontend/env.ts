@@ -17,7 +17,8 @@ export const env = createEnv({
       NEXT_PUBLIC_NODE_ENV: z.enum(["development", "production"]),
       NEXT_PUBLIC_STRIPE_PUBLIC_KEY: z.string(),
       NEXT_PUBLIC_WEBSITE_URL: z.string(),
-      NEXT_PUBLIC_API_SERVER_URL: z.string()
+      NEXT_PUBLIC_API_SERVER_URL: z.string(),
+      NEXT_PUBLIC_RESEND_API_KEY: z.string()
    },
     runtimeEnv: {
       API_SERVER_LAMBDA_FILE_UPLOAD: process.env.API_SERVER_LAMBDA_FILE_UPLOAD,
@@ -32,6 +33,7 @@ export const env = createEnv({
       NEXT_PUBLIC_NODE_ENV: process.env.NEXT_PUBLIC_NODE_ENV,
       NEXT_PUBLIC_STRIPE_PUBLIC_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
       NEXT_PUBLIC_WEBSITE_URL: process.env.NEXT_PUBLIC_WEBSITE_URL,
-      NEXT_PUBLIC_API_SERVER_URL: process.env.NEXT_PUBLIC_API_SERVER_URL
+      NEXT_PUBLIC_API_SERVER_URL: process.env.NEXT_PUBLIC_API_SERVER_URL,
+      NEXT_PUBLIC_RESEND_API_KEY: process.env.NEXT_PUBLIC_RESEND_API_KEY
     },  
 });

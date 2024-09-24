@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Serverless application for running Spark jobs on EMR
+
+Resources:
+  SparkJobFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: app.run_compute_job_handler
+      Runtime: python3.8
+      Code:
+        S3Bucket: your-s3-bucket-name
+        S3Key: path/to/your/lambda/package.zip
+      Environment:
+        S3_CLUSTER_NAME: your-emr-cluster-id
+      MemorySize: 2048
+      Timeout: 300
+      Role: arn:aws:iam::your-account-id:role/your-lambda-execution-role
+
+  SparkJobApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: SparkJobApi
+
+  SparkJobApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt SparkJobApi.RootResourceId
+      PathPart: sparkjob
+      RestApiId: !Ref SparkJobApi
+
+  SparkJobApiMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref SparkJobApiResource
+      RestApiId: !Ref SparkJobApi
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/functions/${SparkJobFunction.Arn}/invocations
+
+Outputs:
+  SparkJobApiUrl:
+    Description: "API Gateway endpoint URL for Prod stage for Spark Job"
+    Value: !Sub "https://${SparkJobApi}.execute-api.${AWS::Region}.amazonaws.com/prod/sparkjob"

@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Serverless application for processing events
+
+Resources:
+  EventQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: EventQueue
+
+  EventTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: EventTopic
+
+  EventFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: EventHandlerFunction
+      Handler: event_helper.eventhandler
+      Runtime: python3.8
+      Code:
+        S3Bucket: your-s3-bucket-name
+        S3Key: your-s3-key-for-lambda-code.zip
+      Environment:
+        JOB_QUEUE_URL: !Ref EventQueue
+        SNS_TOPIC: !Ref EventTopic
+        S3_BUCKET: your-s3-bucket-name
+        EMR_JOB_STATE_MACHINE_ARN: your-emr-state-machine-arn
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaSQSSNSS3Policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sns:Publish
+                  - s3:GetObject
+                  - cloudtrail:LookupEvents
+                  - lambda:InvokeFunction
+                Resource:
+                  - !GetAtt EventQueue.Arn
+                  - !Ref EventTopic
+                  - arn:aws:s3:::your-s3-bucket-name/*
+                  - arn:aws:lambda:your-region:your-account-id:function:email_sending_serverless
+
+Outputs:
+  EventQueueUrl:
+    Description: URL of the created SQS queue
+    Value: !Ref EventQueue
+
+  EventTopicArn:
+    Description: ARN of the created SNS topic
+    Value: !Ref EventTopic
+
+  EventFunctionArn:
+    Description: ARN of the Lambda function
+    Value: !GetAtt EventFunction.Arn
