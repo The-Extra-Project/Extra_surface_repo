@@ -2,24 +2,22 @@
 # This is the CMake script for compiling a CGAL application.
 # Then modified by hand to add Eigen3.
 
-
 project( wasure )
-
 
 # ---- CMAKE stuffs ----
 cmake_minimum_required(VERSION 3.5)
 if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" VERSION_GREATER 2.6)
-if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
-cmake_policy(VERSION 2.8.4)
-else()
-cmake_policy(VERSION 2.6)
-endif()
+  if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
+    cmake_policy(VERSION 2.8.4)
+  else()
+    cmake_policy(VERSION 2.6)
+  endif()
 endif()
 
-SET(GLOBAL_BUILD_DIR "$ENV{GLOBAL_BUILD_DIR}")
-SET(EXTERN_PROJECT_SRC_DIR "$ENV{EXTERN_PROJECT_SRC_DIR}")
-SET(DDT_MAIN_DIR "$ENV{DDT_MAIN_DIR}")
-SET(CMAKE_FIND_DIR "$ENV{CMAKE_FIND_DIR}")
+set(GLOBAL_BUILD_DIR "$ENV{GLOBAL_BUILD_DIR}")
+set(EXTERN_PROJECT_SRC_DIR "$ENV{EXTERN_PROJECT_SRC_DIR}")
+set(DDT_MAIN_DIR "$ENV{DDT_MAIN_DIR}")
+set(CMAKE_FIND_DIR "$ENV{CMAKE_FIND_DIR}")
 
 #add_definitions("-DDDT_CGAL_TRAITS_D=3")
 #add_definitions("-DDDT_CGAL_TRAITS_D=2")
@@ -40,7 +38,7 @@ endif()
 
 
 # ---- Add /Defines depts ----
-SET(INCLUDE_DIR ${wasure_SOURCE_DIR}/include/)
+set(INCLUDE_DIR ${wasure_SOURCE_DIR}/include/)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${GLOBAL_BUILD_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${GLOBAL_BUILD_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${GLOBAL_BUILD_DIR}/bin)
@@ -59,10 +57,7 @@ INCLUDE(${CMAKE_FIND_DIR}/FindHDFS.cmake)
 INCLUDE(${CMAKE_FIND_DIR}/FindDouble-conversion.cmake)
 #INCLUDE(${CMAKE_FIND_DIR}/FindCUT-PURSUIT.cmake)
 
-
 add_definitions("-DDDT_USE_HDFS=1")
-
-
 
 find_package(Boost COMPONENTS system filesystem program_options REQUIRED)
 
@@ -83,7 +78,6 @@ else()
     message(STATUS "NOTICE: This program requires the Eigen3 library, and will not be compiled.")
 endif()
 
-
 set(WASURE_EXE_LIB_DEP
   ${DDTLIB_LIBRARIES}
   ${ANN_LIBRARIES}
@@ -91,7 +85,7 @@ set(WASURE_EXE_LIB_DEP
   ${GRAPHCUT_LIBRARIES}
   ${TINYPLY_LIBRARIES}
   ${DOUBLE_CONV_LIBRARIES}
-  ${CGAL_LIBRARIES} 
+  ${CGAL_LIBRARIES}
   ${CGAL_3RD_PARTY_LIBRARIES}
   ${CIMG_LIB}
   ${Boost_FILESYSTEM_LIBRARY}
@@ -99,10 +93,8 @@ set(WASURE_EXE_LIB_DEP
 )
 
 
-
-
-# ---- Defin global flags and versions ----
-set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wuninitialized -Wall -O0 -g -fPIC -pthread -std=gnu++11")
+# ---- Define global flags and versions ----
+set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wuninitialized -Wall -O3 -g -fPIC -pthread -std=gnu++11")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -w -O3 -DNDEBUG -pthread  -fPIC -std=gnu++11")
 
 

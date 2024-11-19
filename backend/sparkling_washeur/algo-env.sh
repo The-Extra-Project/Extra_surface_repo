@@ -1,15 +1,14 @@
 ## Docker 
-export NAME_IMG_BASE="ddt_img_base_devel"
+export NAME_IMG_BASE="ddt_img_base_multistage"  # ddt_img_base_22_04
 export CONTAINER_NAME_SHELL="ddt_container_shell"
-export CONTAINER_NAME_COMPILE="ddt_container_compile"
+export CONTAINER_NAME_COMPILE="ddt_img_base_multistage"
 
 ## Shared dir
 export DDT_MAIN_DIR_DOCKER=${DDT_MAIN_DIR}
-export SHARED_DIR="${DDT_MAIN_DIR_DOCKER}/storage/shared_spark/"
-export TMP_DIR="${SHARED_DIR}/tmp/"
+export SPARK_SHARED_DIR="${DDT_MAIN_DIR_DOCKER}/storage/shared_spark/"
+export TMP_DIR="${SPARK_SHARED_DIR}/tmp/"
 export SPARK_TMP_DIR="${TMP_DIR}/spark/"
 export SPARK_HISTORY_DIR="${SPARK_TMP_DIR}"
-
 
 ## Spark
 export CURRENT_PLATEFORM="local"

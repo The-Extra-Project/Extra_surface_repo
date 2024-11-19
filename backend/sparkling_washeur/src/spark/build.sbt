@@ -7,8 +7,7 @@ scalacOptions += "-target:jvm-1.7"
 javacOptions ++= Seq("-source", "1.7")
 
 
-
-sparkComponents := Seq("core", "sql","graphx")
+sparkComponents := Seq("core", "sql", "graphx")
 sparkVersion := "3.5.0"
 
 // libraryDependencies ++= Seq(
@@ -29,9 +28,10 @@ libraryDependencies ++= Seq(
   // "org.vegas-viz" %% "vegas-spark" % "0.3.11"
 )
 
-
-
-
-
-
 spIgnoreProvided := true
+
+/* Assembly settings
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+} */

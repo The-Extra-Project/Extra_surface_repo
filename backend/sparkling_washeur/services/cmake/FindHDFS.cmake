@@ -2,18 +2,18 @@ FIND_PATH(HDFS_INCLUDE_DIR hdfs.h
   ${EXTERN_PROJECT_SRC_DIR}/libhdfs/include/
 )
 
-
 FIND_LIBRARY(HDFS_LIBRARIES libhdfs.so 
-  ${EXTERN_PROJECT_SRC_DIR}/libhdfs/lib/ 
+  ${EXTERN_PROJECT_SRC_DIR}/libhdfs/lib/
+  /usr/local/bin/hadoop-2.7.7-src/hadoop-hdfs-project/hadoop-hdfs/src/build/target/usr/local/lib
 )
 
-  MESSAGE(STATUS "====> :   ${EXTERN_PROJECT_SRC_DIR}/libhdfs/source/ ")
+MESSAGE(STATUS "Found HDFS lib: ${EXTERN_PROJECT_SRC_DIR}/libhdfs/source/")
 
 FIND_LIBRARY(JVM_LIBRARIES
   NAMES libjvm.so
-  HINTS  /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server/
+  HINTS /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server/ 
+  #/usr/lib/jvm/java-8-openjdk-arm64/jre/lib/aarch64/server/
 )
-
 
 
 IF (HDFS_INCLUDE_DIR)

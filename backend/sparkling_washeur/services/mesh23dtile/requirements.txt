@@ -1,0 +1,7 @@
+matplotlib
+numpy
+pandas
+pyproj
+plyfile
+trimesh
+pymeshlab==v2021.10

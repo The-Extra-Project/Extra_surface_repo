@@ -18,15 +18,15 @@ usage() {
 ### Run spark-shell with a given script,params and input dir.
 # INPUT_DIR  : The directory with ply file
 # OUTPUT     : The output directcory
-# PARAMS     : Xml file with algo prameters
+# PARAMS     : Xml file with algo parameters
 # FILESCRIPT : Scala algorithm
 function run_algo_docker
 {
-    if [ -z "$PARAMS" ]; then PARAMS="void.xml"
-    fi
-    echo ""
-    echo "##  ------  ${FUNCNAME[1]}  ------"
-    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark  -i ${INPUT_DIR} -p ${PARAMS} -o ${OUTPUT_DIR} -f ${FILE_SCRIPT}  -s master -c ${NUM_PROCESS} -m ${MASTER_IP_SPARK} -b ${BUILDS_DIR} ${DEBUG_FLAG}"
+    if [ -z "$PARAMS" ]; then PARAMS="void.xml"; fi
+    echo -e "\n------  ${FUNCNAME[1]}  ------"
+    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark -p ${PARAMS} -f ${FILE_SCRIPT} \
+        -i ${INPUT_DIR} -o ${OUTPUT_DIR} -b ${BUILDS_DIR} \
+        -s master -c ${NUM_PROCESS} -m ${MASTER_IP_SPARK} ${DEBUG_FLAG}"
     eval ${CMD}
     return 0
 }

@@ -89,12 +89,12 @@ def node2dict(bbox,name,children,depth,coords) :
 
     #import pdb; pdb.set_trace() 
     #leaf_dict["boundingVolume"] = { "region": bbox }
-    if coords :
+    if coords:
         leaf_dict["boundingVolume"] = { "region": bbox2region(bbox,coords) }
-    else :
+    else:
         leaf_dict["boundingVolume"] = { "box": bbox23Dbox(bbox) }
 
-    leaf_dict["raw_bbox"] = { "box" :  bbox }        
+    leaf_dict["raw_bbox"] = { "box" :  bbox }
     leaf_dict["content"] =  { "uri" :  str(name)  }
     leaf_dict["geometricError"] = str(geom_error[depth])
     leaf_dict["refine"] = "REPLACE"
@@ -116,7 +116,6 @@ def merge_subtree(node_tt,depth,output_dir,coords) :
             joint_string += [x.name]
             #children_dict += [leaf_dict]
 
-    
     for bb in node_tt.branches :
         if bb is None :
             continue
@@ -129,7 +128,7 @@ def merge_subtree(node_tt,depth,output_dir,coords) :
         ms = pymeshlab.MeshSet()
         for ff in joint_string :
             ms.load_new_mesh(ff)
-        
+
         ms.flatten_visible_layers()
         if not node_tt.isLeafNode :
             ms.simplification_quadric_edge_collapse_decimation(targetfacenum = target_face_num,preserveboundary = True)
@@ -174,7 +173,6 @@ def build_3DT(inputs) :
             max_value=max_depth
     )
 
-            
     for ff in os.listdir(inputs["input_dir"]):
         if ff.endswith(".ply"):
             full_path = os.path.join(inputs["input_dir"], ff)
@@ -240,11 +238,11 @@ def build_3DT(inputs) :
     final_dict["asset"] = { "version" : "1.0" }
     final_dict["geometricError"] = "20"
     final_dict["root"] = sub_dict
-    json_name = inputs["output_dir"] +  "/tileset.json"    
+    json_name = inputs["output_dir"] +  "/tileset.json"
     with open(json_name, 'w') as fp:
         json.dump(final_dict, fp)
 
-    
+
 if __name__ == '__main__':
     random.seed(10)
     ###### Input Param parsing / setting =============
@@ -263,17 +261,16 @@ if __name__ == '__main__':
                         help='translation coords')
     parser.add_argument('--mode_proj', default='0',
                         help='mode_proj')
-    
 
-    
+
     args=parser.parse_args()
     inputs=vars(args)
 
 
-    if  args.input_dir and args.output_dir   :
+    if  args.input_dir and args.output_dir:
         inputs["input_dir"]= os.path.expanduser(args.input_dir)
         inputs["output_dir"] = args.output_dir
-    else :
+    else:
         print("Error, ")
         print("--input_dir is mandatory")
         quit()
@@ -287,7 +284,6 @@ if __name__ == '__main__':
         inputs["meshlab_mode"]=args.meshlab_mode
 
 
-        
     print("\n=== Params ===  \n" + "\n".join("{} ==> {}".format(k, v) for k, v in inputs.items()))
     build_3DT(inputs)
 

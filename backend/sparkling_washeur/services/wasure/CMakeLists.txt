@@ -2,24 +2,22 @@
 # This is the CMake script for compiling a CGAL application.
 # Then modified by hand to add Eigen3.
 
-
 project( wasure )
-
 
 # ---- CMAKE stuffs ----
 cmake_minimum_required(VERSION 3.5)
 if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" VERSION_GREATER 2.6)
-if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
-cmake_policy(VERSION 2.8.4)
-else()
-cmake_policy(VERSION 2.6)
-endif()
+  if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
+    cmake_policy(VERSION 2.8.4)
+  else()
+    cmake_policy(VERSION 2.6)
+  endif()
 endif()
 
-SET(GLOBAL_BUILD_DIR "$ENV{GLOBAL_BUILD_DIR}")
-SET(EXTERN_PROJECT_SRC_DIR "$ENV{EXTERN_PROJECT_SRC_DIR}")
-SET(DDT_MAIN_DIR "$ENV{DDT_MAIN_DIR}")
-SET(CMAKE_FIND_DIR "$ENV{CMAKE_FIND_DIR}")
+set(GLOBAL_BUILD_DIR "$ENV{GLOBAL_BUILD_DIR}")
+set(EXTERN_PROJECT_SRC_DIR "$ENV{EXTERN_PROJECT_SRC_DIR}")
+set(DDT_MAIN_DIR "$ENV{DDT_MAIN_DIR}")
+set(CMAKE_FIND_DIR "$ENV{CMAKE_FIND_DIR}")
 
 #add_definitions("-DDDT_CGAL_TRAITS_D=3")
 if(DDT_TRAITS STREQUAL "2")
@@ -41,33 +39,31 @@ else()
 endif()
 
 
-
-# ---- Add /Defines depts ----
-SET(INCLUDE_DIR ${wasure_SOURCE_DIR}/include/)
+# ---- Add/Defines depts ----
+set(INCLUDE_DIR ${wasure_SOURCE_DIR}/include/)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${GLOBAL_BUILD_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${GLOBAL_BUILD_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${GLOBAL_BUILD_DIR}/bin)
 
 
 # Includes contrib
-INCLUDE(${CMAKE_FIND_DIR}/FindANN.cmake)
-INCLUDE(${CMAKE_FIND_DIR}/FindDDTLIB.cmake)
-INCLUDE(${CMAKE_FIND_DIR}/FindEIGEN.cmake)
-INCLUDE(${CMAKE_FIND_DIR}/FindGRAPHCUT.cmake)
-INCLUDE(${CMAKE_FIND_DIR}/FindHDFS.cmake)
-INCLUDE(${CMAKE_FIND_DIR}/FindLAS.cmake)
-INCLUDE(${CMAKE_FIND_DIR}/FindQPBO.cmake)
-INCLUDE(${CMAKE_FIND_DIR}/FindTINYPLY.cmake)
-INCLUDE(${CMAKE_FIND_DIR}/FindCIMG.cmake)
-INCLUDE(${CMAKE_FIND_DIR}/FindDouble-conversion.cmake)
-
+include(${CMAKE_FIND_DIR}/FindANN.cmake)
+include(${CMAKE_FIND_DIR}/FindDDTLIB.cmake)
+include(${CMAKE_FIND_DIR}/FindEIGEN.cmake)
+include(${CMAKE_FIND_DIR}/FindGRAPHCUT.cmake)
+include(${CMAKE_FIND_DIR}/FindHDFS.cmake)
+include(${CMAKE_FIND_DIR}/FindLAS.cmake)
+include(${CMAKE_FIND_DIR}/FindQPBO.cmake)
+include(${CMAKE_FIND_DIR}/FindTINYPLY.cmake)
+include(${CMAKE_FIND_DIR}/FindCIMG.cmake)
+include(${CMAKE_FIND_DIR}/FindDouble-conversion.cmake)
 
 
 add_definitions("-DDDT_USE_HDFS=1")
 
 find_package(Boost COMPONENTS system filesystem program_options REQUIRED)
 
-find_package(CGAL QUIET)
+find_package(CGAL QUIET REQUIRED)
 if ( CGAL_FOUND )
   set(CGAL_OPTIMISATION_NO_PRECONDITIONS TRUE)
   set(CGAL_DONT_OVERRIDE_CMAKE_FLAGS TRUE CACHE BOOL "Don't override flags")
@@ -77,7 +73,7 @@ else()
   message(STATUS "NOTICE: This program requires the CGAL library, and will not be compiled.")
 endif()
 
-find_package(Eigen3)
+find_package(Eigen3 REQUIRED)
 if (EIGEN3_FOUND)
     include( ${EIGEN3_USE_FILE} )	
 else()
@@ -85,9 +81,15 @@ else()
 endif()
 
 # Use FindLibXml2 module to locate libxml2
-find_package(LibXml2 REQUIRED)
-# Add include directories for libxml2
+# find_library(LIBXML2_LIBRARY NAMES xml2 PATHS /usr/lib/x86_64-linux-gnu)
 
+# if(LIBXML2_LIBRARY)
+#     message(STATUS "libxml2 found: ${LIBXML2_LIBRARY}")
+# else()
+#     message(FATAL_ERROR "libxml2 not found in /usr/lib/x86_64-linux-gnu")
+# endif()
+find_package(LIBXML2 REQUIRED)
+# Add include directories for libxml2
 
 
 set(WASURE_EXE_LIB_DEP
@@ -107,10 +109,8 @@ set(WASURE_EXE_LIB_DEP
 )
 
 
-
-
-# ---- Defin global flags and versions ----
-set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wuninitialized -Wall -O0 -g -lxml2 -fPIC -pthread -std=gnu++11")
+# ---- Define global flags and versions ----
+set(CMAKE_CXX_FLAGS_DEBUG "-pthread -Wuninitialized -Wall -O3 -g -lxml2 -fPIC -pthread -std=gnu++11")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fpermissive -w -O3 -DNDEBUG -pthread -lxml2  -fPIC -std=gnu++11")
 set(CIMG_LIB -L/usr/X11R6/lib -lm -lpthread -lX11)
 

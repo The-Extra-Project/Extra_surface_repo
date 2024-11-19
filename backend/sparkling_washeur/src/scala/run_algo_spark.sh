@@ -46,9 +46,7 @@ function run_master (){
 
     export_params ${MASTER_IP}
 
-
     ${DDT_MAIN_DIR}/src/spark/spark.sh start_all ${MASTER_IP}
-
 
     echo ""
     echo "//  ===============   INFO ======================="
@@ -88,6 +86,7 @@ function run_master (){
 
 	}
 
+
 function run_slave (){
     export_params ${MASTER_IP}
     ${DDT_MAIN_DIR}/src/spark/spark.sh start_spark_slave ${MASTER_IP}
@@ -101,7 +100,6 @@ function run_slave (){
 	sleep 2s
     done
 }
-
 
 function help (){
     echo "$0 -i -o"
@@ -144,25 +142,18 @@ do
 
 done
 
-if [[ ! -d $INPUT_DATA_DIR || ! -d $OUTPUT_DATA_DIR  || -z $PARAM_PATH ]];
-then
+if [[ ! -d $INPUT_DATA_DIR || ! -d $OUTPUT_DATA_DIR  || -z $PARAM_PATH ]]; then
     echo "---- Err : bad args -----"
     echo "INPUT_DATA_DIR=\"${INPUT_DATA_DIR}\" or OUTPUT_DATA_DIR=\"${OUTPUT_DATA_DIR}\" or PARAM_PATH=\"${PARAM_PATH}\" does not exists" 
     exit 1;
 fi
 
-
-
-if [ -z "$SPARK_CONF" ]
-then
+if [ -z "$SPARK_CONF" ]; then
     SPARK_CONF="local"
 fi
 
-
-
 echo "SPARK_CONF ---- $SPARK_CONF"
 echo "MASTER IP ----- $MASTER_IP"
-
 
 
 case "$SPARK_CONF" in

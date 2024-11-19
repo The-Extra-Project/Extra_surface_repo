@@ -1,13 +1,13 @@
-#!/usr/bin/env python3
 import os
-
 import aws_cdk as cdk
-
-from infra.infra_stack import InfraStack
+from stacks.ecr import ECRStack
+from stacks.emr.stack import EMRStack
+#from stacks.infra_stack import InfraStack
 
 
 app = cdk.App()
-InfraStack(app, "InfraStack",
+
+#InfraStack(app, "InfraStack",
     # If you don't specify 'env', this stack will be environment-agnostic.
     # Account/Region-dependent features and context lookups will not work,
     # but a single synthesized template can be deployed anywhere.
@@ -23,7 +23,15 @@ InfraStack(app, "InfraStack",
     #env=cdk.Environment(account='123456789012', region='us-east-1'),
 
     # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
-    
-    )
+#)
+
+
+ecr = ECRStack(app, "ECRStack")
+
+EMRStack(app, "EMRStack", ecr, env=cdk.Environment(
+    account=os.getenv('CDK_DEFAULT_ACCOUNT'),
+    region=os.getenv('CDK_DEFAULT_REGION'))
+)
+
 
 app.synth()

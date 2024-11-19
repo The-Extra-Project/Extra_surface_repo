@@ -11,3 +11,9 @@ __pycache__/
 
 storage/
 .env.ui
+
+*metals
+*vscode
+
+cdk.context.json
+.DS_Store
