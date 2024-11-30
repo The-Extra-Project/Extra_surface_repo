@@ -1,13 +1,13 @@
 #!/bin/bash
 
-### Start workflow in local mode 
+### Start workflow in local mode
 export DDT_MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}")/" && pwd )"
 source ${DDT_MAIN_DIR}/algo-env.sh
 GLOBAL_OUTPUT_DIR="${SPARK_SHARED_DIR}/outputs/"
 GLOBAL_INPUT_DIR="${SPARK_SHARED_DIR}/datas/"
 BUILDS_DIR="${DDT_MAIN_DIR}/build/"
 
-mkdir -p  /tmp/spark-events
+mkdir -p /tmp/spark-events; chmod 777 /tmp/spark-events
 
 # Function to display usage
 usage() {
@@ -20,12 +20,12 @@ usage() {
 # OUTPUT     : The output directcory
 # PARAMS     : Xml file with algo parameters
 # FILESCRIPT : Scala algorithm
-function run_algo_docker
-{
+function run_algo_docker {
     if [ -z "$PARAMS" ]; then PARAMS="void.xml"; fi
     echo -e "\n------  ${FUNCNAME[1]}  ------"
-    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark -p ${PARAMS} -f ${FILE_SCRIPT} \
+    CMD="${DDT_MAIN_DIR}/src/docker/docker_interface.sh run_algo_spark \
         -i ${INPUT_DIR} -o ${OUTPUT_DIR} -b ${BUILDS_DIR} \
+        -p ${PARAMS} -f ${FILE_SCRIPT} \
         -s master -c ${NUM_PROCESS} -m ${MASTER_IP_SPARK} ${DEBUG_FLAG}"
     eval ${CMD}
     return 0
@@ -42,31 +42,35 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 
-echo "Start processing ${INPUT_DIR} "
-echo -e "\n\n\n ---[run distributed algorithm laz file with preprocessing]---"
-echo -e "\n -[start preprocesssing]-"
+echo "PROCESSING ${INPUT_DIR} "
+echo -e "\n\n ---[run distributed algorithm laz file with preprocessing]---"
+echo -e "\n [PREPROCESSING]"
 INPUT_BASE=$(basename "${INPUT_DIR}")
 PARAMS="${INPUT_DIR}/wasure_metadata.xml"
 FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_preprocess.scala"
 ##touch  $PARAMS
-echo "params is defined as:" + ${PARAMS} + "and running the preprocessing pipeline:" + ${FILE_SCRIPT}
+echo "Params defined as:" + ${PARAMS} + "and running the preprocessing pipeline:" + ${FILE_SCRIPT}
 
-run_algo_docker
+# run_algo_docker
 
 echo -e "\n -[start reconstruction]-"
 INPUT_DIR=${OUTPUT_DIR}
 PARAMS="${OUTPUT_DIR}/wasure_metadata_3d_gen.xml"
 FILE_SCRIPT="${DDT_MAIN_DIR}/services/wasure/workflow/workflow_wasure.scala"
 
-run_algo_docker
+# run_algo_docker
 
-CURRENT_CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}') 
-if [[ ${CURRENT_CONDA_ENV} == "mesh23Dtile" ]]; then
-    echo -e "\n -[Create LODs from tiled mesh]-"
-    mkdir -p ${OUTPUT_DIR}/LODs
-    ./services/mesh23dtile/run.sh --input_dir ${OUTPUT_DIR}/outputs/tiles/ --xml_file ${PARAMS} --output_dir ${OUTPUT_DIR}/LODs
-else	
-    echo "conda env mesh23Dtile not created or conda not installed"
-fi
+# CURRENT_CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}') 
+# if [[ ${CURRENT_CONDA_ENV} == "mesh23Dtile" ]]; then
+#     echo -e "\n -[Create LODs from tiled mesh]-"
+#     mkdir -p ${OUTPUT_DIR}/LODs
+#     ./services/mesh23dtile/run.sh --input_dir ${OUTPUT_DIR}/outputs/tiles/ --xml_file ${PARAMS} --output_dir ${OUTPUT_DIR}/LODs
+# else	
+#     echo "conda env mesh23Dtile not created or conda not installed"
+# fi
+
+echo -e "\n -[Create LODs from tiled mesh]-"
+mkdir -p ${OUTPUT_DIR}/LODs
+./services/mesh23dtile/run.sh --input_dir ${OUTPUT_DIR}/outputs/tiles/ --xml_file ${PARAMS} --output_dir ${OUTPUT_DIR}/LODs
 
 exit 0

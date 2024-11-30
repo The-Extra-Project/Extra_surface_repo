@@ -12,7 +12,7 @@ include_directories(SYSTEM ${ANN_INCLUDE_DIR})
 include_directories(SYSTEM ${GRAPHCUT_INCLUDE_DIR})
 include_directories(SYSTEM ${CIMG_INCLUDE_DIR})
 include_directories(SYSTEM ${GLOBAL_BUILD_DIR})
-include_directories(SYSTEM ${HDFS_INCLUDE_DIR})
+#include_directories(SYSTEM ${HDFS_INCLUDE_DIR})
 include_directories(SYSTEM ${DOUBLE_CONV_INCLUDE_DIR})
 find_package(ZLIB)
 
@@ -27,7 +27,7 @@ set_property(TARGET ddt-stream-exe PROPERTY CXX_STANDARD 11)
 target_link_libraries(ddt-stream-exe
   # intern dependencies
   ${WASURE_EXE_LIB_DEP}
-  ${HDFS_LIBRARIES}
+  #${HDFS_LIBRARIES}
   ${DOUBLE_CONV_LIBRARIES}
 )
 
@@ -40,7 +40,7 @@ set_property(TARGET identity-exe PROPERTY CXX_STANDARD 11)
 target_link_libraries(identity-exe
   # intern dependencies
   ${WASURE_EXE_LIB_DEP}
-  ${HDFS_LIBRARIES}
+  #${HDFS_LIBRARIES}
 )
 
 if(CMAKE_VERBOSITY GREATER 0)

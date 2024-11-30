@@ -99,8 +99,8 @@ endif()
 # endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -pthread")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O3  -std=gnu++11")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -pthread")
 
 
 # --------- Start Lib dependencies
@@ -166,14 +166,14 @@ set_target_properties( libddt PROPERTIES PREFIX "" )
 
 # Add a custom target
 add_custom_target("format" COMMAND
-astyle
---style=allman --keep-one-line-blocks --recursive  --suffix=none
-${CMAKE_CURRENT_SOURCE_DIR}/${CPP_CORE_LOCAL_DIR}/*.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/${CPP_CORE_LOCAL_DIR}/*.hpp
-${CMAKE_CURRENT_SOURCE_DIR}/${SERVICES_LOCAL_DIR}/ddt/src/exe/*.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/${SERVICES_LOCAL_DIR}/ddt/include/*.hpp
-${CMAKE_CURRENT_SOURCE_DIR}/${SERVICES_LOCAL_DIR}/wasure/src/exe/*.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/${SERVICES_LOCAL_DIR}/wasure/src/lib/*.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/${SERVICES_LOCAL_DIR}/wasure/include/*.hpp
-VERBATIM
+  astyle
+  --style=allman --keep-one-line-blocks --recursive  --suffix=none
+  ${CMAKE_CURRENT_SOURCE_DIR}/${CPP_CORE_LOCAL_DIR}/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/${CPP_CORE_LOCAL_DIR}/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/${SERVICES_LOCAL_DIR}/ddt/src/exe/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/${SERVICES_LOCAL_DIR}/ddt/include/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/${SERVICES_LOCAL_DIR}/wasure/src/exe/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/${SERVICES_LOCAL_DIR}/wasure/src/lib/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/${SERVICES_LOCAL_DIR}/wasure/include/*.hpp
+  VERBATIM
 )

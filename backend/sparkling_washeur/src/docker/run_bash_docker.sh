@@ -21,7 +21,7 @@ function run_fun () {
 			# fi
 
 			# Run the container in the detached mode
-			docker run --memory=16g --cpus="2.0" -u 0 --privileged -d -it --name $CONTAINER_NAME $MOUNT_CMD \
+			docker run --memory=16g --cpus="2.0" -u $(id -u):$(id -g) --privileged -d -it --name $CONTAINER_NAME $MOUNT_CMD \
 				-e COLUMNS="$(tput cols)" -e LINES="$(tput lines)" -e DDT_MAIN_DIR="$DDT_MAIN_DIR_DOCKER" \
 				${NAME_IMG}
 
@@ -35,16 +35,16 @@ function run_fun () {
 
 			# Debug mode configuration
 			if [ -z "$BASH_CMD" ] && [ -z "${DEBUG_MODE}" ]; then
-				CMD="docker exec -it -u 0 $CONTAINER_NAME /bin/bash"
+				CMD="docker exec -it -u $(id -u):$(id -g) $CONTAINER_NAME /bin/bash"
 				echo "==> $CMD"
 				eval $CMD
 			else
 				case "${DEBUG_MODE}" in
 					bash | shell)
-						DOCKER_EXE="docker exec -it -u 0 $CONTAINER_NAME /bin/bash"
+						DOCKER_EXE="docker exec -it -u $(id -u):$(id -g) $CONTAINER_NAME /bin/bash"
 						;;
 					scala)
-						DOCKER_EXE="docker exec -it -u 0 $CONTAINER_NAME bash -c \"${BASH_CMD}\""
+						DOCKER_EXE="docker exec -it -u $(id -u):$(id -g) $CONTAINER_NAME bash -c \"${BASH_CMD}\""
 						;;
 					*)
 						DOCKER_EXE="docker exec $CONTAINER_NAME bash -c \"${BASH_CMD}\""

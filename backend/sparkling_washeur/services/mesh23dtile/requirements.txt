@@ -1,5 +1,4 @@
-matplotlib
-numpy
+matplotlib==3.6
 pandas
 pyproj
 plyfile

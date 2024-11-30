@@ -12,7 +12,7 @@ class ECRStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         self.registry_emr = ecr.Repository(self, "ECRRepositoryEMR",
-            repository_name="emr-dev",
+            repository_name="extralabs-emr-dev",
             empty_on_delete=False,
             image_scan_on_push=True,
             image_tag_mutability=ecr.TagMutability.MUTABLE,

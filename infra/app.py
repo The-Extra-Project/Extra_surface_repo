@@ -1,6 +1,7 @@
 import os
 import aws_cdk as cdk
 from stacks.ecr import ECRStack
+from stacks.s3 import S3Stack
 from stacks.emr.stack import EMRStack
 #from stacks.infra_stack import InfraStack
 
@@ -25,13 +26,13 @@ app = cdk.App()
     # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
 #)
 
-
+s3 = S3Stack(app, "S3Stack")
 ecr = ECRStack(app, "ECRStack")
 
-EMRStack(app, "EMRStack", ecr, env=cdk.Environment(
-    account=os.getenv('CDK_DEFAULT_ACCOUNT'),
-    region=os.getenv('CDK_DEFAULT_REGION'))
-)
+# EMRStack(app, "EMRStack", ecr, s3, env=cdk.Environment(
+#     account=os.getenv('CDK_DEFAULT_ACCOUNT'),
+#     region=os.getenv('CDK_DEFAULT_REGION'))
+# )
 
 
 app.synth()

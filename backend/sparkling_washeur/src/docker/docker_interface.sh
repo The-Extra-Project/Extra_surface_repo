@@ -12,14 +12,13 @@ else
 fi
 
 
-print_fun() 
-{
+print_fun() {
     grep "^function" $0
 }
 
 if [ $# -eq 0 ]; then
-    echo "No arguments supplied"
-    echo "=> functions aviable are : "
+    echo "No arguments supplied!"
+    echo "=> functions available are : "
     print_fun
     exit 1
 fi
@@ -28,8 +27,7 @@ MOUNT_CMD="${MOUNT_CMD} -v /tmp/:/tmp/ -v ${TMP_DIR}:${TMP_DIR} -v ${SPARK_SHARE
 echo "MOUNT CMD ===> $MOUNT_CMD"
 
 
-function compile
-{
+function compile {
     echo -e "\nStarting daemon..."
     echo -e "\nCompiling..."
     DDT_TRAITS="3"
@@ -51,11 +49,11 @@ function compile
         esac
     done
 
-    #docker rm -f ${CONTAINER_NAME_COMPILE} 2>/dev/null
+    docker rm -f ${CONTAINER_NAME_COMPILE} 2>/dev/null
 
+    SPARK_BUILD_DIR="${GLOBAL_BUILD_DIR}/spark/"
     GLOBAL_BUILD_DIR="${DDT_MAIN_DIR_DOCKER}/build/"
     KERNEL_BUILD_DIR="${GLOBAL_BUILD_DIR}/build-spark-${COMPILE_MODE}-${DDT_TRAITS}/"
-    SPARK_BUILD_DIR="${GLOBAL_BUILD_DIR}/spark/"
 
     # Compile ddt project at the top level:: ./CMakeLists.txt
     EXEC_FUN="mkdir -p ${KERNEL_BUILD_DIR} && cd ${KERNEL_BUILD_DIR} && \
@@ -68,7 +66,7 @@ function compile
     fi
 
     # Compile services:: ./services
-    EXEC_FUN="${EXEC_FUN} && echo -e '\nBUILDING SERVICES' && cd ${DDT_MAIN_DIR_DOCKER}/services/ && \
+    EXEC_FUN="${EXEC_FUN} && echo -e '\nBUILDING SERVICES\n' && cd ${DDT_MAIN_DIR_DOCKER}/services/ && \
               ./build-unix.sh build -b ${KERNEL_BUILD_DIR} -c ${COMPILE_MODE} -t ${DDT_TRAITS} -j ${NB_PROC}"
 
     # Compile spark:: ./src/spark
@@ -79,9 +77,8 @@ function compile
     ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -l "${EXEC_FUN}" -m "${MOUNT_CMD}" -i "${NAME_IMG_BASE}" -c ${CONTAINER_NAME_COMPILE}
 }
 
-
-function build # Build docker container
-{
+# Build docker container
+function build {
     echo "name_img_base => ${NAME_IMG_BASE}"
     case ${NAME_IMG_BASE} in
         "ddt_img_base_18_04")
@@ -106,15 +103,15 @@ function build # Build docker container
 }
 
 
-function kill_container { 
+function kill_container {
     echo "kill all container: ${CONTAINER_NAME_EXAMPLE}"
     docker rm -f ${CONTAINER_NAME_SHELL} 2>/dev/null
     docker rm -f ${CONTAINER_NAME_COMPILE} 2>/dev/null
 }
 
 
-function run_algo_spark # Run the main pipeline
-{
+# Run the main pipeline
+function run_algo_spark {
     while getopts "i:f:o:p:s:m:r:b:c:d" OPTION
     do
         case $OPTION in
@@ -153,16 +150,19 @@ function run_algo_spark # Run the main pipeline
 	    esac
     done
 
-    MOUNT_CMD="${MOUNT_CMD} -v ${INPUT_DATA_DIR}:${INPUT_DATA_DIR}"
-    MOUNT_CMD="${MOUNT_CMD} -v ${OUTPUT_DATA_DIR}:${OUTPUT_DATA_DIR}"
+    MOUNT_CMD="${MOUNT_CMD} \
+               -v ${INPUT_DATA_DIR}:${INPUT_DATA_DIR} \
+               -v ${OUTPUT_DATA_DIR}:${OUTPUT_DATA_DIR} \
+               -v ${SPARK_EVENTS_DIR}:${SPARK_EVENTS_DIR}"
 
-    echo -e "\nRemoving the shell container pipeline"
-
+    echo -e "\nRemoving the shell container pipeline\n"
     docker rm -f ${CONTAINER_NAME_SHELL} 2>/dev/null
 
-    EXEC_FUN="cd ${ND_TRI_MAIN_DIR_DOCKER}"
+    EXEC_FUN="cd ${ND_TRI_MAIN_DIR_DOCKER}; ${DDT_MAIN_DIR}/src/scala/run_algo_spark.sh \
+              -i ${INPUT_DATA_DIR} -o ${OUTPUT_DATA_DIR} \
+              ${FILE_SCRIPT} ${PARAM_PATH} ${SPARK_CONF} ${MASTER_IP} ${CORE_LOCAL_MACHINE} \
+              -b ${GLOBAL_BUILD_DIR} ${ALGO_SEED} ${DEBUG_CMD}"
 
-    EXEC_FUN="${EXEC_FUN} ; ${DDT_MAIN_DIR}/src/scala/run_algo_spark.sh  -i ${INPUT_DATA_DIR} -o ${OUTPUT_DATA_DIR}  ${FILE_SCRIPT}  ${PARAM_PATH}  ${SPARK_CONF}  ${MASTER_IP} ${CORE_LOCAL_MACHINE} -b ${GLOBAL_BUILD_DIR} ${ALGO_SEED} ${DEBUG_CMD}"
     if [ "$DEBUG_MODE" = true ]; then
         ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i ${NAME_IMG_BASE} -c ${CONTAINER_NAME_SHELL} -d bash
     else
@@ -172,8 +172,8 @@ function run_algo_spark # Run the main pipeline
 }
 
 
-function shell # Go inside container
-{
+# Go inside container
+function shell {
     ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -m "${MOUNT_CMD}" -l "${EXEC_FUN}" -i ${NAME_IMG_BASE} -c ${CONTAINER_NAME_SHELL}
 }
 

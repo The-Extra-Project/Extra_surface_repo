@@ -11,7 +11,7 @@ function start_spark_master {
         echo "====================== SPARK MASTER ======================="
         echo "Try to start master on : ${1}"
         echo "spark monitoring - http://${1}:8080/"
-        /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/sbin/start-master.sh
+        ${SPARK_HOME}/sbin/start-master.sh
     else
         echo "SPARK_MASTER_HOST not set "
         exit 1;
@@ -27,14 +27,14 @@ function start_spark_slave {
     fi
     echo "======================= SPARK SLAVE ============================"
     echo "Start slave on : ${1}"
-    /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/sbin/start-slave.sh spark://${1}:7077 --work-dir ${TMP_DIR}
+    ${SPARK_HOME}/sbin/start-slave.sh spark://${1}:7077 --work-dir ${TMP_DIR}
 }
 
 
 function start_spark_history {
     echo "======================= SPARK History ============================"
     echo "Start history server"
-    /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/sbin/start-history-server.sh 
+    ${SPARK_HOME}/sbin/start-history-server.sh 
 }
 
 
@@ -46,7 +46,7 @@ function start_all {
 
 
 function stop_all {
-     /usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13/sbin/stop-all.sh
+     ${SPARK_HOME}/sbin/stop-all.sh
 }
 
 

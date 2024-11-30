@@ -1,0 +1,219 @@
+# ------------------------------------------------------------------------------------ #
+#                                       Build Image
+# ------------------------------------------------------------------------------------ #
+
+FROM --platform=linux/amd64 ubuntu:24.10 as build 
+
+ENV DEBIAN_FRONTEND="noninteractive"
+RUN mkdir -p /run/systemd && echo 'docker' > /run/systemd/container
+
+USER root
+
+# **<***>**<***> Install libs **<***>**<***>
+
+RUN apt-get update && apt-get install -y \
+    wget unzip git cmake build-essential \
+    # Lidar format dps
+    libxerces-c-dev xsdcxx \
+    # Matis-lib dps
+    libeigen3-dev imagemagick \
+    # CGAL and co
+    libboost-all-dev libcgal-qt5-dev=5.6.1* libcgal-dev=5.6.1* \
+    libtinyxml-dev libann-dev libtbb-dev \
+    openjdk-8-jdk \
+    # PyMesh
+    python3 python3-dev python3-pip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/local/bin
+
+# **<***>**<***> Hadoop **<***>**<***>
+
+ENV JAVA_HOME "/usr/lib/jvm/java-8-openjdk-amd64/"
+ENV HADOOP_VERSION=2.7.7
+RUN wget https://archive.apache.org/dist/hadoop/core/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}-src.tar.gz && \
+    tar -xvf hadoop-${HADOOP_VERSION}-src.tar.gz && rm ./*gz
+RUN mkdir -p ./hadoop-${HADOOP_VERSION}-src/hadoop-hdfs-project/hadoop-hdfs/src/build && \
+    cd ./hadoop-${HADOOP_VERSION}-src/hadoop-hdfs-project/hadoop-hdfs/src/build && \
+    awk 'NR==23{$0="set(GENERATED_JAVAH true)\n"$0}1' ../CMakeLists.txt > ../CMakeLists.txt.tmp && \
+    mv ../CMakeLists.txt.tmp ../CMakeLists.txt && cmake ../ && make 
+
+# **<***>**<***> Scala, Spark **<***>**<***>
+
+# Scala
+RUN wget https://downloads.lightbend.com/scala/2.13.0/scala-2.13.0.deb && \
+    dpkg -i scala-2.13.0.deb && apt-get install -f && rm scala-2.13.0.deb
+# Sbt
+RUN wget https://github.com/sbt/sbt/releases/download/v1.0.0/sbt-1.0.0.tgz && \
+    tar -xvf sbt-1.0.0.tgz && rm ./*gz
+# Spark
+RUN wget https://archive.apache.org/dist/spark/spark-3.5.0/spark-3.5.0-bin-hadoop3-scala2.13.tgz && \
+    tar -xvf spark-3.5.0-bin-hadoop3-scala2.13.tgz && rm ./*gz
+
+# **<***>**<***> Compile DDT, Waseur, Scala binaries **<***>**<***>
+
+WORKDIR /cpp
+
+# LibXML
+RUN wget -q https://download.gnome.org/sources/libxml2/2.13/libxml2-2.13.4.tar.xz && \
+    tar -xvf libxml2-2.13.4.tar.xz && rm ./*.xz && cd libxml2-2.13.4 && \
+    ./configure --with-legacy && make && make install && cd .. && rm -rf libxml2-2.13.4
+
+COPY . .
+
+# # Install hdfs lib
+# RUN cp -r /usr/local/bin/hadoop-${HADOOP_VERSION}-src/hadoop-hdfs-project/hadoop-hdfs/src/build/target/usr/local/lib/ \
+#    ./services/extern/libhdfs/lib
+
+ARG JOBS="2"
+ARG DDT_TRAITS="3"
+ENV DOCKER_BUILD_ENV=1
+
+# **<***>**<***> COMMENT OUT ALL LINES BELOW IF YOU NEED A DEV IMAGE **<***>**<***>
+# With a development image the compilation takes place in your unix user namespace
+# instead of the container. This grants caching and build speed.
+
+#RUN ./src/docker/docker_interface.sh compile -j $JOBS
+
+########################################################################################
+#                                 Dev Image Ends Here
+########################################################################################
+
+# ------------------------------------------------------------------------------------ #
+#                                   Python Dependencies
+# ------------------------------------------------------------------------------------ #
+
+FROM --platform=linux/amd64 python:3.10.15-bullseye as py
+
+ENV PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    PYTHONUNBUFFERED=1 \
+    PIP_DEFAULT_TIMEOUT=100 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    DEBIAN_FRONTEND="noninteractive"
+
+RUN apt-get update && apt-get install -y \
+    # For aarch64 building from source
+    # cmake build-essential libgmp-dev python3-distutils \
+    # For pymesh
+    # libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev qtbase5-dev \
+    # Py3dtilers
+    libpq-dev
+
+#RUN git clone --recursive -b v2021.10 https://github.com/cnr-isti-vclab/PyMeshLab.git
+RUN git clone https://github.com/VCityTeam/py3dtilers.git
+
+# Pymeshlab
+#ARG JOBS="2"
+#RUN mkdir -p PyMeshLab/src/build && cd PyMeshLab/src/build && \
+#    cmake .. && make -j $JOBS && make install && cd ../../..
+
+# ifcopenshell is unavailable for aarch64, need to explicitly compile from the source
+# fallback to amd64
+COPY ./services/mesh23dtile ./services/mesh23dtile
+RUN cd services/mesh23dtile && pip3 install -r requirements.txt
+RUN cd py3dtilers && pip3 install --no-cache-dir -e .
+
+# ------------------------------------------------------------------------------------ #
+#                                   Production Image
+# ------------------------------------------------------------------------------------ #
+
+FROM --platform=linux/amd64 python:3.10.15-slim-bullseye as prod
+# replace the image to the amazoncorretto:8
+
+LABEL Maintainer="Dhruv Malik" \
+      Email="dhruv@extralabs.xyz"
+
+ENV BIN="/usr/local/bin" \
+    DEBIAN_FRONTEND="noninteractive" \
+    PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    PYTHONUNBUFFERED=1 \
+    PIP_DEFAULT_TIMEOUT=100 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1
+
+ENV HADOOP_VERSION=2.7.7 \
+    HADOOP_HOME=${BIN}/hadoop-${HADOOP_VERSION}-src \
+    HADOOP_COMMON_PATH=${HADOOP_HOME} \
+    HADOOP_HDFS_HOME=${HADOOP_HOME}/hadoop-hdfs-project \
+    HADOOP_MAPRED_HOME=${HADOOP_HOME}/hadoop-mapreduce-project \
+    HADOOP_YARN_HOME=${HADOOP_HOME}/hadoop-yarn-project \
+    # HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop/conf \
+    SPARK_PATH=${BIN}/spark-3.5.0-bin-hadoop3-scala2.13 \
+    JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/ \
+    PATH="${JAVA_HOME}/bin:${HADOOP_HOME}:${SPARK_HOME}/bin/:${PATH}:${BIN}/conda/bin"
+
+RUN mkdir -p /run/systemd && echo 'docker' > /run/systemd/container
+USER root
+
+# **<***>**<***> Install libs **<***>**<***>
+
+# Can be alleviated with the static C++ builds
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # For conda
+    libc6 git build-essential\
+    # Lidar format dps
+    libxerces-c-dev xsdcxx \
+    # Matis-lib dps
+    libeigen3-dev imagemagick \
+    # CGAL and co
+    # libcgal-qt5-dev libcgal-dev \
+    libboost-all-dev \
+    libtinyxml-dev libann-dev libtbb-dev \
+    # For py3dtilers
+    libpq-dev \
+    python3-dev libgmp-dev python3-distutils \
+    # For pymesh
+    libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev qtbase5-dev \
+    procps curl \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# **<***>**<***> JVM, Spark, Hadoop **<***>**<***>
+ARG HADOOP_PATH=/usr/local/bin/hadoop-2.7.7-src \
+    SPARK_PATH=/usr/local/bin/spark-3.5.0-bin-hadoop3-scala2.13 \
+    JAVA_PATH=/usr/lib/jvm/java-8-openjdk-amd64 \
+    PYTHON_LIBS=/usr/local/lib/python3.10/site-packages
+
+COPY --from=build $SPARK_PATH $SPARK_PATH
+COPY --from=build $HADOOP_PATH $HADOOP_PATH
+COPY --from=build $JAVA_PATH $JAVA_PATH
+
+# Install mesh23dtile dependencies
+# COPY --from=py $PYTHON_LIBS $PYTHON_LIBS
+
+# **<***>**<***> App **<***>**<***>
+WORKDIR /app
+
+#COPY --from=build /cpp/build ./build
+
+COPY . .
+
+RUN curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
+    bash Miniconda3-latest-Linux-x86_64.sh -b -p ${BIN}/conda && \
+    rm Miniconda3*.sh && conda clean -afy
+
+RUN conda env create -f ./services/mesh23dtile/environment.yml && \
+    conda clean -afy
+
+
+
+
+
+#ARG CREDENTIALS_FILE_PATH
+
+
+# # **<***>**<***> Conda **<***>**<***>
+
+
+
+# # AWS CLI
+# # RUN wget "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -O "awscliv2.zip" && \
+# #     unzip awscliv2.zip && ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update && \
+# #     rm -r awscliv2.zip aws
+
+
+# Custom JRE 8 installation
+#RUN wget https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jre_x64_linux_hotspot_8u292b10.tar.gz -O /tmp/openjdk.tar.gz && \
+#    mkdir -p $JAVA_HOME && tar -xzf /tmp/openjdk.tar.gz -C $JAVA_HOME/ --strip-components=1 && rm -rf /tmp/*jdk*

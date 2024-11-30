@@ -3,12 +3,12 @@ version := "1.0"
 scalaVersion := "2.13.0"
 offline := true
 
-scalacOptions += "-target:jvm-1.7"
-javacOptions ++= Seq("-source", "1.7")
+scalacOptions += "-target:jvm-1.8"
+javacOptions ++= Seq("-source", "1.8")
 
 
 sparkComponents := Seq("core", "sql", "graphx")
-sparkVersion := "3.5.0"
+sparkVersion := "3.5.1"
 
 // libraryDependencies ++= Seq(
 //   "org.scala-lang.modules" % "scala-xml_2.11" % "1.0.5",
