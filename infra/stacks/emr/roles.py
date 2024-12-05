@@ -1,45 +1,67 @@
 from constructs import Construct
-import aws_cdk as cdk
-from aws_cdk import aws_iam as iam
+from aws_cdk import (
+    Stack,
+    aws_iam as iam,
+    CfnOutput,
+    Aws
+)
 
 
-class EMRRoles(Construct):
+class EMRRolesStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> Construct:
 
         super().__init__(scope, construct_id, **kwargs)
 
-        self.emr_role = iam.Role(self, "RoleEMRDefault",
-            role_name="EMRRoleDefault",
-            managed_policies=[iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonEMRServicePolicy_v2")],
+        # https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-iam-role.html
+        self.emr_default_role = iam.Role(self, "EMRDefaultRole",
+            role_name="EMR_DefaultRole_V2",
             assumed_by=iam.ServicePrincipal("elasticmapreduce.amazonaws.com"),
+            # managed AmazonEMRServicePolicy_v2 not working, falling back to the inline
             inline_policies={
-                "EMRAssumeRolePolicy": iam.PolicyDocument(
+                "EMRPolicy": iam.PolicyDocument(
                     statements=[
                         iam.PolicyStatement(
-                            actions=["sts:AssumeRole"],
-                            # principals=[iam.ServicePrincipal("elasticmapreduce.amazonaws.com")],
-                            conditions={
-                                "StringEquals": {
-                                    "aws:SourceAccount": cdk.Aws.ACCOUNT_ID
-                                },
-                                "ArnLike": {
-                                    "aws:SourceArn": "arn:aws:elasticmapreduce:{region}:{account}:*".format(
-                                        region=cdk.Aws.REGION, account=cdk.Aws.ACCOUNT_ID
-                                    )
-                                }
-                            },
+                            actions=[
+                                "ec2:*",
+                                "application-autoscaling:*",
+                                "resource-groups:ListGroupResources",
+                                "cloudwatch:*",
+                                "dynamodb:*",
+                                "elasticmapreduce:*",
+                                "s3:*",
+                                "ssm:*"
+                            ],
                             resources=["*"]
+                        ),
+                        iam.PolicyStatement(
+                            actions=["iam:PassRole"],
+                            resources=["arn:aws:iam::*:role/EMR_AutoScaling_DefaultRole"],
+                            conditions={
+                                "StringLike": {
+                                    "iam:PassedToService": "application-autoscaling.amazonaws.com*"
+                                }
+                            }
+                        ),
+                        iam.PolicyStatement(
+                            actions=["iam:PassRole"],
+                            resources=["arn:aws:iam::*:role/EMR_EC2_DefaultRole"],
+                            conditions={
+                                "StringLike": {
+                                    "iam:PassedToService": "ec2.amazonaws.com*"
+                                }
+                            }
                         )
                     ]
                 )
             }
         )
 
+        # https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-iam-role-for-ec2.html
         self.emr_ec2_role = iam.Role(self, "RoleEMREC2",
-            role_name="EMRRoleEC2",
+            role_name="EMR_EC2_DefaultRole",
             assumed_by=iam.ServicePrincipal("ec2.amazonaws.com"),
-            managed_policies=[iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AmazonEC2ContainerRegistryReadOnly")],
+            managed_policies=[iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSSMManagedInstanceCore")],
             inline_policies={
                 "EMREC2Policy": iam.PolicyDocument(
                     statements=[
@@ -47,32 +69,47 @@ class EMRRoles(Construct):
                             actions=[
                                 "cloudwatch:*",
                                 "dynamodb:*",
-                                "ec2:Describe*",
-                                "elasticmapreduce:Describe*",
-                                "elasticmapreduce:ListBootstrapActions",
-                                "elasticmapreduce:ListClusters",
-                                "elasticmapreduce:ListInstanceGroups",
-                                "elasticmapreduce:ListInstances",
-                                "elasticmapreduce:ListSteps",
-                                "kinesis:CreateStream",
-                                "kinesis:DeleteStream",
-                                "kinesis:DescribeStream",
-                                "kinesis:GetRecords",
-                                "kinesis:GetShardIterator",
-                                "kinesis:MergeShards",
-                                "kinesis:PutRecord",
-                                "kinesis:SplitShard",
+                                "ec2:*",
+                                "elasticmapreduce:*",
+                                "kinesis:*",
                                 "rds:Describe*",
                                 "s3:*",
                                 "sdb:*",
                                 "sns:*",
                                 "sqs:*",
+                                "glue:*",
+                            ],
+                            resources=["*"]
+                        )
+                    ]
+                ),
+                "ECRPolicy": iam.PolicyDocument(
+                    statements=[
+                        iam.PolicyStatement(
+                            actions=[
+                                "ecr:GetAuthorizationToken",
+                                "ecr:BatchCheckLayerAvailability",
+                                "ecr:GetDownloadUrlForLayer",
+                                "ecr:GetRepositoryPolicy",
+                                "ecr:DescribeRepositories",
+                                "ecr:ListImages",
+                                "ecr:DescribeImages",
+                                "ecr:BatchGetImage",
+                                "ecr:GetLifecyclePolicy",
+                                "ecr:GetLifecyclePolicyPreview",
+                                "ecr:ListTagsForResource",
+                                "ecr:DescribeImageScanFindings"
                             ],
                             resources=["*"]
                         )
                     ]
                 )
             }
+        )
+
+        self.emr_instance_profile = iam.CfnInstanceProfile(
+            self, "EMREC2InstanceProfile",
+            roles=[self.emr_ec2_role.role_name]
         )
 
         self.emrfs_role = iam.Role(self, "RoleEMRFS",
@@ -100,10 +137,10 @@ class EMRRoles(Construct):
                             ],
                             resources=[
                                 "arn:aws:s3:::{region}-emr-data-inputs".format(
-                                    region=cdk.Aws.REGION
+                                    region=Aws.REGION
                                 ),
                                 "arn:aws:s3:::{region}-emr-data-inputs/*".format(
-                                    region=cdk.Aws.REGION
+                                    region=Aws.REGION
                                 ),
                             ],
                         ),
@@ -164,4 +201,23 @@ class EMRRoles(Construct):
                     ]
                 )
             }
+        )
+
+        CfnOutput(
+            self,
+            "OutputEMREC2Role",
+            value=self.emr_ec2_role.role_arn,
+            export_name="EMREC2Role"
+        )
+        CfnOutput(
+            self,
+            "OutputEMRInstanceProfile",
+            value=self.emr_instance_profile.ref,
+            export_name="EMRInstanceProfile"
+        )
+        CfnOutput(
+            self,
+            "OutputEMRRole",
+            value=self.emr_default_role.role_arn,
+            export_name="EMRDefaultRole"
         )

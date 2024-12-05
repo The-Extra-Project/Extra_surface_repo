@@ -121,7 +121,7 @@ function run_algo_spark {
             o)
                 OUTPUT_DATA_DIR="${OPTARG}"
                 ;;
-	    f)
+	        f)
                 FILE_SCRIPT="-f ${OPTARG}"
                 ;;
             p)
@@ -133,18 +133,18 @@ function run_algo_spark {
             m)
                 MASTER_IP="-m ${OPTARG}"
                 ;;
-	    c)
+	        c)
                 CORE_LOCAL_MACHINE="-c ${OPTARG}"
                 ;;
-	    b)
+	        b)
                 GLOBAL_BUILD_DIR="${OPTARG}"
                 ;;
-	    d)
+	        d)
                 CONTAINER_NAME_SHELL="${CONTAINER_NAME_SHELL}-debug"
                 DEBUG_MODE=true
                 DEBUG_CMD="-d"
                 ;;
-	    r)
+	        r)
                 ALGO_SEED="-r ${OPTARG}"
                 ;;
 	    esac

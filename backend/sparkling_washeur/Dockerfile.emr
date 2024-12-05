@@ -252,15 +252,25 @@ WORKDIR /app
 
 COPY --chmod=755 ./*.sh ./
 
+RUN apt-get update && apt-get install -y unzip && apt-get clean
+RUN curl -sSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "a.zip" && \
+    unzip -q a.zip && ./aws/install --update && rm -r a.zip
+
 # COPY --from=hdfs --chmod=755 ${BIN}/hadoop-${HADOOP_VERSION}-src/hadoop-hdfs-project $HADOOP_HDFS_HOME
 # For CI/Prod
 # COPY --from=build --chmod=755 /cpp/build ./build
-
 
 # User hadoop (EMR)
 # RUN groupadd hadoop && useradd --gid hadoop --home-dir /home/hadoop --create-home hadoop && \
 #     echo "hadoop:hadoop" | chpasswd
 # OR
-# RUN useradd -m hadoop
+RUN useradd -m hadoop
 
-# USER hadoop
+# ENV DDT_MAIN_DIR="/app/" \
+#     INPUT_DATA_DIR="/app/datas/" \
+#     OUTPUT_DATA_DIR="/app/out/" \
+#     GLOBAL_BUILD_DIR="/app/build/"
+
+# ENV PARAM_PATH="${INPUT_DATA_DIR}/params.xml"
+
+USER hadoop

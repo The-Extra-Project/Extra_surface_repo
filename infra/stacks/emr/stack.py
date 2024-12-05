@@ -1,61 +1,65 @@
 from constructs import Construct
-import aws_cdk as cdk
 from aws_cdk import (
     Stack,
     aws_ec2 as ec2,
-    aws_emr as emr
+    aws_emr as emr,
+    Fn,
+    CfnParameter,
+    CfnOutput,
+    Aws,
+    CfnTag,
+    aws_iam as iam,
 )
-from .roles import EMRRoles
+
+JAR_IQ = "s3://extralabs-artifacts-dev/jar/iqlib.jar"
+DOCKER_IMAGE = "767397971222.dkr.ecr.eu-west-1.amazonaws.com/extralabs-emr-dev:latest"
+BOOTSTRAP_SCRIPT_PATH = "s3://extralabs-artifacts-dev/scripts/docker.sh"
+SSH_KEY_NAME="extra"
+
+# SSH, monitroing - logs in s3 buckeet which is not autocreted
+# steps fail
 
 
 class EMRStack(Stack):
-    def __init__(self, scope: Construct, construct_id: str,
-                 ecr: Stack, s3: Stack, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, ecr: Stack, s3: Stack, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        self.roles = EMRRoles(self, "EMRRoles")
+        emr_role = Fn.import_value("EMRDefaultRole")
+        self.emr_role = iam.Role.from_role_arn(self, "EMRDefaultRoleImported", role_arn=emr_role)
 
-        EMR_CLUSTER_NAME = cdk.CfnParameter(self, 'EMRClusterName',
+        emr_ec2_role = Fn.import_value("EMREC2Role")
+        self.emr_ec2_role = iam.Role.from_role_arn(self, "EMREC2RoleImported", role_arn=emr_ec2_role)
+
+        emr_instance_profile = Fn.import_value("EMRInstanceProfile")
+        self.emr_instance_profile = iam.Role.from_role_arn(self, "EMRInstanceProfileImported", role_arn=emr_instance_profile)
+
+        vpc_id = Fn.import_value("EMRVpcId")
+        self.vpc = ec2.Vpc.from_vpc_attributes(self, "EMRVPCImported",
+            vpc_id=vpc_id,
+            availability_zones=["eu-west-1a", "eu-west-1b", "eu-west-1c"],
+        )
+
+        cluster_name = CfnParameter(self, 'EMRClusterName',
             type='String',
             description='Extralabs EMR Cluster name',
             default='extralabs-dev'
         )
 
-        vpc = ec2.Vpc(self, "EMRStackVPC",
-            vpc_name = "EMR-Dev",
-            ip_addresses=ec2.IpAddresses.cidr("10.100.0.0/16"),
-            subnet_configuration=[
-                ec2.SubnetConfiguration(
-                    name = f'public-{i}', cidr_mask = 24, subnet_type = ec2.SubnetType.PUBLIC)
-                for i in range(3)
-            ]
-                +
-            [
-                ec2.SubnetConfiguration(
-                    name = f'private-{i}', cidr_mask = 24, subnet_type = ec2.SubnetType.PRIVATE_WITH_EGRESS)
-                for i in range(3)
-            ],
-            max_azs=3,
-            # gateway_endpoints={
-            #     "S3": ec2.GatewayVpcEndpointOptions(service=ec2.GatewayVpcEndpointAwsService.S3)
-            # }
-        )
-
         emr_instances = emr.CfnCluster.JobFlowInstancesConfigProperty(
             master_instance_group=emr.CfnCluster.InstanceGroupConfigProperty(
                 instance_count=1,
-                instance_type="c5.2xlarge",
+                instance_type="c5.xlarge",
                 market="ON_DEMAND"
             ),
             core_instance_group=emr.CfnCluster.InstanceGroupConfigProperty(
                 instance_count=1,
-                instance_type="c5.2xlarge",
+                instance_type="c5.xlarge",
                 market="ON_DEMAND"
             ),
             task_instance_groups=[emr.CfnCluster.InstanceGroupConfigProperty(
                 name="default",
                 instance_count=1,
-                instance_type="c5.4xlarge",
+                instance_type="c5.xlarge",
                 market="ON_DEMAND",
                 # custom_ami_id="customAmiId",
                 # configurations=[emr.CfnCluster.ConfigurationProperty(
@@ -77,49 +81,63 @@ class EMRStack(Stack):
                     ebs_optimized=True
                 ),
             )],
-            ec2_subnet_id=vpc.public_subnets[0].subnet_id,
+            # ec2_subnet_id=Fn.import_value("PublicSubnet0"),
             keep_job_flow_alive_when_no_steps=True,
             termination_protected=False,
-            hadoop_version="3.3.6",  # 3.3.6 default
-
-            # ec2_key_name="ec2KeyName",
-
+            hadoop_version="3.3.6",
+            ec2_key_name=SSH_KEY_NAME,
             # Network settings
-            # ec2_subnet_ids=["ec2SubnetIds"],
+            ec2_subnet_ids=[Fn.import_value("PublicSubnet0")],
             # emr_managed_master_security_group="emrManagedMasterSecurityGroup",
             # emr_managed_slave_security_group="emrManagedSlaveSecurityGroup",
             # service_access_security_group="serviceAccessSecurityGroup",
         )
 
-        emr_version = self.node.try_get_context("emr_version") or "emr-7.3.0"
         emr_cfn_cluster = emr.CfnCluster(self, "EMRClusterDev",
+            name=cluster_name.value_as_string,
+            service_role=self.emr_role.role_arn,
+            job_flow_role=self.emr_instance_profile.role_arn,
             instances=emr_instances,
-            job_flow_role=self.roles.emr_ec2_role.role_name,
-            name=EMR_CLUSTER_NAME.value_as_string,
-            service_role=self.roles.emr_role.role_name,
             bootstrap_actions=[
                 emr.CfnCluster.BootstrapActionConfigProperty(
-                    name="install_docker",
+                    name="docker",
                     script_bootstrap_action=emr.CfnCluster.ScriptBootstrapActionConfigProperty(
-                        path=s3.bucket.bucket_name + "/scripts/docker.sh",
+                        path=f"s3://{s3.bucket.bucket_name}/scripts/docker.sh"
                         # args=["args"]
                     )
                 ),
             ],
             steps=[
                 emr.CfnCluster.StepConfigProperty(
+                    name="1 - Copy data from S3 to HDFS",
                     hadoop_jar_step=emr.CfnCluster.HadoopJarStepConfigProperty(
-                        jar="jar",
-                        # optional
-                        args=["args"],
-                        main_class="mainClass",
-                        step_properties=[emr.CfnCluster.KeyValueProperty(
-                            key="key",
-                            value="value"
-                        )]
+                        jar="command-runner.jar",
+                        args=[
+                            'aws s3 sync s3://extralabs-artifacts-dev/data/ /home/hadoop/data',
+                        ],
                     ),
-                    name="name",
-                    action_on_failure="actionOnFailure"  # optional
+                    action_on_failure="CANCEL_AND_WAIT"  # optional
+                ),
+                emr.CfnCluster.StepConfigProperty(
+                    name="2 - Preprocess",
+                    hadoop_jar_step=emr.CfnCluster.HadoopJarStepConfigProperty(
+                        jar="command-runner.jar",
+                        # optional
+                        # /app/build/target/scala-2.13/iqlib-spark_2.13-1.0.jar
+                        args=[
+                            'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
+                            '--jars', 's3://extralabs-artifacts-dev/jar/iqlib.jar',
+                            '--conf', 'spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE=docker',
+                            '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={DOCKER_IMAGE}',
+                            's3://extralabs-artifacts-dev/scripts/workflow_preprocess.scala'
+                        ],
+                        main_class="mainClass",
+                        # step_properties=[emr.CfnCluster.KeyValueProperty(
+                        #     key="key",
+                        #     value="value"
+                        # )]
+                    ),
+                    action_on_failure="CANCEL_AND_WAIT"  # optional
                 )
             ],
             applications=[
@@ -127,26 +145,79 @@ class EMRStack(Stack):
                 emr.CfnCluster.ApplicationProperty(name="Spark"),
             ],
             configurations=[
+                ################### GENERAL ###################
                 emr.CfnCluster.ConfigurationProperty(
                     classification="delta-defaults",
                     configuration_properties={
                         "delta.enabled": "true"
                     }
                 ),
-                # SPARK
+                emr.CfnCluster.ConfigurationProperty(
+                    classification="yarn-site",
+                    configuration_properties={
+                        "yarn.container.runtime.type": "docker",
+                        "yarn.container.docker.image": DOCKER_IMAGE,
+                        "yarn.nodemanager.runtime.linux.docker.default-rw-mounts": "/home/hadoop/data:/app/datas",
+                        # "yarn.nodemanager.env-whitelist": ""
+                        # docker.allowed.ro-mounts
+                        # docker.allowed.rw-mounts
+                    }
+                ),
+                # access to private repos granted by default
+                # emr.CfnCluster.ConfigurationProperty(
+                #     classification="container-executor",
+                #     configurations=[emr.CfnCluster.ConfigurationProperty(
+                #         classification="docker",
+                #         configuration_properties={
+                #             "docker.trusted.registries": "local,centos,{ecr}".format(ecr=ecr.registry_emr.repository_uri),
+                #             "docker.privileged-containers.registries": "local,centos,{ecr}".format(
+                #                 ecr=ecr.registry_emr.repository_uri
+                #             )
+                #         }
+                #     )],
+                # ),
+
+                ################### SPARK ################### 
                 # https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark-docker.html
                 # Override JVM
+                emr.CfnCluster.ConfigurationProperty(
+                    classification="spark-defaults",
+                    configuration_properties={
+                        "spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE": "docker",
+                        "spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE": DOCKER_IMAGE,
+                        "spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_MOUNTS": "/home/hadoop/data:/app/datas:rw,/home/hadoop/out:/app/out:rw,/home/hadoop/logs:/tmp:rw",
+                        "spark.yarn.appMasterEnv.YARN_CONTAINER_RUNTIME_TYPE": "docker",
+                        "spark.yarn.appMasterEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE": DOCKER_IMAGE,
+                        "spark.rdd.compress": "true",
+                        "spark.eventLog.enabled": "true",
+                        "spark.driver.allowMultipleContexts": "true",
+                        "spark.memory.offHeap.enabled": "true",
+                        "spark.memory.offHeap.size": "10g",
+                        "spark.memory.storageFraction": "0.8",
+                        "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
+                        # "spark.executorEnv.DDT_MAIN_DIR": "/app/",
+                        # "spark.executorEnv.INPUT_DATA_DIR": "/app/datas/",
+                        # "spark.executorEnv.OUTPUT_DATA_DIR": "/app/out/",
+                        # "spark.executorEnv.GLOBAL_BUILD_DIR": "/app/build/",
+                        # "spark.executorEnv.PARAM_PATH": "${INPUT_DATA_DIR}/params.xml",
+                    }
+                ),
                 emr.CfnCluster.ConfigurationProperty(
                     classification="spark-env",
                     configurations=[emr.CfnCluster.ConfigurationProperty(
                         classification="export",
                         configuration_properties={
-                            "JAVA_HOME": "/usr/lib/jvm/java-1.8.0"
+                            "JAVA_HOME": "/usr/lib/jvm/java-1.8.0",
+                            "DDT_MAIN_DIR": "/app/",
+                            "INPUT_DATA_DIR": "/app/datas/",
+                            "OUTPUT_DATA_DIR": "/app/out/",
+                            "GLOBAL_BUILD_DIR": "/app/build/",
+                            "PARAM_PATH": "${INPUT_DATA_DIR}/params.xml",
                         }
                     )],
                 ),
 
-                # HADOOP
+                ################### HADOOP ################### 
                 # https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-hadoop-config.html
                 emr.CfnCluster.ConfigurationProperty(
                     classification="mapred-site",
@@ -167,36 +238,19 @@ class EMRStack(Stack):
                         )
                     ]
                 ),
-                emr.CfnCluster.ConfigurationProperty(
-                    classification="container-executor",
-                    configurations=[emr.CfnCluster.ConfigurationProperty(
-                        classification="docker",
-                        configuration_properties={
-                            "docker.trusted.registries": "local,centos,{ecr}".format(
-                                ecr=ecr.registry_emr.repository_name
-                            ),
-                            "docker.privileged-containers.registries": "local,centos,{ecr}".format(
-                                ecr=ecr.registry_emr.repository_name
-                            )
-                        }
-                    )],
-                ),
             ],
             # custom_ami_id="customAmiId",
             ebs_root_volume_size=50,
-            log_uri="s3://aws-logs-{account}-{region}/elasticmapreduce/".format(
-                account=cdk.Aws.ACCOUNT_ID, region=cdk.Aws.REGION
-            ),
-            release_label=emr_version,
+            log_uri=f"s3://{s3.bucket.bucket_name}/emr-logs",
+            release_label=self.node.try_get_context("emr_version") or "emr-7.3.0",
             scale_down_behavior="TERMINATE_AT_TASK_COMPLETION",
             visible_to_all_users=True,
-            tags=[
-                # Required
-                cdk.CfnTag(
+            tags=[# Required
+                CfnTag(
                     key="for-use-with-amazon-emr-managed-policies",
                     value="True"
-                )],
-            os_release_label="AL2023",
+                )
+            ],
             # scale_down_behavior="scaleDownBehavior",
             # # managed_scaling_policy=emr.CfnCluster.ManagedScalingPolicyProperty(
             #     compute_limits=emr.CfnCluster.ComputeLimitsProperty(
@@ -215,8 +269,8 @@ class EMRStack(Stack):
             # step_concurrency_level=123,
         )
 
-        cdk.CfnOutput(self, 'OutputEMRClusterName', value=emr_cfn_cluster.name)
-        cdk.CfnOutput(self, 'OutputEMRClusterMasterDNS', value=emr_cfn_cluster.attr_master_public_dns)
-        cdk.CfnOutput(self, 'OutputEMRClusterLogURI', value=emr_cfn_cluster.log_uri)
-        cdk.CfnOutput(self, 'OutputEMRVersion', value=emr_cfn_cluster.release_label)
-        cdk.CfnOutput(self, 'OutputEMRHadoopVersion', value=emr_cfn_cluster.instances.hadoop_version)
+        CfnOutput(self, 'OutputEMRClusterName', value=emr_cfn_cluster.name)
+        CfnOutput(self, 'OutputEMRClusterMasterDNS', value=emr_cfn_cluster.attr_master_public_dns)
+        CfnOutput(self, 'OutputEMRClusterLogURI', value=emr_cfn_cluster.log_uri)
+        CfnOutput(self, 'OutputEMRVersion', value=emr_cfn_cluster.release_label)
+        CfnOutput(self, 'OutputEMRHadoopVersion', value=emr_cfn_cluster.instances.hadoop_version)
