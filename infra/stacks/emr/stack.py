@@ -113,7 +113,7 @@ class EMRStack(Stack):
                     hadoop_jar_step=emr.CfnCluster.HadoopJarStepConfigProperty(
                         jar="command-runner.jar",
                         args=[
-                            'aws s3 sync s3://extralabs-artifacts-dev/data/ /home/hadoop/data',
+                            "bash", "-c", "aws s3 sync s3://extralabs-artifacts-dev/data/ /home/hadoop/data"
                         ],
                     ),
                     action_on_failure="CANCEL_AND_WAIT"  # optional
