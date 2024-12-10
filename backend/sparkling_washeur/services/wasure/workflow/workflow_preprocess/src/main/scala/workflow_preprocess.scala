@@ -55,18 +55,19 @@ import strings_opt._;
 import params_parser._;
 import files_opt._;
 
-val conf = new SparkConf().setAppName("preprocess")
-val fs = FileSystem.get(sc.hadoopConfiguration);
-val output_dir = get_bash_variable("OUTPUT_DATA_DIR").replaceAll("//", "/");
-val input_dir = get_bash_variable("INPUT_DATA_DIR").replaceAll("//", "/");
-val env_xml = get_bash_variable("PARAM_PATH");
-val ddt_main_dir = get_bash_variable("DDT_MAIN_DIR");
-val global_build_dir = get_bash_variable("GLOBAL_BUILD_DIR");
+// val conf = new SparkConf().setAppName("preprocess")
+// val fs = FileSystem.get(sc.hadoopConfiguration);
+// val output_dir = get_bash_variable("OUTPUT_DATA_DIR").replaceAll("//", "/");
+// val input_dir = get_bash_variable("INPUT_DATA_DIR").replaceAll("//", "/");
+// val env_xml = get_bash_variable("PARAM_PATH");
+// val ddt_main_dir = get_bash_variable("DDT_MAIN_DIR");
+// val global_build_dir = get_bash_variable("GLOBAL_BUILD_DIR");
 
 
 
 object WorkflowWasure {
-  def run(sc: SparkContext, params: Map[String, String]): Unit = {
+  def run(sc: SparkContext, params: Map[String, String]): Unit = 
+  {
     // get the input and output directories from the parameters
     val conf = new SparkConf().setAppName("preprocess")
     val fs = FileSystem.get(sc.hadoopConfiguration);
@@ -219,10 +220,8 @@ os.close()
 spark.stop()
 
 }
+
 }
-
-
-
 // if (output_dir.isEmpty ||  input_dir.isEmpty )
 // {
 //   System.err.println("ERROR")
