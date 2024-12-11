@@ -17,3 +17,6 @@ storage/
 
 cdk.context.json
 .DS_Store
+**/project/** 
+**/target/** 
+
