@@ -7,19 +7,17 @@ scalacOptions += "-target:jvm-1.8"
 javacOptions ++= Seq("-source", "1.8")
 
 resolvers +=  "commons-io" at "https://mvnrepository.com/artifact"
-
-
+resolvers += Resolver.sonatypeRepo("public")
 
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "3.5.1",
   "org.apache.spark" %% "spark-sql" % "3.5.1",
   "org.apache.spark" %% "spark-graphx" % "3.5.1",
-  "org.apache.hadoop" % "hadoop-common" % "3.3.6",  // Ensure Hadoop version matches
+  "org.apache.hadoop" % "hadoop-common" % "3.3.6",
   "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",
   "org.scala-lang.modules" %% "scala-xml" % "2.1.0",
   "commons-io" % "commons-io" % "2.11.0",
-  
 )
 
 //import sbtassembly.AssemblyPlugin.autoImport._
