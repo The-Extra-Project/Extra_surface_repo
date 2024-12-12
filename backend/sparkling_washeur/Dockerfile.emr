@@ -146,6 +146,8 @@ COPY . .
 
 ENV PATH=$PATH:/usr/local/bin/sbt/bin
 
+RUN apt-get update && apt-get install vim -y
+
 # **<***>**<***> COMMENT OUT THE LINE BELOW ... **<***>**<***>
 # ... to compile the app in your local environment instead of the container
 # This grants better caching and the build speed.
