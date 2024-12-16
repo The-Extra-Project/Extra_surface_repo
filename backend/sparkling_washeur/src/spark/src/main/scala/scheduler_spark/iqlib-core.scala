@@ -5,19 +5,15 @@ import org.apache.spark._;
 import org.apache.spark.graphx._;
 import scala.io.Codec
 
-
 import org.apache.spark.rdd.RDD;
 import org.apache.spark.SparkContext._
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
 import org.apache.spark.storage.StorageLevel
 
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.Path
-
-
 
 object IQlibCore {
 
@@ -42,7 +38,6 @@ object IQlibCore {
     def data = tt._2(0)
     def content = tt._2(0).split(" ", 5).last
   }
-  
 
   implicit class TEdgefun(ee: TEdge) {
     def toKValue: KValue = {
@@ -50,41 +45,36 @@ object IQlibCore {
     }
   }
 
-  def get_fpath_value(vdat : VData) : Char = {
-     var cc : Char = ' '
-     var acc = 1;
-     while (! { cc=vdat.charAt(acc); cc }.isLetter){
-     acc = acc  +1
+  def get_fpath_value(vdat: VData): Char = {
+    var cc: Char = ' '
+    var acc = 1;
+    while (!{ cc = vdat.charAt(acc); cc }.isLetter) {
+      acc = acc + 1
     }
-   return cc
+    return cc
   }
 
-  def is_data_file(vdat: VData) : Boolean = {
+  def is_data_file(vdat: VData): Boolean = {
     return (get_fpath_value(vdat) == 'f')
   }
 
 }
 
-
 class IQlibSched(
   slvl_glob: StorageLevel = StorageLevel.NONE,
   slvl_loop: StorageLevel = StorageLevel.NONE,
-  env_map : scala.collection.immutable.Map[String,String] = Map("" -> "")
-) extends Serializable {
+  env_map: scala.collection.immutable.Map[String, String] = Map("" -> "")) extends Serializable {
 
   import IQlibCore._
 
-
-
-  def get_storage_level() : StorageLevel = {
+  def get_storage_level(): StorageLevel = {
     return slvl_glob;
   }
 
-  def get_storage_level_loop() : StorageLevel = {
+  def get_storage_level_loop(): StorageLevel = {
     return slvl_loop;
 
   }
-
 
   def time[R](block: => R): R = {
     val t0 = System.nanoTime()
@@ -117,7 +107,6 @@ class IQlibSched(
       command = fun,
       env = env_map,
       printRDDElement = print_rdde_vdat);
-
 
     println("==================================");
 
@@ -154,41 +143,39 @@ class IQlibSched(
   def split_key_value2(ss: VData): KValue = {
     var rr = "";
     var pad = 0;
-    if(ss.charAt(0) == ' ')
+    if (ss.charAt(0) == ' ')
       pad = 1
-    if(ss.length > 15)
+    if (ss.length > 15)
       rr = (ss.charAt(4).toString + ss.charAt(5) + ss.charAt(6) + ss.charAt(7) + ss.charAt(8)
         + ss.charAt(9) + ss.charAt(10) + ss.charAt(11) + ss.charAt(12) + ss.charAt(13) + ss.charAt(14) + ss.charAt(15)).split(" ")(pad)
     else
-      rr = (ss.split(" ", 4))(2+pad)
+      rr = (ss.split(" ", 4))(2 + pad)
     (rr.toLong, List(ss))
   }
-
 
   def split_key_value3(ss: VData): TEdge = {
     val rr = (ss.split(" ", 5))
     new TEdge(rr(2).toLong, rr(3).toLong, List(ss))
   }
 
-  def filter_rdd (rdd: RDD[VData], ss: String = "", txt: String = ""): RDD[VData] = {
-    var res :RDD[VData] = null;
+  def filter_rdd(rdd: RDD[VData], ss: String = "", txt: String = ""): RDD[VData] = {
+    var res: RDD[VData] = null;
     if (!ss.isEmpty())
       res = rdd.filter(_(0) == ss(0))
     else
       res = rdd
-      return res.setName("GetKVRDD_" + txt);
-   }
-
+    return res.setName("GetKVRDD_" + txt);
+  }
 
   def get_kvrdd(rdd: RDD[VData], ss: String = "", txt: String = ""): RDD[KValue] = {
-    var res :RDD[KValue] = null;
+    var res: RDD[KValue] = null;
     if (!ss.isEmpty())
       res = rdd.filter(_(0) == ss(0)).map(split_key_value2(_))
     else
       res = rdd.map(split_key_value2(_));
 
-      return res.setName("GetKVRDD_" + txt);
-   }
+    return res.setName("GetKVRDD_" + txt);
+  }
 
   def get_edgrdd(rdd: RDD[VData], ss: String = ""): RDD[TEdge] = {
     if (!ss.isEmpty())
@@ -199,7 +186,7 @@ class IQlibSched(
 
   // ================ Graph stuff ====================
   def aggregate_edge(graph: TGraph): VertexRDD[TEdge] = {
-    
+
     def msgFunTvertIni(triplet: EdgeContext[Value, Value, TEdge]) {
       val l1 = Edge(triplet.srcId, triplet.dstId, triplet.attr);
       triplet.sendToDst(l1);
@@ -214,7 +201,7 @@ class IQlibSched(
     aggregate_edge(graph).mapValues(ee => ee.attr);
   }
 
-  def aggregate_value_clique(graph: TGraph, deg: Int,rep_value : Int): RDD[KValue] = {
+  def aggregate_value_clique(graph: TGraph, deg: Int, rep_value: Int): RDD[KValue] = {
 
     def msgFunTvertIni(triplet: EdgeContext[Value, Value, Value]) {
       triplet.sendToDst(triplet.srcAttr)
@@ -228,7 +215,6 @@ class IQlibSched(
       case _ => graph.vertices.union(res1).reduceByKey(_ ::: _, rep_value).setName("aggregated")
     }
   }
-
 
   def aggregate_value_clique(graph: TGraph, deg: Int): RDD[KValue] = {
 
@@ -244,9 +230,6 @@ class IQlibSched(
       case _ => graph.vertices.union(res1).reduceByKey(_ ::: _).setName("aggregated")
     }
   }
-
-
-
 
   def aggregate_edge_clique(graph: TGraph): RDD[KValue] = {
 

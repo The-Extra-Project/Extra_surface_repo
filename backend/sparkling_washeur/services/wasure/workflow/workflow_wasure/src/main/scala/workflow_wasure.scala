@@ -55,12 +55,14 @@ object WorkflowWasure {
 
   def main(args: Map[String, String]): Unit = {
     //==== Configuration and file sysyem init  ====
-    val conf = new SparkConf().setAppName("DDT")
+    val conf = new SparkConf().setAppName("DDT");
+    val sc = new SparkContext(conf)
     val fs = FileSystem.get(sc.hadoopConfiguration);
     
     // checkpoint.
     val do_checkpoint = true;
-    val checkpoint_dir = "/tmp/spark/checkpoint"
+    val checkpoint_dir_string = "/tmp/spark/wasure/checkpoint"
+
     val checkpoint_dir_path = new Path(checkpoint_dir_string)
 
     if(do_checkpoint){

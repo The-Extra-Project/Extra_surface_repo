@@ -72,13 +72,11 @@ object WorkflowWasure {
     val conf = new SparkConf().setAppName("preprocess")
     val fs = FileSystem.get(sc.hadoopConfiguration);
 
-    if (params.contains("OUTPUT_DATA_DIR") && params.contains("INPUT_DATA_DIR") && params.contains("PARAM_PATH") && params.contains("DDT_MAIN_DIR") && params.contains("GLOBAL_BUILD_DIR")) {
       val input_dir = params("OUTPUT_DATA_DIR").replaceAll("//", "/");
       val output_dir = params("OUTPUT_DATA_DIR").replaceAll("//", "/");
       val env_xml = params("PARAM_PATH");
       val ddt_main_dir = params("DDT_MAIN_DIR");
       val global_build_dir = params("GLOBAL_BUILD_DIR");
-    }
 
   if (output_dir.isEmpty ||  input_dir.isEmpty )
   {
@@ -110,7 +108,7 @@ val rat_ray_sample = params_scala.get_param("rat_ray_sample", "0").toFloat
 val min_ppt = params_scala.get_param("min_ppt", "50").toInt
 val main_algo_opt = params_scala.get_param("algo_opt", "seg_lagrange_weight")
 val dst_scale = params_scala.get_param("dst_scale", "-1").toFloat
-val lambda = params_scala.get_param("lambda", "2").toFloat
+val lambda = params_scala.get_param("lambda", "0.1").toFloat
 val max_opt_it = params_scala.get_param("max_opt_it", "50").toInt
 val do_stats = params_scala.get_param("do_stats", "false").toBoolean
 val coef_mult = params_scala.get_param("coef_mult", "5").toFloat
@@ -127,11 +125,11 @@ val cpp_exec_path = current_plateform.toLowerCase match {
 }
 
 val params_new = new Hash_StringSeq with mutable.MultiMap[String, String]
-val params_wasure =  params.set_params(params_new,List(
+val params_wasure = set_params(params_new, List(
   ("exec_path", cpp_exec_path + "wasure-stream-exe"),
-  ("dim",params_scala("dim").head),
-  ("input_dir",input_dir),
-  ("output_dir",output_dir)
+  ("dim", params_scala("dim").head),
+  ("input_dir", input_dir),
+  ("output_dir", output_dir)
 ))
 
 fs.mkdirs(new Path( output_dir),new FsPermission("777"))
@@ -142,10 +140,10 @@ println("")
 println("=======================================================")
 params_scala.map(x => println((x._1 + " ").padTo(15, '-') + "->  " + x._2.head))
 
-val bbox_cmd =  params.set_params(params_wasure, List(("step","compute_bbox"))).to_command_line
-val fs = FileSystem.get(sc.hadoopConfiguration);
+val bbox_cmd =  set_params(params_wasure, List(("step","compute_bbox"))).to_command_line
+
+
 val regexp_filter = params_scala.get_param("regexp_filter", "");
-val slvl_glob = StorageLevel.fromString(params_scala.get_param("StorageLevel", "DISK_ONLY"))
 var kvrdd_inputs: RDD[KValue] = sc.parallelize(List((0L,List(""))));
 
 println("")
@@ -175,7 +173,7 @@ struct_inputs_bbox.collect
 val kvrdd_bbox_ori = iq.get_kvrdd(struct_inputs_bbox,"s").persist(slvl_loop);
 val bba_ori =   kvrdd_bbox_ori.map(x => x._2.head.split("z").tail.head.split(" ").filter(!_.isEmpty).map(x => x.toFloat)).reduce((x,y) => Array(Math.min(x(0),y(0)),Math.max(x(1),y(1)),Math.min(x(2),y(2)),Math.max(x(3),y(3)),Math.min(x(4),y(4)),Math.max(x(5),y(5)), x(6)+y(6)))
 
-val preprocess_cmd =  params.set_params(params_wasure, List(
+val preprocess_cmd =  set_params(params_wasure, List(
   ("step","preprocess"),
   ("bbox", bba_ori(0) + "x" + bba_ori(1) + ":" + bba_ori(2) + "x" + bba_ori(3) + ":" + bba_ori(4) + "x" + bba_ori(5))
 )).to_command_line
@@ -197,7 +195,6 @@ val smax_ori =   Math.max(Math.max(bba_ori(1)-bba_ori(0),bba_ori(1)-bba_ori(0)),
 
 val tot_nbp = bba(6)
 val ndtree_depth = Math.max((Math.log(tot_nbp/max_ppt)/Math.log(3)).round,0) 
-val lambda = params_scala.get_param("lambda", "1").toFloat
 
 
 params_scala("bbox") = collection.mutable.Set(bba(0) + "x" + (bba(0) + smax) + ":" + bba(2) + "x" + (bba(2) + smax) + ":" + 0.0 + "x" + 1000.0)
@@ -217,7 +214,7 @@ val os = new BufferedOutputStream(output)
 os.write((xml_output_string).getBytes)
 os.close()
 
-spark.stop()
+sc.stop()
 
 }
 

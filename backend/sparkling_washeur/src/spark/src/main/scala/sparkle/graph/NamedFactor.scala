@@ -20,55 +20,55 @@
 package sparkle.graph
 
 /**
-  * Factor Graph trait. Contains methods for initialization, sending and processing messages
-  */
-private [graph] trait FGVertex extends Serializable {
+ * Factor Graph trait. Contains methods for initialization, sending and processing messages
+ */
+private[graph] trait FGVertex extends Serializable {
   /**
-    * id of the vertex
-    */
+   * id of the vertex
+   */
   val id: Long
 
   /**
-    * Returns a new vertex that results from processing a message
-    * @param aggMessage list of messages
-    * @return vertex
-    */
+   * Returns a new vertex that results from processing a message
+   * @param aggMessage list of messages
+   * @return vertex
+   */
   def processMessage(aggMessage: List[Message]): FGVertex
 
   /**
-    * Returns a message based on the incoming message by decomposition of the belief
-    * @param incomingMessage incoming message
-    * @return message
-    */
+   * Returns a message based on the incoming message by decomposition of the belief
+   * @param incomingMessage incoming message
+   * @return message
+   */
   def sendMessage(incomingMessage: Message): Message
 
   /**
-    * Returns the initial message
-    * @param varId id of a variable-recipient of the message
-    * @return message
-    */
+   * Returns the initial message
+   * @param varId id of a variable-recipient of the message
+   * @return message
+   */
   def initMessage(varId: Long): Message
 }
 
 /**
-  * Representation of a named factor.
-  * Named means that it has a mapping between the variable ids and the values.
-  * Named factor also contains factor belief.
-  * @param id factor id
-  * @param variables list of variable ids
-  * @param factor factor
-  * @param belief belief
-  */
-private [graph] class NamedFactor(
- val id: Long,
- val variables: Array[Long],
- val factor: Factor, val belief: Factor) extends FGVertex {
+ * Representation of a named factor.
+ * Named means that it has a mapping between the variable ids and the values.
+ * Named factor also contains factor belief.
+ * @param id factor id
+ * @param variables list of variable ids
+ * @param factor factor
+ * @param belief belief
+ */
+private[graph] class NamedFactor(
+  val id: Long,
+  val variables: Array[Long],
+  val factor: Factor, val belief: Factor) extends FGVertex {
 
   /**
-    * Returns variable index in the values array by its ID
-    * @param varId variable ID
-    * @return index
-    */
+   * Returns variable index in the values array by its ID
+   * @param varId variable ID
+   * @return index
+   */
   private def varIndexById(varId: Long): Int = {
     val index = variables.indexOf(varId)
     require(index >= 0, "Variable not found in factor")
@@ -76,10 +76,10 @@ private [graph] class NamedFactor(
   }
 
   /**
-    * Number of values for a variable
-    * @param varId variable id
-    * @return number of values
-    */
+   * Number of values for a variable
+   * @param varId variable id
+   * @return number of values
+   */
   def length(varId: Long): Int = {
     val index = varIndexById(varId)
     factor.length(index)
@@ -89,7 +89,7 @@ private [graph] class NamedFactor(
     assert(aggMessage.length > 1)
     // TODO: optimize (use one factor)
     var newBelief = factor
-    for(message <- aggMessage) {
+    for (message <- aggMessage) {
       val index = varIndexById(message.srcId)
       newBelief = newBelief.compose(message.message, index)
     }
@@ -110,37 +110,37 @@ private [graph] class NamedFactor(
 }
 
 /**
-  * Fabric for NamedFactors
-  */
+ * Fabric for NamedFactors
+ */
 object NamedFactor {
 
   /**
-    * Return new NamedFactor
-    * @param id id
-    * @param variables list of variables ids
-    * @param factor factor
-    * @param belief belief factor
-    * @return named factor
-    */
+   * Return new NamedFactor
+   * @param id id
+   * @param variables list of variables ids
+   * @param factor factor
+   * @param belief belief factor
+   * @return named factor
+   */
   def apply(id: Long, variables: Array[Long], factor: Factor, belief: Factor): NamedFactor = {
     new NamedFactor(id, variables, factor, belief)
   }
 
   /**
-    * Create factor from the libDAI description
-    * @param id unique id
-    * @param variables ids of variables
-    * @param states num of variables states
-    * @param nonZeroNum num of nonzero values
-    * @param indexAndValues index and values
-    * @return factor
-    */
+   * Create factor from the libDAI description
+   * @param id unique id
+   * @param variables ids of variables
+   * @param states num of variables states
+   * @param nonZeroNum num of nonzero values
+   * @param indexAndValues index and values
+   * @return factor
+   */
   def apply(
-             id: Long,
-             variables: Array[Long],
-             states: Array[Int],
-             nonZeroNum: Int,
-             indexAndValues: Array[(Int, Double)]): NamedFactor = {
+    id: Long,
+    variables: Array[Long],
+    states: Array[Int],
+    nonZeroNum: Int,
+    indexAndValues: Array[(Int, Double)]): NamedFactor = {
     val values = new Array[Double](states.product)
     var i = 0
     while (i < indexAndValues.size) {
@@ -153,13 +153,13 @@ object NamedFactor {
 }
 
 /**
-  * Representation of a named variable instance.
-  * Contains variable id, belief and prior
-  * @param id id
-  * @param belief belief
-  * @param prior prior
-  */
-private [graph] case class NamedVariable (
+ * Representation of a named variable instance.
+ * Contains variable id, belief and prior
+ * @param id id
+ * @param belief belief
+ * @param prior prior
+ */
+private[graph] case class NamedVariable(
   val id: Long,
   val belief: Variable,
   val prior: Variable) extends FGVertex {
@@ -182,17 +182,17 @@ private [graph] case class NamedVariable (
 
 // TODO: find a better name for message field
 /**
-  * Representation of a message
-  * @param srcId source id
-  * @param message message
-  * @param fromFactor true if from a factor (to a variable)
-  */
-private [graph] case class Message(val srcId: Long, val message: Variable, val fromFactor: Boolean)
+ * Representation of a message
+ * @param srcId source id
+ * @param message message
+ * @param fromFactor true if from a factor (to a variable)
+ */
+private[graph] case class Message(val srcId: Long, val message: Variable, val fromFactor: Boolean)
 
 /**
-  * Representation of an edge in Belief Propagation graph
-  * @param toDst message from source to destination
-  * @param toSrc message from destination to source
-  * @param converged true if edge converged
-  */
-private [graph] case class FGEdge(val toDst: Message, val toSrc: Message, val converged: Boolean)
+ * Representation of an edge in Belief Propagation graph
+ * @param toDst message from source to destination
+ * @param toSrc message from destination to source
+ * @param converged true if edge converged
+ */
+private[graph] case class FGEdge(val toDst: Message, val toSrc: Message, val converged: Boolean)

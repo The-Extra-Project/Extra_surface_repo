@@ -1,17 +1,11 @@
-
-
 name := "workflow_preprocess"
 version := "0.1"
 scalaVersion := "2.13.10"
 
-
 resolvers += "spark-packages" at "https://dl.bintray.com/spark-packages/maven/"
-
 
 scalacOptions += "-target:jvm-1.8"
 javacOptions ++= Seq("-source", "1.8")
-
-
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "3.5.1",
@@ -39,32 +33,11 @@ dependencyOverrides ++= Seq(
 )
 
 import sbtassembly.AssemblyPlugin.autoImport._
-
 import sbt.Keys._
 
-
-
-
-dependencyOverrides ++= Seq(
-"org.apache.curator" % "curator-recipes" % "5.2.0",
-  "org.apache.curator" % "curator-framework" % "5.2.0",
-  "org.apache.curator" % "curator-client" % "5.2.0",
-  "com.nimbusds" % "nimbus-jose-jwt" % "9.8.1",
-  "com.google.guava" % "guava" % "27.0-jre",
-  "org.apache.yetus" % "audience-annotations" % "0.13.0",
-  "io.airlift" % "aircompressor" % "0.25",
-  "com.google.protobuf" % "protobuf-java" % "3.19.6",
-    "io.netty" % "netty-transport-native-epoll" % "4.1.96.Final",
-  "io.netty" % "netty-handler" % "4.1.96.Final",
-  "io.dropwizard.metrics" % "metrics-core" % "4.2.19",
-  "org.slf4j" % "slf4j-api" % "2.0.7",
-)
-
+unmanagedJars in Compile += file(baseDirectory.value + "backend/sparkling_washeur/src/spark/target/scala-2.13/iqlib-spark-assembly-1.0.jar")
 
 lazy val wasureJar = taskKey[File]("wasure-jar")
-
-
-
 
 wasureJar := {
   val jarFile = (Compile / packageBin).value 
@@ -81,4 +54,3 @@ assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard
   case x => MergeStrategy.first
 }
-

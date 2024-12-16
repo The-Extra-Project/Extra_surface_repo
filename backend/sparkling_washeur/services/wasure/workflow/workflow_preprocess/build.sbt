@@ -7,6 +7,10 @@ javacOptions ++= Seq("-source", "1.8")
 
 resolvers +=  "commons-io" at "https://mvnrepository.com/artifact"
 
+
+unmanagedJars in Compile += file(baseDirectory.value / "src/spark/target/scala-2.13/iqlib-spark-assembly-1.0.jar")
+
+
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "3.5.1",
   "org.apache.spark" %% "spark-sql" % "3.5.1",
@@ -49,6 +53,4 @@ preprocessJar := {
   targetFile
 }
 
-// Include the source directories for sparkling_washeur/src
-unmanagedSourceDirectories in Compile += baseDirectory.value / "../../../../../sparkling_washeur/src/main/scala"
-unmanagedSourceDirectories in Compile += baseDirectory.value / "../../../../../sparkling_washeur/src/main/java"
+
