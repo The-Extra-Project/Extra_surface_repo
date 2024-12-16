@@ -11,13 +11,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        project:
-          - backend/sparkling_washeur/src/spark
-          - backend/sparkling_washeur/services/wasure/workflow/workflow_preprocess
-          - backend/sparkling_washeur/services/wasure/workflow/workflow_wasure
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -39,7 +32,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-sbt-
 
-      - name: Build and test ${{ matrix.project }}
-        working-directory: ${{ matrix.project }}
+      - name: Build and test backend/sparkling_washeur/src/spark
+        working-directory: backend/sparkling_washeur/src/spark
+        run: |
+          sbt clean reload
+
+      - name: Build and test backend/sparkling_washeur/services/wasure/workflow/workflow_preprocess
+        working-directory: backend/sparkling_washeur/services/wasure/workflow/workflow_preprocess
+        run: |
+          sbt clean reload
+
+      - name: Build and test backend/sparkling_washeur/services/wasure/workflow/workflow_wasure
+        working-directory: backend/sparkling_washeur/services/wasure/workflow/workflow_wasure
         run: |
           sbt clean reload
