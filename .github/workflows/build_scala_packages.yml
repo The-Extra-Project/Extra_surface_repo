@@ -42,4 +42,4 @@ jobs:
       - name: Build and test ${{ matrix.project }}
         working-directory: ${{ matrix.project }}
         run: |
-          sbt clean compile test
+          sbt clean reload
