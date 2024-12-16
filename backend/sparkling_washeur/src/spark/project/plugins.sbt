@@ -1,6 +1,6 @@
-resolvers += "Spark Package Main Repo" at "https://dl.bintray.com/spark-packages/maven"
+ resolvers += "Spark Package Main Repo" at "https://dl.bintray.com/spark-packages/maven"
 // resolvers += "spark-packages" at "https://repos.spark-packages.org/"
-resolvers += "GitHub Packages" at "https://maven.pkg.github.com/codecommit/sbt-github-packages"
+// resolvers += "GitHub Packages" at "https://maven.pkg.github.com/codecommit/sbt-github-packages"
 resolvers += "Maven Central" at "https://repo1.maven.org/maven2/"
 // resolvers += "bintray-spark-packages" at "https://dl.bintray.com/spark-packages/maven/"
 
