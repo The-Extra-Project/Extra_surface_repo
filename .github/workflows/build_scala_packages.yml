@@ -26,6 +26,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: 11
+          distribution: '1.8'
 
       - name: Cache SBT dependencies
         uses: actions/cache@v2
