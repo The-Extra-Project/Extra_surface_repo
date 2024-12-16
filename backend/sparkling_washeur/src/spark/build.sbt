@@ -21,22 +21,22 @@ githubOwner := "The-Extra-Project"
 githubRepository := "Extra_surface_repo"
 
 
-publishTo := {
-  val githubRepo = s"https://maven.pkg.github.com/${githubOwner.value}/${githubRepository.value}"
-  if (isSnapshot.value)
-    Some("GitHub Package Registry Snapshots" at githubRepo)
-  else
-    Some("GitHub Package Registry Releases" at githubRepo)
-}
+// publishTo := {
+//   val githubRepo = s"https://maven.pkg.github.com/${githubOwner.value}/${githubRepository.value}"
+//   if (isSnapshot.value)
+//     Some("GitHub Package Registry Snapshots" at githubRepo)
+//   else
+//     Some("GitHub Package Registry Releases" at githubRepo)
+// }
 
-credentials += Credentials(
-  "GitHub Package Registry",
-  "maven.pkg.github.com",
-  sys.env.getOrElse("GITHUB_USERNAME", ""
+// credentials += Credentials(
+//   "GitHub Package Registry",
+//   "maven.pkg.github.com",
+//   sys.env.getOrElse("GITHUB_USERNAME", ""
   
-  ),
-  sys.env.getOrElse("GITHUB_TOKEN", "")
-)
+//   ),
+//   sys.env.getOrElse("GITHUB_TOKEN", "")
+// )
 
 sparkVersion := "3.5.1"
 sparkComponents := Seq("core", "sql", "graphx")
