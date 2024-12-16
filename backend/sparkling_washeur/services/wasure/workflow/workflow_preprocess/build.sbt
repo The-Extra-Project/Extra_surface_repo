@@ -8,7 +8,7 @@ javacOptions ++= Seq("-source", "1.8")
 resolvers +=  "commons-io" at "https://mvnrepository.com/artifact"
 
 
-unmanagedJars in Compile += file(baseDirectory.value / "src/spark/target/scala-2.13/iqlib-spark-assembly-1.0.jar")
+unmanagedJars in Compile += file(baseDirectory.value + "/src/spark/target/scala-2.13/iqlib-spark-assembly-1.0.jar")
 
 
 libraryDependencies ++= Seq(
