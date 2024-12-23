@@ -66,7 +66,7 @@ import files_opt._;
 
 
 object WorkflowWasure {
-  def run(sc: SparkContext, params: Map[String, String]): Unit = 
+  def main(sc: SparkContext, params: Map[String, String]): Unit = 
   {
     // get the input and output directories from the parameters
     val conf = new SparkConf().setAppName("preprocess")
