@@ -7,12 +7,12 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
+    "@aws-sdk/client-eventbridge": "^3.716.0",
     "@repo/auth": "workspace:*",
-    "@repo/env": "workspace:*",
-    "svix": "^1.43.0"
+    "@repo/env": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
-    "@repo/typescript-config": "workspace:*"
+    "@repo/typescript-config": "workspace:*",
+    "typescript": "^5.7.2"
   }
 }
