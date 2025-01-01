@@ -1,6 +1,6 @@
-import { getAppPortal, send } from './lib/svix';
+import { sendEvent, getNotifications } from './lib/eventBridge';
 
 export const webhooks = {
-  send,
-  getAppPortal,
+  sendEvent,
+  getNotifications,
 };
