@@ -29,11 +29,11 @@ function build {
 		exit 1
     fi
 
-    export EXTERN_PROJECT_SRC_DIR=${CUR_DIR}/extern/
-    export CMAKE_FIND_DIR=${CUR_DIR}/cmake/
+    export CMAKE_FIND_DIR="${CUR_DIR}/cmake/"
+    export EXTERN_PROJECT_SRC_DIR="${CUR_DIR}/extern/"
     export GLOBAL_BUILD_DIR=${GLOBAL_BUILD_DIR}
-    export GLOBAL_LIBS_DIR=${GLOBAL_BUILD_DIR}/lib/
-    export GLOBAL_EXE_DIR=${GLOBAL_BUILD_DIR}/bin/
+    export GLOBAL_LIBS_DIR="${GLOBAL_BUILD_DIR}/lib/"
+    export GLOBAL_EXE_DIR="${GLOBAL_BUILD_DIR}/bin/"
 
     echo -e "\n------------------------------------------"
     echo "GLOBAL ENV VARS"
@@ -60,7 +60,7 @@ function build {
 			cd ${CURRENT_PROJECT_SRC_DIR}
 			./build-unix.sh build -b ${CURRENT_PROJECT_BUILD_DIR}
 			cd -
-		elif [[ -f ${CURRENT_PROJECT_SRC_DIR}/CMakeLists.txt ]]; then
+		elif [[ -f "${CURRENT_PROJECT_SRC_DIR}/CMakeLists.txt" ]]; then
 			${DDT_MAIN_DIR}/src/common/build-unix-cmake.sh build -d ${CURRENT_PROJECT_SRC_DIR} -b ${CURRENT_PROJECT_BUILD_DIR} -c ${COMPILE_TYPE} -t ${DDT_TRAITS} -j ${NB_PROC_FLAG}
 			rc=$?; if [[ $rc != 0 ]]; then return $rc; fi
 		else

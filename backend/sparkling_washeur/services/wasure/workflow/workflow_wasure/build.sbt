@@ -35,7 +35,7 @@ dependencyOverrides ++= Seq(
 import sbtassembly.AssemblyPlugin.autoImport._
 import sbt.Keys._
 
-unmanagedJars in Compile += file("/home/ubuntu/aws_noveo/Extra_surface_repo/backend/sparkling_washeur" + "/src/spark/target/scala-2.13/iqlib-spark-assembly-1.0.jar")
+unmanagedJars in Compile += baseDirectory.value.getParentFile / "iqlib-spark-assembly-1.0.jar"
 
 lazy val wasureJar = taskKey[File]("wasure-jar")
 

@@ -7,6 +7,8 @@ javacOptions ++= Seq("-source", "1.8")
 
 resolvers +=  "commons-io" at "https://mvnrepository.com/artifact"
 
+unmanagedJars in Compile += baseDirectory.value.getParentFile / "iqlib-spark-assembly-1.0.jar"
+
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "3.5.1",
@@ -49,5 +51,3 @@ preprocessJar := {
   IO.copyFile(jarFile, targetFile)
   targetFile
 }
-
-
