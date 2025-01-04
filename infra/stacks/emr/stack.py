@@ -59,7 +59,7 @@ class EMRStack(Stack):
             task_instance_groups=[emr.CfnCluster.InstanceGroupConfigProperty(
                 name="default",
                 instance_count=1,
-                instance_type="c5.xlarge",
+                instance_type="c5.2xlarge",
                 market="ON_DEMAND",
                 # custom_ami_id="customAmiId",
                 # configurations=[emr.CfnCluster.ConfigurationProperty(
@@ -123,15 +123,14 @@ class EMRStack(Stack):
                     hadoop_jar_step=emr.CfnCluster.HadoopJarStepConfigProperty(
                         jar="command-runner.jar",
                         # optional
-                        # /app/build/target/scala-2.13/iqlib-spark_2.13-1.0.jar
                         args=[
                             'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
+                            '--class', 'WorkflowWasure',
                             '--jars', 's3://extralabs-artifacts-dev/jar/iqlib.jar',
                             '--conf', 'spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE=docker',
                             '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={DOCKER_IMAGE}',
-                            's3://extralabs-artifacts-dev/scripts/workflow_preprocess.scala'
+                            's3://extralabs-artifacts-dev/jar/preprocess-0.3.jar'
                         ],
-                        main_class="mainClass",
                         # step_properties=[emr.CfnCluster.KeyValueProperty(
                         #     key="key",
                         #     value="value"
@@ -192,7 +191,7 @@ class EMRStack(Stack):
                         "spark.eventLog.enabled": "true",
                         "spark.driver.allowMultipleContexts": "true",
                         "spark.memory.offHeap.enabled": "true",
-                        "spark.memory.offHeap.size": "10g",
+                        "spark.memory.offHeap.size": "3g",
                         "spark.memory.storageFraction": "0.8",
                         "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
                         # "spark.executorEnv.DDT_MAIN_DIR": "/app/",
@@ -212,7 +211,7 @@ class EMRStack(Stack):
                             "INPUT_DATA_DIR": "/app/datas/",
                             "OUTPUT_DATA_DIR": "/app/out/",
                             "GLOBAL_BUILD_DIR": "/app/build/",
-                            "PARAM_PATH": "${INPUT_DATA_DIR}/params.xml",
+                            "PARAM_PATH": "/app/datas/params.xml",
                         }
                     )],
                 ),

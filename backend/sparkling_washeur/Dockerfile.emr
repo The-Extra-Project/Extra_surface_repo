@@ -107,7 +107,7 @@ ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-amazon-corretto
 ENV JOBS=2
 
 # **<***>**<***> Scala, Spark **<***>**<***>
-ENV V_SCALA=2.12.8 \
+ENV V_SCALA=2.12.18 \
     V_SBT=1.0.0 \
     V_SPARK=3.5.1
 

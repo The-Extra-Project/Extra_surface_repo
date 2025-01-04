@@ -5,7 +5,7 @@ import sbtassembly.AssemblyPlugin.autoImport._
 
 name := "iqlib-spark"
 version := "1.0"
-scalaVersion := "2.13.10"
+scalaVersion := "2.12.18"
 offline := true
 
 
@@ -40,7 +40,6 @@ githubRepository := "Extra_surface_repo"
 
 sparkVersion := "3.5.1"
 sparkComponents := Seq("core", "sql", "graphx")
-
 
 
 assemblyMergeStrategy in assembly := {

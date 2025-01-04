@@ -1,6 +1,6 @@
-name := "workflow_wasure"
+name := "wasure"
 version := "0.1"
-scalaVersion := "2.13.10"
+scalaVersion := "2.12.18"
 
 resolvers += "spark-packages" at "https://dl.bintray.com/spark-packages/maven/"
 

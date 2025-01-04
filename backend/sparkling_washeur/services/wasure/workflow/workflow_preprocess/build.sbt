@@ -1,14 +1,11 @@
-name := "workflow_preprocess"
+name := "preprocess"
 version := "0.1"
-scalaVersion := "2.13.0"
+scalaVersion := "2.12.18"
 
 scalacOptions += "-target:jvm-1.8"
 javacOptions ++= Seq("-source", "1.8")
 
 resolvers +=  "commons-io" at "https://mvnrepository.com/artifact"
-
-
-unmanagedJars in Compile += file(baseDirectory.value + "/src/spark/target/scala-2.13/iqlib-spark-assembly-1.0.jar")
 
 
 libraryDependencies ++= Seq(
