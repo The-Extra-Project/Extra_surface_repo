@@ -1,4 +1,3 @@
-
 libraryDependencies += "me.shadaj" %% "dotenv-scala" % "0.1.0"
 
 val githubUsername = sys.env.getOrElse("GITHUB_USERNAME", "")

@@ -47,11 +47,11 @@ assemblyMergeStrategy in assembly := {
   case _ => MergeStrategy.first
 }
 
-lazy val sparkJar = taskKey[File]("spark-jar")
+// lazy val sparkJar = taskKey[File]("spark-jar")
 
-sparkJar := {
-  val jarFile = (Compile / packageBin).value
-  val targetFile = target.value / "spark.jar"
-  IO.copyFile(jarFile, targetFile)
-  targetFile
-}
+// sparkJar := {
+//   val jarFile = (Compile / packageBin).value
+//   val targetFile = target.value / "spark.jar"
+//   IO.copyFile(jarFile, targetFile)
+//   targetFile
+// }
