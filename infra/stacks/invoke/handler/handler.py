@@ -66,37 +66,65 @@ def lambda_handler(event, context):
                         "Market": "ON_DEMAND",
                         "InstanceRole": "MASTER",
                         "InstanceType": master_instance_type,
-                        "InstanceCount": master_instance_count
+                        "InstanceCount": master_instance_count,
+                        'EbsConfiguration': {
+                            'EbsBlockDeviceConfigs': [
+                                {
+                                    'VolumeSpecification': {
+                                        'VolumeType': 'gp3',
+                                        'SizeInGB': vol_size,
+                                        # 'Iops': 123,
+                                        # 'Throughput': 123
+                                    },
+                                    'VolumesPerInstance': 1
+                                },
+                            ],
+                            'EbsOptimized': True
+                        },
                     },
                     {
                         "Name": "Core",
                         "Market": "ON_DEMAND",
                         "InstanceRole": "CORE",
                         "InstanceType": core_instance_type,
-                        "InstanceCount": core_instance_count
+                        "InstanceCount": core_instance_count,
+                        'EbsConfiguration': {
+                            'EbsBlockDeviceConfigs': [
+                                {
+                                    'VolumeSpecification': {
+                                        'VolumeType': 'gp3',
+                                        'SizeInGB': vol_size,
+                                        # 'Iops': 123,
+                                        # 'Throughput': 123
+                                    },
+                                    'VolumesPerInstance': 1
+                                },
+                            ],
+                            'EbsOptimized': True
+                        },
                     },
                     {
                         "Name": "Task",
                         "Market": "ON_DEMAND",
                         "InstanceRole": "TASK",
                         "InstanceType": task_instance_type,
-                        "InstanceCount": task_instance_count
+                        "InstanceCount": task_instance_count,
+                        'EbsConfiguration': {
+                            'EbsBlockDeviceConfigs': [
+                                {
+                                    'VolumeSpecification': {
+                                        'VolumeType': 'gp3',
+                                        'SizeInGB': vol_size,
+                                        # 'Iops': 123,
+                                        # 'Throughput': 123
+                                    },
+                                    'VolumesPerInstance': 1
+                                },
+                            ],
+                            'EbsOptimized': True
+                        },
                     }
                 ],
-                'EbsConfiguration': {
-                    'EbsBlockDeviceConfigs': [
-                        {
-                            'VolumeSpecification': {
-                                'VolumeType': 'gp3',
-                                'SizeInGB': vol_size
-                                # 'Iops': 123,
-                                # 'Throughput': 123
-                            },
-                            'VolumesPerInstance': 1
-                        },
-                    ],
-                    'EbsOptimized': True
-                },
             },
             EbsRootVolumeSize=vol_root_size,
             Steps=[
@@ -175,7 +203,7 @@ def lambda_handler(event, context):
                 },
                 {
                     'Classification': 'spark-env',
-                    'Configurations': {
+                    'Configurations': [{
                         'Classification': 'export',
                         'Properties': {
                             "JAVA_HOME": "/usr/lib/jvm/java-1.8.0",
@@ -185,7 +213,7 @@ def lambda_handler(event, context):
                             "GLOBAL_BUILD_DIR": "/app/build/",
                             "PARAM_PATH": "/app/datas/params.xml",
                         }
-                    }
+                    }]
                 },
                 {
                     'Classification': 'mapred-site',
@@ -195,12 +223,12 @@ def lambda_handler(event, context):
                 },
                 {
                     'Classification': 'hadoop-env',
-                    'Configurations': {
+                    'Configurations': [{
                         'Classification': 'export',
                         'Properties': {
                             "JAVA_HOME": "/usr/lib/jvm/java-1.8.0",
                         }
-                    }
+                    }]
                 },
             ],
             BootstrapActions=[
