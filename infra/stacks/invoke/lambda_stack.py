@@ -4,6 +4,7 @@ from aws_cdk import (
     aws_lambda as lambda_,
     Stack,
     aws_iam as iam,
+    Duration
 )
 
 
@@ -59,5 +60,6 @@ class LambdaStack(Stack):
             runtime=lambda_.Runtime.PYTHON_3_12,
             code=lambda_.Code.from_asset(os.path.join(os.curdir, "stacks", "invoke", "handler")),
             handler="handler.lambda_handler",
-            role=self.invoke_role
+            role=self.invoke_role,
+            timeout=Duration.seconds(100)
         )

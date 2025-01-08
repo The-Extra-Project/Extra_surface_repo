@@ -17,6 +17,7 @@ S3_PATH_PROCESS = f"{S3_PATH}/jar/process-0.3.jar"
 def lambda_handler(event, context):
     region = event.get('region', REGION)
     emr_client = boto3.client('emr', region_name=region)
+    ssm_client = boto3.client('ssm', region_name=region)
 
     # Cluster
     cluster_name = event.get('cluster_name', 'Lambda-Dev')
@@ -36,14 +37,18 @@ def lambda_handler(event, context):
     vol_root_size = event.get('vol_root_size', 30)
     key_name = event.get('key_name', "extra")
     subnet_id = event.get('subnet_id', "subnet-0f85765f2c8a832cf")
-    emr_ec2_role = event.get('emr_ec2_role', "EMR_EC2_DefaultRole")
 
     # App Configurations
     spark_heap_size = event.get('spark_heap_size', "2g")
     spark_mem_fraction = event.get('spark_mem_fraction', "0.8")
 
+    parameter_name = "/emr/instance-profile-name"
+
+    # Create EMR cluster
     try:
-        # Create EMR cluster
+        ssm_response = ssm_client.get_parameter(Name=parameter_name, WithDecryption=True)
+        instance_profile = ssm_response['Parameter']['Value']
+
         response = emr_client.run_job_flow(
             Name=cluster_name,
             ReleaseLabel=release_label,
@@ -153,21 +158,21 @@ def lambda_handler(event, context):
                         ],
                     }
                 },
-                # {
-                #     'Name': '3 - Process',
-                #     'ActionOnFailure': 'CANCEL_AND_WAIT',
-                #     'HadoopJarStep': {
-                #         'Jar': 'command-runner.jar',
-                #         'MainClass': 'WorkflowWasure',
-                #         'Args': [
-                #             'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
-                #             '--jars', S3_PATH_IQLIB,
-                #             '--conf', 'spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE=docker',
-                #             '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={DOCKER_IMAGE}',
-                #             S3_PATH_PROCESS
-                #         ],
-                #     }
-                # },
+                {
+                    'Name': '3 - Process',
+                    'ActionOnFailure': 'CANCEL_AND_WAIT',
+                    'HadoopJarStep': {
+                        'Jar': 'command-runner.jar',
+                        'MainClass': 'WorkflowWasure',
+                        'Args': [
+                            'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
+                            '--jars', S3_PATH_IQLIB,
+                            '--conf', 'spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE=docker',
+                            '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={DOCKER_IMAGE}',
+                            S3_PATH_PROCESS
+                        ],
+                    }
+                },
             ],
             Configurations=[
                 {
@@ -240,7 +245,7 @@ def lambda_handler(event, context):
                 },
             ],
             LogUri=log_uri,
-            JobFlowRole=emr_ec2_role,
+            JobFlowRole=instance_profile,
             ServiceRole=emr_service_role,
             VisibleToAllUsers=True,
             ScaleDownBehavior="TERMINATE_AT_TASK_COMPLETION",
@@ -266,7 +271,7 @@ def lambda_handler(event, context):
         return {
             'statusCode': 500,
             'body': json.dumps({
-                "message": "Failed to create EMR cluster",
-                "error": str(e)
+                "error": str(e),
+                "message": str(ssm_response)
             })
         }

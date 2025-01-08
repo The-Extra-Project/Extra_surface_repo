@@ -3,7 +3,8 @@ from aws_cdk import (
     Stack,
     aws_iam as iam,
     CfnOutput,
-    Aws
+    Aws,
+    aws_ssm as ssm,
 )
 
 
@@ -112,6 +113,13 @@ class EMRRolesStack(Stack):
             roles=[self.emr_ec2_role.role_name]
         )
 
+        self.instance_profile_parameter = ssm.StringParameter(
+            self, "SSMParameterEMRInstanceProfile",
+            parameter_name="/emr/instance-profile-name",
+            string_value=self.emr_instance_profile.ref,
+            description="Instance profile name for the EMR EC2 role"
+        )
+
         self.emrfs_role = iam.Role(self, "RoleEMRFS",
             role_name="EMRRoleEMRFS",
             assumed_by=iam.ServicePrincipal("ec2.amazonaws.com"),
@@ -204,20 +212,17 @@ class EMRRolesStack(Stack):
         )
 
         CfnOutput(
-            self,
-            "OutputEMREC2Role",
+            self, "OutputEMREC2Role",
             value=self.emr_ec2_role.role_arn,
             export_name="EMREC2Role"
         )
         CfnOutput(
-            self,
-            "OutputEMRInstanceProfile",
+            self, "OutputEMRInstanceProfile",
             value=self.emr_instance_profile.ref,
             export_name="EMRInstanceProfile"
         )
         CfnOutput(
-            self,
-            "OutputEMRRole",
+            self, "OutputEMRRole",
             value=self.emr_default_role.role_arn,
             export_name="EMRDefaultRole"
         )
