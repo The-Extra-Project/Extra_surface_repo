@@ -28,6 +28,8 @@ EMR_NODE_TYPE_MASTER = "m5.xlarge"
 EMR_NODE_TYPE_CORE = "m5.xlarge"
 EMR_NODE_TYPE_TASK = "m5.xlarge"
 
+SPARK_HEAP_SIZE = "2g"
+SPARK_MEM_FRACTION = "0.8"
 
 class EMRStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, ecr: Stack, s3: Stack, **kwargs) -> None:
@@ -202,7 +204,7 @@ class EMRStack(Stack):
                         "spark.driver.allowMultipleContexts": "true",
                         "spark.memory.offHeap.enabled": "true",
                         "spark.memory.offHeap.size": SPARK_HEAP_SIZE,
-                        "spark.memory.storageFraction": SPARK_STORAGE_FRACTION,
+                        "spark.memory.storageFraction": SPARK_MEM_FRACTION,
                         "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
                         # "spark.executorEnv.DDT_MAIN_DIR": "/app/",
                         # "spark.executorEnv.INPUT_DATA_DIR": "/app/datas/",

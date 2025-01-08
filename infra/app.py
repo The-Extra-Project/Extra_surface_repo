@@ -5,7 +5,7 @@ from stacks.s3 import S3Stack
 from stacks.network import NetworkStack
 from stacks.emr.roles import EMRRolesStack
 from stacks.emr.stack import EMRStack
-from stacks.lambda_invoke.lambda_stack import LambdaStack
+from stacks.invoke.lambda_stack import LambdaStack
 #from stacks.infra_stack import InfraStack
 
 
@@ -33,14 +33,15 @@ net = NetworkStack(app, "NetworkStack")
 ecr = ECRStack(app, "ECRStack")
 s3 = S3Stack(app, "S3Stack")
 roles = EMRRolesStack(app, "EMRRolesStack")
-LambdaStack(app, "LambdaStack")
+lambda_invoke = LambdaStack(app, "LambdaStack")
 
 EMRStack(app, "EMRStack",
     ecr,
     s3,
     env=Environment(
-    account=os.getenv('CDK_DEFAULT_ACCOUNT'),
-    region=os.getenv('CDK_DEFAULT_REGION'))
+        account=os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region=os.getenv('CDK_DEFAULT_REGION')
+    )
 )
 
 

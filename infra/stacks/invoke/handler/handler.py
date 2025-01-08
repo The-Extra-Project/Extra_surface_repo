@@ -215,7 +215,7 @@ def lambda_handler(event, context):
             JobFlowRole=emr_ec2_role,
             ServiceRole=emr_service_role,
             VisibleToAllUsers=True,
-            scale_down_behavior="TERMINATE_AT_TASK_COMPLETION",
+            ScaleDownBehavior="TERMINATE_AT_TASK_COMPLETION",
             Tags=[
                 # mandatory tag
                 {"Key": "for-use-with-amazon-emr-managed-policies", "Value": "True"},
