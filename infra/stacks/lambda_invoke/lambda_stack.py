@@ -1,3 +1,4 @@
+import os
 from constructs import Construct
 from aws_cdk import (
     aws_lambda as _lambda,
@@ -14,6 +15,6 @@ class LambdaStack(Stack):
 
         self._lambda = _lambda.Function(self, "Lambda",
             runtime=_lambda.Runtime.PYTHON_3_10,
-            code=_lambda.Code.from_asset("invoke.py"),
+            code=_lambda.Code.from_asset(os.path.dirname(os.path.abspath(__file__)) + "/invoke.py"),
             handler="lambda_handler.handler"
         )

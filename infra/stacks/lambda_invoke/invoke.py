@@ -1,41 +1,46 @@
-import boto3
 import json
-import os
+import boto3
 
 
-JAR_IQ = "s3://extralabs-artifacts-dev/jar/iqlib.jar"
+REGION = "eu-west-1"
+
 DOCKER_IMAGE = "767397971222.dkr.ecr.eu-west-1.amazonaws.com/extralabs-emr-dev:latest"
-BOOTSTRAP_SCRIPT_PATH = "s3://extralabs-artifacts-dev/scripts/docker.sh"
-SSH_KEY_NAME="extra"
+
+S3_PATH = "s3://extralabs-artifacts-dev"
+S3_PATH_INPUT = f"{S3_PATH}/data"
+S3_PATH_BOOTSTRAP = f"{S3_PATH}/scripts/docker.sh"
+S3_PATH_IQLIB = f"{S3_PATH}/jar/iqlib.jar"
+S3_PATH_PREPROCESS = f"{S3_PATH}/jar/preprocess-0.3.jar"
+S3_PATH_PROCESS = f"{S3_PATH}/jar/process-0.3.jar"
 
 
 def lambda_handler(event, context):
-    region = event.get('region', 'eu-west-1')
+    region = event.get('region', REGION)
     emr_client = boto3.client('emr', region_name=region)
 
     # Cluster
-    cluster_name = "Lambda-Dev"
-    release_label = "emr-7.3.0"
-    hadoop_version = "3.3.6"
-    emr_service_role = "EMR_DefaultRole"
+    cluster_name = event.get('cluster_name', 'Lambda-Dev')
+    release_label = event.get('release_label', "emr-7.3.0")
+    hadoop_version = event.get('hadoop_version', '3.3.6')
+    emr_service_role = event.get('emr_service_role', 'EMR_DefaultRole')
+    log_uri = event.get('log_uri', f"{S3_PATH}/emr-logs")
 
-    log_uri = "s3://extralabs-artifacts-dev/emr-logs/"
+    # Instances
+    master_instance_type = event.get('master_instance_type', "m5.xlarge")
+    master_instance_count = event.get('master_instance_count', 1)
+    core_instance_type = event.get('core_instance_type', "m5.xlarge")
+    core_instance_count = event.get('core_instance_count', 1)
+    task_instance_type = event.get('task_instance_type', "m5.xlarge")
+    task_instance_count = event.get('task_instance_count', 1)
+    vol_size = event.get('vol_size', 30)
+    vol_root_size = event.get('vol_root_size', 30)
+    key_name = event.get('key_name', "extra")
+    subnet_id = event.get('subnet_id', "subnet-0f85765f2c8a832cf")
+    emr_ec2_role = event.get('emr_ec2_role', "EMR_EC2_DefaultRole")
 
-    # Instancess
-    master_instance_type = "m5.xlarge"
-    core_instance_type = "m5.xlarge"
-    task_instance_type = "m5.xlarge"
-    master_instance_count = 1
-    core_instance_count = 1
-    task_instance_count = 1
-    volume_size = 40
-    key_name = "extra"
-    subnet_id = "subnet-0f85765f2c8a832cf"
-    emr_ec2_role = "EMR_EC2_DefaultRole"
-
-    # Configurations
-    s3_boostsrap_path = 's3://extralabs-artifacts-dev/scripts/docker.sh'
-
+    # App Configurations
+    spark_heap_size = event.get('spark_heap_size', "2g")
+    spark_mem_fraction = event.get('spark_mem_fraction', "0.8")
 
     try:
         # Create EMR cluster
@@ -43,20 +48,18 @@ def lambda_handler(event, context):
             Name=cluster_name,
             ReleaseLabel=release_label,
             Applications=[
-                {"Name": "Hadoop"},
-                {"Name": "Spark"},
+                {"Name": "Hadoop"}, {"Name": "Spark"},
             ],
             Instances={
                 'Ec2KeyName': key_name,
                 'HadoopVersion': hadoop_version,
                 'Ec2SubnetId': subnet_id,
-
-                'KeepJobFlowAliveWhenNoSteps': True,
-                'TerminationProtected': False,
-                'UnhealthyNodeReplacement': True,
                 # 'Ec2SubnetIds': [
                 #     'string',
                 # ],
+                'KeepJobFlowAliveWhenNoSteps': True,
+                'TerminationProtected': False,
+                'UnhealthyNodeReplacement': True,
                 "InstanceGroups": [
                     {
                         "Name": "Master",
@@ -85,9 +88,9 @@ def lambda_handler(event, context):
                         {
                             'VolumeSpecification': {
                                 'VolumeType': 'gp3',
-                                #'Iops': 123,
-                                'SizeInGB': volume_size
-                                #'Throughput': 123
+                                'SizeInGB': vol_size
+                                # 'Iops': 123,
+                                # 'Throughput': 123
                             },
                             'VolumesPerInstance': 1
                         },
@@ -95,48 +98,48 @@ def lambda_handler(event, context):
                     'EbsOptimized': True
                 },
             },
-            EbsRootVolumeSize = 50,
+            EbsRootVolumeSize=vol_root_size,
             Steps=[
                 {
-                    'Name': 'I - Copy data from S3 to HDFS',
+                    'Name': '1 - Copy data from S3 to HDFS',
                     'ActionOnFailure': 'CANCEL_AND_WAIT',
                     'HadoopJarStep': {
                         'Jar': 'command-runner.jar',
                         'Args': [
-                            "bash", "-c", "aws s3 sync s3://extralabs-artifacts-dev/data/ /home/hadoop/data"
+                            "bash", "-c", f"aws s3 sync {S3_PATH_INPUT} /home/hadoop/data"
                         ]
                     }
                 },
                 {
-                    'Name': 'II - Preprocess',
+                    'Name': '2 - Preprocess',
                     'ActionOnFailure': 'CANCEL_AND_WAIT',
                     'HadoopJarStep': {
                         'Jar': 'command-runner.jar',
-                        'MainClass': 'string',
+                        'MainClass': 'WorkflowWasure',
                         'Args': [
                             'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
-                            '--jars', 's3://extralabs-artifacts-dev/jar/iqlib.jar',
+                            '--jars', S3_PATH_IQLIB,
                             '--conf', 'spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE=docker',
                             '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={DOCKER_IMAGE}',
-                            's3://extralabs-artifacts-dev/scripts/workflow_preprocess.scala'
+                            S3_PATH_PREPROCESS
                         ],
                     }
                 },
-                {
-                    'Name': 'III - Process',
-                    'ActionOnFailure': 'CANCEL_AND_WAIT',
-                    'HadoopJarStep': {
-                        'Jar': 'command-runner.jar',
-                        'MainClass': 'string',
-                        'Args': [
-                            'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
-                            '--jars', 's3://extralabs-artifacts-dev/jar/iqlib.jar',
-                            '--conf', 'spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE=docker',
-                            '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={DOCKER_IMAGE}',
-                            's3://extralabs-artifacts-dev/scripts/workflow_wasure.scala'
-                        ],
-                    }
-                },
+                # {
+                #     'Name': '3 - Process',
+                #     'ActionOnFailure': 'CANCEL_AND_WAIT',
+                #     'HadoopJarStep': {
+                #         'Jar': 'command-runner.jar',
+                #         'MainClass': 'WorkflowWasure',
+                #         'Args': [
+                #             'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
+                #             '--jars', S3_PATH_IQLIB,
+                #             '--conf', 'spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE=docker',
+                #             '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={DOCKER_IMAGE}',
+                #             S3_PATH_PROCESS
+                #         ],
+                #     }
+                # },
             ],
             Configurations=[
                 {
@@ -165,8 +168,8 @@ def lambda_handler(event, context):
                         "spark.eventLog.enabled": "true",
                         "spark.driver.allowMultipleContexts": "true",
                         "spark.memory.offHeap.enabled": "true",
-                        "spark.memory.offHeap.size": "10g",
-                        "spark.memory.storageFraction": "0.8",
+                        "spark.memory.offHeap.size": spark_heap_size,
+                        "spark.memory.storageFraction": spark_mem_fraction,
                         "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
                     }
                 },
@@ -180,7 +183,7 @@ def lambda_handler(event, context):
                             "INPUT_DATA_DIR": "/app/datas/",
                             "OUTPUT_DATA_DIR": "/app/out/",
                             "GLOBAL_BUILD_DIR": "/app/build/",
-                            "PARAM_PATH": "${INPUT_DATA_DIR}/params.xml",
+                            "PARAM_PATH": "/app/datas/params.xml",
                         }
                     }
                 },
@@ -204,7 +207,7 @@ def lambda_handler(event, context):
                 {
                     'Name': 'docker',
                     'ScriptBootstrapAction': {
-                        'Path': s3_boostsrap_path,
+                        'Path': S3_PATH_BOOTSTRAP,
                     }
                 },
             ],
@@ -214,8 +217,9 @@ def lambda_handler(event, context):
             VisibleToAllUsers=True,
             scale_down_behavior="TERMINATE_AT_TASK_COMPLETION",
             Tags=[
-                {"Key": "Environment", "Value": "Development"},
-                {"Key": "for-use-with-amazon-emr-managed-policies", "Value": "True"}
+                # mandatory tag
+                {"Key": "for-use-with-amazon-emr-managed-policies", "Value": "True"},
+                {"Key": "Environment", "Value": "Development"}
             ]
         )
 

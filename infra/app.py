@@ -5,6 +5,7 @@ from stacks.s3 import S3Stack
 from stacks.network import NetworkStack
 from stacks.emr.roles import EMRRolesStack
 from stacks.emr.stack import EMRStack
+from stacks.lambda_invoke.lambda_stack import LambdaStack
 #from stacks.infra_stack import InfraStack
 
 
@@ -32,6 +33,7 @@ net = NetworkStack(app, "NetworkStack")
 ecr = ECRStack(app, "ECRStack")
 s3 = S3Stack(app, "S3Stack")
 roles = EMRRolesStack(app, "EMRRolesStack")
+LambdaStack(app, "LambdaStack")
 
 EMRStack(app, "EMRStack",
     ecr,
