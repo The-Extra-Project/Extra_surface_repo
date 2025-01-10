@@ -1,30 +1,34 @@
 import json
 import boto3
+import os
 
 
-REGION = "eu-west-1"
+# Cluster
+region = os.environ.get('region', "eu-west-1")
+release_label = os.environ.get('release_label', 'emr-7.3.0')
+hadoop_version = os.environ.get('hadoop_version', '3.3.6')
+emr_service_role = os.environ.get('emr_service_role')
+instance_profile = os.environ.get('instance_profile')
+subnet_id = os.environ.get('subnet_id', "subnet-0f85765f2c8a832cf")
+key_name = os.environ.get('key_name', "extra")
+vol_root_size = os.environ.get('vol_root_size', 30)
 
-DOCKER_IMAGE = "767397971222.dkr.ecr.eu-west-1.amazonaws.com/extralabs-emr-dev:latest"
-
-S3_PATH = "s3://extralabs-artifacts-dev"
-S3_PATH_INPUT = f"{S3_PATH}/data"
-S3_PATH_BOOTSTRAP = f"{S3_PATH}/scripts/docker.sh"
-S3_PATH_IQLIB = f"{S3_PATH}/jar/iqlib.jar"
-S3_PATH_PREPROCESS = f"{S3_PATH}/jar/preprocess-0.3.jar"
-S3_PATH_PROCESS = f"{S3_PATH}/jar/process-0.3.jar"
+# App
+docker_image = os.environ.get('docker_image', None)
+s3_path = os.environ.get('s3_path', None)
+s3_path_input = os.environ.get('s3_path_input')
+s3_path_bootstrap = os.environ.get('s3_path_bootstrap')
+s3_path_iqlib = os.environ.get('s3_path_iqlib')
+s3_path_preprocess = os.environ.get('s3_path_preprocess')
+s3_path_process = os.environ.get('s3_path_process')
+log_uri = os.environ.get('log_uri')
+main_class = os.environ.get('main_class', "WorkflowWasure")
+emr_client = boto3.client('emr', region_name=region)
 
 
 def lambda_handler(event, context):
-    region = event.get('region', REGION)
-    emr_client = boto3.client('emr', region_name=region)
-    ssm_client = boto3.client('ssm', region_name=region)
-
     # Cluster
-    cluster_name = event.get('cluster_name', 'Lambda-Dev')
-    release_label = event.get('release_label', "emr-7.3.0")
-    hadoop_version = event.get('hadoop_version', '3.3.6')
-    emr_service_role = event.get('emr_service_role', 'EMR_DefaultRole')
-    log_uri = event.get('log_uri', f"{S3_PATH}/emr-logs")
+    cluster_name = event.get('cluster_name', 'Dev')
 
     # Instances
     master_instance_type = event.get('master_instance_type', "m5.xlarge")
@@ -34,21 +38,13 @@ def lambda_handler(event, context):
     task_instance_type = event.get('task_instance_type', "m5.xlarge")
     task_instance_count = event.get('task_instance_count', 1)
     vol_size = event.get('vol_size', 30)
-    vol_root_size = event.get('vol_root_size', 30)
-    key_name = event.get('key_name', "extra")
-    subnet_id = event.get('subnet_id', "subnet-0f85765f2c8a832cf")
 
     # App Configurations
     spark_heap_size = event.get('spark_heap_size', "2g")
     spark_mem_fraction = event.get('spark_mem_fraction', "0.8")
 
-    parameter_name = "/emr/instance-profile-name"
-
     # Create EMR cluster
     try:
-        ssm_response = ssm_client.get_parameter(Name=parameter_name, WithDecryption=True)
-        instance_profile = ssm_response['Parameter']['Value']
-
         response = emr_client.run_job_flow(
             Name=cluster_name,
             ReleaseLabel=release_label,
@@ -131,7 +127,7 @@ def lambda_handler(event, context):
                     }
                 ],
             },
-            EbsRootVolumeSize=vol_root_size,
+            EbsRootVolumeSize=int(vol_root_size),
             Steps=[
                 {
                     'Name': '1 - Copy data from S3 to HDFS',
@@ -139,7 +135,7 @@ def lambda_handler(event, context):
                     'HadoopJarStep': {
                         'Jar': 'command-runner.jar',
                         'Args': [
-                            "bash", "-c", f"aws s3 sync {S3_PATH_INPUT} /home/hadoop/data"
+                            "bash", "-c", f"aws s3 sync {s3_path_input} /home/hadoop/data"
                         ]
                     }
                 },
@@ -148,13 +144,13 @@ def lambda_handler(event, context):
                     'ActionOnFailure': 'CANCEL_AND_WAIT',
                     'HadoopJarStep': {
                         'Jar': 'command-runner.jar',
-                        'MainClass': 'WorkflowWasure',
+                        'MainClass': main_class,
                         'Args': [
                             'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
-                            '--jars', S3_PATH_IQLIB,
+                            '--jars', s3_path_iqlib,
                             '--conf', 'spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE=docker',
-                            '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={DOCKER_IMAGE}',
-                            S3_PATH_PREPROCESS
+                            '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={docker_image}',
+                            s3_path_preprocess
                         ],
                     }
                 },
@@ -163,13 +159,13 @@ def lambda_handler(event, context):
                     'ActionOnFailure': 'CANCEL_AND_WAIT',
                     'HadoopJarStep': {
                         'Jar': 'command-runner.jar',
-                        'MainClass': 'WorkflowWasure',
+                        'MainClass': main_class,
                         'Args': [
                             'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
-                            '--jars', S3_PATH_IQLIB,
+                            '--jars', s3_path_iqlib,
                             '--conf', 'spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE=docker',
-                            '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={DOCKER_IMAGE}',
-                            S3_PATH_PROCESS
+                            '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={docker_image}',
+                            s3_path_process
                         ],
                     }
                 },
@@ -185,7 +181,7 @@ def lambda_handler(event, context):
                     'Classification': 'yarn-site',
                     'Properties': {
                         "yarn.container.runtime.type": "docker",
-                        "yarn.container.docker.image": DOCKER_IMAGE,
+                        "yarn.container.docker.image": docker_image,
                         "yarn.nodemanager.runtime.linux.docker.default-rw-mounts": "/home/hadoop/data:/app/datas",
                     }
                 },
@@ -193,10 +189,10 @@ def lambda_handler(event, context):
                     'Classification': 'spark-defaults',
                     'Properties': {
                         "spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE": "docker",
-                        "spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE": DOCKER_IMAGE,
+                        "spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE": docker_image,
                         "spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_MOUNTS": "/home/hadoop/data:/app/datas:rw,/home/hadoop/out:/app/out:rw,/home/hadoop/logs:/tmp:rw",
                         "spark.yarn.appMasterEnv.YARN_CONTAINER_RUNTIME_TYPE": "docker",
-                        "spark.yarn.appMasterEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE": DOCKER_IMAGE,
+                        "spark.yarn.appMasterEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE": docker_image,
                         "spark.rdd.compress": "true",
                         "spark.eventLog.enabled": "true",
                         "spark.driver.allowMultipleContexts": "true",
@@ -240,7 +236,7 @@ def lambda_handler(event, context):
                 {
                     'Name': 'docker',
                     'ScriptBootstrapAction': {
-                        'Path': S3_PATH_BOOTSTRAP,
+                        'Path': s3_path_bootstrap,
                     }
                 },
             ],
@@ -256,12 +252,13 @@ def lambda_handler(event, context):
             ]
         )
 
+        print(f"EMR cluster created! clusterId: {response['JobFlowId']}")
         # Return cluster ID
         return {
             'statusCode': 200,
             'body': json.dumps({
                 "message": "EMR cluster created successfully",
-                "ClusterId": response['JobFlowId']
+                "clusterId": response['JobFlowId']
             })
         }
 
@@ -271,7 +268,6 @@ def lambda_handler(event, context):
         return {
             'statusCode': 500,
             'body': json.dumps({
-                "error": str(e),
-                "message": str(ssm_response)
+                "error": str(e)
             })
         }
