@@ -29,11 +29,12 @@ import org.apache.hadoop.fs.FileSystem
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.fs.permission.FsPermission
 
-import spark_ddt.core._;
-import spark_ddt.util._;
-import spark_ddt.ddt_algo._;
+import iqlib.core._;
+import iqlib.util._;
+import iqlib.ddt_algo._;
 import algo_stats._;
-import spark_ddt.core.IQlibCore._;
+import iqlib.core.IQlibCore._;
+
 import xml_parsing._;
 import bash_funcs._
 import strings_opt._;

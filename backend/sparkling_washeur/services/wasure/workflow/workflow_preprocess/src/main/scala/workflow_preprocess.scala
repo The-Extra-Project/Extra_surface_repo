@@ -30,10 +30,10 @@ import org.apache.spark.storage.StorageLevel
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 
-import spark_ddt.core._;
-import spark_ddt.util._;
-import spark_ddt.core.IQlibCore._;
-import spark_ddt.ddt_algo._;
+import iqlib.core._;
+import iqlib.util._;
+import iqlib.core.IQlibCore._;
+import iqlib.ddt_algo._;
 import spark_ddt.wasure._;
 import tiling._;
 
@@ -43,7 +43,7 @@ import dataset_processing._;
 import bash_funcs._
 import strings_opt._;
 import params_parser._;
-import spark_ddt.util.params_parser.params_map
+import iqlib.util.params_parser.params_map
 import files_opt._;
 import geojson_export._;
 import sparkle.graph._

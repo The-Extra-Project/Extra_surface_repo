@@ -31,10 +31,10 @@ import org.apache.spark.sql.SaveMode
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.SparkConf
 
-import spark_ddt.core._
-import spark_ddt.util._
-import spark_ddt.core.IQlibCore._
-import spark_ddt.ddt_algo._
+import iqlib.core._
+import iqlib.util._
+import iqlib.core.IQlibCore._
+import iqlib.ddt_algo._
 import spark_ddt.wasure._
 
 import sparkle.graph._

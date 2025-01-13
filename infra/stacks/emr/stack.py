@@ -19,7 +19,6 @@ SSH_KEY_NAME="extra"
 # SSH, monitroing - logs in s3 buckeet which is not autocreted
 # steps fail
 
-
 class EMRStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, ecr: Stack, s3: Stack, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -87,7 +86,7 @@ class EMRStack(Stack):
             hadoop_version="3.3.6",
             ec2_key_name=SSH_KEY_NAME,
             # Network settings
-            ec2_subnet_ids=[Fn.import_value("PublicSubnet0")],
+            ec2_subnet_ids=public_subnet_ids,
             # emr_managed_master_security_group="emrManagedMasterSecurityGroup",
             # emr_managed_slave_security_group="emrManagedSlaveSecurityGroup",
             # service_access_security_group="serviceAccessSecurityGroup",

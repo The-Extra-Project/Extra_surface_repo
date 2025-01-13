@@ -1,13 +1,13 @@
 resolvers += "Spark Package Main Repo" at "https://dl.bintray.com/spark-packages/maven"
+// resolvers += "spark-packages" at "https://repos.spark-packages.org/"
+// resolvers += "GitHub Packages" at "https://maven.pkg.github.com/codecommit/sbt-github-packages"
 resolvers += "Maven Central" at "https://repo1.maven.org/maven2/"
 // resolvers += "bintray-spark-packages" at "https://dl.bintray.com/spark-packages/maven/"
-resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
-resolvers += "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/"
-
 
 resolvers += "spark-packages" at "https://repos.spark-packages.org/"
 
 
+addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.6.0")
 
 addSbtPlugin("org.spark-packages" % "sbt-spark-package" % "0.2.6")
 
