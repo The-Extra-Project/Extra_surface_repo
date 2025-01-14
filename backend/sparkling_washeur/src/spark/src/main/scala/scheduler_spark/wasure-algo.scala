@@ -31,7 +31,7 @@ import org.apache.hadoop.fs.permission.FsPermission
 
 import iqlib.core._;
 import iqlib.util._;
-import iqlib.ddt_algo._;
+import iqlib.algo._;
 import algo_stats._;
 import iqlib.core.IQlibCore._;
 
