@@ -10,7 +10,7 @@ javacOptions ++= Seq("-source", "1.8")
 
 resolvers +=  "commons-io" at "https://mvnrepository.com/artifact"
 
-unmanagedJars in Compile += file(baseDirectory.value / "services/iqlib/target/scala-2.12/iqlib-assembly-0.1.jar")
+// unmanagedJars in Compile += file(baseDirectory.value / "services/iqlib/target/scala-2.12/iqlib-assembly-0.1.jar")
 
 scalacOptions += "-target:jvm-1.8"
 javacOptions ++= Seq("-source", "1.8")

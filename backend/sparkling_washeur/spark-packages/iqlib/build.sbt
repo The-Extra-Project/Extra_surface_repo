@@ -1,3 +1,5 @@
+
+
 name := "iqlib"
 version := "0.1"
 scalaVersion := "2.12.18"
@@ -7,11 +9,8 @@ javacOptions ++= Seq("-source", "1.8")
 
 resolvers +=  "commons-io" at "https://mvnrepository.com/artifact"
 
-
-//unmanagedJars in Compile += file(baseDirectory.value + "/src/spark/target/scala-2.12/iqlib-spark-assembly-1.0.jar")
-
 libraryDependencies ++= Seq(
- "org.apache.spark" %% "spark-core" % "3.5.1",
+  "org.apache.spark" %% "spark-core" % "3.5.1",
   "org.apache.spark" %% "spark-sql" % "3.5.1",
   "org.apache.spark" %% "spark-graphx" % "3.5.1",
   "org.apache.hadoop" % "hadoop-common" % "3.3.6",
@@ -20,7 +19,6 @@ libraryDependencies ++= Seq(
 )
 
 ThisBuild / packageTimestamp := Package.keepTimestamps
-
 
 lazy val iqlibJar = taskKey[File]("iqlib-jar")
 

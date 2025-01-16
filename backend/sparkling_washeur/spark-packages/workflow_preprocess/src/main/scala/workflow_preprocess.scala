@@ -33,7 +33,7 @@ import org.apache.spark.SparkContext
 import iqlib.core._;
 import iqlib.util._;
 import iqlib.core.IQlibCore._;
-import iqlib.ddt_algo._;
+import iqlib.algo._;
 import spark_ddt.wasure._;
 import tiling._;
 

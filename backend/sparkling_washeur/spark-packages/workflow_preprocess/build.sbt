@@ -1,18 +1,20 @@
-name := "wasure"
+name := "preprocess"
 version := "0.1"
 scalaVersion := "2.12.18"
 
-resolvers += "spark-packages" at "https://dl.bintray.com/spark-packages/maven/"
-
 scalacOptions += "-target:jvm-1.8"
 javacOptions ++= Seq("-source", "1.8")
+
+resolvers +=  "commons-io" at "https://mvnrepository.com/artifact"
+
+unmanagedJars in Compile += baseDirectory.value.getParentFile / "iqlib-spark-assembly-1.0.jar"
+
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "3.5.1",
   "org.apache.spark" %% "spark-sql" % "3.5.1",
   "org.apache.spark" %% "spark-graphx" % "3.5.1",
   "org.apache.hadoop" % "hadoop-common" % "3.3.6",  // Ensure Hadoop version matches
-  "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",
   "org.scala-lang.modules" %% "scala-xml" % "2.1.0",
   "commons-io" % "commons-io" % "2.11.0",
 )
@@ -35,22 +37,16 @@ dependencyOverrides ++= Seq(
 import sbtassembly.AssemblyPlugin.autoImport._
 import sbt.Keys._
 
-unmanagedJars in Compile += baseDirectory.value.getParentFile / "iqlib-spark-assembly-1.0.jar"
-
-lazy val wasureJar = taskKey[File]("wasure-jar")
-
-wasureJar := {
-  val jarFile = (Compile / packageBin).value 
-  val targetFile = target.value / "wasure.jar"
-  // Do the assembly of the JAR for the wasure code
-  IO.copyFile(jarFile, targetFile)
-  targetFile
-}
-
-// the following specs are for the combination of the various assembly plugins in uber jar format (by checking and removing those jars that have path conflicts)
-// reference by copilot recommendation to resolve the errors:
+lazy val preprocessJar = taskKey[File]("preprocess-jar")
 
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-  case x => MergeStrategy.first
+  case _ => MergeStrategy.first
+}
+
+preprocessJar := {
+  val jarFile = (Compile / packageBin).value
+  val targetFile = target.value / "preprocess.jar"
+  IO.copyFile(jarFile, targetFile)
+  targetFile
 }

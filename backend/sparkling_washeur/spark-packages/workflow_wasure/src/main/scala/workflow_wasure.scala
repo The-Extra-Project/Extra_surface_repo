@@ -34,7 +34,7 @@ import org.apache.spark.SparkConf
 import iqlib.core._
 import iqlib.util._
 import iqlib.core.IQlibCore._
-import iqlib.ddt_algo._
+import iqlib.algo._
 import spark_ddt.wasure._
 
 import sparkle.graph._
@@ -69,22 +69,35 @@ object WorkflowWasure {
       fs.mkdirs(checkpoint_dir_path,new FsPermission("777"))
     }
 
-    // Metadata extraction
-    val output_dir = args("OUTPUT_DATA_DIR").replaceAll("//", "/");
-    val input_dir = args("INPUT_DATA_DIR").replaceAll("//", "/");
-    val env_xml = args("PARAM_PATH");
-    val ddt_main_dir = args("DDT_MAIN_DIR");
-    val current_plateform = args("CURRENT_PLATEFORM");
-    val global_build_dir = args("GLOBAL_BUILD_DIR");
-    val executor_cores = args("MULTIVAC_EXECUTOR_CORE");
-    val num_executors = args("MULTIVAC_NUM_EXECUTORS");
+    // Define a method to parse the command-line arguments into a Map
+    def parseArgs(args: Array[String]): Map[String, String] = {
+      args.map { arg =>
+        val parts = arg.split("=")
+        if (parts.length == 2) (parts(0), parts(1)) else ("", "")
+      }.toMap
+    }
+
+    // Parse the command-line arguments
+    val argsMap = parseArgs(args)
+  
+
+ // Extract the values from the parsed arguments
+    val output_dir: String = argsMap.getOrElse("OUTPUT_DATA_DIR", "").replaceAll("//", "/")
+    val input_dir: String = argsMap.getOrElse("INPUT_DATA_DIR", "").replaceAll("//", "/")
+    val env_xml: String = argsMap.getOrElse("PARAM_PATH", "")
+    val ddt_main_dir: String = argsMap.getOrElse("DDT_MAIN_DIR", "")
+    val current_plateform: String = argsMap.getOrElse("CURRENT_PLATEFORM", "")
+    val global_build_dir: String = argsMap.getOrElse("GLOBAL_BUILD_DIR", "")
+    val executor_cores: Int = argsMap.getOrElse("MULTIVAC_EXECUTOR_CORE", "0").toInt
+    val num_executors: Int = argsMap.getOrElse("MULTIVAC_NUM_EXECUTORS", "0").toInt
 
 
+    // Your existing code here
     // Get Params list from xml
     val xml_string = sc.wholeTextFiles(env_xml).collect()(0)._2
     var param_list = parse_xml_datasets_string(xml_string)
-    val df_par = sc.defaultParallelism;
-    val params_scala = param_list(0) // We only process 1 set of parameter in this workflow
+    val df_par = sc.defaultParallelism
+    val params_scala = param_list(0) // We only process 1 set of parameters in this workflow
 
 
     // System params
@@ -187,8 +200,8 @@ object WorkflowWasure {
     params_ddt("output_dir") = collection.mutable.Set(cur_output_dir)
     params_scala("output_dir") = collection.mutable.Set(cur_output_dir)
     params_scala("ddt_main_dir") = collection.mutable.Set(ddt_main_dir)
-    params_scala("executor_cores") =  collection.mutable.Set(executor_cores)
-    params_scala("num_executors") =  collection.mutable.Set(num_executors)
+    params_scala("executor_cores") =  collection.mutable.Set(executor_cores.toString)
+    params_scala("num_executors") =  collection.mutable.Set(num_executors.toString)
     params_ddt("nbt_side") =  collection.mutable.Set(nbt_side.toString)
     params_wasure("nbt_side") =  collection.mutable.Set(nbt_side.toString)
 
