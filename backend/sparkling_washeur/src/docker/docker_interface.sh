@@ -51,8 +51,8 @@ function compile {
 
     docker rm -f ${CONTAINER_NAME_COMPILE} 2>/dev/null
 
-    SPARK_BUILD_DIR="${GLOBAL_BUILD_DIR}/spark/"
     GLOBAL_BUILD_DIR="${DDT_MAIN_DIR_DOCKER}/build/"
+    SPARK_BUILD_DIR="${GLOBAL_BUILD_DIR}/spark/"
     KERNEL_BUILD_DIR="${GLOBAL_BUILD_DIR}/build-spark-${COMPILE_MODE}-${DDT_TRAITS}/"
 
     # Compile ddt project at the top level:: ./CMakeLists.txt

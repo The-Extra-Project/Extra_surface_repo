@@ -64,7 +64,7 @@ add_definitions("-DDDT_USE_HDFS=1")
 find_package(Boost COMPONENTS system filesystem program_options REQUIRED)
 
 find_package(CGAL QUIET REQUIRED)
-if ( CGAL_FOUND )
+if (CGAL_FOUND)
   set(CGAL_OPTIMISATION_NO_PRECONDITIONS TRUE)
   set(CGAL_DONT_OVERRIDE_CMAKE_FLAGS TRUE CACHE BOOL "Don't override flags")
   include( ${CGAL_USE_FILE} )
@@ -81,14 +81,15 @@ else()
 endif()
 
 # Use FindLibXml2 module to locate libxml2
-# find_library(LIBXML2_LIBRARY NAMES xml2 PATHS /usr/lib/x86_64-linux-gnu)
+find_library(LIBXML2_LIBRARY NAMES xml2 PATHS /usr/lib/x86_64-linux-gnu)
 
 # if(LIBXML2_LIBRARY)
 #     message(STATUS "libxml2 found: ${LIBXML2_LIBRARY}")
+#     include_directories(${LIBXML2_INCLUDE_DIR})
 # else()
 #     message(FATAL_ERROR "libxml2 not found in /usr/lib/x86_64-linux-gnu")
 # endif()
-find_package(LIBXML2 REQUIRED)
+find_package(LibXml2 REQUIRED)
 # Add include directories for libxml2
 
 

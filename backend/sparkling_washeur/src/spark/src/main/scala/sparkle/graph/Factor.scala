@@ -20,10 +20,10 @@
 package sparkle.graph
 
 /**
-  * Contains math for factors.
-  * Math is done in the log domain to prevent (postpone) underflow in the original domain.
-  * Multiplication and division are addition and subtraction in log domain.
-  */
+ * Contains math for factors.
+ * Math is done in the log domain to prevent (postpone) underflow in the original domain.
+ * Multiplication and division are addition and subtraction in log domain.
+ */
 private object FactorMath {
   // precision of computations in the original domain. serves as a safe-guard for log overflow
   val precision = math.log(Double.MinPositiveValue)
@@ -90,7 +90,7 @@ private object FactorMath {
  * @param states number of states
  * @param values values in vector format
  */
-private [graph] class Factor private (
+private[graph] class Factor private (
   protected val states: Array[Int],
   protected val values: Array[Double]) extends Serializable {
 
@@ -109,14 +109,15 @@ private [graph] class Factor private (
   }
 
   /**
-    * Returns the composition of factor and a message.
-    * @param message message
-    * @param index index of the variable-receiver of a message
-    * @return factor
-    */
+   * Returns the composition of factor and a message.
+   * @param message message
+   * @param index index of the variable-receiver of a message
+   * @return factor
+   */
   def compose(message: Variable, index: Int): Factor = {
     require(index >= 0, "Index must be non-negative")
-    require(states(index) == message.size,
+    require(
+      states(index) == message.size,
       "Number of states for variable and message must be equal")
     val result = new Array[Double](length)
     val product = states.slice(0, index).product
@@ -130,14 +131,15 @@ private [graph] class Factor private (
   }
 
   /**
-    * Returns the normalized decomposition of factor and a message
-    * @param message message
-    * @param index index of the variable-receiver of a message
-    * @return message
-    */
+   * Returns the normalized decomposition of factor and a message
+   * @param message message
+   * @param index index of the variable-receiver of a message
+   * @return message
+   */
   def decompose(message: Variable, index: Int): Variable = {
     require(index >= 0, "Index must be non-negative")
-    require(states(index) == message.size,
+    require(
+      states(index) == message.size,
       "Number of states for variable and message must be equal")
     val result = Array.fill[Double](states(index))(Double.NegativeInfinity)
     val product = states.slice(0, index).product
@@ -154,11 +156,11 @@ private [graph] class Factor private (
   }
 
   /**
-    * Marginalize factor by a variable
-    *
-    * @param index index of a variable
-    * @return marginal
-    */
+   * Marginalize factor by a variable
+   *
+   * @param index index of a variable
+   * @return marginal
+   */
   def marginalize(index: Int): Variable = {
     require(index >= 0 && index < states.length, "Index must be non-negative && within shape")
     val result = Array.fill[Double](states(index))(Double.NegativeInfinity)
@@ -188,41 +190,40 @@ private [graph] class Factor private (
 object Factor {
 
   /**
-    * Returns new factor given states and values
-    * @param states states
-    * @param values values
-    * @return factor
-    */
+   * Returns new factor given states and values
+   * @param states states
+   * @param values values
+   * @return factor
+   */
   def apply(states: Array[Int], values: Array[Double]): Factor = {
     new Factor(states, values)
   }
 }
 
-
 /**
  * Represenation of an instance of a variable
  * @param values values of a variable
  */
-private [graph] class Variable private (
+private[graph] class Variable private (
   protected val values: Array[Double]) extends Serializable {
 
   /**
-    * Size of the variable (or the number of states)
-    */
+   * Size of the variable (or the number of states)
+   */
   val size = values.length
 
   /**
-    * Returns the state of the variable at the given index
-    * @param index index
-    * @return state
-    */
+   * Returns the state of the variable at the given index
+   * @param index index
+   * @return state
+   */
   def state(index: Int): Double = values(index)
 
   /**
-    * Returns normalized composition of two variable instances
-    * @param other other variable
-    * @return variable
-    */
+   * Returns normalized composition of two variable instances
+   * @param other other variable
+   * @return variable
+   */
   def compose(other: Variable): Variable = {
     require(this.size == other.size)
     val result = new Array[Double](size)
@@ -236,10 +237,10 @@ private [graph] class Variable private (
   }
 
   /**
-    * Returns normalized decomposition of two variable instances
-    * @param other
-    * @return
-    */
+   * Returns normalized decomposition of two variable instances
+   * @param other
+   * @return
+   */
   def decompose(other: Variable): Variable = {
     require(this.size == other.size)
     val result = new Array[Double](size)
@@ -253,18 +254,18 @@ private [graph] class Variable private (
   }
 
   /**
-    * Returns text representation of a variable instance
-    * @return text
-    */
+   * Returns text representation of a variable instance
+   * @return text
+   */
   override def toString(): String = {
     // TODO: return 0 instead of MinPositiveDouble
     exp().values.mkString(" ")
   }
 
   /**
-    * Returns variable instance in the original (non-log) domain
-    * @return variable instance
-    */
+   * Returns variable instance in the original (non-log) domain
+   * @return variable instance
+   */
   def exp(): Variable = {
     // TODO: find a better place for this function
     val x = values.clone()
@@ -277,10 +278,10 @@ private [graph] class Variable private (
   }
 
   /**
-    * Returns the maximum difference between two variables in the original domain
-    * @param other other variable
-    * @return maximum difference
-    */
+   * Returns the maximum difference between two variables in the original domain
+   * @param other other variable
+   * @return maximum difference
+   */
   def maxDiff(other: Variable): Double = {
     require(other.size == this.size, "Variables must have the same size")
     var i = 0
@@ -303,25 +304,25 @@ private [graph] class Variable private (
 }
 
 /**
-  * Fabric for variables
-  */
+ * Fabric for variables
+ */
 object Variable {
 
   /**
-    * Returns a new variable given the values
-    * @param values values
-    * @return variable
-    */
+   * Returns a new variable given the values
+   * @param values values
+   * @return variable
+   */
   def apply(values: Array[Double]): Variable = {
     new Variable(values)
   }
 
   /**
-    * Returns a new variable given the values to fill
-    * @param size size
-    * @param elem fill values
-    * @return variable
-    */
+   * Returns a new variable given the values to fill
+   * @param size size
+   * @param elem fill values
+   * @return variable
+   */
   def fill(size: Int)(elem: => Double): Variable = {
     new Variable(Array.fill[Double](size)(elem))
   }

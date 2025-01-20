@@ -1,49 +1,50 @@
-services:
-  api:
-    build:
-      context: ./backend/api/
-      dockerfile: Dockerfile.api
-    env_file: ".env"
-    ports:
-      - 8000:8000
-    cap_add:
-        - ALL
-    volumes:
-      - $HOME/.aws/credentials:/.aws/credentials:ro
+# services:
+#   api:
+#     build:
+#       context: ./backend/api/
+#       dockerfile: Dockerfile.api
+#     env_file: ".env"
+#     ports:
+#       - 8000:8000
+#     cap_add:
+#         - ALL
+#     volumes:
+#       - $HOME/.aws/credentials:/.aws/credentials:ro
 
-  sparkling_washeur_core:
-    image: devextralabs/distributed-delaunay-transformation ##TODO: to change the name and port the version.
-    build:
-      context: ./backend/sparkling_washeur/
-      dockerfile: ./src/docker/Dockerfile-base-Ubuntu-devel
-    volumes:
-      - ${HOME}/.aws/credentials:/.aws/credentials:ro
-      - ${PWD}/backend/sparkling_washeur:/app/sparkling_washeur/:rw
+#   sparkling_washeur_core:
+#     image: devextralabs/distributed-delaunay-transformation ##TODO: to change the name and port the version.
+#     build:
+#       context: ./backend/sparkling_washeur/
+#       dockerfile: ./src/docker/Dockerfile-base-Ubuntu-devel
+#     volumes:
+#       - ${HOME}/.aws/credentials:/.aws/credentials:ro
+#       - ${PWD}/backend/sparkling_washeur:/app/sparkling_washeur/:rw
 
-    environment:
-      - NB_PROC="4"
-      - DDT_TRAITS="3"
-  # sparkling_washeur:
-  #   build:
-  #     context: ./backend/sparkling_washeur/
-  #     dockerfile: Dockerfile.washeur 
-  #   volumes:
-  #     - ${HOME}/.aws/credentials:/.aws/credentials:ro
-  #     - ${PWD}/backend/sparkling_washeur:/app/sparkling_washeur/:rw
-  #   depends_on:
-  #     - sparkling_washeur_core
+#     environment:
+#       - NB_PROC="4"
+#       - DDT_TRAITS="3"
+  
+#   # sparkling_washeur:
+#   #   build:
+#   #     context: ./backend/sparkling_washeur/
+#   #     dockerfile: Dockerfile.washeur 
+#   #   volumes:
+#   #     - ${HOME}/.aws/credentials:/.aws/credentials:ro
+#   #     - ${PWD}/backend/sparkling_washeur:/app/sparkling_washeur/:rw
+#   #   depends_on:
+#   #     - sparkling_washeur_core
 
-  redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"
-    depends_on:
-      - api
-      - website
+#   redis:
+#     image: redis:latest
+#     ports:
+#       - "6379:6379"
+#     depends_on:
+#       - api
+#       - website
 
-  website:
-    build: 
-      context: ./frontend/
-      dockerfile: dockerfile
-    ports:
-      - "3000:3000"
+#   website:
+#     build: 
+#       context: ./frontend/
+#       dockerfile: dockerfile
+#     ports:
+#       - "3000:3000"

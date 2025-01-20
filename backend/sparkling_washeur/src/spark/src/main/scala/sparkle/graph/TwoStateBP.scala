@@ -20,47 +20,48 @@ package sparkle.graph
 import java.util.Calendar
 
 import org.apache.spark.rdd.RDD
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.graphx.{EdgeTriplet, Graph, _}
+import org.apache.spark.{ SparkConf, SparkContext }
+import org.apache.spark.graphx.{ EdgeTriplet, Graph, _ }
 
-object TwoStateBP   {
+object TwoStateBP {
 
-  def apply(graph: Graph[BeliefVertex, BeliefEdge],
-   maxIterations: Int = 50,
-   eps: Double = 1e-3) : Graph[BeliefVertex, BeliefEdge] =
-  {
-    val initialMessage = Array(1.0, 1.0)
-    var maxDiff: Double = 1.0
-    var newGraph = graph.mapVertices((vid, vdata) => vertexProgram(0, vid, vdata, initialMessage)).cache()
-    var prevGraph: Graph[BeliefVertex, BeliefEdge] = null
-    var graphWithNewMessages: Graph[BeliefVertex, BeliefEdge] = null
-    var i = 1
-    while (i <= maxIterations && maxDiff >= eps) {
-      prevGraph = newGraph
-      graphWithNewMessages = newGraph.mapTriplets(putMessages).cache()
-      graphWithNewMessages.edges.foreachPartition( x => {})
-      val newAggMessages = graphWithNewMessages.aggregateMessages[Array[Double]](
-        triplet => {
-          triplet.sendToDst(triplet.attr.forwardMessage)
-          triplet.sendToSrc(triplet.attr.reverseMessage)
-        },
-        mergeMessages,
-        TripletFields.EdgeOnly)
-      newGraph = graphWithNewMessages.joinVertices(newAggMessages) { (id, attr, msg) =>
-        vertexProgram(i, id, attr, msg) }.cache()
-      // TODO: check that edges force vertices to materialize
-      newGraph.edges.foreachPartition( x => {})
-      prevGraph.vertices.unpersist(false)
-      prevGraph.edges.unpersist(false)
-      graphWithNewMessages.edges.unpersist(false)
-      maxDiff = newGraph.vertices.map { case (vid, vb) => vb.diff }.max()
-      i += 1
-    }
-    newGraph
-  } // end of apply
+  def apply(
+    graph: Graph[BeliefVertex, BeliefEdge],
+    maxIterations: Int = 50,
+    eps: Double = 1e-3): Graph[BeliefVertex, BeliefEdge] =
+    {
+      val initialMessage = Array(1.0, 1.0)
+      var maxDiff: Double = 1.0
+      var newGraph = graph.mapVertices((vid, vdata) => vertexProgram(0, vid, vdata, initialMessage)).cache()
+      var prevGraph: Graph[BeliefVertex, BeliefEdge] = null
+      var graphWithNewMessages: Graph[BeliefVertex, BeliefEdge] = null
+      var i = 1
+      while (i <= maxIterations && maxDiff >= eps) {
+        prevGraph = newGraph
+        graphWithNewMessages = newGraph.mapTriplets(putMessages).cache()
+        graphWithNewMessages.edges.foreachPartition(x => {})
+        val newAggMessages = graphWithNewMessages.aggregateMessages[Array[Double]](
+          triplet => {
+            triplet.sendToDst(triplet.attr.forwardMessage)
+            triplet.sendToSrc(triplet.attr.reverseMessage)
+          },
+          mergeMessages,
+          TripletFields.EdgeOnly)
+        newGraph = graphWithNewMessages.joinVertices(newAggMessages) { (id, attr, msg) =>
+          vertexProgram(i, id, attr, msg)
+        }.cache()
+        // TODO: check that edges force vertices to materialize
+        newGraph.edges.foreachPartition(x => {})
+        prevGraph.vertices.unpersist(false)
+        prevGraph.edges.unpersist(false)
+        graphWithNewMessages.edges.unpersist(false)
+        maxDiff = newGraph.vertices.map { case (vid, vb) => vb.diff }.max()
+        i += 1
+      }
+      newGraph
+    } // end of apply
 
-  private def putMessages(edge: EdgeTriplet[BeliefVertex, BeliefEdge]):
-  BeliefEdge = {
+  private def putMessages(edge: EdgeTriplet[BeliefVertex, BeliefEdge]): BeliefEdge = {
     // copy factor from the edge to the message
     val factor = edge.attr.factor
     val newForwardMessage = Array.ofDim[Double](2)
@@ -77,50 +78,38 @@ object TwoStateBP   {
     reverseMessage(1) = math.exp(edge.attr.reverseMessage(1) - maxReverse)
     newForwardMessage(0) = math.log(
       (factor(0)(0) * srcBelief(0) / reverseMessage(0) +
-        factor(1)(0) * srcBelief(1) / reverseMessage(1)
-        ) / (
-        factor(0)(0) * srcBelief(0) / reverseMessage(0) +
+        factor(1)(0) * srcBelief(1) / reverseMessage(1)) / (
+          factor(0)(0) * srcBelief(0) / reverseMessage(0) +
           factor(1)(0) * srcBelief(1) / reverseMessage(1) +
           factor(0)(1) * srcBelief(0) / reverseMessage(0) +
-          factor(1)(1) * srcBelief(1) / reverseMessage(1)
-        )
-    )
+          factor(1)(1) * srcBelief(1) / reverseMessage(1)))
     newReverseMessage(0) = math.log(
       (factor(0)(0) * dstBelief(0) / forwardMessage(0) +
-        factor(0)(1) * dstBelief(1) / forwardMessage(1)
-        ) / (
-        factor(0)(0) * dstBelief(0) / forwardMessage(0) +
+        factor(0)(1) * dstBelief(1) / forwardMessage(1)) / (
+          factor(0)(0) * dstBelief(0) / forwardMessage(0) +
           factor(0)(1) * dstBelief(1) / forwardMessage(1) +
           factor(1)(0) * dstBelief(0) / forwardMessage(0) +
-          factor(1)(1) * dstBelief(1) / forwardMessage(1)
-        )
-    )
+          factor(1)(1) * dstBelief(1) / forwardMessage(1)))
     newForwardMessage(1) = math.log(
       (factor(0)(1) * srcBelief(0) / reverseMessage(0) +
-        factor(1)(1) * srcBelief(1) / reverseMessage(1)
-        ) / (
-        factor(0)(0) * srcBelief(0) / reverseMessage(0) +
+        factor(1)(1) * srcBelief(1) / reverseMessage(1)) / (
+          factor(0)(0) * srcBelief(0) / reverseMessage(0) +
           factor(1)(0) * srcBelief(1) / reverseMessage(1) +
           factor(0)(1) * srcBelief(0) / reverseMessage(0) +
-          factor(1)(1) * srcBelief(1) / reverseMessage(1)
-        )
-    )
+          factor(1)(1) * srcBelief(1) / reverseMessage(1)))
     newReverseMessage(1) = math.log(
       (factor(1)(0) * dstBelief(0) / forwardMessage(0) +
-        factor(1)(1) * dstBelief(1) / forwardMessage(1)
-        ) / (
-        factor(0)(0) * dstBelief(0) / forwardMessage(0) +
+        factor(1)(1) * dstBelief(1) / forwardMessage(1)) / (
+          factor(0)(0) * dstBelief(0) / forwardMessage(0) +
           factor(0)(1) * dstBelief(1) / forwardMessage(1) +
           factor(1)(0) * dstBelief(0) / forwardMessage(0) +
-          factor(1)(1) * dstBelief(1) / forwardMessage(1)
-        )
-    )
+          factor(1)(1) * dstBelief(1) / forwardMessage(1)))
     BeliefEdge(factor, newForwardMessage, newReverseMessage)
   }
 
   private def vertexProgram(niter: Int, id: VertexId,
-                    bVertex: BeliefVertex,
-                    msgProd: Array[Double]): BeliefVertex = {
+    bVertex: BeliefVertex,
+    msgProd: Array[Double]): BeliefVertex = {
     // TODO: refactor computations
     val oldBelief1 = bVertex.belief(0)
     val oldBelief2 = bVertex.belief(1)
@@ -143,7 +132,6 @@ object TwoStateBP   {
     res
   }
 
-
   def main(args: Array[String]): Unit = {
     if (args.length < 5) {
       throw new IllegalArgumentException("Insufficient arguments")
@@ -161,17 +149,16 @@ object TwoStateBP   {
     val eps = args(4).toDouble
     val vertexRDD = vertices.map { line =>
       val fields = line.split(' ')
-      (fields(0).toLong,
-        BeliefVertex(Array(fields(1).toDouble, fields(2).toDouble), Array(fields(1).toDouble, fields(2).toDouble), 0.0)
-      )
+      (
+        fields(0).toLong,
+        BeliefVertex(Array(fields(1).toDouble, fields(2).toDouble), Array(fields(1).toDouble, fields(2).toDouble), 0.0))
     }
     val edgeRDD = edges.map { line =>
       val fields = line.split(' ')
       Edge(fields(0).toLong, fields(1).toLong,
         BeliefEdge(
           Array(Array(fields(2).toDouble, fields(4).toDouble), Array(fields(3).toDouble, fields(5).toDouble)),
-          Array(1.0, 1.0), Array(1.0, 1.0))
-      )
+          Array(1.0, 1.0), Array(1.0, 1.0)))
     }
     val graph = Graph(vertexRDD, edgeRDD)
     val time = System.nanoTime()

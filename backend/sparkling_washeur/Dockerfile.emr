@@ -107,8 +107,8 @@ ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-amazon-corretto
 ENV JOBS=2
 
 # **<***>**<***> Scala, Spark **<***>**<***>
-ENV V_SCALA=2.12.8 \
-    V_SBT=1.0.0 \
+ENV V_SCALA=2.12.18 \
+    V_SBT=0.13.17 \
     V_SPARK=3.5.1
 
 WORKDIR /usr/local/bin
@@ -122,7 +122,7 @@ RUN curl -sSL https://github.com/sbt/sbt/releases/download/v${V_SBT}/sbt-${V_SBT
     -o sbt.tgz && tar -xf sbt.tgz && rm sbt.tgz
 
 # Spark
-RUN curl -sSL https://archive.apache.org/dist/spark/spark-${V_SPARK}/spark-${V_SPARK}-bin-hadoop3-scala2.13.tgz \
+RUN --mount=type=cache,target=/home/ubuntu/tmp curl -sSL https://archive.apache.org/dist/spark/spark-${V_SPARK}/spark-${V_SPARK}-bin-hadoop3-scala2.13.tgz \
     -o s.tgz && tar -xf s.tgz && rm s.tgz
 
 # **<***>**<***> C++ libraries **<***>**<***>

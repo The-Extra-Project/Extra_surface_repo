@@ -19,33 +19,34 @@
 
 package sparkle.graph
 
-import org.apache.spark.{ SparkConf, SparkContext}
-import org.apache.spark.graphx.{Graph, TripletFields}
+import org.apache.spark.{ SparkConf, SparkContext }
+import org.apache.spark.graphx.{ Graph, TripletFields }
 
 /**
-  * Implementation of Loopy Belief Propagation algorithm for factor graphs.
-  * For details see: https://en.wikipedia.org/wiki/Belief_propagation
-  * Uses libDAI factor graph file format as an input. In addition, each factor
-  * must have a unique id specified by ###ID in the file.
-  * For details see: https://staff.fnwi.uva.nl/j.m.mooij/libDAI/doc/fileformats.html
-  *
-  */
+ * Implementation of Loopy Belief Propagation algorithm for factor graphs.
+ * For details see: https://en.wikipedia.org/wiki/Belief_propagation
+ * Uses libDAI factor graph file format as an input. In addition, each factor
+ * must have a unique id specified by ###ID in the file.
+ * For details see: https://staff.fnwi.uva.nl/j.m.mooij/libDAI/doc/fileformats.html
+ *
+ */
 object BP {
 
   /**
-    * Returns graph after running the BP algorithm. Values are stored in log scale.
-    * @param graph initial factor graph
-    * @param maxIterations maximum iterations
-    * @param eps epsilon
-    * @return graph
-    */
+   * Returns graph after running the BP algorithm. Values are stored in log scale.
+   * @param graph initial factor graph
+   * @param maxIterations maximum iterations
+   * @param eps epsilon
+   * @return graph
+   */
   def apply(
-  graph: Graph[FGVertex, Unit],
-  maxIterations: Int = 50,
-  eps: Double = 1e-3): Graph[FGVertex, FGEdge] = {
+    graph: Graph[FGVertex, Unit],
+    maxIterations: Int = 50,
+    eps: Double = 1e-3): Graph[FGVertex, FGEdge] = {
     // put initial messages on edges, they will be mutated every iteration
     var newGraph = graph.mapTriplets { triplet =>
-      new FGEdge(triplet.srcAttr.initMessage(triplet.dstAttr.id),
+      new FGEdge(
+        triplet.srcAttr.initMessage(triplet.dstAttr.id),
         triplet.dstAttr.initMessage(triplet.srcAttr.id), false)
     }.cache()
     val numEdges = newGraph.edges.count
@@ -69,8 +70,7 @@ object BP {
             m1 ++ m2
           }
         },
-        TripletFields.EdgeOnly
-      )
+        TripletFields.EdgeOnly)
       newGraph = newGraph.joinVertices(newAggMessages)(
         (id, attr, msg) => attr.processMessage(msg))
         .mapTriplets { triplet =>
@@ -78,7 +78,8 @@ object BP {
           val toDst = triplet.srcAttr.sendMessage(triplet.attr.toSrc)
           val diffSrc = toSrc.message.maxDiff(triplet.attr.toSrc.message)
           val diffDst = toDst.message.maxDiff(triplet.attr.toDst.message)
-          FGEdge(toDst, toSrc, diffSrc < eps && diffDst < eps)}
+          FGEdge(toDst, toSrc, diffSrc < eps && diffDst < eps)
+        }
         .cache()
       if (iter == 0) {
         newGraph.edges.foreachPartition(x => {})
@@ -86,7 +87,7 @@ object BP {
       } else {
         val numConverged = newGraph.edges.aggregate(0L)((res, edge) =>
           if (edge.attr.converged) res + 1 else res, (res1, res2) =>
-            res1 + res2)
+          res1 + res2)
         converged = numConverged == numEdges
       }
       oldGraph.unpersist(false)
@@ -97,11 +98,11 @@ object BP {
   }
 
   /**
-    * Main function to run BP from the command line.
-    * Required arguments: [path to input] [path to output] [iterations] [epsilon]
-    * Optional argument (local) runs the algorithm in the Spark local mode
-    * @param args
-    */
+   * Main function to run BP from the command line.
+   * Required arguments: [path to input] [path to output] [iterations] [epsilon]
+   * Optional argument (local) runs the algorithm in the Spark local mode
+   * @param args
+   */
   def main(args: Array[String]): Unit = {
     if (args.length < 4) {
       throw new IllegalArgumentException("Insufficient arguments")
@@ -120,9 +121,10 @@ object BP {
     val time = System.nanoTime()
     val beliefs = BP(graph, maxIterations = numIter, eps = epsilon)
     // TODO: output to a file instead
-    val calculatedProbabilities = beliefs.vertices.flatMap { case(id, vertex) => vertex match {
-      case n: NamedVariable => Seq((n.id, n.belief))
-      case _ => Seq.empty[(Long, Variable)]
+    val calculatedProbabilities = beliefs.vertices.flatMap {
+      case (id, vertex) => vertex match {
+        case n: NamedVariable => Seq((n.id, n.belief))
+        case _ => Seq.empty[(Long, Variable)]
       }
     }
     calculatedProbabilities.saveAsTextFile(outputPath)

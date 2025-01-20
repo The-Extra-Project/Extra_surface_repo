@@ -99,7 +99,7 @@ class EMRStack(Stack):
             hadoop_version="3.3.6",
             ec2_key_name=SSH_KEY_NAME,
             # Network settings
-            ec2_subnet_ids=self.vpc.public_subnets,
+            ec2_subnet_ids=self.vpc.public_subnet_ids,
             # emr_managed_master_security_group="emrManagedMasterSecurityGroup",
             # emr_managed_slave_security_group="emrManagedSlaveSecurityGroup",
             # service_access_security_group="serviceAccessSecurityGroup",
@@ -135,7 +135,6 @@ class EMRStack(Stack):
                     hadoop_jar_step=emr.CfnCluster.HadoopJarStepConfigProperty(
                         jar="command-runner.jar",
                         # optional
-                        # /app/build/target/scala-2.13/iqlib-spark_2.13-1.0.jar
                         args=[
                             'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
                             '--jars', S3_PATH_IQLIB,
