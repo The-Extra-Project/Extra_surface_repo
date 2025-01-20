@@ -31,6 +31,7 @@ EMR_NODE_TYPE_TASK = "m5.xlarge"
 SPARK_HEAP_SIZE = "2g"
 SPARK_MEM_FRACTION = "0.8"
 
+
 class EMRStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, ecr: Stack, s3: Stack, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -98,7 +99,7 @@ class EMRStack(Stack):
             hadoop_version="3.3.6",
             ec2_key_name=SSH_KEY_NAME,
             # Network settings
-            ec2_subnet_ids=[Fn.import_value("PublicSubnet0")],
+            ec2_subnet_ids=self.vpc.public_subnets,
             # emr_managed_master_security_group="emrManagedMasterSecurityGroup",
             # emr_managed_slave_security_group="emrManagedSlaveSecurityGroup",
             # service_access_security_group="serviceAccessSecurityGroup",
