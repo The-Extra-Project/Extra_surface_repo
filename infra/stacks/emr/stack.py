@@ -33,7 +33,7 @@ SPARK_MEM_FRACTION = "0.8"
 
 
 class EMRStack(Stack):
-    def __init__(self, scope: Construct, construct_id: str, ecr: Stack, s3: Stack, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, vpc: Construct, ecr: Stack, s3: Stack, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         emr_role = Fn.import_value("EMRDefaultRole")
@@ -45,11 +45,7 @@ class EMRStack(Stack):
         emr_instance_profile = Fn.import_value("EMRInstanceProfile")
         self.emr_instance_profile = iam.Role.from_role_arn(self, "EMRInstanceProfileImported", role_arn=emr_instance_profile)
 
-        vpc_id = Fn.import_value("EMRVpcId")
-        self.vpc = ec2.Vpc.from_vpc_attributes(self, "EMRVPCImported",
-            vpc_id=vpc_id,
-            availability_zones=["eu-west-1a", "eu-west-1b", "eu-west-1c"],
-        )
+        self.vpc = vpc
 
         cluster_name = CfnParameter(self, 'EMRClusterName',
             type='String',
@@ -93,13 +89,13 @@ class EMRStack(Stack):
                     ebs_optimized=True
                 ),
             )],
-            # ec2_subnet_id=Fn.import_value("PublicSubnet0"),
             keep_job_flow_alive_when_no_steps=True,
             termination_protected=False,
             hadoop_version="3.3.6",
             ec2_key_name=SSH_KEY_NAME,
             # Network settings
-            ec2_subnet_ids=self.vpc.public_subnet_ids,
+            ec2_subnet_id=Fn.import_value("PublicSubnet0"),
+            # ec2_subnet_ids=[],
             # emr_managed_master_security_group="emrManagedMasterSecurityGroup",
             # emr_managed_slave_security_group="emrManagedSlaveSecurityGroup",
             # service_access_security_group="serviceAccessSecurityGroup",
