@@ -25,11 +25,11 @@ lambda_invoke = LambdaStack(app, "LambdaStack", #env,
                             net.vpc, s3.bucket, roles,
                             S3_PATH_INPUT, DOCKER_IMAGE)
 
-# EMRStack(app, "EMRStack",
-#     ecr, s3, env=Environment(
-#         account=os.getenv('CDK_DEFAULT_ACCOUNT'),
-#         region=os.getenv('CDK_DEFAULT_REGION')
-#     )
-# )
+EMRStack(app, "EMRStack",
+        net, ecr, s3, env=Environment(
+            account=os.getenv('CDK_DEFAULT_ACCOUNT'),
+            region=os.getenv('CDK_DEFAULT_REGION')
+        )
+)
 
 app.synth()
