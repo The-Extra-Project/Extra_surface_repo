@@ -1,3 +1,6 @@
+### Currently not used
+
+
 # from aws_cdk import (
 #     # Duration,
 #     Stack,
@@ -12,9 +15,7 @@
 
 # from dotenv import load_dotenv
 
-
 # app = App()
-
 
 
 # class InfraStack(Stack):
