@@ -30,7 +30,7 @@ async function getAwsCredentials() {
 }
 
 const server: Parameters<typeof createEnv>[0]['server'] = {
-  CLERK_SECRET_KEY: z.string().min(1).startsWith('sk_'),
+  CLERK_SECRET_KEY: z.string().min(1).startsWith('sk_').optional(),
   CLERK_WEBHOOK_SECRET: z.string().min(1).startsWith('whsec_').optional(),
   RESEND_FROM: z.string().min(1).email(),
   DATABASE_URL: z.string().min(1).url(),
@@ -63,24 +63,24 @@ const server: Parameters<typeof createEnv>[0]['server'] = {
 };
 
 const client: Parameters<typeof createEnv>[0]['client'] = {
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1).startsWith('pk_'),
-  NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string().min(1).startsWith('/'),
-  NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string().min(1).startsWith('/'),
-  NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: z.string().min(1).startsWith('/'),
-  NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: z.string().min(1).startsWith('/'),
-  NEXT_PUBLIC_APP_URL: z.string().min(1).url(),
-  NEXT_PUBLIC_WEB_URL: z.string().min(1).url(),
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1).startsWith('pk_').optional(),
+  NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string().min(1).startsWith('/').optional(),
+  NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string().min(1).startsWith('/').optional(),
+  NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: z.string().min(1).startsWith('/').optional(),
+  NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: z.string().min(1).startsWith('/').optional(),
+  NEXT_PUBLIC_APP_URL: z.string().min(1).url().optional(),
+  NEXT_PUBLIC_WEB_URL: z.string().min(1).url().optional(),
   NEXT_PUBLIC_API_URL: z.string().min(1).url().optional(),
   NEXT_PUBLIC_DOCS_URL: z.string().min(1).url().optional(),
   NEXT_PUBLIC_GA_MEASUREMENT_ID: z.string().min(1).startsWith('G-').optional(),
-  NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).startsWith('phc_'),
-  NEXT_PUBLIC_POSTHOG_HOST: z.string().min(1).url(),
+  NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).startsWith('phc_').optional(),
+  NEXT_PUBLIC_POSTHOG_HOST: z.string().min(1).url().optional(),
 
   // Added by Vercel
-  NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: z.string().min(1),
+  NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: z.string().min(1).optional(),
 };
 
-const { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = await getAwsCredentials();
+//const { AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = await getAwsCredentials();
 
 export const env = createEnv({
   client,
@@ -107,9 +107,9 @@ export const env = createEnv({
       LIVEBLOCKS_SECRET: process.env.LIVEBLOCKS_SECRET,
       OPENAI_API_KEY: process.env.OPENAI_API_KEY,
       BASEHUB_TOKEN: process.env.BASEHUB_TOKEN,
-      AWS_REGION,
-      AWS_ACCESS_KEY_ID,
-      AWS_SECRET_ACCESS_KEY,
+      AWS_REGION:process.env.AWS_REGION,
+      AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+      AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
       NEXT_PUBLIC_CLERK_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
       NEXT_PUBLIC_CLERK_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,

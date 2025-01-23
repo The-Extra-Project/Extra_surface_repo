@@ -6,6 +6,9 @@ import type {
   UserJSON,
   WebhookEvent,
 } from '@repo/auth/server';
+
+import {} from "@repo/auth/server";
+
 import { env } from '@repo/env';
 import { log } from '@repo/observability/log';
 import { headers } from 'next/headers';

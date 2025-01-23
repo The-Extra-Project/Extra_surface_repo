@@ -56,7 +56,6 @@ const createTables = async () => {
       -- Add other fields as necessary
     );
   `;
-
   try {
     await dbClient.connect();
     await dbClient.query(createAdminTable);

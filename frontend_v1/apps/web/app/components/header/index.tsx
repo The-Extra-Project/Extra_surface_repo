@@ -26,19 +26,15 @@ export const Header = () => {
       description: '',
     },
     {
-      title: 'Product',
-      description: 'Managing a small business today is already tough.',
+      title: 'Login',
+      description: 'Selecting the category of the user.',
       items: [
         {
-          title: 'Pricing',
+          title: 'client',
           href: '/pricing',
         },
         {
-          title: 'Pricing',
-          href: '/pricing',
-        },
-        {
-          title: 'Pricing',
+          title: 'Administrator',
           href: '/pricing',
         },
         {
@@ -54,13 +50,13 @@ export const Header = () => {
     },
   ];
 
-  if (env.NEXT_PUBLIC_DOCS_URL) {
-    navigationItems.push({
-      title: 'Docs',
-      href: env.NEXT_PUBLIC_DOCS_URL,
-      description: '',
-    });
-  }
+  // if (env.NEXT_PUBLIC_DOCS_URL) {
+  //   navigationItems.push({
+  //     title: 'Docs',
+  //     href: env.NEXT_PUBLIC_DOCS_URL,
+  //     description: '',
+  //   });
+  // }
 
   const [isOpen, setOpen] = useState(false);
   return (

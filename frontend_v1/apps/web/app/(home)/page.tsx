@@ -24,7 +24,7 @@ const Home = async () => {
     <>
       {betaFeature && (
         <div className="w-full bg-black py-2 text-center text-white">
-          Beta feature now available
+          Extralabs
         </div>
       )}
       <Hero />

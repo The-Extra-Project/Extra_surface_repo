@@ -11,7 +11,7 @@ export const Footer = () => {
     },
     {
       title: 'Pages',
-      description: 'Managing a small business today is already tough.',
+      description: 'Showcazing our current progress in buuilding scalable open source 3D pipeline',
       items: [
         {
           title: 'Blog',
@@ -21,7 +21,7 @@ export const Footer = () => {
     },
     {
       title: 'Legal',
-      description: 'We stay on top of the latest legal requirements.',
+      description: 'We are compliant with EU laws.',
       items: [
         {
           title: 'Terms of Service',
@@ -57,7 +57,7 @@ export const Footer = () => {
                   next-forge
                 </h2>
                 <p className="max-w-lg text-left text-foreground/75 text-lg leading-relaxed tracking-tight">
-                  This is the start of something new.
+                Made fully opensource and community led initative , happy to get insights from the developers
                 </p>
               </div>
               <Status />

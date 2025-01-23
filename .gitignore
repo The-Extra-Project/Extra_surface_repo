@@ -7,6 +7,8 @@ outputs/**
 demo_storage
 .env
 
+.pnpm
+
 __pycache__/
 
 storage/
