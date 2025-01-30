@@ -15,5 +15,6 @@ class S3Stack(Stack):
         self.bucket = s3.Bucket(self, "S3BucketEMRDev",
             bucket_name="extralabs-artifacts-dev",
             versioned=True,
-            removal_policy=RemovalPolicy.DESTROY
+            removal_policy=RemovalPolicy.DESTROY,
+            event_bridge_enabled=True
         )

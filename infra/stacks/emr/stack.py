@@ -16,11 +16,24 @@ DOCKER_IMAGE = "767397971222.dkr.ecr.eu-west-1.amazonaws.com/extralabs-emr-dev:l
 BOOTSTRAP_SCRIPT_PATH = "s3://extralabs-artifacts-dev/scripts/docker.sh"
 SSH_KEY_NAME="extra"
 
-# SSH, monitroing - logs in s3 buckeet which is not autocreted
+S3_PATH_BOOTSTRAP = "s3://extralabs-artifacts-dev/scripts/docker.sh"
+
+S3_PATH_INPUT = "s3://extralabs-artifacts-dev/data/"
+S3_PATH_IQLIB = "s3://extralabs-artifacts-dev/jar/iqlib.jar"
+S3_PATH_PREPROCESS = "s3://extralabs-artifacts-dev/jar/preprocess-0.3.jar"
+# SSH, monitoring - logs in s3 buckeet which is not autocreted
 # steps fail
 
+EMR_NODE_TYPE_MASTER = "m5.xlarge"
+EMR_NODE_TYPE_CORE = "m5.xlarge"
+EMR_NODE_TYPE_TASK = "m5.xlarge"
+
+SPARK_HEAP_SIZE = "2g"
+SPARK_MEM_FRACTION = "0.8"
+
+
 class EMRStack(Stack):
-    def __init__(self, scope: Construct, construct_id: str, ecr: Stack, s3: Stack, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, vpc: Construct, ecr: Stack, s3: Stack, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         emr_role = Fn.import_value("EMRDefaultRole")
@@ -32,11 +45,7 @@ class EMRStack(Stack):
         emr_instance_profile = Fn.import_value("EMRInstanceProfile")
         self.emr_instance_profile = iam.Role.from_role_arn(self, "EMRInstanceProfileImported", role_arn=emr_instance_profile)
 
-        vpc_id = Fn.import_value("EMRVpcId")
-        self.vpc = ec2.Vpc.from_vpc_attributes(self, "EMRVPCImported",
-            vpc_id=vpc_id,
-            availability_zones=["eu-west-1a", "eu-west-1b", "eu-west-1c"],
-        )
+        self.vpc = vpc
 
         cluster_name = CfnParameter(self, 'EMRClusterName',
             type='String',
@@ -47,18 +56,18 @@ class EMRStack(Stack):
         emr_instances = emr.CfnCluster.JobFlowInstancesConfigProperty(
             master_instance_group=emr.CfnCluster.InstanceGroupConfigProperty(
                 instance_count=1,
-                instance_type="c5.xlarge",
+                instance_type=EMR_NODE_TYPE_MASTER,
                 market="ON_DEMAND"
             ),
             core_instance_group=emr.CfnCluster.InstanceGroupConfigProperty(
                 instance_count=1,
-                instance_type="c5.xlarge",
+                instance_type=EMR_NODE_TYPE_CORE,
                 market="ON_DEMAND"
             ),
             task_instance_groups=[emr.CfnCluster.InstanceGroupConfigProperty(
                 name="default",
                 instance_count=1,
-                instance_type="c5.2xlarge",
+                instance_type=EMR_NODE_TYPE_TASK,
                 market="ON_DEMAND",
                 # custom_ami_id="customAmiId",
                 # configurations=[emr.CfnCluster.ConfigurationProperty(
@@ -80,13 +89,13 @@ class EMRStack(Stack):
                     ebs_optimized=True
                 ),
             )],
-            # ec2_subnet_id=Fn.import_value("PublicSubnet0"),
             keep_job_flow_alive_when_no_steps=True,
             termination_protected=False,
             hadoop_version="3.3.6",
             ec2_key_name=SSH_KEY_NAME,
             # Network settings
-            ec2_subnet_ids=public_subnet_ids,
+            ec2_subnet_id=Fn.import_value("PublicSubnet0"),
+            # ec2_subnet_ids=[],
             # emr_managed_master_security_group="emrManagedMasterSecurityGroup",
             # emr_managed_slave_security_group="emrManagedSlaveSecurityGroup",
             # service_access_security_group="serviceAccessSecurityGroup",
@@ -101,7 +110,7 @@ class EMRStack(Stack):
                 emr.CfnCluster.BootstrapActionConfigProperty(
                     name="docker",
                     script_bootstrap_action=emr.CfnCluster.ScriptBootstrapActionConfigProperty(
-                        path=f"s3://{s3.bucket.bucket_name}/scripts/docker.sh"
+                        path=S3_PATH_BOOTSTRAP
                         # args=["args"]
                     )
                 ),
@@ -112,7 +121,7 @@ class EMRStack(Stack):
                     hadoop_jar_step=emr.CfnCluster.HadoopJarStepConfigProperty(
                         jar="command-runner.jar",
                         args=[
-                            'aws s3 sync s3://extralabs-artifacts-dev/data/ /home/hadoop/data',
+                            "bash", "-c", f"aws s3 sync {S3_PATH_INPUT} /home/hadoop/data"
                         ],
                     ),
                     action_on_failure="CANCEL_AND_WAIT"  # optional
@@ -124,12 +133,12 @@ class EMRStack(Stack):
                         # optional
                         args=[
                             'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
-                            '--class', 'WorkflowWasure',
-                            '--jars', 's3://extralabs-artifacts-dev/jar/iqlib.jar',
+                            '--jars', S3_PATH_IQLIB,
                             '--conf', 'spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE=docker',
                             '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={DOCKER_IMAGE}',
-                            's3://extralabs-artifacts-dev/jar/preprocess-0.3.jar'
+                            S3_PATH_PREPROCESS
                         ],
+                        main_class="WorkflowWasure",
                         # step_properties=[emr.CfnCluster.KeyValueProperty(
                         #     key="key",
                         #     value="value"
@@ -190,8 +199,8 @@ class EMRStack(Stack):
                         "spark.eventLog.enabled": "true",
                         "spark.driver.allowMultipleContexts": "true",
                         "spark.memory.offHeap.enabled": "true",
-                        "spark.memory.offHeap.size": "3g",
-                        "spark.memory.storageFraction": "0.8",
+                        "spark.memory.offHeap.size": SPARK_HEAP_SIZE,
+                        "spark.memory.storageFraction": SPARK_MEM_FRACTION,
                         "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
                         # "spark.executorEnv.DDT_MAIN_DIR": "/app/",
                         # "spark.executorEnv.INPUT_DATA_DIR": "/app/datas/",
@@ -243,7 +252,7 @@ class EMRStack(Stack):
             release_label=self.node.try_get_context("emr_version") or "emr-7.3.0",
             scale_down_behavior="TERMINATE_AT_TASK_COMPLETION",
             visible_to_all_users=True,
-            tags=[# Required
+            tags=[  # Required
                 CfnTag(
                     key="for-use-with-amazon-emr-managed-policies",
                     value="True"

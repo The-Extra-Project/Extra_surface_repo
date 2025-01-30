@@ -1,9 +1,9 @@
 from constructs import Construct
 from aws_cdk import (
+    Aws,
     Stack,
-    aws_iam as iam,
     CfnOutput,
-    Aws
+    aws_iam as iam,
 )
 
 
@@ -15,7 +15,7 @@ class EMRRolesStack(Stack):
 
         # https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-iam-role.html
         self.emr_default_role = iam.Role(self, "EMRDefaultRole",
-            role_name="EMR_DefaultRole_V2",
+            role_name="EMR_DefaultRole",
             assumed_by=iam.ServicePrincipal("elasticmapreduce.amazonaws.com"),
             # managed AmazonEMRServicePolicy_v2 not working, falling back to the inline
             inline_policies={
@@ -109,7 +109,8 @@ class EMRRolesStack(Stack):
 
         self.emr_instance_profile = iam.CfnInstanceProfile(
             self, "EMREC2InstanceProfile",
-            roles=[self.emr_ec2_role.role_name]
+            roles=[self.emr_ec2_role.role_name],
+            instance_profile_name="EMR_Instance_Profile"
         )
 
         self.emrfs_role = iam.Role(self, "RoleEMRFS",
@@ -136,12 +137,8 @@ class EMRRolesStack(Stack):
                                 "s3:PutObjectTagging",
                             ],
                             resources=[
-                                "arn:aws:s3:::{region}-emr-data-inputs".format(
-                                    region=Aws.REGION
-                                ),
-                                "arn:aws:s3:::{region}-emr-data-inputs/*".format(
-                                    region=Aws.REGION
-                                ),
+                                f"arn:aws:s3:::{Aws.REGION}-emr-data-inputs",
+                                f"arn:aws:s3:::{Aws.REGION}-emr-data-inputs/*"
                             ],
                         ),
                     ]
@@ -204,20 +201,17 @@ class EMRRolesStack(Stack):
         )
 
         CfnOutput(
-            self,
-            "OutputEMREC2Role",
+            self, "OutputEMREC2Role",
             value=self.emr_ec2_role.role_arn,
             export_name="EMREC2Role"
         )
         CfnOutput(
-            self,
-            "OutputEMRInstanceProfile",
+            self, "OutputEMRInstanceProfile",
             value=self.emr_instance_profile.ref,
             export_name="EMRInstanceProfile"
         )
         CfnOutput(
-            self,
-            "OutputEMRRole",
+            self, "OutputEMRRole",
             value=self.emr_default_role.role_arn,
             export_name="EMRDefaultRole"
         )
