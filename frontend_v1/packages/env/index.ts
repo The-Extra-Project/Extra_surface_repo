@@ -26,12 +26,12 @@ async function getAwsCredentials() {
     AWS_REGION: 'us-east-1',
     AWS_ACCESS_KEY_ID: keyResponse.SecretString!,
     AWS_SECRET_ACCESS_KEY: keyResponse.SecretString!,
+    AWS_COGNITO_IDENTITY_POOL_ID: keyResponse.SecretString!,
+
   };
 }
 
 const server: Parameters<typeof createEnv>[0]['server'] = {
-  CLERK_SECRET_KEY: z.string().min(1).startsWith('sk_').optional(),
-  CLERK_WEBHOOK_SECRET: z.string().min(1).startsWith('whsec_').optional(),
   RESEND_FROM: z.string().min(1).email(),
   DATABASE_URL: z.string().min(1).url(),
   RESEND_TOKEN: z.string().min(1).startsWith('re_'),
@@ -50,6 +50,12 @@ const server: Parameters<typeof createEnv>[0]['server'] = {
   AWS_ACCESS_KEY_ID: z.string().min(1),
   AWS_SECRET_ACCESS_KEY: z.string().min(1),
   ANTHROPIC_KEY: z.string().optional(),
+  AWS_COGNITO_IDENTITY_POOL_ID: z.string().min(1).optional(),
+  AWS_USER_POOLS_ID: z.string().min(1),
+  AWS_USER_POOLS_WEB_CLIENT_ID: z.string().min(1),
+  AWS_APPSYNC_GRAPHQL_ENDPOINT: z.string().url(),
+  AWS_APPSYNC_REGION: z.string().min(1),
+  AWS_APPSYNC_AUTHENTICATION_TYPE: z.enum(['API_KEY', 'AWS_IAM', 'AMAZON_COGNITO_USER_POOLS', 'OPENID_CONNECT']),
 
   // Added by Sentry Integration, Vercel Marketplace
   SENTRY_ORG: z.string().min(1).optional(),
@@ -123,5 +129,11 @@ export const env = createEnv({
       NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
       NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
       NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
+      AWS_COGNITO_IDENTITY_POOL_ID: process.env.AWS_COGNITO_IDENTITY_POOL_ID,
+      AWS_USER_POOLS_ID: process.env.AWS_USER_POOLS_ID,
+      AWS_USER_POOLS_WEB_CLIENT_ID: process.env.AWS_USER_POOLS_WEB_CLIENT_ID,
+      AWS_APPSYNC_GRAPHQL_ENDPOINT: process.env.AWS_APPSYNC_GRAPHQL_ENDPOINT,
+      AWS_APPSYNC_REGION: process.env.AWS_APPSYNC_REGION,
+      AWS_APPSYNC_AUTHENTICATION_TYPE: process.env.AWS_APPSYNC_AUTHENTICATION_TYPE,
   },
 });
