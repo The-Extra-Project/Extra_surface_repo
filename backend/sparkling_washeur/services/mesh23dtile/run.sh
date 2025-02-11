@@ -48,9 +48,10 @@ input_crs="2154"
 output_crs="4978"
 
 mkdir -p "${output_dir}"
-echo "begin mesh23tile"
-python3 ${CUR_DIR}/mesh23dtile.py --input_dir ${input_dir} --output_dir ${output_dir} --meshlab_mode python --coords ${coords} --mode_proj 0
-echo "end mesh23dtile.py"
+
+echo "Starting mesh23tile..."
+python ${CUR_DIR}/mesh23dtile.py --input_dir ${input_dir} --output_dir ${output_dir} --meshlab_mode python --coords ${coords} --mode_proj 0
+echo "Finished mesh23dtile.py"
 
 count=0
 

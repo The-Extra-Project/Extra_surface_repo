@@ -1,0 +1,6 @@
+matplotlib==3.6
+pandas
+pyproj
+plyfile
+trimesh
+pymeshlab==v2021.10

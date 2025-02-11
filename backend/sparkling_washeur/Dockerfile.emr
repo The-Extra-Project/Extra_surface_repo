@@ -1,0 +1,278 @@
+# ------------------------------------------------------------------------------------ #
+#                                     JVM & libhdfs.so
+# ------------------------------------------------------------------------------------ #
+# This stage can be eliminated in a CI subject to the image pinning 
+
+FROM --platform=linux/amd64 ubuntu:20.04 as hdfs
+
+USER root
+
+ENV DEBIAN_FRONTEND="noninteractive"
+RUN mkdir -p /run/systemd && echo 'docker' > /run/systemd/container
+
+RUN apt-get update && apt-get install -y curl gpg
+
+# JDK 8 AmazonCorretto
+RUN curl -fsSL https://apt.corretto.aws/corretto.key | gpg --dearmor -o /usr/share/keyrings/corretto-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | \
+    tee /etc/apt/sources.list.d/corretto.list
+
+RUN apt-get update && apt-get install -y git \
+    # JVM
+    java-1.8.0-amazon-corretto-jdk \
+    # Hadoop
+    # libssl-dev
+    autoconf automake libtool g++ cmake zlib1g-dev pkg-config \
+    libssl-dev libsasl2-dev libsnappy-dev \
+    bzip2 libbz2-dev fuse libfuse-dev maven \
+    && apt-get clean
+
+WORKDIR /usr/local/bin
+
+# **<***>**<***> Hadoop **<***>**<***>
+
+ENV V_HADOOP=3.3.6
+ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-amazon-corretto
+ENV LD_LIBRARY_PATH=/usr/local/lib
+
+ENV JOBS=2
+
+# Protobuf for Hadoop build
+# time
+RUN curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/protobuf-java-3.7.1.tar.gz \
+    -o protobuf-3.7.1.tar.gz && mkdir protobuf-3.7-src && \
+    tar xzf protobuf-3.7.1.tar.gz --strip-components 1 -C protobuf-3.7-src && \
+    cd protobuf-3.7-src && \ 
+    ./configure && make -j $JOBS && make install
+
+# Download Hadoop
+RUN curl -sSL https://archive.apache.org/dist/hadoop/core/hadoop-${V_HADOOP}/hadoop-${V_HADOOP}-src.tar.gz \
+    -o h.tar.gz && tar -xf h.tar.gz && rm ./*gz
+
+# Compile libhdfs.so
+# time
+RUN cd hadoop-${V_HADOOP}-src/hadoop-hdfs-project && \
+    mvn package -Pnative -DskipTests
+
+# Prepare the files for the next stage
+RUN mv hadoop-${V_HADOOP}-src/hadoop-hdfs-project/hadoop-hdfs-native-client/target/native/target/usr/local/lib/libhdfs.so.0.0.0 \
+    /opt/libhdfs.so
+
+RUN rm -f ${JAVA_HOME}/src.zip ${JAVA_HOME}/javafx-src.zip && \
+    mkdir -p /opt/jdk && mv $JAVA_HOME/* /opt/jdk
+
+
+# ------------------------------------------------------------------------------------ #
+#                                       Build App
+# ------------------------------------------------------------------------------------ #
+# cpp and scala compilation stage
+
+FROM --platform=linux/amd64 ubuntu:24.10 as build
+
+USER root
+
+ENV DEBIAN_FRONTEND="noninteractive"
+RUN mkdir -p /run/systemd && echo 'docker' > /run/systemd/container
+
+# **<***>**<***> Libs **<***>**<***>
+RUN apt-get update && apt-get install -y git curl gpg
+
+# JDK 8 AmazonCorretto
+RUN curl -fsSL https://apt.corretto.aws/corretto.key | gpg --dearmor -o /usr/share/keyrings/corretto-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | \
+    tee /etc/apt/sources.list.d/corretto.list
+
+RUN apt-get update && apt-get install -y \
+    cmake build-essential \
+    # Cgal deps
+    java-1.8.0-amazon-corretto-jdk \
+    # Lidar format dps
+    libxerces-c-dev xsdcxx \
+    # Matis-lib dps
+    libeigen3-dev imagemagick \
+    # CGAL et al
+    libboost-all-dev libboost-filesystem-dev \
+    libcgal-qt5-dev=5.6.1* libcgal-dev=5.6.1* \
+    libtinyxml-dev libann-dev libtbb-dev \
+    # PyMesh
+    python3 python3-dev python3-pip \
+    # Libxml 2.12.7
+    libxml2-dev \
+    && apt-get clean
+
+COPY --from=hdfs /opt/libhdfs.so /usr/local/lib/libhdfs.so
+
+ENV JAVA_HOME=/usr/lib/jvm/java-1.8.0-amazon-corretto
+
+ENV JOBS=2
+
+# **<***>**<***> Scala, Spark **<***>**<***>
+ENV V_SCALA=2.12.18 \
+    V_SBT=0.13.17 \
+    V_SPARK=3.5.1
+
+WORKDIR /usr/local/bin
+
+# Scala
+RUN curl -sSL https://downloads.lightbend.com/scala/${V_SCALA}/scala-${V_SCALA}.deb \
+    -o s.deb && dpkg -i s.deb && apt-get install -f && rm s.deb
+
+# Sbt
+RUN curl -sSL https://github.com/sbt/sbt/releases/download/v${V_SBT}/sbt-${V_SBT}.tgz \
+    -o sbt.tgz && tar -xf sbt.tgz && rm sbt.tgz
+
+# Spark
+RUN --mount=type=cache,target=/home/ubuntu/tmp curl -sSL https://archive.apache.org/dist/spark/spark-${V_SPARK}/spark-${V_SPARK}-bin-hadoop3-scala2.13.tgz \
+    -o s.tgz && tar -xf s.tgz && rm s.tgz
+
+# **<***>**<***> C++ libraries **<***>**<***>
+
+ENV V_CGAL=5.6.1 \
+    # min 5.6.1
+    V_BOOST=1.69.0 \
+    # max 1.75.0
+    V_XML=2.13.4 \
+    P_XML=/cpp/libs/xml \
+    P_CGAL=/cpp/libs/cgal \
+    P_BOOST=/cpp/libs/boost
+
+# # **<***>**<***> Compile DDT, Waseur, Scala binaries **<***>**<***>
+WORKDIR /cpp
+
+ENV DDT_TRAITS=3 \
+    DOCKER_BUILD_ENV=1
+
+COPY . .
+
+ENV PATH=$PATH:/usr/local/bin/sbt/bin
+
+# **<***>**<***> COMMENT OUT THE LINE BELOW ... **<***>**<***>
+# ... to compile the app in your local environment instead of the container
+# This grants better caching and the build speed.
+# Uncomment for the prod/CI.
+
+# RUN ./src/docker/docker_interface.sh compile -j $JOBS
+
+########################################################################################
+
+# ------------------------------------------------------------------------------------ #
+#                                      Production
+# ------------------------------------------------------------------------------------ #
+
+FROM --platform=linux/amd64 ubuntu:24.10
+
+LABEL Maintainer="Dhruv Malik" Email="dhruv@extralabs.xyz"
+
+USER root
+
+ENV BIN="/usr/local/bin" DEBIAN_FRONTEND=noninteractive \
+    PYTHONFAULTHANDLER=1 PYTHONHASHSEED=random \
+    PYTHONUNBUFFERED=1 PIP_DEFAULT_TIMEOUT=100 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_CACHE_DIR=1
+
+RUN mkdir -p /run/systemd && echo 'docker' > /run/systemd/container
+
+RUN apt-get update && apt-get install -y curl git && apt-get clean
+# gpg
+
+# **<***>**<***> Libs **<***>**<***>
+# RUN curl -fsSL https://apt.corretto.aws/corretto.key | gpg --dearmor -o /usr/share/keyrings/corretto-keyring.gpg && \
+#     echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | tee /etc/apt/sources.list.d/corretto.list
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # java-1.8.0-amazon-corretto-jdk \
+    # Lidar format dps
+    libxerces-c-dev xsdcxx \
+    # Matis-lib dps
+    libeigen3-dev imagemagick \
+    # CGAL et al
+    libboost-all-dev libboost-filesystem-dev \
+    # libcgal-qt5-dev=5.6.1* libcgal-dev=5.6.1* \
+    libtinyxml-dev libann-dev libtbb-dev \
+    # Python
+    gcc libssl-dev zlib1g-dev libbz2-dev \
+    libreadline-dev libsqlite3-dev llvm \
+    libncurses5-dev libncursesw5-dev xz-utils tk-dev \
+    libffi-dev liblzma-dev \
+    # py3dtilers
+    libpq-dev \
+    # pyMesh
+    libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev qtbase5-dev \
+    # Libxml 2.12.7
+    libxml2-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# **<***>**<***> Python **<***>**<***>
+WORKDIR /
+
+RUN git clone https://github.com/pyenv/pyenv.git
+ENV PYENV_ROOT="/pyenv"
+ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
+
+# time
+ENV PYTHON_VERSION=3.9.17
+RUN pyenv install ${PYTHON_VERSION} && pyenv global ${PYTHON_VERSION} && pyenv rehash
+
+# **<***>**<***> JVM, Spark, Hadoop **<***>**<***>
+COPY --from=build --chmod=755 \
+    /usr/local/bin/spark-3.5.1-bin-hadoop3-scala2.13    /usr/local/bin/spark
+COPY --from=hdfs --chmod=755 /opt/libhdfs.so    /usr/local/lib/libhdfs.so
+COPY --from=hdfs /opt/jdk    /usr/lib/jvm/java-1.8.0
+
+# **<***>**<***> App **<***>**<***>
+WORKDIR /app
+
+# venv
+WORKDIR /app/services/mesh23dtile/
+
+# RUN python -m venv venv
+# ENV PATH="${pydir}/venv/bin:$PATH" \
+#    VIRTUAL_ENV="${pydir}/venv"
+
+# Install Python dependencies
+RUN git clone https://github.com/VCityTeam/py3dtilers.git && pip install -e ./py3dtilers
+
+COPY --chmod=755 services/mesh23dtile/ ./
+
+RUN pip install -r requirements.txt && pyenv rehash
+
+
+ENV HADOOP_VERSION=3.3.6 \
+    HADOOP_HOME=${BIN}/hadoop \
+    HADOOP_CONF_DIR=/etc/hadoop/conf 
+ENV HADOOP_COMMON_PATH=${HADOOP_HOME} \
+    HADOOP_HDFS_HOME=${HADOOP_HOME}/hadoop-hdfs-project \
+    HADOOP_MAPRED_HOME=${HADOOP_HOME}/hadoop-mapreduce-project \
+    HADOOP_YARN_HOME=${HADOOP_HOME}/hadoop-yarn-project \
+    # ${HADOOP_HOME}/etc/hadoop
+    SPARK_HOME=${BIN}/spark \
+    JAVA_HOME=/usr/lib/jvm/java-1.8.0
+ENV PATH="${JAVA_HOME}/jre/bin:${HADOOP_HOME}:${SPARK_HOME}/bin/:${PATH}"
+
+
+WORKDIR /app
+
+COPY --chmod=755 ./*.sh ./
+
+RUN apt-get update && apt-get install -y unzip && apt-get clean
+RUN curl -sSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "a.zip" && \
+    unzip -q a.zip && ./aws/install --update && rm -r a.zip
+
+# COPY --from=hdfs --chmod=755 ${BIN}/hadoop-${HADOOP_VERSION}-src/hadoop-hdfs-project $HADOOP_HDFS_HOME
+# For CI/Prod
+# COPY --from=build --chmod=755 /cpp/build ./build
+
+# User hadoop (EMR)
+# RUN groupadd hadoop && useradd --gid hadoop --home-dir /home/hadoop --create-home hadoop && \
+#     echo "hadoop:hadoop" | chpasswd
+# OR
+RUN useradd -m hadoop
+
+# ENV DDT_MAIN_DIR="/app/" \
+#     INPUT_DATA_DIR="/app/datas/" \
+#     OUTPUT_DATA_DIR="/app/out/" \
+#     GLOBAL_BUILD_DIR="/app/build/"
+
+# ENV PARAM_PATH="${INPUT_DATA_DIR}/params.xml"
+
+USER hadoop

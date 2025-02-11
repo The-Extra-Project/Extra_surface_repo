@@ -1,29 +1,43 @@
-#!/usr/bin/env python3
 import os
+# from dotenv import load_dotenv
+from aws_cdk import Environment, App
+from stacks.ecr import ECRStack
+from stacks.s3 import S3Stack
+from stacks.network import NetworkStack
+from stacks.emr.roles import EMRRolesStack
+from stacks.emr.stack import EMRStack
+from stacks.invoke.lambda_stack import LambdaStack
+from stacks.api_gw import ApiGateway
 
-import aws_cdk as cdk
 
-from infra.infra_stack import InfraStack
+# Refactor: add .env var loads
+# load_dotenv()
+S3_PATH_INPUT = "data/"
+DOCKER_IMAGE = "767397971222.dkr.ecr.eu-west-1.amazonaws.com/extralabs-emr-dev:latest"
 
 
-app = cdk.App()
-InfraStack(app, "InfraStack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
+app = App()
 
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
+net = NetworkStack(app, "NetworkStack")
+ecr = ECRStack(app, "ECRStack")
+s3 = S3Stack(app, "S3Stack")
+roles = EMRRolesStack(app, "EMRRolesStack")
 
-    #env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
+lambda_invoke = LambdaStack(
+    app, "LambdaStack", #env,
+    net.vpc, s3.bucket, roles,
+    S3_PATH_INPUT, DOCKER_IMAGE
+)
 
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
-
-    #env=cdk.Environment(account='123456789012', region='us-east-1'),
-
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
-    
+EMRStack(
+    app, "EMRStack",
+    net, ecr, s3,
+    env=Environment(
+        account=os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region=os.getenv('CDK_DEFAULT_REGION')
     )
+)
+
+ApiGateway(app, "APIGWStack", s3.bucket)
 
 app.synth()

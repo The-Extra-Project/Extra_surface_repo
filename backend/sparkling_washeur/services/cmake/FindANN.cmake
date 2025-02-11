@@ -1,6 +1,7 @@
 FIND_PATH(ANN_INCLUDE_DIR ANN/ANN.h 
   ${GLOBAL_BUILD_DIR}/extern/ann_1.1.2/include/
 )
+
 FIND_LIBRARY(ANN_LIBRARIES libANN.a
   ${GLOBAL_BUILD_DIR}/extern/ann_1.1.2/lib/
 )
