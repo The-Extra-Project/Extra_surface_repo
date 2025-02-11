@@ -1,4 +1,4 @@
-FROM docker:dind as deploy 
+#FROM docker:dind as deploy 
 
 
 # ARG NB_PROC="4"
@@ -8,3 +8,41 @@ FROM docker:dind as deploy
 # COPY . . 
 
 # RUN  ./src/docker/docker_interface.sh compile -`j + ${NB_PROC}` -`t + ${DDT_TRAITS}` && conda env create --file ./services/mesh23dtile/environment.yml && conda activate mesh23Dtile
+
+
+FROM --platform=amd64 ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+USER root
+
+RUN apt-get update && apt-get install -y \
+    cmake \
+    build-essential \
+    libeigen3-dev \
+    libgtest-dev \
+    libboost-all-dev \
+    libtbb-dev
+    #python3 \
+    #python3-pip
+
+# Install additional Python dependencies (if any)
+# RUN pip3 install numpy scipy
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Clone the Sparkling-Wasure repository
+RUN git clone https://github.com/lcaraffa/sparkling-wasure.git
+
+# Set working directory to the cloned project
+WORKDIR /app/sparkling-wasure
+
+# Build the project using CMake
+RUN mkdir build && cd build && cmake .. && make -j$(nproc)
+
+# Copy input/output files into container or use volumes (optional)
+# COPY ./your-data /data
+
+# Set entrypoint to run the tool
+ENTRYPOINT ["./build/sparkling_wasure"]

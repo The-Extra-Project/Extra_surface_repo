@@ -91,7 +91,6 @@ function run_example
     docker run  -v ${DDT_MAIN_DIR}:${DDT_MAIN_DIR}  -u 0  --rm -it --shm-size=12gb ${NAME_IMG_BASE} /bin/bash -c "${DDT_MAIN_DIR}/build//build-spark-Release-3/bin/wasure-local-exe --output_dir ${OUTPUT_DIR} --input_dir ${DDT_MAIN_DIR}/datas/3d_bench_small --dim 3 --bbox 0000x10000:0000x10000  --pscale 0.5 --nb_samples 10 --rat_ray_sample 0 --mode surface --lambda 10 --step full_stack --seed 18696 --label lidhd_crop_inner --filename ${OUTPUT_DIR}/struct_id_0.ply"
     echo ""
 
-    
 }
 
 

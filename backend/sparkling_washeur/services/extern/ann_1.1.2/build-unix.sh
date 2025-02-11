@@ -9,11 +9,11 @@ function build {
 		;;
     	esac
     done
-    
+
     mkdir -p ${CURRENT_PROJECT_BUILD_DIR}/lib/
-    #make linux-g++
-    cp -rf compiled_lib/* ${CURRENT_PROJECT_BUILD_DIR}/lib/
+    make linux-g++
+    cp -rf lib/* ${CURRENT_PROJECT_BUILD_DIR}/lib/
+    cp -rf include/ ${CURRENT_PROJECT_BUILD_DIR}/
 }
 
 $@
-

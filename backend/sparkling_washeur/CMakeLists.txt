@@ -1,8 +1,7 @@
 include(cmake_params.txt)
 project( ddt )
 
-
- # ---- CMAKE configuration -------
+# ---- CMAKE configuration -------
 cmake_minimum_required(VERSION 3.5)
 if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" VERSION_GREATER 2.6)
   if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
@@ -12,26 +11,29 @@ if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" VERSION_GREATER 2.6)
   endif()
 endif()
 
-set (CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 20)
 
-set(CPP_CORE_LOCAL_DIR "src/core/")
-set(SERVICE_LOCAL_DIR "services/")
-SET(EXTERN_PROJECT_SRC_DIR "${ddt_SOURCE_DIR}/services/extern/")
-SET(CMAKE_FIND_DIR "${ddt_SOURCE_DIR}/services/cmake/")
-
+set(CPP_CORE_LOCAL_DIR "${ddt_SOURCE_DIR}/src/core/")
+set(SERVICE_LOCAL_DIR "${ddt_SOURCE_DIR}/services/")
+set(EXTERN_PROJECT_SRC_DIR "${SERVICE_LOCAL_DIR}/extern/")
+set(CMAKE_FIND_DIR "${SERVICE_LOCAL_DIR}/cmake/")
 
 # ---- Add /Defines depts -----
-# Local includ dir
-SET(INCLUDE_DIR
+set(INCLUDE_DIR
   ${ddt_SOURCE_DIR}/src/core/
-  ${ddt_SOURCE_DIR}/build/conf_header/
-  )
+  ${BUILD_DIR}
+)
+
+# Generate conf.hpp
+file(MAKE_DIRECTORY ${BUILD_DIR}/conf_header)
+configure_file(${CPP_CORE_LOCAL_DIR}/conf/conf.hpp.in ${BUILD_DIR}/conf_header/conf.hpp)
 
 # ---- Global system dependencies : Booost Egein CGAL ----
 # BOOST
 find_package(Boost COMPONENTS system filesystem program_options REQUIRED)
+
 # EIGEN
-find_package(Eigen3)
+find_package(Eigen3 REQUIRED)
 if(EIGEN3_FOUND)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCGAL_EIGEN3_ENABLED")
   if(EIGEN3_USE_FILE)
@@ -41,8 +43,9 @@ if(EIGEN3_FOUND)
 else()
   message(STATUS "NOTICE: Eigen library is not found.")
 endif()
+
 # CGAL
-find_package(CGAL QUIET)
+find_package(CGAL REQUIRED)
 if ( CGAL_FOUND )
   set(CGAL_DONT_OVERRIDE_CMAKE_FLAGS TRUE CACHE BOOL "Don't override flags")
   set(CGAL_OPTIMISATION_NO_PRECONDITIONS TRUE)
@@ -51,6 +54,8 @@ if ( CGAL_FOUND )
 else()
   message(STATUS "NOTICE: This program requires the CGAL library, and will not be compiled.")
 endif()
+
+# TBB
 find_package( TBB QUIET )
 if( TBB_FOUND )
   if(NOT COMMAND CGAL_target_use_TBB)
@@ -62,12 +67,11 @@ if( TBB_FOUND )
   endif()
 endif()
 
-# ----- Thirs part libs hardcoded -------
-INCLUDE(${CMAKE_FIND_DIR}/FindHDFS.cmake)
-INCLUDE(${CMAKE_FIND_DIR}/FindDouble-conversion.cmake)
+# ----- Third party libs hardcoded -------
+include(${CMAKE_FIND_DIR}/FindHDFS.cmake)
+include(${CMAKE_FIND_DIR}/FindDouble-conversion.cmake)
 
-
-# ---- Defin global flags and versions ----
+# ---- Define global flags and versions ----
 #set(DDT_TRAITS "3" CACHE STRING "DDT Traits (2,3,D2,D3...)")
 if(DDT_TRAITS STREQUAL "2")
   add_definitions("-DDDT_CGAL_TRAITS_2=1")
@@ -95,15 +99,15 @@ endif()
 # endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O3  -std=gnu++11")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -pthread")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0  -std=gnu++11")
 
 
-
-# --------- Start Lib dependances
+# --------- Start Lib dependencies
 include_directories(${INCLUDE_DIR})
 #include_directories(${HDFS_INCLUDE_DIR})
 include_directories(${DOUBLE_CONV_INCLUDE_DIR})
+include_directories(${CPP_CORE_LOCAL_DIR})
 include(${CGAL_USE_FILE})
 
 # ---------- Make libs ----------
@@ -154,15 +158,11 @@ set(libddt_SOURCES
   ${CPP_CORE_LOCAL_DIR}/traits/cgal_traits_base.hpp
   ${CPP_CORE_LOCAL_DIR}/traits/cgal_traits_d.hpp
   ${CPP_CORE_LOCAL_DIR}/traits/traits.hpp
-  )
+)
 
 add_library( libddt SHARED ${libddt_SOURCES} )
 set_property( TARGET libddt PROPERTY CXX_STANDARD 20)  
 set_target_properties( libddt PROPERTIES PREFIX "" )
-
-
-configure_file(${CPP_CORE_LOCAL_DIR}/conf/conf.hpp.in conf_header/conf.hpp)
-
 
 # Add a custom target
 add_custom_target("format" COMMAND
@@ -176,6 +176,4 @@ add_custom_target("format" COMMAND
   ${CMAKE_CURRENT_SOURCE_DIR}/${SERVICES_LOCAL_DIR}/wasure/src/lib/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/${SERVICES_LOCAL_DIR}/wasure/include/*.hpp
   VERBATIM
-  )
-
-
+)

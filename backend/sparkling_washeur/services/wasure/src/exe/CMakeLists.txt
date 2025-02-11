@@ -31,7 +31,6 @@ target_link_libraries(wasure-stream-exe
   )
 
 
-
 set(CGAL_SCANLINE_ORIENT_VERBOSE 1)
 
 
@@ -52,11 +51,8 @@ target_link_libraries(wasure-local-exe
   )
 
 
-
-
 include_directories("../../../extern/opengm/include/")
-
  
 if(CMAKE_VERBOSITY GREATER 0)
-message(STATUS "Added target wasure (exe)")
+  message(STATUS "Added target wasure (exe)")
 endif(CMAKE_VERBOSITY GREATER 0)
