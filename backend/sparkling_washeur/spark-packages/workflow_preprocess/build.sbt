@@ -17,6 +17,8 @@ libraryDependencies ++= Seq(
   "org.apache.hadoop" % "hadoop-common" % "3.3.6",  // Ensure Hadoop version matches
   "org.scala-lang.modules" %% "scala-xml" % "2.1.0",
   "commons-io" % "commons-io" % "2.11.0",
+  "org.scalactic" %% "scalactic" % "3.2.19",
+    "org.scalatest" %% "scalatest" % "3.2.19" % "test"
 )
 
 dependencyOverrides ++= Seq(
@@ -50,3 +52,4 @@ preprocessJar := {
   IO.copyFile(jarFile, targetFile)
   targetFile
 }
+testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oD")
