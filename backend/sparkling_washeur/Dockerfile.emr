@@ -147,7 +147,7 @@ ENV DDT_TRAITS=3 \
 ENV PATH=$PATH:/usr/local/bin/sbt/bin
 
 # **<***>**<***> COMMENT OUT THE LINE BELOW ... **<***>**<***>
-# ... to compile the app in your local environment instead of the container
+# ... if you want to compile the app in your local environment
 # This grants better caching and the build speed.
 # Uncomment for the prod/CI.
 
