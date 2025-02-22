@@ -25,7 +25,7 @@ roles = EMRRolesStack(app, "EMRRolesStack")
 
 lambda_invoke = LambdaStack(
     app, "LambdaStack", #env,
-    net.vpc, s3.bucket, roles,
+    net.vpc, s3.bucket, ecr, roles,
     S3_PATH_INPUT, DOCKER_IMAGE
 )
 

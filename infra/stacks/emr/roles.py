@@ -30,7 +30,8 @@ class EMRRolesStack(Stack):
                                 "dynamodb:*",
                                 "elasticmapreduce:*",
                                 "s3:*",
-                                "ssm:*"
+                                "ssm:*",
+                                "ecr:*",
                             ],
                             resources=["*"]
                         ),
@@ -61,7 +62,10 @@ class EMRRolesStack(Stack):
         self.emr_ec2_role = iam.Role(self, "RoleEMREC2",
             role_name="EMR_EC2_DefaultRole",
             assumed_by=iam.ServicePrincipal("ec2.amazonaws.com"),
-            managed_policies=[iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSSMManagedInstanceCore")],
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonSSMManagedInstanceCore"),
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonEC2ContainerRegistryReadOnly"),
+                ],
             inline_policies={
                 "EMREC2Policy": iam.PolicyDocument(
                     statements=[
@@ -83,27 +87,6 @@ class EMRRolesStack(Stack):
                         )
                     ]
                 ),
-                "ECRPolicy": iam.PolicyDocument(
-                    statements=[
-                        iam.PolicyStatement(
-                            actions=[
-                                "ecr:GetAuthorizationToken",
-                                "ecr:BatchCheckLayerAvailability",
-                                "ecr:GetDownloadUrlForLayer",
-                                "ecr:GetRepositoryPolicy",
-                                "ecr:DescribeRepositories",
-                                "ecr:ListImages",
-                                "ecr:DescribeImages",
-                                "ecr:BatchGetImage",
-                                "ecr:GetLifecyclePolicy",
-                                "ecr:GetLifecyclePolicyPreview",
-                                "ecr:ListTagsForResource",
-                                "ecr:DescribeImageScanFindings"
-                            ],
-                            resources=["*"]
-                        )
-                    ]
-                )
             }
         )
 

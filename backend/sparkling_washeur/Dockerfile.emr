@@ -142,7 +142,7 @@ WORKDIR /cpp
 ENV DDT_TRAITS=3 \
     DOCKER_BUILD_ENV=1
 
-COPY . .
+#COPY . .
 
 ENV PATH=$PATH:/usr/local/bin/sbt/bin
 
@@ -154,6 +154,8 @@ ENV PATH=$PATH:/usr/local/bin/sbt/bin
 # RUN ./src/docker/docker_interface.sh compile -j $JOBS
 
 ########################################################################################
+
+
 
 # ------------------------------------------------------------------------------------ #
 #                                      Production
@@ -180,7 +182,7 @@ RUN apt-get update && apt-get install -y curl git && apt-get clean
 #     echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | tee /etc/apt/sources.list.d/corretto.list
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # java-1.8.0-amazon-corretto-jdk \
+    java-common \
     # Lidar format dps
     libxerces-c-dev xsdcxx \
     # Matis-lib dps
@@ -205,6 +207,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # **<***>**<***> Python **<***>**<***>
 WORKDIR /
 
+RUN curl -sSL https://corretto.aws/downloads/latest/amazon-corretto-8-x64-linux-jdk.deb -o java.deb && \
+    dpkg -i java.deb && rm -f java.deb
+
 RUN git clone https://github.com/pyenv/pyenv.git
 ENV PYENV_ROOT="/pyenv"
 ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${PATH}"
@@ -215,9 +220,9 @@ RUN pyenv install ${PYTHON_VERSION} && pyenv global ${PYTHON_VERSION} && pyenv r
 
 # **<***>**<***> JVM, Spark, Hadoop **<***>**<***>
 COPY --from=build --chmod=755 \
-    /usr/local/bin/spark-3.5.1-bin-hadoop3-scala2.13    /usr/local/bin/spark
-COPY --from=hdfs --chmod=755 /opt/libhdfs.so    /usr/local/lib/libhdfs.so
-COPY --from=hdfs /opt/jdk    /usr/lib/jvm/java-1.8.0
+    /usr/local/bin/spark-3.5.1-bin-hadoop3-scala2.13  /usr/local/bin/spark
+COPY --from=hdfs --chmod=755 \
+    /opt/libhdfs.so  /usr/local/lib/libhdfs.so
 
 # **<***>**<***> App **<***>**<***>
 WORKDIR /app
@@ -236,7 +241,6 @@ COPY --chmod=755 services/mesh23dtile/ ./
 
 RUN pip install -r requirements.txt && pyenv rehash
 
-
 ENV HADOOP_VERSION=3.3.6 \
     HADOOP_HOME=${BIN}/hadoop \
     HADOOP_CONF_DIR=/etc/hadoop/conf 
@@ -246,7 +250,7 @@ ENV HADOOP_COMMON_PATH=${HADOOP_HOME} \
     HADOOP_YARN_HOME=${HADOOP_HOME}/hadoop-yarn-project \
     # ${HADOOP_HOME}/etc/hadoop
     SPARK_HOME=${BIN}/spark \
-    JAVA_HOME=/usr/lib/jvm/java-1.8.0
+    JAVA_HOME=/usr/lib/jvm/java-1.8.0-amazon-corretto
 ENV PATH="${JAVA_HOME}/jre/bin:${HADOOP_HOME}:${SPARK_HOME}/bin/:${PATH}"
 
 
@@ -259,20 +263,13 @@ RUN curl -sSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "a.z
     unzip -q a.zip && ./aws/install --update && rm -r a.zip
 
 # COPY --from=hdfs --chmod=755 ${BIN}/hadoop-${HADOOP_VERSION}-src/hadoop-hdfs-project $HADOOP_HDFS_HOME
-# For CI/Prod
-# COPY --from=build --chmod=755 /cpp/build ./build
 
-# User hadoop (EMR)
-# RUN groupadd hadoop && useradd --gid hadoop --home-dir /home/hadoop --create-home hadoop && \
-#     echo "hadoop:hadoop" | chpasswd
-# OR
-RUN useradd -m hadoop
+COPY --chmod=755 ./build/build-spark-Release-3/bin ./build/build-spark-Release-3/bin
 
-# ENV DDT_MAIN_DIR="/app/" \
-#     INPUT_DATA_DIR="/app/datas/" \
-#     OUTPUT_DATA_DIR="/app/out/" \
-#     GLOBAL_BUILD_DIR="/app/build/"
-
-# ENV PARAM_PATH="${INPUT_DATA_DIR}/params.xml"
-
+# Add User hadoop for EMR
+RUN groupadd hadoop && useradd --gid hadoop --home-dir /home/hadoop --create-home hadoop && \
+    echo "hadoop:hadoop" | chpasswd
 USER hadoop
+
+# OR
+#RUN useradd -m hadoop

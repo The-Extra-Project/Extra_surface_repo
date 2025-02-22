@@ -15,8 +15,7 @@ from aws_cdk import (
 class LambdaStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str,
-                 #env,
-                 vpc: Construct, s3_bucket: Construct, roles: Construct,
+                 vpc: Construct, s3_bucket: Construct, ecr: Construct, roles: Construct,
                  input_prefix: str, docker_image: str,
                  **kwargs) -> Construct:
 
@@ -85,6 +84,7 @@ class LambdaStack(Stack):
                 "vol_root_size": '30',
                 # App
                 "docker_image": docker_image,
+                "ecr_endpoint": ecr.registry_emr.repository_uri,
                 "s3_path": self.s3_bucket_name,
                 "s3_path_input": f"{self.s3_bucket_name}/{input_prefix}",
                 "s3_path_bootstrap": f"{self.s3_bucket_name}/scripts/docker.sh",

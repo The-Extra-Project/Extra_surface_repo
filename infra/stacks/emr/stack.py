@@ -1,35 +1,34 @@
 from constructs import Construct
 from aws_cdk import (
     Stack,
-    aws_ec2 as ec2,
     aws_emr as emr,
     Fn,
     CfnParameter,
     CfnOutput,
-    Aws,
     CfnTag,
     aws_iam as iam,
 )
 
-JAR_IQ = "s3://extralabs-artifacts-dev/jar/iqlib.jar"
-DOCKER_IMAGE = "767397971222.dkr.ecr.eu-west-1.amazonaws.com/extralabs-emr-dev:latest"
-BOOTSTRAP_SCRIPT_PATH = "s3://extralabs-artifacts-dev/scripts/docker.sh"
-SSH_KEY_NAME="extra"
+
+ECR_ENDPOINT = "767397971222.dkr.ecr.eu-west-1.amazonaws.com"
+REGISTRY = ECR_ENDPOINT + "/extralabs-emr-dev"
+DOCKER_IMAGE = REGISTRY + ":latest"
+
+SSH_KEY_NAME = "extra"
 
 S3_PATH_BOOTSTRAP = "s3://extralabs-artifacts-dev/scripts/docker.sh"
 
-S3_PATH_INPUT = "s3://extralabs-artifacts-dev/data/"
+S3_PATH_INPUT = "s3a://extralabs-artifacts-dev/data/"
 S3_PATH_IQLIB = "s3://extralabs-artifacts-dev/jar/iqlib.jar"
-S3_PATH_PREPROCESS = "s3://extralabs-artifacts-dev/jar/preprocess-0.3.jar"
-# SSH, monitoring - logs in s3 buckeet which is not autocreted
-# steps fail
+S3_PATH_PREPROCESS = "s3://extralabs-artifacts-dev/jar/preprocess-0.4.jar"
+# SSH, monitoring - logs in s3 bucket which is not autocreted
 
 EMR_NODE_TYPE_MASTER = "m5.xlarge"
 EMR_NODE_TYPE_CORE = "m5.xlarge"
-EMR_NODE_TYPE_TASK = "m5.xlarge"
+EMR_NODE_TYPE_TASK = "c5.xlarge"
 
-SPARK_HEAP_SIZE = "2g"
-SPARK_MEM_FRACTION = "0.8"
+SPARK_HEAP_SIZE = "1g"
+SPARK_MEM_FRACTION = "0.6"
 
 
 class EMRStack(Stack):
@@ -64,31 +63,32 @@ class EMRStack(Stack):
                 instance_type=EMR_NODE_TYPE_CORE,
                 market="ON_DEMAND"
             ),
-            task_instance_groups=[emr.CfnCluster.InstanceGroupConfigProperty(
-                name="default",
-                instance_count=1,
-                instance_type=EMR_NODE_TYPE_TASK,
-                market="ON_DEMAND",
-                # custom_ami_id="customAmiId",
-                # configurations=[emr.CfnCluster.ConfigurationProperty(
-                #     classification="classification",
-                #     configuration_properties={
-                #         "configuration_properties_key": "configurationProperties"
-                #     },
-                #     configurations=[configuration_property_]
-                # )],
-                ebs_configuration=emr.CfnCluster.EbsConfigurationProperty(
-                    ebs_block_device_configs=[emr.CfnCluster.EbsBlockDeviceConfigProperty(
-                        volume_specification=emr.CfnCluster.VolumeSpecificationProperty(
-                            size_in_gb=50,
-                            volume_type="gp3",
-                            # iops=123
-                        ),
-                        # volumes_per_instance=123
-                    )],
-                    ebs_optimized=True
-                ),
-            )],
+            # For cost savings, uncomment for the prod
+            # task_instance_groups=[emr.CfnCluster.InstanceGroupConfigProperty(
+            #     name="default",
+            #     instance_count=1,
+            #     instance_type=EMR_NODE_TYPE_TASK,
+            #     market="ON_DEMAND",
+            #     # custom_ami_id="customAmiId",
+            #     # configurations=[emr.CfnCluster.ConfigurationProperty(
+            #     #     classification="classification",
+            #     #     configuration_properties={
+            #     #         "configuration_properties_key": "configurationProperties"
+            #     #     },
+            #     #     configurations=[configuration_property_]
+            #     # )],
+            #     ebs_configuration=emr.CfnCluster.EbsConfigurationProperty(
+            #         ebs_block_device_configs=[emr.CfnCluster.EbsBlockDeviceConfigProperty(
+            #             volume_specification=emr.CfnCluster.VolumeSpecificationProperty(
+            #                 size_in_gb=50,
+            #                 volume_type="gp3",
+            #                 # iops=123
+            #             ),
+            #             # volumes_per_instance=123
+            #         )],
+            #         ebs_optimized=True
+            #     ),
+            # )],
             keep_job_flow_alive_when_no_steps=True,
             termination_protected=False,
             hadoop_version="3.3.6",
@@ -121,7 +121,8 @@ class EMRStack(Stack):
                     hadoop_jar_step=emr.CfnCluster.HadoopJarStepConfigProperty(
                         jar="command-runner.jar",
                         args=[
-                            "bash", "-c", f"aws s3 sync {S3_PATH_INPUT} /home/hadoop/data"
+                            "bash", "-c",
+                            f"hdfs dfs -mkdir -p /user/hadoop/{{input,output}} && hdfs dfs -cp {S3_PATH_INPUT}/* /user/hadoop/input"
                         ],
                     ),
                     action_on_failure="CANCEL_AND_WAIT"  # optional
@@ -130,19 +131,42 @@ class EMRStack(Stack):
                     name="2 - Preprocess",
                     hadoop_jar_step=emr.CfnCluster.HadoopJarStepConfigProperty(
                         jar="command-runner.jar",
-                        # optional
                         args=[
                             'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
-                            '--jars', S3_PATH_IQLIB,
-                            '--conf', 'spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE=docker',
-                            '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={DOCKER_IMAGE}',
-                            S3_PATH_PREPROCESS
+                            '--class', 'WorkflowWasure', '--jars', S3_PATH_IQLIB, S3_PATH_PREPROCESS,
+
+                            'DDT_MAIN_DIR=/app/',
+                            'GLOBAL_BUILD_DIR=/app/build/',
+                            # hdfs path
+                            'INPUT_DATA_DIR=/user/hadoop/input',
+                            'OUTPUT_DATA_DIR=/user/hadoop/input',
+                            'PARAM_PATH=/user/hadoop/input/params.xml',
+
                         ],
-                        main_class="WorkflowWasure",
-                        # step_properties=[emr.CfnCluster.KeyValueProperty(
-                        #     key="key",
-                        #     value="value"
-                        # )]
+                        # Pass params as env vars
+                        # step_properties=[
+                        #     emr.CfnCluster.KeyValueProperty(
+                        #         key="DDT_MAIN_DIR",
+                        #         value="/app/",
+                        #     ),
+                        #     emr.CfnCluster.KeyValueProperty(
+                        #         key="GLOBAL_BUILD_DIR",
+                        #         value="/app/build/",
+                        #     ),
+                        #     # HDFS paths
+                        #     emr.CfnCluster.KeyValueProperty(
+                        #         key="INPUT_DATA_DIR",
+                        #         value="/user/hadoop/input",
+                        #     ),
+                        #     emr.CfnCluster.KeyValueProperty(
+                        #         key="PARAM_PATH",
+                        #         value="/user/hadoop/input/params.xml",
+                        #     ),
+                        #     emr.CfnCluster.KeyValueProperty(
+                        #         key="OUTPUT_DATA_DIR",
+                        #         value="/user/hadoop/input",
+                        #     ),
+                        # ]
                     ),
                     action_on_failure="CANCEL_AND_WAIT"  # optional
                 )
@@ -152,61 +176,36 @@ class EMRStack(Stack):
                 emr.CfnCluster.ApplicationProperty(name="Spark"),
             ],
             configurations=[
-                ################### GENERAL ###################
+                # GENERAL
                 emr.CfnCluster.ConfigurationProperty(
                     classification="delta-defaults",
                     configuration_properties={
                         "delta.enabled": "true"
                     }
                 ),
-                emr.CfnCluster.ConfigurationProperty(
-                    classification="yarn-site",
-                    configuration_properties={
-                        "yarn.container.runtime.type": "docker",
-                        "yarn.container.docker.image": DOCKER_IMAGE,
-                        "yarn.nodemanager.runtime.linux.docker.default-rw-mounts": "/home/hadoop/data:/app/datas",
-                        # "yarn.nodemanager.env-whitelist": ""
-                        # docker.allowed.ro-mounts
-                        # docker.allowed.rw-mounts
-                    }
-                ),
-                # access to private repos granted by default
-                # emr.CfnCluster.ConfigurationProperty(
-                #     classification="container-executor",
-                #     configurations=[emr.CfnCluster.ConfigurationProperty(
-                #         classification="docker",
-                #         configuration_properties={
-                #             "docker.trusted.registries": "local,centos,{ecr}".format(ecr=ecr.registry_emr.repository_uri),
-                #             "docker.privileged-containers.registries": "local,centos,{ecr}".format(
-                #                 ecr=ecr.registry_emr.repository_uri
-                #             )
-                #         }
-                #     )],
-                # ),
 
-                ################### SPARK ################### 
+                # SPARK
                 # https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark-docker.html
-                # Override JVM
                 emr.CfnCluster.ConfigurationProperty(
                     classification="spark-defaults",
                     configuration_properties={
+                        # Override JVM
+                        "spark.executorEnv.JAVA_HOME": "/usr/lib/jvm/java-1.8.0-amazon-corretto",
+                        "spark.yarn.appMasterEnv.JAVA_HOME": "/usr/lib/jvm/java-1.8.0-amazon-corretto",
+                        # Docker settings
                         "spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE": "docker",
                         "spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE": DOCKER_IMAGE,
-                        "spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_MOUNTS": "/home/hadoop/data:/app/datas:rw,/home/hadoop/out:/app/out:rw,/home/hadoop/logs:/tmp:rw",
                         "spark.yarn.appMasterEnv.YARN_CONTAINER_RUNTIME_TYPE": "docker",
                         "spark.yarn.appMasterEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE": DOCKER_IMAGE,
+                        # From Waseur repo
                         "spark.rdd.compress": "true",
                         "spark.eventLog.enabled": "true",
-                        "spark.driver.allowMultipleContexts": "true",
                         "spark.memory.offHeap.enabled": "true",
+                        "spark.driver.allowMultipleContexts": "true",
                         "spark.memory.offHeap.size": SPARK_HEAP_SIZE,
                         "spark.memory.storageFraction": SPARK_MEM_FRACTION,
                         "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
-                        # "spark.executorEnv.DDT_MAIN_DIR": "/app/",
-                        # "spark.executorEnv.INPUT_DATA_DIR": "/app/datas/",
-                        # "spark.executorEnv.OUTPUT_DATA_DIR": "/app/out/",
-                        # "spark.executorEnv.GLOBAL_BUILD_DIR": "/app/build/",
-                        # "spark.executorEnv.PARAM_PATH": "${INPUT_DATA_DIR}/params.xml",
+                        # "spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_MOUNTS": "/home/hadoop/mnt:/app/mnt:rw",
                     }
                 ),
                 emr.CfnCluster.ConfigurationProperty(
@@ -214,17 +213,24 @@ class EMRStack(Stack):
                     configurations=[emr.CfnCluster.ConfigurationProperty(
                         classification="export",
                         configuration_properties={
-                            "JAVA_HOME": "/usr/lib/jvm/java-1.8.0",
-                            "DDT_MAIN_DIR": "/app/",
-                            "INPUT_DATA_DIR": "/app/datas/",
-                            "OUTPUT_DATA_DIR": "/app/out/",
-                            "GLOBAL_BUILD_DIR": "/app/build/",
-                            "PARAM_PATH": "/app/datas/params.xml",
+                            "JAVA_HOME": "/usr/lib/jvm/java-1.8.0-amazon-corretto",
                         }
                     )],
                 ),
 
-                ################### HADOOP ################### 
+                # HADOOP
+                emr.CfnCluster.ConfigurationProperty(
+                    classification="hadoop-env",
+                    configurations=[
+                        # Override JVM
+                        emr.CfnCluster.ConfigurationProperty(
+                            classification="export",
+                            configuration_properties={
+                                "JAVA_HOME": "/usr/lib/jvm/java-1.8.0-amazon-corretto"
+                            },
+                        )
+                    ]
+                ),
                 # https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-hadoop-config.html
                 emr.CfnCluster.ConfigurationProperty(
                     classification="mapred-site",
@@ -233,18 +239,91 @@ class EMRStack(Stack):
                         "mapred.job.jvm.num.tasks": "-1"
                     }
                 ),
+
+                # YARN
                 emr.CfnCluster.ConfigurationProperty(
-                    classification="hadoop-env",
-                    configurations=[
-                        # Override JVM
-                        emr.CfnCluster.ConfigurationProperty(
-                            classification="export",
-                            configuration_properties={
-                                "JAVA_HOME": "/usr/lib/jvm/java-1.8.0"
-                            },
-                        )
-                    ]
+                    classification="yarn-site",
+                    configuration_properties={
+                        # Container runtime configuration
+                        # https://hadoop.apache.org/docs/r3.3.6/hadoop-yarn/hadoop-yarn-site/DockerContainers.html
+                        # Node Labels
+                        "yarn.node-labels.enabled": "true",
+                        "yarn.node-labels.am.default-node-label-expression": "ON_DEMAND",
+                        "yarn.node-labels.configuration-type": "distributed",
+
+                        # https://repost.aws/questions/QUPohFO5BKTrqZxhybxAG8IA/emr-ecr-auto-login-failing-starting-with-emr-6-9-0
+                        "yarn.nodemanager.runtime.linux.docker.ecr-auto-authentication.enabled": "true",
+                        "yarn.nodemanager.runtime.linux.docker.docker-client-credential-provider.class": "org.apache.hadoop.security.authentication.EcrDockerClientCredentialProvider",
+
+                        "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor",
+                        "yarn.nodemanager.linux-container-executor.path": "/usr/lib/hadoop-yarn/bin/container-executor",
+                        "yarn.nodemanager.linux-container-executor.group": "hadoop",
+                        "yarn.nodemanager.linux-container-executor.nonsecure-mode.limit-users": "false",
+                        "yarn.nodemanager.runtime.linux.docker.allowed-container-runtimes": "docker",
+                        "yarn.nodemanager.runtime.linux.type": "docker",
+                        "yarn.nodemanager.runtime.linux.allowed-runtimes": "docker",
+                        "yarn.nodemanager.runtime.linux.docker.image-update": "true",
+                        "yarn.nodemanager.runtime.linux.docker.image-name": DOCKER_IMAGE,
+                        "yarn.nodemanager.runtime.linux.docker.allowed-container-networks": "host,none,bridge",
+                        "yarn.nodemanager.runtime.linux.docker.default-container-network": "host",
+                        "yarn.nodemanager.runtime.linux.docker.host-pid-namespace.allowed": "false",
+                        "yarn.nodemanager.runtime.linux.docker.privileged-containers.allowed": "false",
+                        "yarn.nodemanager.runtime.linux.docker.delayed-removal.allowed": "false",
+                        "yarn.nodemanager.runtime.linux.docker.stop.grace-period": "10",
+                        "yarn.nodemanager.runtime.linux.docker.privileged-containers.acl": "",
+                        "yarn.nodemanager.runtime.linux.docker.capabilities": "CHOWN,DAC_OVERRIDE,FSETID,FOWNER,MKNOD,NET_RAW,SETGID,SETUID,SETFCAP,SETPCAP,NET_BIND_SERVICE,SYS_CHROOT,KILL,AUDIT_WRITE",
+                        "yarn.nodemanager.runtime.linux.docker.enable-userremapping.allowed": "true",
+                        "yarn.nodemanager.runtime.linux.docker.userremapping-uid-threshold": "1",
+                        "yarn.nodemanager.runtime.linux.docker.userremapping-gid-threshold": "1",
+
+                        # Worker nodes init connection to the master node
+                        "yarn.resourcemanager.nodemanager-connect-retries": "55",
+                        "yarn.client.nodemanager-connect.retry-interval-ms": "3000",
+                        "yarn.client.nodemanager-connect.max-wait-ms": "600000",
+                        "yarn.resourcemanager.connect.max-wait.ms": "600000",
+                        "yarn.resourcemanager.connect.retry-interval.ms": "10000",
+                        #"yarn.resourcemanager.nodemanagers.heartbeat-interval-ms": "3000",
+
+                        # Resource constraints
+                        "yarn.scheduler.maximum-allocation-mb": "8192",
+
+                        "yarn.nodemanager.env-whitelist": "JAVA_HOME,HADOOP_COMMON_HOME,HADOOP_HDFS_HOME,HADOOP_CONF_DIR,CLASSPATH_PREPEND_DISTCACHE,HADOOP_YARN_HOME,HADOOP_HOME,PATH,LANG,TZ",
+                        # Mounts (optional)
+                        #"yarn.nodemanager.runtime.linux.docker.default-rw-mounts": "/home/hadoop/mnt:/app/mnt",
+                        #"yarn.nodemanager.local-dirs": "/mnt/yarn-local",
+                        #"yarn.nodemanager.log-dirs": "/mnt/yarn-logs",
+                        #"yarn.nodemanager.runtime.linux.docker.default-ro-mounts": "",
+                    }
                 ),
+                # access to private repos granted by default
+                emr.CfnCluster.ConfigurationProperty(
+                    classification="container-executor",
+                    configurations=[emr.CfnCluster.ConfigurationProperty(
+                        classification="docker",
+                        configuration_properties={
+                            "module.enabled": "true",
+                            "docker.binary": "/usr/bin/docker",
+                            # ECR
+                            "docker.trusted.registries": f"local,centos,{ECR_ENDPOINT},{REGISTRY}",
+                            "docker.privileged-containers.registries": f"local,centos,{ECR_ENDPOINT},{REGISTRY}",
+
+                            "docker.allowed.capabilities": "CHOWN,DAC_OVERRIDE,FSETID,FOWNER,MKNOD,NET_RAW,SETGID,SETUID,SETFCAP,SETPCAP,NET_BIND_SERVICE,SYS_CHROOT,KILL,AUDIT_WRITE",
+                            "docker.allowed.devices": "",
+                            "docker.allowed.networks": "host",
+                            "docker.inspect.max.retries": "5",
+                            "docker.no-new-privileges.enabled": "false",
+                            "docker.allowed.runtimes": "docker",
+                            "docker.service-mode.enabled": "false",
+                            "docker.allowed.rw-mounts": "/mnt,/mnt1",  #/hdfs /etc,/var/hadoop/yarn/local-dir,/var/hadoop/yarn/log-dir,
+                            "docker.allowed.ro-mounts": "/sys/fs/cgroup,/etc/passwd,/etc/group,/usr",
+                            "docker.allowed.volume-drivers": "local",
+                            "docker.host-pid-namespace.enabled": "false",
+                            "docker.privileged-containers.enabled": "false",
+
+                        }
+                    )],
+                ),
+
             ],
             # custom_ami_id="customAmiId",
             ebs_root_volume_size=50,

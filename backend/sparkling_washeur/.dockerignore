@@ -1,4 +1,6 @@
 storage/** 
-outputs* 
+outputs*
 hadoop*
 datas/** 
+build/**
+Dockerfile*

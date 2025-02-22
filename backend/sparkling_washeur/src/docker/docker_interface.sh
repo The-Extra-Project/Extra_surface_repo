@@ -69,9 +69,9 @@ function compile {
     EXEC_FUN="${EXEC_FUN} && echo -e '\nBUILDING SERVICES\n' && cd ${DDT_MAIN_DIR_DOCKER}/services/ && \
               ./build-unix.sh build -b ${KERNEL_BUILD_DIR} -c ${COMPILE_MODE} -t ${DDT_TRAITS} -j ${NB_PROC}"
 
-    # Compile spark:: ./src/spark
-    EXEC_FUN="${EXEC_FUN} && mkdir -p ${SPARK_BUILD_DIR} && cp -rf ${DDT_MAIN_DIR_DOCKER}/src/spark/* ${SPARK_BUILD_DIR} && \
-              cd ${SPARK_BUILD_DIR} && ./build-unix.sh"
+    # # Compile spark:: ./src/spark
+    # EXEC_FUN="${EXEC_FUN} && mkdir -p ${SPARK_BUILD_DIR} && cp -rf ${SPARK_SRC_BUILD_DIR}/* ${SPARK_BUILD_DIR} && \
+    #           cd ${SPARK_BUILD_DIR} && ./build-unix.sh"
 
     # Eval EXEC_FUN directly or in a docker container depending on the env
     ${DDT_MAIN_DIR}/src/docker/run_bash_docker.sh -l "${EXEC_FUN}" -m "${MOUNT_CMD}" -i "${NAME_IMG_BASE}" -c ${CONTAINER_NAME_COMPILE}

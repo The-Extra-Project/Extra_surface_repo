@@ -15,6 +15,7 @@ vol_root_size = os.environ.get('vol_root_size', 30)
 
 # App
 docker_image = os.environ.get('docker_image', None)
+ecr_endpoint = os.environ.get('ecr_endpoint')
 s3_path = os.environ.get('s3_path', None)
 s3_path_input = os.environ.get('s3_path_input')
 s3_path_bootstrap = os.environ.get('s3_path_bootstrap')
@@ -104,27 +105,28 @@ def lambda_handler(event, context):
                             'EbsOptimized': True
                         },
                     },
-                    {
-                        "Name": "Task",
-                        "Market": "ON_DEMAND",
-                        "InstanceRole": "TASK",
-                        "InstanceType": task_instance_type,
-                        "InstanceCount": task_instance_count,
-                        'EbsConfiguration': {
-                            'EbsBlockDeviceConfigs': [
-                                {
-                                    'VolumeSpecification': {
-                                        'VolumeType': 'gp3',
-                                        'SizeInGB': vol_size,
-                                        # 'Iops': 123,
-                                        # 'Throughput': 123
-                                    },
-                                    'VolumesPerInstance': 1
-                                },
-                            ],
-                            'EbsOptimized': True
-                        },
-                    }
+                    # Refactor: Uncomment for production
+                    # {
+                    #     "Name": "Task",
+                    #     "Market": "ON_DEMAND",
+                    #     "InstanceRole": "TASK",
+                    #     "InstanceType": task_instance_type,
+                    #     "InstanceCount": task_instance_count,
+                    #     'EbsConfiguration': {
+                    #         'EbsBlockDeviceConfigs': [
+                    #             {
+                    #                 'VolumeSpecification': {
+                    #                     'VolumeType': 'gp3',
+                    #                     'SizeInGB': vol_size,
+                    #                     # 'Iops': 123,
+                    #                     # 'Throughput': 123
+                    #                 },
+                    #                 'VolumesPerInstance': 1
+                    #             },
+                    #         ],
+                    #         'EbsOptimized': True
+                    #     },
+                    # }
                 ],
             },
             EbsRootVolumeSize=int(vol_root_size),
@@ -135,7 +137,7 @@ def lambda_handler(event, context):
                     'HadoopJarStep': {
                         'Jar': 'command-runner.jar',
                         'Args': [
-                            "bash", "-c", f"aws s3 sync {s3_path_input} /home/hadoop/data"
+                            "bash", "-c", f"hdfs dfs -mkdir -p /user/hadoop/{{input,output}} && hdfs dfs -cp {s3_path_input}/* /user/hadoop/input"
                         ]
                     }
                 },
@@ -147,10 +149,15 @@ def lambda_handler(event, context):
                         'MainClass': main_class,
                         'Args': [
                             'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
-                            '--jars', s3_path_iqlib,
-                            '--conf', 'spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE=docker',
-                            '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={docker_image}',
-                            s3_path_preprocess
+                            '--class', 'WorkflowWasure', '--jars', s3_path_iqlib,
+                            s3_path_preprocess,
+                            # Docker image paths
+                            'DDT_MAIN_DIR=/app/',
+                            'GLOBAL_BUILD_DIR=/app/build/',
+                            # Cluster hdfs path
+                            'INPUT_DATA_DIR=/user/hadoop/input',
+                            'OUTPUT_DATA_DIR=/user/hadoop/input',
+                            'PARAM_PATH=/user/hadoop/input/params.xml',
                         ],
                     }
                 },
@@ -162,10 +169,9 @@ def lambda_handler(event, context):
                         'MainClass': main_class,
                         'Args': [
                             'spark-submit', '--deploy-mode', 'cluster', '--master', 'yarn',
-                            '--jars', s3_path_iqlib,
-                            '--conf', 'spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE=docker',
-                            '--conf', f'spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE={docker_image}',
-                            s3_path_process
+                            '--class', 'WorkflowWasure', '--jars', s3_path_iqlib,
+                            s3_path_process,
+                            # Refactor: add args, see job 2 above
                         ],
                     }
                 },
@@ -178,21 +184,17 @@ def lambda_handler(event, context):
                     }
                 },
                 {
-                    'Classification': 'yarn-site',
-                    'Properties': {
-                        "yarn.container.runtime.type": "docker",
-                        "yarn.container.docker.image": docker_image,
-                        "yarn.nodemanager.runtime.linux.docker.default-rw-mounts": "/home/hadoop/data:/app/datas",
-                    }
-                },
-                {
                     'Classification': 'spark-defaults',
                     'Properties': {
+                        # Override JVM
+                        "spark.executorEnv.JAVA_HOME": "/usr/lib/jvm/java-1.8.0-amazon-corretto",
+                        "spark.yarn.appMasterEnv.JAVA_HOME": "/usr/lib/jvm/java-1.8.0-amazon-corretto",
+                        # Docker settings
                         "spark.executorEnv.YARN_CONTAINER_RUNTIME_TYPE": "docker",
                         "spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE": docker_image,
-                        "spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_MOUNTS": "/home/hadoop/data:/app/datas:rw,/home/hadoop/out:/app/out:rw,/home/hadoop/logs:/tmp:rw",
                         "spark.yarn.appMasterEnv.YARN_CONTAINER_RUNTIME_TYPE": "docker",
                         "spark.yarn.appMasterEnv.YARN_CONTAINER_RUNTIME_DOCKER_IMAGE": docker_image,
+                        # From Waseur repo
                         "spark.rdd.compress": "true",
                         "spark.eventLog.enabled": "true",
                         "spark.driver.allowMultipleContexts": "true",
@@ -207,12 +209,16 @@ def lambda_handler(event, context):
                     'Configurations': [{
                         'Classification': 'export',
                         'Properties': {
-                            "JAVA_HOME": "/usr/lib/jvm/java-1.8.0",
-                            "DDT_MAIN_DIR": "/app/",
-                            "INPUT_DATA_DIR": "/app/datas/",
-                            "OUTPUT_DATA_DIR": "/app/out/",
-                            "GLOBAL_BUILD_DIR": "/app/build/",
-                            "PARAM_PATH": "/app/datas/params.xml",
+                            "JAVA_HOME": "/usr/lib/jvm/java-1.8.0-amazon-corretto",
+                        }
+                    }]
+                },
+                {
+                    'Classification': 'hadoop-env',
+                    'Configurations': [{
+                        'Classification': 'export',
+                        'Properties': {
+                            "JAVA_HOME": "/usr/lib/jvm/java-1.8.0-amazon-corretto",
                         }
                     }]
                 },
@@ -223,11 +229,74 @@ def lambda_handler(event, context):
                     }
                 },
                 {
-                    'Classification': 'hadoop-env',
+                    'Classification': 'yarn-site',
+                    'Properties': {
+                        # Node Labels
+                        "yarn.node-labels.enabled": "true",
+                        "yarn.node-labels.am.default-node-label-expression": "ON_DEMAND",
+                        "yarn.node-labels.configuration-type": "distributed",
+
+                        "yarn.nodemanager.runtime.linux.docker.ecr-auto-authentication.enabled": "true",
+                        "yarn.nodemanager.runtime.linux.docker.docker-client-credential-provider.class": "org.apache.hadoop.security.authentication.EcrDockerClientCredentialProvider",
+
+                        "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor",
+                        "yarn.nodemanager.linux-container-executor.path": "/usr/lib/hadoop-yarn/bin/container-executor",
+                        "yarn.nodemanager.linux-container-executor.group": "hadoop",
+                        "yarn.nodemanager.linux-container-executor.nonsecure-mode.limit-users": "false",
+                        "yarn.nodemanager.runtime.linux.docker.allowed-container-runtimes": "docker",
+                        "yarn.nodemanager.runtime.linux.type": "docker",
+                        "yarn.nodemanager.runtime.linux.allowed-runtimes": "docker",
+                        "yarn.nodemanager.runtime.linux.docker.image-update": "true",
+                        "yarn.nodemanager.runtime.linux.docker.image-name": docker_image,
+                        "yarn.nodemanager.runtime.linux.docker.allowed-container-networks": "host,none,bridge",
+                        "yarn.nodemanager.runtime.linux.docker.default-container-network": "host",
+                        "yarn.nodemanager.runtime.linux.docker.host-pid-namespace.allowed": "false",
+                        "yarn.nodemanager.runtime.linux.docker.privileged-containers.allowed": "false",
+                        "yarn.nodemanager.runtime.linux.docker.delayed-removal.allowed": "false",
+                        "yarn.nodemanager.runtime.linux.docker.stop.grace-period": "10",
+                        "yarn.nodemanager.runtime.linux.docker.privileged-containers.acl": "",
+                        "yarn.nodemanager.runtime.linux.docker.capabilities": "CHOWN,DAC_OVERRIDE,FSETID,FOWNER,MKNOD,NET_RAW,SETGID,SETUID,SETFCAP,SETPCAP,NET_BIND_SERVICE,SYS_CHROOT,KILL,AUDIT_WRITE",
+                        "yarn.nodemanager.runtime.linux.docker.enable-userremapping.allowed": "true",
+                        "yarn.nodemanager.runtime.linux.docker.userremapping-uid-threshold": "1",
+                        "yarn.nodemanager.runtime.linux.docker.userremapping-gid-threshold": "1",
+
+                        # Worker nodes init connection to the master node
+                        "yarn.resourcemanager.nodemanager-connect-retries": "55",
+                        "yarn.client.nodemanager-connect.retry-interval-ms": "3000",
+                        "yarn.client.nodemanager-connect.max-wait-ms": "600000",
+                        "yarn.resourcemanager.connect.max-wait.ms": "600000",
+                        "yarn.resourcemanager.connect.retry-interval.ms": "10000",
+                        #"yarn.resourcemanager.nodemanagers.heartbeat-interval-ms": "3000",
+
+                        # Resource constraints
+                        "yarn.scheduler.maximum-allocation-mb": "8192",
+
+                        "yarn.nodemanager.env-whitelist": "JAVA_HOME,HADOOP_COMMON_HOME,HADOOP_HDFS_HOME,HADOOP_CONF_DIR,CLASSPATH_PREPEND_DISTCACHE,HADOOP_YARN_HOME,HADOOP_HOME,PATH,LANG,TZ",
+                    }
+                },
+                {
+                    'Classification': 'container-executor',
                     'Configurations': [{
-                        'Classification': 'export',
+                        'Classification': 'docker',
                         'Properties': {
-                            "JAVA_HOME": "/usr/lib/jvm/java-1.8.0",
+                            "module.enabled": "true",
+                            "docker.binary": "/usr/bin/docker",
+                            # ECR
+                            "docker.trusted.registries": f"local,centos,{ecr_endpoint}",
+                            "docker.privileged-containers.registries": f"local,centos,{ecr_endpoint}",
+
+                            "docker.allowed.capabilities": "CHOWN,DAC_OVERRIDE,FSETID,FOWNER,MKNOD,NET_RAW,SETGID,SETUID,SETFCAP,SETPCAP,NET_BIND_SERVICE,SYS_CHROOT,KILL,AUDIT_WRITE",
+                            "docker.allowed.devices": "",
+                            "docker.allowed.networks": "host",
+                            "docker.inspect.max.retries": "5",
+                            "docker.no-new-privileges.enabled": "false",
+                            "docker.allowed.runtimes": "docker",
+                            "docker.service-mode.enabled": "false",
+                            "docker.allowed.rw-mounts": "/mnt,/mnt1",  #/hdfs /etc,/var/hadoop/yarn/local-dir,/var/hadoop/yarn/log-dir,
+                            "docker.allowed.ro-mounts": "/sys/fs/cgroup,/etc/passwd,/etc/group,/usr",
+                            "docker.allowed.volume-drivers": "local",
+                            "docker.host-pid-namespace.enabled": "false",
+                            "docker.privileged-containers.enabled": "false",
                         }
                     }]
                 },

@@ -73,7 +73,6 @@ object WorkflowWasure {
     val env_xml = params.getOrElse("PARAM_PATH", default_value).replaceAll("//", "/")
     val ddt_main_dir = params.getOrElse("DDT_MAIN_DIR", default_value).replaceAll("//", "/")
     val global_build_dir = params.getOrElse("GLOBAL_BUILD_DIR", default_value).replaceAll("//", "/")
-  
 
     if (output_dir.isEmpty || input_dir.isEmpty )
     {
